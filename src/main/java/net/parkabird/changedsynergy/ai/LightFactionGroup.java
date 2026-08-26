@@ -45,6 +45,14 @@ public final class LightFactionGroup {
             return stored;
         }
 
+        // EntityJoinLevelEvent can run while PersistentEntitySectionManager is
+        // still installing the entity's chunk. Asking Level#getHeight from that
+        // callback waits for the very same chunk and stalls the integrated
+        // server. Leave the identity unassigned until the chunk is fully live.
+        if (!canResolveAt(creature.level(), creature.blockPosition())) {
+            return GENERAL;
+        }
+
         String legacy = creature.getPersistentData().getString(
                 LEGACY_GROUP_DATA);
         String migrated = regionFromLegacyBiome(creature.level(), legacy);
@@ -72,9 +80,21 @@ public final class LightFactionGroup {
         return resolved;
     }
 
+    public static boolean isAssigned(ChangedEntity creature) {
+        return creature.getPersistentData().contains(GROUP_DATA);
+    }
+
+    public static boolean canResolveAt(Level level, BlockPos position) {
+        return level instanceof ServerLevel serverLevel
+                && serverLevel.getChunkSource().getChunkNow(
+                        position.getX() >> 4,
+                        position.getZ() >> 4) != null;
+    }
+
     /** Regional Light account used by territory HUD and environmental benefits. */
     public static String at(Level level, BlockPos position) {
-        if (!(level instanceof ServerLevel serverLevel)) {
+        if (!(level instanceof ServerLevel serverLevel)
+                || !canResolveAt(level, position)) {
             return GENERAL;
         }
         int surface = serverLevel.getHeight(

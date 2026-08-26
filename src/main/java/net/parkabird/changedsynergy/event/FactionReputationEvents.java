@@ -1,6 +1,7 @@
 package net.parkabird.changedsynergy.event;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.ltxprogrammer.changed.Changed;
@@ -18,13 +19,16 @@ import net.ltxprogrammer.changed.process.TransfurEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.event.TickEvent;
@@ -63,6 +67,9 @@ public final class FactionReputationEvents {
             new HashMap<>();
     private static final Map<UUID, Long> NEXT_AUTHORITATIVE_SYNC =
             new HashMap<>();
+    private static final Map<UUID, PendingLightGroupAssignment>
+            PENDING_LIGHT_GROUP_ASSIGNMENTS = new HashMap<>();
+    private static final int LIGHT_GROUP_ASSIGNMENT_MAX_ATTEMPTS = 200;
     private FactionReputationEvents() {
     }
 
@@ -80,8 +87,50 @@ public final class FactionReputationEvents {
     public static void onCreatureJoin(EntityJoinLevelEvent event) {
         if (!event.getLevel().isClientSide()
                 && event.getEntity() instanceof ChangedEntity creature
-                && HunterFaction.of(creature) == HunterFaction.LIGHT) {
-            LightFactionGroup.of(creature);
+                && HunterFaction.of(creature) == HunterFaction.LIGHT
+                && !LightFactionGroup.isAssigned(creature)) {
+            PENDING_LIGHT_GROUP_ASSIGNMENTS.put(
+                    creature.getUUID(),
+                    new PendingLightGroupAssignment(
+                            creature.level().dimension(), 0));
+        }
+    }
+
+    /**
+     * Resolves regional Light identity only after entity and chunk loading has
+     * completed. getChunkNow is deliberately used so this bookkeeping can
+     * never force generation or wait on the chunk task currently calling us.
+     */
+    @SubscribeEvent
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END
+                || PENDING_LIGHT_GROUP_ASSIGNMENTS.isEmpty()) {
+            return;
+        }
+        for (var entry : List.copyOf(
+                PENDING_LIGHT_GROUP_ASSIGNMENTS.entrySet())) {
+            UUID creatureId = entry.getKey();
+            PendingLightGroupAssignment pending = entry.getValue();
+            ServerLevel level = event.getServer().getLevel(
+                    pending.dimension());
+            Entity entity = level == null ? null : level.getEntity(creatureId);
+            if (entity instanceof ChangedEntity creature
+                    && creature.isAlive()
+                    && LightFactionGroup.canResolveAt(
+                            level, creature.blockPosition())) {
+                LightFactionGroup.of(creature);
+                PENDING_LIGHT_GROUP_ASSIGNMENTS.remove(creatureId);
+                continue;
+            }
+            int attempts = pending.attempts() + 1;
+            if (attempts >= LIGHT_GROUP_ASSIGNMENT_MAX_ATTEMPTS) {
+                PENDING_LIGHT_GROUP_ASSIGNMENTS.remove(creatureId);
+            } else {
+                PENDING_LIGHT_GROUP_ASSIGNMENTS.put(
+                        creatureId,
+                        new PendingLightGroupAssignment(
+                                pending.dimension(), attempts));
+            }
         }
     }
 
@@ -441,5 +490,10 @@ public final class FactionReputationEvents {
                     LATEX_CONTAINER_FELL, WHITE_LATEX -> true;
             default -> false;
         };
+    }
+
+    private record PendingLightGroupAssignment(
+            ResourceKey<Level> dimension,
+            int attempts) {
     }
 }
