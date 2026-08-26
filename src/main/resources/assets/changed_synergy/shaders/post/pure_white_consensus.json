@@ -1,0 +1,7 @@
+{
+  "targets": [
+    "swap",
+    "history"
+  ],
+  "passes": []
+}

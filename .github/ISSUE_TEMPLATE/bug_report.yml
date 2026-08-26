@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a reproducible crash or gameplay problem
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Back up the world first. Attach logs as files instead of pasting thousands of lines.
+  - type: input
+    id: synergy
+    attributes:
+      label: Synergy version
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Forge and Changed versions
+      placeholder: Forge 47.4.21, Changed 0.15.7
+    validations:
+      required: true
+  - type: input
+    id: optional
+    attributes:
+      label: Optional integrations
+      placeholder: Changed Addon 2.9.2c, Curios 5.14.1, or none
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include commands, forms, creature species and relationship state when relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or crash report
+      description: Drag the file here or provide a link.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I tested with only the required mods or explained why I could not.
+          required: true
+        - label: I checked that only one Synergy JAR is installed.
+          required: true

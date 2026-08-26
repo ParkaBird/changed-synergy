@@ -1,0 +1,50 @@
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+# gradle
+build
+build-*/
+.gradle
+
+# other
+eclipse
+run
+run-data
+*.log
+
+# Local mod dependencies are supplied by the developer.
+libs/*.jar
+libs/changedaddon_extracted/
+
+# Local audit/build artifacts (never publish)
+.codex-tmp/
+.changed-synergy-backups/
+recovery_backups/
+release_backups/
+.local-artifacts/
+dist/
+latex_moth_high_style_export/
+mcmodsrepo/
+*.class
+decompiled.txt
+all_dialogues.txt
+all_lang_dialogue.txt
+matches.txt
+temp.txt
+cfr.jar
+ChangedAddon-*.jar
+
+# Files from Forge MDK
+forge*changelog.txt

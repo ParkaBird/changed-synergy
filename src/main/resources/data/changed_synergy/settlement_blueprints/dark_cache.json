@@ -1,0 +1,28 @@
+{
+  "factions": ["dark"],
+  "requires_dry": true,
+  "cache": {"x": 0, "y": 0, "z": 0},
+  "rest_points": [
+    {"x": -3, "y": 0, "z": 0},
+    {"x": 2, "y": 0, "z": 2},
+    {"x": 1, "y": 0, "z": -3}
+  ],
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "block": "minecraft:barrel"},
+    {"x": -1, "y": 0, "z": 0, "block": "changed:dark_latex_block"},
+    {"x": 1, "y": 0, "z": 1, "block": "changed:dark_latex_block"},
+    {"x": -2, "y": 0, "z": 1, "block": "changed:latex_container", "properties": {"half": "lower"}, "nbt": "{LatexType:\"changed:dark_latex\",FillLevel:8b}"},
+    {"x": -2, "y": 1, "z": 1, "block": "changed:latex_container", "properties": {"half": "upper"}},
+    {"x": 2, "y": 0, "z": -1, "block": "changed:lab_table", "properties": {"state": "0"}},
+    {"x": 2, "y": 1, "z": -1, "block": "changed:erlenmeyer_flask", "properties": {"filled": "dark_latex"}},
+    {"x": 1, "y": 0, "z": 2, "block": "changed:lab_table", "properties": {"state": "0"}},
+    {"x": 1, "y": 1, "z": 2, "block": "changed:erlenmeyer_flask", "properties": {"filled": "dark_latex"}},
+    {"x": -2, "y": 0, "z": -1, "block": "minecraft:lantern"},
+    {"x": 2, "y": 0, "z": -2, "block": "changed:office_chair", "properties": {"half": "lower", "rotation": "0"}},
+    {"x": 2, "y": 1, "z": -2, "block": "changed:office_chair", "properties": {"half": "upper", "rotation": "0"}},
+    {"x": 2, "y": 0, "z": 2, "block": "changed:black_pillow"}
+  ],
+  "displays": [
+    {"x": 1, "y": 1, "z": 1, "item": "minecraft:sweet_berries", "facing": "up", "rotation": 5}
+  ]
+}

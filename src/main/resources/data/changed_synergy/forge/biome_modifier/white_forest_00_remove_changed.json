@@ -1,0 +1,5 @@
+{
+  "type": "forge:remove_spawns",
+  "biomes": "changed:white_latex_forest",
+  "entity_types": "#changed:latexes"
+}

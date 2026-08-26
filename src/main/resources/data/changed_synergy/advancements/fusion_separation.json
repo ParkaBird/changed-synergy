@@ -1,0 +1,15 @@
+{
+  "parent": "changed_synergy:negotiated_release",
+  "display": {
+    "icon": { "item": "changed:white_latex_knight_fusion_spawn_egg" },
+    "title": { "translate": "advancement.changed_synergy.fusion_separation.title" },
+    "description": { "translate": "advancement.changed_synergy.fusion_separation.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "complete": { "trigger": "minecraft:impossible" }
+  }
+}

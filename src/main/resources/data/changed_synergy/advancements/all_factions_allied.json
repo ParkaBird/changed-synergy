@@ -1,0 +1,23 @@
+{
+  "parent": "changed_synergy:faction_ally",
+  "display": {
+    "icon": {
+      "item": "minecraft:beacon"
+    },
+    "title": {
+      "translate": "advancement.changed_synergy.all_factions_allied.title"
+    },
+    "description": {
+      "translate": "advancement.changed_synergy.all_factions_allied.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "complete": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:stick",
+    "minecraft:string",
+    "minecraft:leather",
+    "minecraft:feather",
+    "minecraft:bone",
+    "minecraft:paper",
+    "minecraft:clay_ball"
+  ]
+}

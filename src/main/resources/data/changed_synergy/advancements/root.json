@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "item": "changed:orange"
+    },
+    "title": {
+      "translate": "advancement.changed_synergy.root.title"
+    },
+    "description": {
+      "translate": "advancement.changed_synergy.root.description"
+    },
+    "background": "changed:textures/block/beehive_inner_wall.png",
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "started": {
+      "trigger": "minecraft:tick"
+    }
+  }
+}

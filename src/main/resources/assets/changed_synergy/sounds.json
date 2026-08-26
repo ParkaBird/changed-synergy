@@ -1,0 +1,32 @@
+{
+  "pat_organic": {
+    "subtitle": "subtitles.changed_synergy.pat.organic",
+    "sounds": [
+      { "name": "minecraft:item/brush/brushing_generic1", "pitch": 0.8, "volume": 0.4 },
+      { "name": "minecraft:item/brush/brushing_generic2", "pitch": 0.8, "volume": 0.4 },
+      { "name": "minecraft:item/brush/brushing_generic3", "pitch": 0.8, "volume": 0.4 },
+      { "name": "minecraft:item/brush/brushing_generic4", "pitch": 0.8, "volume": 0.4 }
+    ]
+  },
+  "pat_latex_sticky": {
+    "subtitle": "subtitles.changed_synergy.pat.latex",
+    "sounds": [
+      { "name": "minecraft:block/honeyblock/slide1", "volume": 0.8 },
+      { "name": "minecraft:block/honeyblock/slide1", "pitch": 0.9, "volume": 0.8 },
+      { "name": "minecraft:block/honeyblock/slide2", "volume": 0.8 },
+      { "name": "minecraft:block/honeyblock/slide2", "pitch": 0.8, "volume": 0.8 },
+      { "name": "minecraft:block/honeyblock/slide3", "volume": 0.8 },
+      { "name": "minecraft:block/honeyblock/slide3", "pitch": 0.8, "volume": 0.8 },
+      { "name": "minecraft:block/honeyblock/slide4", "volume": 0.8 },
+      { "name": "minecraft:block/honeyblock/slide4", "pitch": 0.8, "volume": 0.8 }
+    ]
+  },
+  "pat_latex_brush": {
+    "sounds": [
+      { "name": "minecraft:item/brush/brushing_generic1", "pitch": 0.8, "volume": 0.4 },
+      { "name": "minecraft:item/brush/brushing_generic2", "pitch": 0.8, "volume": 0.4 },
+      { "name": "minecraft:item/brush/brushing_generic3", "pitch": 0.8, "volume": 0.4 },
+      { "name": "minecraft:item/brush/brushing_generic4", "pitch": 0.8, "volume": 0.4 }
+    ]
+  }
+}

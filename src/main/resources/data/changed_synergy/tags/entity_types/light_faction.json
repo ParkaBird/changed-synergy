@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "changed:beifeng",
+    "changed:gas_skunk",
+    "changed:gas_tiger",
+    "changed:gas_wolf_female",
+    "changed:gas_wolf_male",
+    "changed:gas_wolf_pup",
+    "changed:sniper_dog",
+    "changed:white_wolf_female",
+    "changed:white_wolf_male",
+    {
+      "id": "changed_addon:mirror_white_tiger",
+      "required": false
+    }
+  ]
+}

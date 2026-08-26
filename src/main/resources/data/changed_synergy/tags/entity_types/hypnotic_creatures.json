@@ -1,0 +1,26 @@
+{
+  "replace": false,
+  "values": [
+    "changed:latex_hypno_cat",
+    {
+      "id": "changed_addon:luminarctic_leopard_male",
+      "required": false
+    },
+    {
+      "id": "changed_addon:luminarctic_leopard_female",
+      "required": false
+    },
+    {
+      "id": "changed_addon:latex_kayla_shark",
+      "required": false
+    },
+    {
+      "id": "changed_addon:experiment_10",
+      "required": false
+    },
+    {
+      "id": "changed_addon:experiment_10_boss",
+      "required": false
+    }
+  ]
+}

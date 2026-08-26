@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "changed:gas_tiger",
+    {
+      "id": "changed_addon:mirror_white_tiger",
+      "required": false
+    }
+  ]
+}

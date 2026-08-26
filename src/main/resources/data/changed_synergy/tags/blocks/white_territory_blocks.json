@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "changed:white_latex_block",
+    "changed:white_latex_wall_splotch",
+    "changed:white_latex_fluid",
+    "changed:white_latex_pillar",
+    "changed:white_latex_puddle_female",
+    "changed:white_latex_puddle_male"
+  ]
+}

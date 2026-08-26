@@ -1,0 +1,26 @@
+{
+  "blend": {
+    "func": "add",
+    "srcrgb": "one",
+    "dstrgb": "zero"
+  },
+  "vertex": "changed_synergy/pure_white_consensus",
+  "fragment": "changed_synergy/pure_white_consensus",
+  "attributes": [ "Position" ],
+  "samplers": [
+    { "name": "DiffuseSampler" },
+    { "name": "DepthSampler" },
+    { "name": "HistorySampler" }
+  ],
+  "uniforms": [
+    { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+    { "name": "InSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] },
+    { "name": "OutSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] },
+    { "name": "Time", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "TerritoryBlend", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Strength", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Pulse", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "DepthAvailable", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "HistoryReady", "type": "float", "count": 1, "values": [ 0.0 ] }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "#changed_synergy:has_orange_tree/acacia",
+    "#changed_synergy:has_orange_tree/birch",
+    "#changed_synergy:has_orange_tree/cherry",
+    "#changed_synergy:has_orange_tree/dark_oak",
+    "#changed_synergy:has_orange_tree/jungle",
+    "#changed_synergy:has_orange_tree/mangrove",
+    "#changed_synergy:has_orange_tree/oak"
+  ]
+}

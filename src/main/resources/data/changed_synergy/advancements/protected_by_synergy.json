@@ -1,0 +1,23 @@
+{
+  "parent": "changed_synergy:bonded_companion",
+  "display": {
+    "icon": {
+      "item": "changed:tsc_vest"
+    },
+    "title": {
+      "translate": "advancement.changed_synergy.protected_by_synergy.title"
+    },
+    "description": {
+      "translate": "advancement.changed_synergy.protected_by_synergy.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "complete": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

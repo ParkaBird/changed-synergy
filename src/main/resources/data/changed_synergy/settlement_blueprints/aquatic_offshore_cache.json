@@ -1,0 +1,28 @@
+{
+  "factions": ["aquatic"],
+  "requires_dry": false,
+  "cache": {"x": 0, "y": 0, "z": 0},
+  "rest_points": [
+    {"x": -3, "y": 0, "z": 1},
+    {"x": 3, "y": 0, "z": -1},
+    {"x": 1, "y": 0, "z": 3}
+  ],
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "block": "minecraft:chest", "properties": {"facing": "north", "type": "single", "waterlogged": "true"}},
+    {"x": -1, "y": 0, "z": 0, "block": "minecraft:prismarine_bricks"},
+    {"x": -2, "y": 0, "z": 0, "block": "minecraft:mossy_cobblestone"},
+    {"x": -2, "y": 0, "z": 1, "block": "minecraft:dark_prismarine"},
+    {"x": 1, "y": 0, "z": 1, "block": "minecraft:prismarine"},
+    {"x": 2, "y": 0, "z": -1, "block": "minecraft:stripped_oak_log", "properties": {"axis": "z"}},
+    {"x": 1, "y": 0, "z": -2, "block": "minecraft:mossy_stone_bricks"},
+    {"x": -1, "y": 0, "z": 2, "block": "minecraft:sea_lantern"},
+    {"x": 2, "y": 0, "z": 2, "block": "minecraft:dark_prismarine"}
+  ],
+  "displays": [
+    {"x": 0, "y": 1, "z": 0, "item": "minecraft:nautilus_shell", "facing": "up", "rotation": 2},
+    {"x": -2, "y": 1, "z": 0, "item": "minecraft:cod", "facing": "up", "rotation": 7},
+    {"x": 1, "y": 1, "z": 1, "item": "minecraft:salmon", "facing": "up", "rotation": 1},
+    {"x": 2, "y": 1, "z": -1, "item": "minecraft:tropical_fish", "facing": "up", "rotation": 5},
+    {"x": 2, "y": 1, "z": 2, "item": "minecraft:kelp", "facing": "up", "rotation": 3}
+  ]
+}

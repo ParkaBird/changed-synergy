@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "changed:latex_shark_feral",
+    "changed:headless_knight",
+    "changed:milk_pudding",
+    "changed:latex_benign_wolf",
+    "changed:latex_benign_orca",
+    "changed:behemoth_head",
+    "changed:behemoth_hand_left",
+    "changed:behemoth_hand_right"
+  ]
+}

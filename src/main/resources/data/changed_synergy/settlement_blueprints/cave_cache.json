@@ -1,0 +1,27 @@
+{
+  "factions": ["light"],
+  "light_groups": ["cave"],
+  "requires_dry": true,
+  "cache": {"x": 0, "y": 0, "z": 0},
+  "rest_points": [
+    {"x": -3, "y": 0, "z": -1},
+    {"x": 2, "y": 0, "z": 2},
+    {"x": 1, "y": 0, "z": -3}
+  ],
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "block": "minecraft:barrel"},
+    {"x": -1, "y": 0, "z": 0, "block": "minecraft:tuff"},
+    {"x": -1, "y": 0, "z": 1, "block": "minecraft:moss_block"},
+    {"x": 1, "y": 0, "z": 1, "block": "minecraft:cobbled_deepslate"},
+    {"x": 2, "y": 0, "z": 1, "block": "minecraft:moss_block"},
+    {"x": 1, "y": 0, "z": -1, "block": "minecraft:coarse_dirt"},
+    {"x": -2, "y": 0, "z": -1, "block": "minecraft:moss_carpet"},
+    {"x": 0, "y": 0, "z": 2, "block": "minecraft:moss_carpet"},
+    {"x": -2, "y": 0, "z": 1, "block": "minecraft:lantern"}
+  ],
+  "displays": [
+    {"x": 0, "y": 1, "z": 0, "item": "minecraft:iron_pickaxe", "facing": "up", "rotation": 5},
+    {"x": -1, "y": 1, "z": 1, "item": "minecraft:glow_berries", "facing": "up", "rotation": 1},
+    {"x": 2, "y": 1, "z": 1, "item": "minecraft:glow_berries", "facing": "up", "rotation": 6}
+  ]
+}

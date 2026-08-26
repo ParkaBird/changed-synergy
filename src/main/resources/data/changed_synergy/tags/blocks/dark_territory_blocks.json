@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    "changed:dark_latex_block",
+    "changed:dark_latex_wall_splotch",
+    "changed:dark_latex_ice",
+    "changed:dark_latex_fluid",
+    "changed:dark_latex_puddle",
+    "changed:latex_crystal",
+    "changed:latex_pup_crystal",
+    "changed:dark_dragon_crystal",
+    "changed:wolf_crystal",
+    "changed:wolf_crystal_small",
+    "changed:dark_latex_crystal_large",
+    "changed:wolf_crystal_block"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "parent": "changed_synergy:root",
+  "display": {
+    "icon": {
+      "item": "changed:beehive_wall"
+    },
+    "title": {
+      "translate": "advancement.changed_synergy.white_hive_consensus.title"
+    },
+    "description": {
+      "translate": "advancement.changed_synergy.white_hive_consensus.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "complete": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "parent": "changed_synergy:first_contact",
+  "display": {
+    "icon": {
+      "item": "changed:mug_with_milk"
+    },
+    "title": {
+      "translate": "advancement.changed_synergy.shared_moment.title"
+    },
+    "description": {
+      "translate": "advancement.changed_synergy.shared_moment.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "complete": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

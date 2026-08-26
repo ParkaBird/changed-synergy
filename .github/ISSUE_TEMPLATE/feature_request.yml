@@ -1,0 +1,23 @@
+name: Feature request
+description: Propose a focused change after the beta is stable
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or missing interaction
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Explain species, faction, relationship and multiplayer effects.
+    validations:
+      required: true
+  - type: textarea
+    id: cost
+    attributes:
+      label: Risks and edge cases
+      description: Consider pathfinding, save data, UI conflicts, consent settings and server cost.

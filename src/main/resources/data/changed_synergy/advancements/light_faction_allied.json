@@ -1,0 +1,23 @@
+{
+  "parent": "changed_synergy:light_faction_respected",
+  "display": {
+    "icon": {
+      "item": "changed:latex_fennec_fox_spawn_egg"
+    },
+    "title": {
+      "translate": "advancement.changed_synergy.light_faction_allied.title"
+    },
+    "description": {
+      "translate": "advancement.changed_synergy.light_faction_allied.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "complete": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

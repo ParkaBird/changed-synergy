@@ -1,0 +1,30 @@
+{
+  "factions": ["light"],
+  "light_groups": ["badlands"],
+  "requires_dry": true,
+  "cache": {"x": 0, "y": 0, "z": 0},
+  "rest_points": [
+    {"x": -3, "y": 0, "z": 1},
+    {"x": 2, "y": 0, "z": -2},
+    {"x": 3, "y": 0, "z": 1}
+  ],
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "block": "minecraft:barrel"},
+    {"x": -1, "y": 0, "z": 0, "block": "minecraft:dark_oak_planks"},
+    {"x": -2, "y": 0, "z": 0, "block": "minecraft:rail", "properties": {"shape": "east_west"}},
+    {"x": -3, "y": 0, "z": 0, "block": "minecraft:rail", "properties": {"shape": "east_west"}},
+    {"x": -2, "y": 0, "z": 1, "block": "minecraft:stripped_dark_oak_log", "properties": {"axis": "z"}},
+    {"x": -2, "y": 1, "z": 1, "block": "minecraft:dark_oak_fence"},
+    {"x": 1, "y": 0, "z": 1, "block": "minecraft:red_sandstone"},
+    {"x": 2, "y": 0, "z": -1, "block": "minecraft:orange_terracotta"},
+    {"x": 1, "y": 0, "z": -2, "block": "minecraft:brown_carpet"},
+    {"x": -1, "y": 0, "z": 2, "block": "minecraft:red_carpet"},
+    {"x": 2, "y": 0, "z": 1, "block": "minecraft:lantern"},
+    {"x": -3, "y": 0, "z": -1, "block": "changed:black_pillow"}
+  ],
+  "displays": [
+    {"x": 0, "y": 1, "z": 0, "item": "minecraft:bread", "facing": "up", "rotation": 2},
+    {"x": 1, "y": 1, "z": 1, "item": "minecraft:raw_gold", "facing": "up", "rotation": 1},
+    {"x": 2, "y": 1, "z": -1, "item": "minecraft:fishing_rod", "facing": "up", "rotation": 4}
+  ]
+}

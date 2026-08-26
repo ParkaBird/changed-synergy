@@ -1,0 +1,28 @@
+{
+  "factions": ["aquatic"],
+  "requires_dry": true,
+  "cache": {"x": 0, "y": 0, "z": 0},
+  "rest_points": [
+    {"x": -3, "y": 0, "z": 1},
+    {"x": 2, "y": 0, "z": -2},
+    {"x": 3, "y": 0, "z": 1}
+  ],
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "block": "minecraft:barrel"},
+    {"x": -1, "y": 0, "z": 0, "block": "minecraft:stripped_oak_log", "properties": {"axis": "x"}},
+    {"x": -2, "y": 0, "z": 0, "block": "minecraft:oak_planks"},
+    {"x": -2, "y": 0, "z": 1, "block": "minecraft:dried_kelp_block"},
+    {"x": 1, "y": 0, "z": 1, "block": "minecraft:oak_planks"},
+    {"x": 2, "y": 0, "z": -1, "block": "minecraft:stripped_spruce_log", "properties": {"axis": "z"}},
+    {"x": 1, "y": 0, "z": -2, "block": "minecraft:light_blue_carpet"},
+    {"x": -1, "y": 0, "z": 2, "block": "minecraft:cyan_carpet"},
+    {"x": 2, "y": 0, "z": 1, "block": "minecraft:lantern"},
+    {"x": -3, "y": 0, "z": -1, "block": "changed:cyan_pillow"}
+  ],
+  "displays": [
+    {"x": 0, "y": 1, "z": 0, "item": "minecraft:fishing_rod", "facing": "up", "rotation": 3},
+    {"x": -2, "y": 1, "z": 0, "item": "minecraft:cod", "facing": "up", "rotation": 6},
+    {"x": 1, "y": 1, "z": 1, "item": "minecraft:salmon", "facing": "up", "rotation": 1},
+    {"x": 2, "y": 1, "z": -1, "item": "minecraft:pufferfish", "facing": "up", "rotation": 4}
+  ]
+}

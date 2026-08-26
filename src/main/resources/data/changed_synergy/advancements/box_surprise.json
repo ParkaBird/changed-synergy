@@ -1,0 +1,15 @@
+{
+  "parent": "changed_synergy:shared_moment",
+  "display": {
+    "icon": { "item": "changed:cardboard_box" },
+    "title": { "translate": "advancement.changed_synergy.box_surprise.title" },
+    "description": { "translate": "advancement.changed_synergy.box_surprise.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "complete": { "trigger": "minecraft:impossible" }
+  }
+}

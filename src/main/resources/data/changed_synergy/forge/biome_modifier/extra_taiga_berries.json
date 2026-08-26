@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#changed_synergy:has_extra_sweet_berries",
+  "features": "changed_synergy:extra_patch_berry_bush",
+  "step": "vegetal_decoration"
+}
