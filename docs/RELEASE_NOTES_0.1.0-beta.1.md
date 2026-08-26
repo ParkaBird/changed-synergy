@@ -4,6 +4,8 @@ This is the first public beta for Forge 1.20.1 and Changed 0.15.7.
 
 Synergy gives Changed creatures persistent identities, personalities and memories. Players can build friendships, form one voluntary bond, manage companions, negotiate after involuntary assimilation or consumption, and interact with faction reputation and creature communities. The release also includes contextual dialogue, emotes, QTE improvements, creature work roles, gathering, fishing, hunting, guarded outposts and several small environmental interactions.
 
+Low faction standing slows peaceful reputation and relationship gains, but repeated appropriate gifts and touch can still rebuild personal trust over time.
+
 ## Requirements
 
 - Minecraft 1.20.1

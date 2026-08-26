@@ -194,8 +194,10 @@ public final class FactionReputation {
             ChangedEntity creature,
             ServerPlayer player) {
         return switch (standing(creature, player)) {
-            case HOSTILE -> 25;
-            case DISTRUSTED -> 55;
+            // Poor standing makes trust noticeably slower to rebuild without
+            // turning ordinary peaceful gestures into a practical dead end.
+            case HOSTILE -> 60;
+            case DISTRUSTED -> 80;
             default -> 100;
         };
     }

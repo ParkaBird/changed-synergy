@@ -264,7 +264,7 @@ public final class CreaturePersonality {
             int before = familiarity(mob, memory);
             memory.putInt(ENCOUNTERS, Math.min(100, memory.getInt(ENCOUNTERS) + 1));
             memory.putLong(LAST_COUNTED_ENCOUNTER, now);
-            scalePositiveGain(mob, player, memory, before);
+            scalePositiveGain(mob, player, memory, before, 0);
         }
         touchMemory(mob, player, memory, now);
     }
@@ -276,7 +276,7 @@ public final class CreaturePersonality {
         CompoundTag memory = memory(mob, player, true);
         int before = familiarity(mob, memory);
         memory.putInt(PATS_RECEIVED, Math.min(100, memory.getInt(PATS_RECEIVED) + 1));
-        scalePositiveGain(mob, player, memory, before);
+        scalePositiveGain(mob, player, memory, before, 1);
         touchMemory(mob, player, memory, mob.level().getGameTime());
     }
 
@@ -287,7 +287,7 @@ public final class CreaturePersonality {
         CompoundTag memory = memory(mob, player, true);
         int before = familiarity(mob, memory);
         memory.putInt(PATS_GIVEN, Math.min(100, memory.getInt(PATS_GIVEN) + 1));
-        scalePositiveGain(mob, player, memory, before);
+        scalePositiveGain(mob, player, memory, before, 1);
         touchMemory(mob, player, memory, mob.level().getGameTime());
     }
 
@@ -302,7 +302,8 @@ public final class CreaturePersonality {
         int before = familiarity(mob, memory);
         memory.putInt(GIFT_FAVOR,
                 Math.min(100, memory.getInt(GIFT_FAVOR) + favor));
-        scalePositiveGain(mob, player, memory, before);
+        scalePositiveGain(
+                mob, player, memory, before, Math.max(1, favor / 4));
         touchMemory(mob, player, memory, mob.level().getGameTime());
     }
 
@@ -332,7 +333,7 @@ public final class CreaturePersonality {
         memory.putInt(
                 PLAYS_TOGETHER,
                 Math.min(100, memory.getInt(PLAYS_TOGETHER) + 1));
-        scalePositiveGain(mob, player, memory, before);
+        scalePositiveGain(mob, player, memory, before, 1);
         long now = mob.level().getGameTime();
         memory.putLong(LAST_PLAYED, now);
         touchMemory(mob, player, memory, now);
@@ -404,9 +405,17 @@ public final class CreaturePersonality {
             ChangedEntity mob,
             ServerPlayer player,
             CompoundTag memory,
-            int before) {
+            int before,
+            int continuedRecovery) {
         int rawGain = familiarity(mob, memory) - before;
         if (rawGain <= 0) {
+            // Interaction-history fields intentionally have caps. Once one is
+            // full, continued deliberate care must still be able to repair a
+            // damaged relationship instead of leaving it permanently stuck.
+            if (continuedRecovery > 0 && before < 60) {
+                grantScaledAdjustment(
+                        mob, player, memory, continuedRecovery);
+            }
             return;
         }
         int percent = FactionReputation.positiveInteractionPercent(mob, player);
@@ -422,6 +431,27 @@ public final class CreaturePersonality {
                 Mth.clamp(
                         memory.getInt(AFFECTION_ADJUSTMENT)
                                 - (rawGain - granted),
+                        -200,
+                        200));
+    }
+
+    private static void grantScaledAdjustment(
+            ChangedEntity mob,
+            ServerPlayer player,
+            CompoundTag memory,
+            int amount) {
+        int scaledUnits = amount
+                        * FactionReputation.positiveInteractionPercent(mob, player)
+                + memory.getInt(POSITIVE_GAIN_REMAINDER);
+        int granted = scaledUnits / 100;
+        memory.putInt(POSITIVE_GAIN_REMAINDER, scaledUnits % 100);
+        if (granted <= 0) {
+            return;
+        }
+        memory.putInt(
+                AFFECTION_ADJUSTMENT,
+                Mth.clamp(
+                        memory.getInt(AFFECTION_ADJUSTMENT) + granted,
                         -200,
                         200));
     }

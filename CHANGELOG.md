@@ -10,6 +10,7 @@ First public beta candidate.
 - Added social, relationship and companion wheels with animated transitions.
 - Added contextual English and Simplified Chinese dialogue, emotes and configurable telepathy presentation.
 - Added faction reputation, territory presentation, white hive cooperation and relationship-aware combat safety.
+- Kept friendship recoverable at low faction standing, with reduced gains and continued progress from repeated peaceful interaction.
 - Added negotiation for involuntary assimilation and consumption, with motive and personality dependent choices.
 - Added grab and hypnosis QTE work, swimming pursuit, firearm reactions, disguise behavior and organic combat rules.
 - Added creature roles, resource gathering, fishing, hunting, outposts, guards, gifts and environment interactions.
