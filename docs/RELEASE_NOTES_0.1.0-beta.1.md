@@ -2,6 +2,8 @@
 
 This is the first public beta for Forge 1.20.1 and Changed 0.15.7.
 
+Changed: Synergy turns fierce latex creatures into neighbors you can get along with. Oranges or a friendly pat often work better than fists and blades. Transfur is no longer always the end but a reversible and harmless form of interaction. Just be careful: some may be a little too EXCITED to see you.
+
 Synergy gives Changed creatures persistent identities, personalities and memories. Players can build friendships, form one voluntary bond, manage companions, negotiate after involuntary assimilation or consumption, and interact with faction reputation and creature communities. The release also includes contextual dialogue, emotes, QTE improvements, creature work roles, gathering, fishing, hunting, guarded outposts and several small environmental interactions.
 
 Low faction standing slows peaceful reputation and relationship gains, but repeated appropriate gifts and touch can still rebuild personal trust over time.

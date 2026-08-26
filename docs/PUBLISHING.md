@@ -18,6 +18,10 @@ Use the same version number, dependency table and release JAR on GitHub, Modrint
 
 Turns Changed creatures into named social NPCs with memory, friendships, voluntary bonds, negotiation, faction reputation, dialogue, roles and world interactions.
 
+## Project introduction
+
+Changed: Synergy turns fierce latex creatures into neighbors you can get along with. Oranges or a friendly pat often work better than fists and blades. Transfur is no longer always the end but a reversible and harmless form of interaction. Just be careful: some may be a little too EXCITED to see you.
+
 ## Chinese short description
 
 让 Changed 胶兽成为有名字、有记忆的社交 NPC，加入朋友、羁绊、交涉、阵营声望、台词、职能与环境互动。

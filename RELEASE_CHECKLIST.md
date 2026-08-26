@@ -2,11 +2,11 @@
 
 ## Automated checks
 
-- [ ] `python tools/validate_release.py`
-- [ ] `./gradlew clean build`
-- [ ] Release JAR contains `mods.toml`, mixin configs, access transformer and `LICENSE_changed_synergy.txt`.
-- [ ] Release JAR contains no third-party classes, dependency JARs, local paths or non-ParkaBird author names.
-- [ ] SHA-256 checksums are generated for the release and source JARs.
+- [x] `python tools/validate_release.py`
+- [x] `./gradlew clean build`
+- [x] Release JAR contains `mods.toml`, mixin configs, access transformer and `LICENSE_changed_synergy.txt`.
+- [x] Release JAR contains no third-party classes, dependency JARs, local paths or non-ParkaBird author names.
+- [x] SHA-256 checksums are generated for the release and source JARs.
 
 ## Manual game checks
 

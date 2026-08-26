@@ -1,5 +1,7 @@
 # Changed: Synergy
 
+Changed: Synergy turns fierce latex creatures into neighbors you can get along with. Oranges or a friendly pat often work better than fists and blades. Transfur is no longer always the end but a reversible and harmless form of interaction. Just be careful: some may be a little too EXCITED to see you.
+
 Changed: Synergy is a Forge addon for Minecraft 1.20.1 and Changed 0.15.7. It turns Changed creatures into named individuals that remember the player, form friendships, develop bonds, react through dialogue and emotes, and take part in the world around them.
 
 The mod is in beta. Existing worlds should be backed up before installation or an update.

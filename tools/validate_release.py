@@ -12,6 +12,29 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+# These entries intentionally use different argument positions by locale. The
+# Chinese combat warnings omit the addressed player's name, while generated
+# names select the English or Chinese argument supplied by the caller.
+INTENTIONAL_LOCALE_PLACEHOLDER_DIFFERENCES = {
+    "dialogue.changed_synergy.aquatic.hit_confused.0",
+    "dialogue.changed_synergy.aquatic.hit_warning.0",
+    "dialogue.changed_synergy.aquatic.hostility_confirmed.0",
+    "dialogue.changed_synergy.dark.hit_confused.0",
+    "dialogue.changed_synergy.dark.hit_warning.0",
+    "dialogue.changed_synergy.dark.hostility_confirmed.0",
+    "dialogue.changed_synergy.light.hit_confused.0",
+    "dialogue.changed_synergy.light.hit_warning.0",
+    "dialogue.changed_synergy.light.hostility_confirmed.0",
+    "dialogue.changed_synergy.organic.hit_confused.0",
+    "dialogue.changed_synergy.organic.hit_warning.0",
+    "dialogue.changed_synergy.organic.hostility_confirmed.0",
+    "dialogue.changed_synergy.white.hit_confused.0",
+    "dialogue.changed_synergy.white.hit_warning.0",
+    "dialogue.changed_synergy.white.hostility_confirmed.0",
+    "name.changed_synergy.generated.localized_choice",
+    "name.changed_synergy.generated.localized_choice.base",
+}
 LANG_DIR = ROOT / "src/main/resources/assets/changed_synergy/lang"
 REQUIRED_FILES = (
     "LICENSE.txt",
@@ -105,7 +128,10 @@ def check_languages(audit: Audit) -> None:
 
         en_high = highest(english[key])
         zh_high = highest(chinese[key])
-        if en_high != zh_high:
+        if (
+            en_high != zh_high
+            and key not in INTENTIONAL_LOCALE_PLACEHOLDER_DIFFERENCES
+        ):
             audit.warn(f"placeholder range differs for {key}: en={en_high}, zh={zh_high}")
 
 
