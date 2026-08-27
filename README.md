@@ -26,7 +26,6 @@ The mod is in beta. Existing worlds should be backed up before installation or a
 | Forge | 47.4.0 to 47.x | Yes |
 | Changed | 0.15.7 | Yes |
 | Changed Addon | 2.9.2c | No |
-| Curios API | 5.14.1 for 1.20.1 | No |
 
 Later Changed or Changed Addon releases are not assumed compatible. Synergy uses targeted mixins and direct integration points, so version ranges are intentionally narrow.
 
@@ -34,7 +33,7 @@ Later Changed or Changed Addon releases are not assumed compatible. Synergy uses
 
 1. Install Forge 47.4.x for Minecraft 1.20.1.
 2. Put Changed 0.15.7 and the Synergy JAR in the instance's `mods` folder.
-3. Add Changed Addon 2.9.2c and Curios only if you want their integrations.
+3. Add Changed Addon 2.9.2c only if you want its integrations.
 4. Start the game and check the Forge Mods screen for dependency errors.
 
 Do not install two Synergy JARs at the same time.
