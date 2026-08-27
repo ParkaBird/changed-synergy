@@ -1,75 +1,69 @@
+![screenshot.png](https://picui.ogmua.cn/s1/2026/08/27/6a8fefdb44dd5.webp)
+
 # Changed: Synergy
 
-Changed: Synergy turns fierce latex creatures into neighbors you can get along with. Oranges or a friendly pat often work better than fists and blades. Transfur is no longer always the end but a reversible and harmless form of interaction. Just be careful: some may be a little too EXCITED to see you.
+Changed: Synergy turns aggressive latex creatures into neighbors you can actually get along with. An orange or a friendly pat will often get you further than fists and blades. Transfur is not always the end anymore. Sometimes, you can even talk your way back out of it! Just be careful. Some of them may be a little too ~~EXCITED~~ to meet a human again...
 
-Changed: Synergy is a Forge addon for Minecraft 1.20.1 and Changed 0.15.7. It turns Changed creatures into named individuals that remember the player, form friendships, develop bonds, react through dialogue and emotes, and take part in the world around them.
+Changed: Synergy is an unofficial Forge addon for Changed on Minecraft 1.20.1. It gives Changed creatures persistent names, individual personalities, memories, dialogue, and social behavior. You can befriend them, build affection, form an exclusive bond, and watch them interact with their surroundings.
 
-The mod is in beta. Existing worlds should be backed up before installation or an update.
+Chinese is my native language. Since my experience and English ability are limited, I used generative AI to assist with parts of the code and English content. I have reviewed, edited, integrated, and tested the results, but you may still encounter awkward wording or bugs. Thank you for your understanding, and please feel free to report any issues you find!
 
-Community and support: [Changed: Synergy Discord](https://discord.gg/h2dC8WNpZm)
+Want to share feedback, discuss features, or follow development? Join our community on the [Changed: Synergy Discord server](https://discord.gg/h2dC8WNpZm)!
 
-## Main features
+## Features
 
-- Persistent names, personalities, memories, friendships and one voluntary bond.
-- Social and relationship wheels with following, combat, inventory and interaction controls.
-- Contextual dialogue in English and Simplified Chinese, with separate display modes for each language.
-- Faction reputation, territory presentation and species-aware reactions.
-- Negotiation after involuntary assimilation or consumption, where the creature's motive and personality affect the available approach.
-- Improved pursuit, swimming, grabbing, hypnosis QTEs and firearm reactions.
-- Creature roles, gathering, fishing, hunting, outposts, guards, gifts and small environmental interactions.
-- Pure white hive support, disguises, friendly wrapping, emergency rescue and rideable supported dual-body creatures.
-- Optional integrations for Changed Addon, Curios API, TACZ, Superb Warfare and Forge configuration menu providers.
+*   Persistent names, individual personalities, and long-term memories
+*   Friendship, affection, faction reputation, and an exclusive bond system
+*   Radial menus for social interactions, relationship management, and creature abilities
+*   Negotiation after involuntary assimilation, absorption, or fusion
+*   Reversible transfur interactions where the situation allows
+*   Context-aware dialogue in both English and Simplified Chinese
+*   Improved pathfinding, swimming, grappling, and combat behavior
+*   Grapple and hypnosis QTE systems
+*   Creature gathering, fishing, hunting, mining, and faction outposts
+*   Feeding, petting, gifting, disguises, and environmental interactions
+*   Friendly wrapping, emergency rescue, and riding support for compatible taur creatures
+*   Optional integration with Changed Addon Plus, Curios API, TaCZ, and Superb Warfare
+*   In-game Forge configuration screens and gamerules for the main systems
 
 ## Requirements
 
 | Component | Version | Required |
 | --- | --- | --- |
 | Minecraft | 1.20.1 | Yes |
-| Forge | 47.4.0 to 47.x | Yes |
+| Forge | 47.4.x | Yes |
 | Changed | 0.15.7 | Yes |
-| Changed Addon | 2.9.2c | No |
+| Changed Addon Plus | 2.9.2c | No |
 
-Later Changed or Changed Addon releases are not assumed compatible. Synergy uses targeted mixins and direct integration points, so version ranges are intentionally narrow.
+Compatibility with newer versions of Changed or Changed Addon Plus is not guaranteed. Synergy relies on specific integration points, so its supported versions are deliberately limited.
 
 ## Installation
 
-1. Install Forge 47.4.x for Minecraft 1.20.1.
-2. Put Changed 0.15.7 and the Synergy JAR in the instance's `mods` folder.
-3. Add Changed Addon 2.9.2c only if you want its integrations.
-4. Start the game and check the Forge Mods screen for dependency errors.
+1.  Install Forge 47.4.x for Minecraft 1.20.1.
+2.  Drop Changed 0.15.7 and the Synergy JAR into your mods folder.
+3.  Install Changed Addon Plus 2.9.2c only if you wish to enable its optional integrations.
+4.  Launch the game and check the Forge Mods screen for any dependency errors.
 
-Do not install two Synergy JARs at the same time.
+Do not install multiple versions of Synergy at the same time.
 
-## Configuration
+## Beta notice
 
-Synergy has a Forge configuration screen. Open it from the Mods screen or through a menu mod that exposes Forge config screens. Client and visual settings apply locally. Gameplay and AI settings are controlled by the server in multiplayer.
+Changed: Synergy is currently in beta. Please back up your important worlds before installing or updating.
 
-Major systems also have game rules. See [docs/GAMERULES.md](docs/GAMERULES.md) for names and exact behavior.
+Please report reproducible problems through the [GitHub issue tracker](https://github.com/ParkaBird/changed-synergy/issues). Include the crash report or `latest.log`, the exact versions of Forge, Changed, and Synergy, and which optional integration mods are installed.
 
-## Building from source
+Known limitations are listed in [KNOWN_ISSUES.md](https://github.com/ParkaBird/changed-synergy/blob/main/KNOWN_ISSUES.md).
 
-Install Java 17, then run:
+## Content statement
 
-```text
-./gradlew build
-```
+Synergy follows a general-audience creative direction, shifting its focus toward creature personalities, relationships, community life, and reversible interactions. As a personal creative boundary, I am not comfortable with the more suggestive elements of the original Changed game, so this addon does not intend to reproduce or expand upon that material. This choice represents a distinct direction for my own content, rather than a judgment on what others should enjoy. It also ensures a purely gameplay-focused extension for the underlying Changed Minecraft mod that Synergy builds upon, without adding content centered on the original game's main characters.
 
-On Windows, use `gradlew.bat build`. Dependencies are downloaded from Forge Maven and CurseMaven. The release and source JARs are written to `build/libs`.
+Changed: Synergy does not take a position on controversies surrounding Changed or its creator; readers are encouraged to consult reliable, first-hand sources and draw their own conclusions.
 
-`-PwithoutAddon` removes Changed Addon from the development runtime. Its API remains a compile-time dependency because the optional compatibility layer must compile.
+## Credits and license
 
-## Reporting problems
+Changed: Synergy is developed by ParkaBird. It is an unofficial addon and is not affiliated with the creator of Changed or Mojang Studios.
 
-Use the GitHub issue templates and include the crash report or `latest.log`, the exact Synergy, Changed and Forge versions, and whether Changed Addon or Curios is installed. Test without unrelated mods when possible.
+Generative AI was used to assist with parts of the code and bilingual text. ParkaBird reviewed, edited, integrated, and tested the resulting work. No generative AI was used for artwork, textures, models, screenshots, or promotional images. See [AI_DISCLOSURE.md](https://github.com/ParkaBird/changed-synergy/blob/main/AI_DISCLOSURE.md) for details.
 
-You can also join the [Changed: Synergy Discord](https://discord.gg/h2dC8WNpZm) for community discussion and release news.
-
-Known release limits are listed in [KNOWN_ISSUES.md](KNOWN_ISSUES.md). Compatibility details are in [COMPATIBILITY.md](COMPATIBILITY.md).
-
-## Credits, AI assistance and license
-
-Changed: Synergy is developed by ParkaBird. It is an unofficial addon and is not affiliated with the creator of Changed or Minecraft.
-
-Generative AI assisted parts of the code and bilingual text. ParkaBird reviewed, edited, integrated and tested the resulting work. Artwork, textures, models, screenshots and promotional images are not AI-generated. See [AI_DISCLOSURE.md](AI_DISCLOSURE.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-The project is licensed under GPL-3.0-or-later. See [LICENSE.txt](LICENSE.txt).
+Changed: Synergy is licensed under [GPL-3.0-or-later](https://github.com/ParkaBird/changed-synergy/blob/main/LICENSE.txt).
