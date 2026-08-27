@@ -6,6 +6,8 @@ Changed: Synergy is a Forge addon for Minecraft 1.20.1 and Changed 0.15.7. It tu
 
 The mod is in beta. Existing worlds should be backed up before installation or an update.
 
+Community and support: [Changed: Synergy Discord](https://discord.gg/h2dC8WNpZm)
+
 ## Main features
 
 - Persistent names, personalities, memories, friendships and one voluntary bond.
@@ -59,6 +61,8 @@ On Windows, use `gradlew.bat build`. Dependencies are downloaded from Forge Mave
 ## Reporting problems
 
 Use the GitHub issue templates and include the crash report or `latest.log`, the exact Synergy, Changed and Forge versions, and whether Changed Addon or Curios is installed. Test without unrelated mods when possible.
+
+You can also join the [Changed: Synergy Discord](https://discord.gg/h2dC8WNpZm) for community discussion and release news.
 
 Known release limits are listed in [KNOWN_ISSUES.md](KNOWN_ISSUES.md). Compatibility details are in [COMPATIBILITY.md](COMPATIBILITY.md).
 

@@ -413,7 +413,8 @@ public final class SocialInteractionScreen
         circumstances.add(Component.translatable(
                 "menu.changed_synergy.negotiation.info.method",
                 Component.translatable(
-                        menu.getNegotiationMode().translationKey())));
+                        menu.getNegotiationMode().displayTranslationKey(
+                                menu.getNegotiationReason()))));
         circumstances.add(Component.translatable(
                 "menu.changed_synergy.negotiation.info.reason",
                 Component.translatable(

@@ -124,6 +124,20 @@ public final class InvoluntaryTransfurNegotiation {
             return "menu.changed_synergy.negotiation.mode."
                     + name().toLowerCase(Locale.ROOT);
         }
+
+        /**
+         * Fusion is stored as an absorption internally because it shares the
+         * same capture and release pipeline, but it is a distinct event in
+         * the negotiation UI.
+         */
+        public String displayTranslationKey(Reason reason) {
+            return switch (reason) {
+                case FUSION_STRENGTH, FUSION_CURIOSITY,
+                        FUSION_PLAY, FUSION_COMPLETION ->
+                        "menu.changed_synergy.negotiation.mode.fusion";
+                default -> translationKey();
+            };
+        }
     }
 
     public enum Reason {
