@@ -953,7 +953,7 @@ public final class LatexSocialEvents {
                         extraData, player, creature, false, true));
     }
 
-    /** Opens a devouring negotiation without inventing an external NPC body. */
+    /** Opens an absorption negotiation without inventing an external NPC body. */
     public static void openAbsorptionNegotiationMenu(ServerPlayer player) {
         if (!InvoluntaryTransfurNegotiation
                 .canNegotiateAbsorption(player)) {

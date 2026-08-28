@@ -7,7 +7,7 @@ Bug reports and focused pull requests are welcome.
 Include:
 
 - Minecraft, Forge, Changed and Synergy versions.
-- Whether Changed Addon and Curios are installed.
+- Whether Changed Addon Plus is installed.
 - A crash report or `latest.log` when one exists.
 - Steps that reproduce the problem in a small test setup.
 - Whether the same issue appears without unrelated mods.

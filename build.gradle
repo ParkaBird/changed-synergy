@@ -8,6 +8,7 @@ plugins {
 version = mod_version
 group = mod_group_id
 def publicFileVersion = mod_version.toString().split('\\+', 2)[0]
+def displayVersion = publicFileVersion
 
 base {
     archivesName = 'ChangedSynergy'
@@ -173,6 +174,7 @@ tasks.named('processResources', ProcessResources).configure {
             forge_version: forge_version, forge_version_range: forge_version_range,
             loader_version_range: loader_version_range,
             mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
+            mod_display_version: displayVersion,
             mod_authors: mod_authors, mod_description: mod_description,
     ]
     inputs.properties replaceProperties

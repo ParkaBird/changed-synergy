@@ -2,7 +2,7 @@
 
 ## Dependency direction
 
-The common module depends on Changed. Changed Addon is optional and is reached through `compat.ChangedAddonCompat`; classes whose signatures contain Addon types live below `compat.addon` and are loaded only when that mod is present.
+The common module depends on Changed. Changed Addon Plus is optional and is reached through `compat.ChangedAddonCompat`; classes whose signatures contain Addon types live below `compat.addon` and are loaded only when that mod is present.
 
 No external integration may become a required type in the main entry point, API, relationship model, menus, packets, or client state.
 

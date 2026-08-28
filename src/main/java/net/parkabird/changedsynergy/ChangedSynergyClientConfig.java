@@ -32,15 +32,17 @@ public final class ChangedSynergyClientConfig {
         public final ForgeConfigSpec.BooleanValue reducedQteMotion;
 
         private Client(ForgeConfigSpec.Builder builder) {
-            builder.comment("Legacy Changed 0.13 transfur feedback").push("LEGACY TRANSFUR VISUALS");
+            builder.comment("Optional Changed 0.13-style transfur feedback").push("LEGACY TRANSFUR VISUALS");
             legacyTransfurScreenEffect = builder
                     .comment("Restore the colored transfur mask that grows inward as progress rises.",
-                            "While active, it replaces Changed's partial-progress danger meter.")
-                    .define("LegacyTransfurScreenEffect", true);
+                            "While active, it replaces Changed's current partial-progress indicator.",
+                            "Disabled by default so Changed keeps its current presentation.")
+                    .define("LegacyTransfurScreenEffect", false);
             legacyTransfurSkinEffect = builder
                     .comment("Restore the ten-stage colored latex coat on partially transfurred player skins and first-person arms.",
-                            "Organic assimilation intentionally uses only its screen mask.")
-                    .define("LegacyTransfurSkinEffect", true);
+                            "Organic assimilation intentionally uses only its screen mask.",
+                            "Disabled by default so Changed keeps its current presentation.")
+                    .define("LegacyTransfurSkinEffect", false);
             legacyTransfurScreenOpacity = builder
                     .comment("Maximum opacity multiplier for the legacy screen vignette.")
                     .defineInRange("LegacyTransfurScreenOpacity", 1.0, 0.0, 1.0);

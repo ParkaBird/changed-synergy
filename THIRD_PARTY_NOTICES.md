@@ -14,16 +14,10 @@ Synergy has optional compatibility with [Changed Addon Plus](https://www.cursefo
 
 Source: <https://github.com/Foxyas/Changed-Addon-Rework>
 
-## Curios API
-
-Curios API support is optional. Synergy does not bundle Curios.
-
-Source: <https://github.com/TheIllusiveC4/Curios>
-
 ## Minecraft and other integrations
 
 Minecraft is a trademark of Microsoft. Synergy is not affiliated with or endorsed by Microsoft or Mojang Studios.
 
-TACZ, Superb Warfare and menu configuration integrations are detected at runtime. Their code and assets are not bundled with Synergy.
+Optional compatibility integrations are detected at runtime. Their code and assets are not bundled with Synergy.
 
 Where Synergy reuses a Minecraft or upstream in-game icon, sound reference, texture treatment or model reference, that material remains subject to the original work's terms. Synergy's original promotional images and screenshots were made by ParkaBird and are not AI-generated.

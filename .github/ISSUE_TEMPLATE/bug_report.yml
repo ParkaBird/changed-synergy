@@ -23,7 +23,7 @@ body:
     id: optional
     attributes:
       label: Optional integrations
-      placeholder: Changed Addon 2.9.2c, Curios 5.14.1, or none
+      placeholder: Changed Addon Plus 2.9.2c, or none
   - type: textarea
     id: steps
     attributes:

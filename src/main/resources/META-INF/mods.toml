@@ -4,7 +4,7 @@ license="${mod_license}"
 
 [[mods]]
 modId="${mod_id}"
-version="${mod_version}"
+version="${mod_display_version}"
 displayName="${mod_name}"
 authors="${mod_authors}"
 logoFile="changed_synergy.png"
@@ -38,12 +38,5 @@ side="BOTH"
 modId="changed_addon"
 mandatory=false
 versionRange="[2.9.2,2.10)"
-ordering="AFTER"
-side="BOTH"
-
-[[dependencies.${mod_id}]]
-modId="curios"
-mandatory=false
-versionRange="[5.14.1,6)"
 ordering="AFTER"
 side="BOTH"

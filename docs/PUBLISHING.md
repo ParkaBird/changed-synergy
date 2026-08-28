@@ -29,8 +29,7 @@ Changed: Synergy turns fierce latex creatures into neighbors you can get along w
 ## Dependency declarations
 
 - Required: Changed 0.15.7
-- Optional: Changed Addon 2.9.2c
-- Optional: Curios API 5.14.1 for Minecraft 1.20.1
+- Optional: Changed Addon Plus 2.9.2c
 
 Forge itself and Minecraft should use the supported ranges in `mods.toml`.
 
@@ -42,7 +41,7 @@ Use this text where a platform requests an AI disclosure:
 
 ## First file
 
-- Version: `0.1.0-beta.1+mc1.20.1-changed0.15.7`
+- Version: `0.1.0-beta.1`
 - Release type: Beta
 - Display title: `Changed: Synergy 0.1.0 Beta 1 for Forge 1.20.1`
 - Upload only the release JAR, not the sources JAR, as the main downloadable mod.

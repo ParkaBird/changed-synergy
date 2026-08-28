@@ -353,7 +353,7 @@ public final class InvoluntaryTransfurNegotiation {
                 && LatexFusionIntent.isOrdinaryWhiteLatexWolf(targetVariant);
         Reason reason = LatexFusionIntent.reasonFor(source);
         boolean sourceWasRelated = hasPriorRelationship(source, player);
-        // Fusion can arrive while an older devouring claim is still stored on
+        // Fusion can arrive while an older absorption claim is still stored on
         // the player. Always retire that snapshot before recording this exact
         // knight, otherwise its name and appearance leak into the new claim.
         abandonClaim(currentPlayerEntity(player));
@@ -542,7 +542,7 @@ public final class InvoluntaryTransfurNegotiation {
     }
 
     /**
-     * Advances a devouring negotiation without materialising a duplicate
+     * Advances an absorption negotiation without materialising a duplicate
      * creature beside the player.  The original individual's snapshot stays
      * on the player until a successful separation restores the correct body.
      */

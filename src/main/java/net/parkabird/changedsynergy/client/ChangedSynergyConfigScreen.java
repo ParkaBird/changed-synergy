@@ -10,6 +10,7 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.parkabird.changedsynergy.ChangedSynergyClientConfig;
 import net.parkabird.changedsynergy.ChangedSynergyClientConfig.DialogueDisplayMode;
@@ -299,10 +300,9 @@ public final class ChangedSynergyConfigScreen extends Screen {
 
     private static List<Category> createGameplayCategories() {
         ChangedSynergyConfig.Common config = ChangedSynergyConfig.COMMON;
-        return List.of(
+        List<Category> categories = new ArrayList<>();
+        categories.addAll(List.of(
                 category("relationships",
-                        bool("respect_pacified", config.respectPacifiedLatexes, true),
-                        bool("pacify_pets", config.pacifyTamedCompanions, true),
                         integer("pet_regeneration", config.tamedCompanionRegeneration, 0, 0, 5),
                         decimal("awareness_range", config.npcAwarenessRange, 32.0, 8.0, 96.0, 1.0),
                         bool("polite_interaction", config.politeHumanInteraction, true),
@@ -327,15 +327,21 @@ public final class ChangedSynergyConfigScreen extends Screen {
                         decimal("dialogue_chance", config.npcDialogueChance, 0.72, 0.0, 1.0, 0.05),
                         decimal("personality_chance", config.personalityDialogueChance, 0.68, 0.0, 1.0, 0.05),
                         bool("translator", config.npcDialogueUsesTranslator, true),
-                        integer("telepathy_unlock", config.telepathyUnlockTransfurs, 3, 1, 20)));
+                        integer("telepathy_unlock", config.telepathyUnlockTransfurs, 3, 1, 20))));
+        if (ModList.get().isLoaded("changed_addon")) {
+            categories.add(category("changed_addon",
+                    bool("respect_pacified", config.respectPacifiedLatexes, true),
+                    bool("pacify_pets", config.pacifyTamedCompanions, true)));
+        }
+        return List.copyOf(categories);
     }
 
     private static List<Category> createClientCategories() {
         ChangedSynergyClientConfig.Client config = ChangedSynergyClientConfig.CLIENT;
         return List.of(
                 category("legacy_visuals",
-                        bool("legacy_screen", config.legacyTransfurScreenEffect, true),
-                        bool("legacy_skin", config.legacyTransfurSkinEffect, true),
+                        bool("legacy_screen", config.legacyTransfurScreenEffect, false),
+                        bool("legacy_skin", config.legacyTransfurSkinEffect, false),
                         decimal("legacy_opacity", config.legacyTransfurScreenOpacity, 1.0, 0.0, 1.0, 0.05)),
                 category("suit_visuals",
                         bool("suit_vignette", config.friendlySuitVignette, true),
