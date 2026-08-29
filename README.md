@@ -107,6 +107,6 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a patch. The project d
 
 Changed: Synergy is developed by ParkaBird. It is an unofficial addon and is not affiliated with the creators of Changed or Mojang Studios.
 
-Generative AI assisted parts of the code and bilingual text. ParkaBird reviewed, edited, integrated and tested the resulting work. Artwork, textures, models, screenshots and promotional images are not AI-generated. Details are in [AI_DISCLOSURE.md](AI_DISCLOSURE.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Generative AI assisted parts of the bilingual text and code. ParkaBird reviewed, edited, integrated and tested the resulting work. Artwork, textures, models, screenshots and promotional images are not AI-generated. Details are in [AI_DISCLOSURE.md](AI_DISCLOSURE.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 Changed: Synergy is licensed under [GPL-3.0-or-later](LICENSE.txt).
