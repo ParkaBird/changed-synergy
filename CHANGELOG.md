@@ -14,8 +14,6 @@ Second public beta update.
 - Added a minimum spacing claim around community outposts to prevent adjacent settlements from replacing or crowding one another.
 - Added basic Changed Additions compatibility and documented the optional integration.
 - Excluded Addon boss entities and Foxyas from Synergy social, relationship, hypnosis and companion systems.
-- Made transfur-progress skin and vision presentation configurable while preserving Changed's original behavior by default.
-- Standardized user-facing terminology around wrapping and improved related English and Simplified Chinese feedback.
 
 ## 0.1.0-beta.1
 
