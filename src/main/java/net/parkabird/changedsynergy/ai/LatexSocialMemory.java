@@ -104,6 +104,7 @@ public final class LatexSocialMemory {
 
     public static boolean isSocialLatex(ChangedEntity mob) {
         return mob.getUnderlyingPlayer() == null
+                && CreatureSocialProfile.allowsSynergySystems(mob)
                 && (mob.getType().is(ChangedTags.EntityTypes.LATEX)
                         || mob.getType().is(ORGANIC_LATEX));
     }

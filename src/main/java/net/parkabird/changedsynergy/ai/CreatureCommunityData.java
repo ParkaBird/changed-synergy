@@ -18,6 +18,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
@@ -139,6 +140,46 @@ public final class CreatureCommunityData extends SavedData {
             return List.of();
         }
         return compatibleCaches(creature, level, 0.0D, false);
+    }
+
+    /**
+     * Treats every surviving community cache as a local settlement claim,
+     * regardless of faction. Unloaded claims remain authoritative; loaded
+     * records whose container was actually removed are pruned here.
+     */
+    public static boolean isCacheAreaClaimed(
+            ServerLevel level,
+            BlockPos position,
+            double radius) {
+        if (radius <= 0.0D) {
+            return false;
+        }
+        CreatureCommunityData data = get(level.getServer());
+        String dimension = level.dimension().location().toString();
+        double radiusSqr = radius * radius;
+        boolean claimed = false;
+        boolean changed = false;
+        for (Community community : data.communities.values()) {
+            if (community.cache == null
+                    || !community.dimension.equals(dimension)
+                    || community.cache.distSqr(position) > radiusSqr) {
+                continue;
+            }
+            if (!level.hasChunkAt(community.cache)) {
+                claimed = true;
+                continue;
+            }
+            if (level.getBlockEntity(community.cache) instanceof Container) {
+                claimed = true;
+                continue;
+            }
+            community.cache = null;
+            changed = true;
+        }
+        if (changed) {
+            data.setDirty();
+        }
+        return claimed;
     }
 
     private static List<BlockPos> compatibleCaches(

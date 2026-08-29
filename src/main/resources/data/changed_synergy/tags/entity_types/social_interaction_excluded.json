@@ -8,6 +8,18 @@
     "changed:latex_benign_orca",
     "changed:behemoth_head",
     "changed:behemoth_hand_left",
-    "changed:behemoth_hand_right"
+    "changed:behemoth_hand_right",
+    {
+      "id": "changed_addon:experiment_009_boss",
+      "required": false
+    },
+    {
+      "id": "changed_addon:experiment_10_boss",
+      "required": false
+    },
+    {
+      "id": "changed_addon:latex_snow_fox_foxyas",
+      "required": false
+    }
   ]
 }

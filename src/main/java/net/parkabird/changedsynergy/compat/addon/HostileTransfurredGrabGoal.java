@@ -180,6 +180,7 @@ public final class HostileTransfurredGrabGoal extends Goal {
 
     private boolean isHostileTransfurredTarget(ServerPlayer player) {
         if (!ProcessTransfur.isPlayerTransfurred(player)
+                || InvoluntaryTransfurNegotiation.hasAbsorptionClaim(player)
                 || !LatexSocialMemory.mayInitiateHostileGrab(mob, player)) {
             return false;
         }

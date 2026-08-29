@@ -1,5 +1,6 @@
 package net.parkabird.changedsynergy.ai;
 
+import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -62,6 +63,10 @@ public enum HypnosisProfile {
     }
 
     public static boolean isHypnoticCreature(Entity entity) {
+        if (entity instanceof ChangedEntity creature
+                && !CreatureSocialProfile.allowsSynergySystems(creature)) {
+            return false;
+        }
         return entity.getType().is(HYPNOTIC_CREATURES) || of(entity) != GENERIC;
     }
 

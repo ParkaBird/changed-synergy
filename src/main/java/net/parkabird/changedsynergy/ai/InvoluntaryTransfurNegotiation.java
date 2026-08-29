@@ -30,7 +30,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
@@ -87,12 +89,19 @@ public final class InvoluntaryTransfurNegotiation {
     private static final String ABSORPTION_RELEASING = "AbsorptionReleasing";
     private static final String EXTERNAL_RELEASE_PENDING =
             "ExternalReleasePending";
+    private static final String EXTERNAL_RELEASE_CHECK_AT =
+            "ExternalReleaseCheckAt";
+    private static final String FORM_RESTORE_PENDING = "FormRestorePending";
+    private static final String RELEASE_WHEN_SAFE = "ReleaseWhenSafe";
     private static final String CLAIMED_PLAYER = "ClaimedPlayer";
     private static final String RELEASE_PLAYER = "Player";
     private static final String RELEASE_REVERSE_AT = "ReverseAt";
     private static final String RELEASE_END_AT = "EndAt";
     private static final String RELEASE_REVERSED = "Reversed";
     private static final String RELEASE_BONDED = "BondedReversal";
+    private static final String RELEASE_PREVIOUS_PROGRESS = "PreviousProgress";
+    private static final String RELEASE_PREVIOUS_USED = "PreviousUsedApproaches";
+    private static final String RELEASE_PREVIOUS_ATTEMPTS = "PreviousAttempts";
     private static final int RELEASE_REVERSE_DELAY = 18;
     public static final int RELEASE_DURATION = 46;
     private static final long NEGOTIATION_FAILURE_COOLDOWN_TICKS = 1200L;
@@ -184,6 +193,12 @@ public final class InvoluntaryTransfurNegotiation {
         REVERSED,
         COMPLETE,
         ABORT
+    }
+
+    private enum ReleaseBlockReason {
+        NONE,
+        AIRBORNE,
+        HOSTILES
     }
 
     public record View(
@@ -322,7 +337,7 @@ public final class InvoluntaryTransfurNegotiation {
                 && !LatexSocialMemory.isOrganic(source)
                 && (LatexSocialMemory.isSocialLatex(source)
                         || incompleteCompletion)
-                && (!CreatureSocialProfile.isPermanentlyExcluded(sourceType)
+                && (!CreatureSocialProfile.isPermanentlyExcluded(source)
                         || incompleteCompletion)
                 && !VoluntaryBondTransfurService.isCompleting(source, player)
                 && !isVoluntaryCompanion(source, player);
@@ -401,7 +416,56 @@ public final class InvoluntaryTransfurNegotiation {
                 && ProcessTransfur.isPlayerTransfurred(player)
                 && data != null
                 && !data.getBoolean(NEGOTIATION_FAILED)
+                && !data.getBoolean(RELEASE_WHEN_SAFE)
                 && isAbsorptionClaim(data);
+    }
+
+    public static boolean requiresGroundedRelease(ServerPlayer player) {
+        CompoundTag data = existingPlayerData(player);
+        boolean temporarySuit = ProcessTransfur.getPlayerTransfurVariantSafe(player)
+                .map(instance -> instance.isTemporaryFromSuit())
+                .orElse(false);
+        return temporarySuit || isAbsorptionClaim(data)
+                || data != null && data.getBoolean(EXTERNAL_RELEASE_PENDING);
+    }
+
+    public static boolean canReleaseAtCurrentPosition(ServerPlayer player) {
+        return !requiresGroundedRelease(player) || player.onGround();
+    }
+
+    public static void warnAirborneRelease(ServerPlayer player) {
+        player.displayClientMessage(Component.translatable(
+                "message.changed_synergy.negotiation.airborne_release_blocked",
+                absorptionSourceName(player)),
+                true);
+    }
+
+    private static ReleaseBlockReason absorptionReleaseBlock(
+            ServerPlayer player) {
+        if (!player.onGround()) {
+            return ReleaseBlockReason.AIRBORNE;
+        }
+        boolean hostileNearby = !player.serverLevel().getEntitiesOfClass(
+                Mob.class,
+                player.getBoundingBox().inflate(8.0D, 5.0D, 8.0D),
+                mob -> mob.isAlive()
+                        && mob instanceof Enemy
+                        && !(mob instanceof ChangedEntity)).isEmpty();
+        return hostileNearby
+                ? ReleaseBlockReason.HOSTILES
+                : ReleaseBlockReason.NONE;
+    }
+
+    private static void warnBlockedAbsorptionRelease(
+            ServerPlayer player,
+            ReleaseBlockReason reason) {
+        if (reason == ReleaseBlockReason.AIRBORNE) {
+            warnAirborneRelease(player);
+        } else if (reason == ReleaseBlockReason.HOSTILES) {
+            player.displayClientMessage(Component.translatable(
+                    "message.changed_synergy.negotiation.hostile_release_blocked",
+                    absorptionSourceName(player)), true);
+        }
     }
 
     /** Remaining failed-negotiation lockout, in ticks. */
@@ -515,7 +579,7 @@ public final class InvoluntaryTransfurNegotiation {
         data.putInt(ATTEMPTS, before.attempts() + 1);
 
         if (progress >= before.required()) {
-            beginRelease(player, source, readView(data));
+            beginRelease(player, source, readView(data), before);
             return;
         }
 
@@ -563,8 +627,12 @@ public final class InvoluntaryTransfurNegotiation {
         if (before.used(approach)) {
             return;
         }
-        if (approach == Approach.FOOD_BRIBE
-                && !consumeFoodBribe(player, null, data)) {
+        int foodBribeSlot = approach == Approach.FOOD_BRIBE
+                ? findAbsorptionFoodBribeSlot(player, data) : -1;
+        if (approach == Approach.FOOD_BRIBE && foodBribeSlot < 0) {
+            player.displayClientMessage(Component.translatable(
+                    "message.changed_synergy.negotiation.no_bribe_food"),
+                    true);
             return;
         }
         Trait trait = sourceTrait(data);
@@ -585,8 +653,31 @@ public final class InvoluntaryTransfurNegotiation {
         data.putInt(ATTEMPTS, before.attempts() + 1);
 
         if (data.getInt(PROGRESS) >= before.required()) {
-            completeAbsorptionRelease(player, data.copy());
+            ReleaseBlockReason block = absorptionReleaseBlock(player);
+            if (block != ReleaseBlockReason.NONE) {
+                if (approach == Approach.FOOD_BRIBE) {
+                    consumeFoodBribeSlot(player, foodBribeSlot);
+                }
+                queueReleaseWhenSafe(player, data, now);
+                warnBlockedAbsorptionRelease(player, block);
+                return;
+            }
+            if (!completeAbsorptionRelease(player, data.copy())) {
+                CompoundTag live = existingPlayerData(player);
+                if (live != null) {
+                    if (approach == Approach.FOOD_BRIBE) {
+                        consumeFoodBribeSlot(player, foodBribeSlot);
+                    }
+                    queueReleaseWhenSafe(player, live, now);
+                }
+            } else if (approach == Approach.FOOD_BRIBE) {
+                consumeFoodBribeSlot(player, foodBribeSlot);
+            }
             return;
+        }
+
+        if (approach == Approach.FOOD_BRIBE) {
+            consumeFoodBribeSlot(player, foodBribeSlot);
         }
 
         if ((usedApproaches & CORE_APPROACHES_MASK)
@@ -722,7 +813,9 @@ public final class InvoluntaryTransfurNegotiation {
 
     public static boolean isReleaseParticipant(LivingEntity entity) {
         if (entity instanceof ChangedEntity source) {
-            return hasReleaseHold(source);
+            return hasReleaseHold(source)
+                    && source.getPersistentData().getCompound(RELEASE_ROOT)
+                            .getLong(RELEASE_END_AT) >= source.level().getGameTime();
         }
         if (!(entity instanceof ServerPlayer player)) {
             return false;
@@ -739,7 +832,7 @@ public final class InvoluntaryTransfurNegotiation {
         for (ServerLevel level : player.server.getAllLevels()) {
             for (Entity candidate : level.getAllEntities()) {
                 if (candidate instanceof ChangedEntity source
-                        && isReleaseHoldTarget(source, player)) {
+                        && isReleaseHoldActive(source, player)) {
                     return true;
                 }
             }
@@ -753,11 +846,44 @@ public final class InvoluntaryTransfurNegotiation {
             ServerPlayer player) {
         return source.isAlive()
                 && !source.isRemoved()
+                && player.isAlive()
+                && !player.isSpectator()
                 && source.level() == player.level()
+                && player.distanceToSqr(source) <= 64.0D
                 && LatexSocialMemory.isPetOwner(source, player)
                 && !LatexSocialMemory.isOrganic(source)
+                && !hasAbsorptionClaim(player)
+                && !isReleaseParticipant(player)
                 && ProcessTransfur.isPlayerTransfurred(player)
-                && !isOrganicPlayerForm(player);
+                && !isOrganicPlayerForm(player)
+                && ProcessTransfur.getPlayerTransfurVariantSafe(player)
+                        .map(instance -> !instance.isTemporaryFromSuit())
+                        .orElse(false);
+    }
+
+    private static boolean canContinueBondedReversal(
+            ChangedEntity source,
+            ServerPlayer player,
+            CompoundTag release) {
+        if (!source.isAlive()
+                || source.isRemoved()
+                || !player.isAlive()
+                || source.level() != player.level()
+                || !LatexSocialMemory.isPetOwner(source, player)
+                || LatexSocialMemory.isOrganic(source)) {
+            return false;
+        }
+        if (release.getBoolean(RELEASE_REVERSED)) {
+            return true;
+        }
+        return !player.isSpectator()
+                && player.distanceToSqr(source) <= 64.0D
+                && !hasAbsorptionClaim(player)
+                && ProcessTransfur.isPlayerTransfurred(player)
+                && !isOrganicPlayerForm(player)
+                && ProcessTransfur.getPlayerTransfurVariantSafe(player)
+                        .map(instance -> !instance.isTemporaryFromSuit())
+                        .orElse(false);
     }
 
     /** Starts the same secure, QTE-free hold used after a successful negotiation. */
@@ -801,7 +927,7 @@ public final class InvoluntaryTransfurNegotiation {
                 || !player.isAlive()
                 || source.level() != player.level()
                 || (bondedReversal
-                        ? !canBondedReversal(source, player)
+                        ? !canContinueBondedReversal(source, player, release)
                         : !canNegotiate(player, source))
                 || !isReleaseHoldTarget(source, player)) {
             return ReleaseHoldStep.ABORT;
@@ -832,12 +958,20 @@ public final class InvoluntaryTransfurNegotiation {
         boolean bondedReversal = release.getBoolean(RELEASE_BONDED);
         if (!isReleaseHoldTarget(source, player)
                 || (bondedReversal
-                        ? !canBondedReversal(source, player)
+                        ? !canContinueBondedReversal(source, player, release)
                         : !canNegotiate(player, source))) {
             abortReleaseHold(source, player);
             return;
         }
+        completeReleaseHold(source, player, release, true);
+    }
 
+    private static void completeReleaseHold(
+            ChangedEntity source,
+            ServerPlayer player,
+            CompoundTag release,
+            boolean playDialogue) {
+        boolean bondedReversal = release.getBoolean(RELEASE_BONDED);
         if (bondedReversal) {
             if (!release.getBoolean(RELEASE_REVERSED)) {
                 applyPlayerReversal(player, false);
@@ -845,28 +979,37 @@ public final class InvoluntaryTransfurNegotiation {
             source.getPersistentData().remove(RELEASE_ROOT);
             LatexSocialMemory.clearHostilityToward(source, player);
             abandonClaim(player);
-            NpcDialogue.trigger(source, player, Cue.BOND_REVERSE_COMPLETE);
+            if (playDialogue && source.level() == player.level()) {
+                NpcDialogue.trigger(source, player, Cue.BOND_REVERSE_COMPLETE);
+            }
             return;
         }
 
-        View view = readView(playerData(player));
-        boolean fusionSplit = playerData(player).getBoolean(FUSION_SPLIT);
+        CompoundTag data = existingPlayerData(player);
+        if (data == null) {
+            source.getPersistentData().remove(RELEASE_ROOT);
+            source.getPersistentData().remove(SOURCE_ROOT);
+            return;
+        }
+        View view = readView(data);
+        boolean fusionSplit = data.getBoolean(FUSION_SPLIT);
         if (!release.getBoolean(RELEASE_REVERSED)) {
             applyPlayerReversal(player, view.whiteKnightSplit());
         }
         source.getPersistentData().remove(RELEASE_ROOT);
         source.getPersistentData().remove(SOURCE_ROOT);
 
-        ChangedEntity finalSource = source;
-        LatexSocialMemory.settleAfterNegotiatedRelease(finalSource, player);
-        FactionHostilityGrace.begin(finalSource, player);
-        LatexSocialEvents.clearPendingCombatReactions(finalSource, player);
-        CreaturePersonality.establishRelationship(finalSource, player);
-        finalSource.setPersistenceRequired();
+        LatexSocialMemory.settleAfterNegotiatedRelease(source, player);
+        FactionHostilityGrace.begin(source, player);
+        LatexSocialEvents.clearPendingCombatReactions(source, player);
+        CreaturePersonality.establishRelationship(source, player);
+        source.setPersistenceRequired();
         if (fusionSplit) {
-            LatexFusionIntent.beginReleaseCooldown(finalSource, player);
+            LatexFusionIntent.beginReleaseCooldown(source, player);
         }
-        NpcDialogue.trigger(finalSource, player, releaseCue(view));
+        if (playDialogue && source.level() == player.level()) {
+            NpcDialogue.trigger(source, player, releaseCue(view));
+        }
         net.parkabird.changedsynergy.advancement.SynergyAdvancements.grant(
                 player,
                 net.parkabird.changedsynergy.advancement.SynergyAdvancements
@@ -880,17 +1023,59 @@ public final class InvoluntaryTransfurNegotiation {
         clearPlayerData(player);
     }
 
+    private static void completeInterruptedRelease(
+            ChangedEntity source,
+            ServerPlayer player,
+            boolean bondedReversal) {
+        CompoundTag release = new CompoundTag();
+        release.putBoolean(RELEASE_BONDED, bondedReversal);
+        release.putBoolean(RELEASE_REVERSED, true);
+        completeReleaseHold(source, player, release, false);
+    }
+
     public static void abortReleaseHold(
             ChangedEntity source,
             @Nullable ServerPlayer player) {
-        boolean bondedReversal = source.getPersistentData()
-                .getCompound(RELEASE_ROOT).getBoolean(RELEASE_BONDED);
+        CompoundTag release = source.getPersistentData()
+                .getCompound(RELEASE_ROOT).copy();
+        boolean bondedReversal = release.getBoolean(RELEASE_BONDED);
         source.getPersistentData().remove(RELEASE_ROOT);
+        if (player != null && release.getBoolean(RELEASE_REVERSED)) {
+            completeInterruptedRelease(source, player, bondedReversal);
+            return;
+        }
         if (player != null && !bondedReversal) {
             CompoundTag data = existingPlayerData(player);
             if (data != null) {
+                data.putInt(PROGRESS, release.getInt(RELEASE_PREVIOUS_PROGRESS));
+                data.putInt(USED_APPROACHES, release.getInt(RELEASE_PREVIOUS_USED));
+                data.putInt(ATTEMPTS, release.getInt(RELEASE_PREVIOUS_ATTEMPTS));
                 data.putLong(NEXT_ATTEMPT, source.level().getGameTime() + 10L);
             }
+        }
+    }
+
+    /** Recovers an expired hold after reload or when the optional Addon bridge is absent. */
+    public static void tickReleaseHoldRecovery(ChangedEntity source) {
+        if (!hasReleaseHold(source)) {
+            return;
+        }
+        CompoundTag release = source.getPersistentData().getCompound(RELEASE_ROOT);
+        if (release.getLong(RELEASE_END_AT) >= source.level().getGameTime()) {
+            return;
+        }
+        ServerPlayer player = releaseHoldPlayer(source);
+        if (player == null) {
+            // Keep the expired marker as inert recovery data. It no longer grants
+            // damage immunity and can be resolved when the player returns.
+            return;
+        }
+        if (release.getBoolean(RELEASE_REVERSED)) {
+            completeInterruptedRelease(
+                    source, player, release.getBoolean(RELEASE_BONDED));
+            source.getPersistentData().remove(RELEASE_ROOT);
+        } else {
+            abortReleaseHold(source, player);
         }
     }
 
@@ -902,6 +1087,11 @@ public final class InvoluntaryTransfurNegotiation {
             replacement.getPersistentData().put(
                     SOURCE_ROOT,
                     from.getCompound(SOURCE_ROOT).copy());
+        }
+        if (from.contains(RELEASE_ROOT, Tag.TAG_COMPOUND)) {
+            replacement.getPersistentData().put(
+                    RELEASE_ROOT,
+                    from.getCompound(RELEASE_ROOT).copy());
         }
     }
 
@@ -930,25 +1120,35 @@ public final class InvoluntaryTransfurNegotiation {
     public static void onPlayerReady(ServerPlayer player) {
         CompoundTag data = existingPlayerData(player);
         if (data != null && data.getBoolean(CAPTURE_PENDING)) {
+            // Only the Changed post-transfur listener may confirm a staged
+            // absorption. A pending record on login/respawn means the attempt
+            // never reached its successful completion callback.
+            abandonClaim(player);
+            return;
+        }
+        if (data != null && data.getBoolean(FORM_RESTORE_PENDING)) {
             if (!ProcessTransfur.isPlayerTransfurred(player)) {
-                abandonClaim(player);
-                return;
+                if (!restoreCapturedResultForm(player, data)) {
+                    abandonClaim(player);
+                    return;
+                }
             }
-            confirmStagedCapture(player);
-            data = existingPlayerData(player);
+            data.putBoolean(FORM_RESTORE_PENDING, false);
         }
         // Death, commands and third-party reversal paths do not all emit the
         // same Changed event. Never expose a stale release claim to a human,
         // and retire saves from the removed secondary-transfur negotiation.
         if (data != null && !ProcessTransfur.isPlayerTransfurred(player)) {
-            if (data.getBoolean(EXTERNAL_RELEASE_PENDING)) {
+            if (Mode.ABSORPTION.name().equals(data.getString(MODE))) {
                 tickPlayer(player);
             } else {
                 abandonClaim(player);
             }
             return;
         }
-        syncAbsorptionState(player, isAbsorptionClaim(data));
+        syncAbsorptionState(player,
+                isAbsorptionClaim(data)
+                        && !data.getBoolean(RELEASE_WHEN_SAFE));
         if (data == null
                 || Mode.ABSORPTION.name().equals(data.getString(MODE))
                 || !data.hasUUID(SOURCE_UUID)
@@ -1008,6 +1208,8 @@ public final class InvoluntaryTransfurNegotiation {
         }
         if (isAbsorptionClaim(data)) {
             data.putBoolean(EXTERNAL_RELEASE_PENDING, true);
+            data.putLong(EXTERNAL_RELEASE_CHECK_AT,
+                    player.level().getGameTime() + 1L);
             syncAbsorptionState(player, false);
         } else {
             abandonClaim(player);
@@ -1017,9 +1219,58 @@ public final class InvoluntaryTransfurNegotiation {
     /** Completes a non-negotiated separation after Changed has removed the form. */
     public static void tickPlayer(ServerPlayer player) {
         CompoundTag data = existingPlayerData(player);
-        if (data == null
-                || !data.getBoolean(EXTERNAL_RELEASE_PENDING)
-                || ProcessTransfur.isPlayerTransfurred(player)) {
+        if (data == null || !player.isAlive()) {
+            return;
+        }
+        if (data.getBoolean(FORM_RESTORE_PENDING)) {
+            if (ProcessTransfur.isPlayerTransfurred(player)) {
+                data.putBoolean(FORM_RESTORE_PENDING, false);
+            } else {
+                if (restoreCapturedResultForm(player, data)) {
+                    data.putBoolean(FORM_RESTORE_PENDING, false);
+                }
+                return;
+            }
+        }
+        if (data.getBoolean(RELEASE_WHEN_SAFE)
+                && ProcessTransfur.isPlayerTransfurred(player)) {
+            tickQueuedRelease(player, data);
+            return;
+        }
+        if (!data.getBoolean(EXTERNAL_RELEASE_PENDING)) {
+            if (isAbsorptionClaim(data)
+                    && !ProcessTransfur.isPlayerTransfurred(player)) {
+                if (!player.onGround()) {
+                    restoreCapturedResultForm(player, data);
+                    warnAirborneRelease(player);
+                    return;
+                }
+                data.putBoolean(EXTERNAL_RELEASE_PENDING, true);
+                data.putLong(EXTERNAL_RELEASE_CHECK_AT,
+                        player.level().getGameTime());
+                syncAbsorptionState(player, false);
+            } else {
+                return;
+            }
+        }
+        if (ProcessTransfur.isPlayerTransfurred(player)) {
+            if (player.level().getGameTime()
+                    >= data.getLong(EXTERNAL_RELEASE_CHECK_AT)) {
+                data.putBoolean(EXTERNAL_RELEASE_PENDING, false);
+                data.remove(EXTERNAL_RELEASE_CHECK_AT);
+                syncAbsorptionState(player,
+                        !data.getBoolean(RELEASE_WHEN_SAFE));
+            }
+            return;
+        }
+        ReleaseBlockReason block = absorptionReleaseBlock(player);
+        if (block != ReleaseBlockReason.NONE) {
+            restoreCapturedResultForm(player, data);
+            data.putBoolean(EXTERNAL_RELEASE_PENDING, false);
+            data.remove(EXTERNAL_RELEASE_CHECK_AT);
+            syncAbsorptionState(player,
+                    !data.getBoolean(RELEASE_WHEN_SAFE));
+            warnBlockedAbsorptionRelease(player, block);
             return;
         }
         CompoundTag claim = data.copy();
@@ -1031,6 +1282,10 @@ public final class InvoluntaryTransfurNegotiation {
         FactionHostilityGrace.begin(released, player);
         LatexSocialEvents.clearPendingCombatReactions(released, player);
         LatexSocialEvents.calmTowards(released, player);
+        if (claim.getBoolean(FUSION_SPLIT)
+                || claim.getBoolean(WHITE_KNIGHT_SPLIT)) {
+            restoreOriginalPlayerForm(player, claim);
+        }
         if (claim.getBoolean(FUSION_SPLIT)) {
             LatexFusionIntent.beginReleaseCooldown(released, player);
         }
@@ -1045,7 +1300,7 @@ public final class InvoluntaryTransfurNegotiation {
     private static void completeCapture(
             ServerPlayer player,
             ChangedEntity originalSource,
-            IAbstractChangedEntity result,
+            @Nullable IAbstractChangedEntity result,
             Mode mode,
             Reason reason,
             @Nullable ResourceLocation originalType,
@@ -1074,7 +1329,11 @@ public final class InvoluntaryTransfurNegotiation {
         rememberSource(data, source);
         putLocation(data, ORIGINAL_SOURCE_TYPE, originalType);
         putLocation(data, ORIGINAL_PLAYER_FORM, originalPlayerForm);
-        putLocation(data, RESULT_PLAYER_FORM, currentForm(recipient));
+        ResourceLocation resultForm = result != null
+                && result.getSelfVariant() != null
+                        ? result.getSelfVariant().getFormId()
+                        : currentForm(recipient);
+        putLocation(data, RESULT_PLAYER_FORM, resultForm);
         data.putString(MODE, mode.name());
         data.putString(REASON, reason.name());
         data.putBoolean(SPECIAL_COMPLETION, specialCompletion);
@@ -1093,8 +1352,13 @@ public final class InvoluntaryTransfurNegotiation {
         data.putBoolean(NEGOTIATION_FAILED, false);
         data.remove(NEGOTIATION_RETRY_AT);
         data.putBoolean(EXTERNAL_RELEASE_PENDING, false);
+        data.putBoolean(RELEASE_WHEN_SAFE, false);
         data.putBoolean(OPENED, false);
         data.putBoolean(CAPTURE_PENDING, false);
+        data.putBoolean(FORM_RESTORE_PENDING,
+                mode == Mode.ABSORPTION
+                        && !recipient.isAlive()
+                        && resultForm != null);
         boolean playerCanAct = recipient.isAlive();
         data.putBoolean(RESPAWN_NOTICE, playerCanAct);
 
@@ -1175,19 +1439,12 @@ public final class InvoluntaryTransfurNegotiation {
         data.putBoolean(NEGOTIATION_FAILED, false);
         data.remove(NEGOTIATION_RETRY_AT);
         data.putBoolean(EXTERNAL_RELEASE_PENDING, false);
+        data.putBoolean(RELEASE_WHEN_SAFE, false);
         data.putBoolean(OPENED, false);
         data.putBoolean(RESPAWN_NOTICE, false);
         data.putBoolean(CAPTURE_PENDING, true);
 
         syncAbsorptionState(player, false);
-    }
-
-    private static void confirmStagedCapture(ServerPlayer player) {
-        CompoundTag data = playerData(player);
-        putLocation(data, RESULT_PLAYER_FORM, currentForm(player));
-        data.putBoolean(CAPTURE_PENDING, false);
-        data.putBoolean(RESPAWN_NOTICE, false);
-        syncAbsorptionState(player, true);
     }
 
     private static ServerPlayer currentPlayerEntity(ServerPlayer original) {
@@ -1196,20 +1453,29 @@ public final class InvoluntaryTransfurNegotiation {
         return current == null ? original : current;
     }
 
-    private static void completeAbsorptionRelease(
+    private static boolean completeAbsorptionRelease(
             ServerPlayer player,
             CompoundTag claim) {
+        return completeAbsorptionRelease(player, claim, true);
+    }
+
+    private static boolean completeAbsorptionRelease(
+            ServerPlayer player,
+            CompoundTag claim,
+            boolean notifyNoSpace) {
+        ReleaseBlockReason block = absorptionReleaseBlock(player);
+        if (block != ReleaseBlockReason.NONE) {
+            warnBlockedAbsorptionRelease(player, block);
+            return false;
+        }
         ChangedEntity released = createReleasedAbsorber(player, claim);
         if (released == null) {
-            CompoundTag live = existingPlayerData(player);
-            if (live != null) {
-                live.putInt(PROGRESS,
-                        Math.max(0, live.getInt(REQUIRED) - 1));
+            if (notifyNoSpace) {
+                player.displayClientMessage(Component.translatable(
+                        "message.changed_synergy.negotiation.no_release_space"),
+                        true);
             }
-            player.displayClientMessage(Component.translatable(
-                    "message.changed_synergy.negotiation.no_release_space"),
-                    true);
-            return;
+            return false;
         }
 
         CompoundTag live = existingPlayerData(player);
@@ -1256,6 +1522,35 @@ public final class InvoluntaryTransfurNegotiation {
         }
         clearPlayerData(player);
         NpcDialogue.trigger(released, player, cue);
+        return true;
+    }
+
+    private static void queueReleaseWhenSafe(
+            ServerPlayer player,
+            CompoundTag data,
+            long now) {
+        data.putBoolean(RELEASE_WHEN_SAFE, true);
+        data.putLong(NEXT_ATTEMPT, now + 10L);
+        player.closeContainer();
+        syncAbsorptionState(player, false);
+    }
+
+    private static void tickQueuedRelease(
+            ServerPlayer player,
+            CompoundTag data) {
+        long now = player.level().getGameTime();
+        if (data.getLong(NEXT_ATTEMPT) > now) {
+            return;
+        }
+        data.putLong(NEXT_ATTEMPT, now + 10L);
+        if (absorptionReleaseBlock(player) != ReleaseBlockReason.NONE) {
+            return;
+        }
+        if (!completeAbsorptionRelease(player, data.copy(), false)) {
+            // A clear floor can still lack room for the restored creature's
+            // full body. Keep the agreement queued while the player relocates.
+            data.putLong(NEXT_ATTEMPT, now + 20L);
+        }
     }
 
     @Nullable
@@ -1309,6 +1604,16 @@ public final class InvoluntaryTransfurNegotiation {
             released.discard();
             return null;
         }
+        if (claim.hasUUID(SOURCE_UUID)) {
+            UUID previousId = claim.getUUID(SOURCE_UUID);
+            CreatureMorphAliasData.get(player.server)
+                    .record(previousId, released.getUUID());
+            PlayerRelationshipSettings.replaceContactReference(
+                    player,
+                    previousId,
+                    released,
+                    claim.getBoolean(SOURCE_WAS_RELATED));
+        }
         return released;
     }
 
@@ -1328,7 +1633,7 @@ public final class InvoluntaryTransfurNegotiation {
         });
         if (claim.getBoolean(FUSION_SPLIT)
                 || claim.getBoolean(WHITE_KNIGHT_SPLIT)) {
-            restoreOriginalPlayerForm(player);
+            restoreOriginalPlayerForm(player, claim);
         } else if (ProcessTransfur.isPlayerTransfurred(player)) {
             ProcessTransfur.removePlayerTransfurVariant(player);
         }
@@ -1398,7 +1703,8 @@ public final class InvoluntaryTransfurNegotiation {
     private static void beginRelease(
             ServerPlayer player,
             ChangedEntity source,
-            View view) {
+            View view,
+            View before) {
         if (hasReleaseHold(source)) {
             return;
         }
@@ -1409,6 +1715,9 @@ public final class InvoluntaryTransfurNegotiation {
         release.putLong(RELEASE_REVERSE_AT, now + RELEASE_REVERSE_DELAY);
         release.putLong(RELEASE_END_AT, now + RELEASE_DURATION);
         release.putBoolean(RELEASE_REVERSED, false);
+        release.putInt(RELEASE_PREVIOUS_PROGRESS, before.progress());
+        release.putInt(RELEASE_PREVIOUS_USED, before.usedApproaches());
+        release.putInt(RELEASE_PREVIOUS_ATTEMPTS, before.attempts());
         source.getPersistentData().put(RELEASE_ROOT, release);
         player.closeContainer();
 
@@ -1487,9 +1796,10 @@ public final class InvoluntaryTransfurNegotiation {
         return Cue.NEGOTIATION_RELEASE_ASSIMILATION;
     }
 
-    private static void restoreOriginalPlayerForm(ServerPlayer player) {
-        CompoundTag data = playerData(player);
-        ResourceLocation formId = readLocation(data, ORIGINAL_PLAYER_FORM);
+    private static void restoreOriginalPlayerForm(
+            ServerPlayer player,
+            CompoundTag claim) {
+        ResourceLocation formId = readLocation(claim, ORIGINAL_PLAYER_FORM);
         if (formId == null) {
             if (ProcessTransfur.isPlayerTransfurred(player)) {
                 ProcessTransfur.removePlayerTransfurVariant(player);
@@ -1507,6 +1817,36 @@ public final class InvoluntaryTransfurNegotiation {
             return;
         }
         ProcessTransfur.setPlayerTransfurVariant(player, variant);
+    }
+
+    private static void restoreOriginalPlayerForm(ServerPlayer player) {
+        CompoundTag claim = existingPlayerData(player);
+        if (claim == null) {
+            if (ProcessTransfur.isPlayerTransfurred(player)) {
+                ProcessTransfur.removePlayerTransfurVariant(player);
+            }
+            return;
+        }
+        restoreOriginalPlayerForm(player, claim);
+    }
+
+    private static boolean restoreCapturedResultForm(
+            ServerPlayer player,
+            CompoundTag claim) {
+        ResourceLocation formId = readLocation(claim, RESULT_PLAYER_FORM);
+        if (formId == null) {
+            return false;
+        }
+        Optional<Registry<TransfurVariant<?>>> registry = player.level().registryAccess()
+                .registry(TRANSFUR_VARIANT_REGISTRY);
+        TransfurVariant<?> variant = registry.map(value -> value.get(formId))
+                .orElse(null);
+        if (variant == null) {
+            return false;
+        }
+        ProcessTransfur.setPlayerTransfurVariant(player, variant);
+        ProcessTransfur.setPlayerTransfurProgress(player, 0.0F);
+        return ProcessTransfur.isPlayerTransfurred(player);
     }
 
     private static int requiredProgress(
@@ -1795,14 +2135,37 @@ public final class InvoluntaryTransfurNegotiation {
                     true);
             return false;
         }
-        if (!player.isCreative()) {
+        consumeFoodBribeSlot(player, slot);
+        return true;
+    }
+
+    private static int findAbsorptionFoodBribeSlot(
+            ServerPlayer player,
+            CompoundTag data) {
+        ChangedEntity target = createFoodProfile(player, data);
+        if (target == null) {
+            return -1;
+        }
+        try {
+            return findFoodBribeSlot(player, target);
+        } finally {
+            target.discard();
+        }
+    }
+
+    private static void consumeFoodBribeSlot(
+            ServerPlayer player,
+            int slot) {
+        if (!player.isCreative()
+                && slot >= 0
+                && slot < player.getInventory().getContainerSize()) {
             player.getInventory().getItem(slot).shrink(1);
+            player.getInventory().setChanged();
         }
         net.parkabird.changedsynergy.advancement.SynergyAdvancements.grant(
                 player,
                 net.parkabird.changedsynergy.advancement.SynergyAdvancements
                         .FOOD_BRIBE);
-        return true;
     }
 
     private static int findFoodBribeSlot(

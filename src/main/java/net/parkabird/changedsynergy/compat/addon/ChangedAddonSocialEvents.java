@@ -13,6 +13,7 @@ import net.foxyas.changedaddon.entity.ai.LatexFishingGoal;
 import net.foxyas.changedaddon.entity.ai.LatexSuitOwnerGoal;
 import net.foxyas.changedaddon.entity.api.IGrabberEntity;
 import net.foxyas.changedaddon.entity.api.TamableLatexEntityFavors;
+import net.foxyas.changedaddon.entity.defaults.AbstractLuminarcticLeopard;
 import net.foxyas.changedaddon.entity.ai.goals.abilities.MayDropGrabbedEntityGoal;
 import net.foxyas.changedaddon.entity.ai.goals.abilities.MayCauseGrabDamageGoal;
 import net.foxyas.changedaddon.entity.ai.goals.abilities.MayGrabTargetGoal;
@@ -68,8 +69,18 @@ public final class ChangedAddonSocialEvents {
     private ChangedAddonSocialEvents() {
     }
 
+    /** Luminarctic Leopard Male uses one entity type for both its normal and boss forms. */
+    public static boolean isSocialSystemExcludedBoss(ChangedEntity creature) {
+        return creature instanceof AbstractLuminarcticLeopard leopard
+                && leopard.isBoss();
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onPat(ProcessPatFeature.GlobalPatReactionEvent event) {
+        if (event.target instanceof ChangedEntity mob
+                && !CreatureSocialProfile.allowsSynergySystems(mob)) {
+            return;
+        }
         if (!event.patter.level().isClientSide) {
             PatAnimationService.startFixed(event.patter, event.target, 4);
         }
@@ -93,7 +104,8 @@ public final class ChangedAddonSocialEvents {
             disableGrabMechanic(mob, grabber);
             return;
         }
-        if (!LatexSocialMemory.isSocialLatex(mob)) {
+        if (!LatexSocialMemory.isSocialLatex(mob)
+                || !CreatureSocialProfile.allowsSynergySystems(mob)) {
             return;
         }
 
@@ -166,7 +178,9 @@ public final class ChangedAddonSocialEvents {
             }
             return;
         }
-        if (!LatexSocialMemory.isSocialLatex(mob) || !grabber.canUseGrab()) {
+        if (!CreatureSocialProfile.allowsSynergySystems(mob)
+                || !LatexSocialMemory.isSocialLatex(mob)
+                || !grabber.canUseGrab()) {
             return;
         }
 

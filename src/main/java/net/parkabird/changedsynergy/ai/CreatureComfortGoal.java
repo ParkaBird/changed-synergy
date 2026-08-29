@@ -24,7 +24,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.pathfinder.Path;
@@ -45,6 +44,7 @@ public final class CreatureComfortGoal extends Goal {
     private static final double MOVE_SPEED = 0.25D;
     private static final double ARRIVAL_SQR = 2.4D * 2.4D;
     private static final int FULL_HEALTH_ORANGE_CHANCE = 12;
+    private static final int RESERVED_ORANGES = 1;
 
     private final ChangedEntity mob;
     private Mode mode = Mode.NONE;
@@ -83,8 +83,7 @@ public final class CreatureComfortGoal extends Goal {
         if (needsHealing && acceptsOrange
                 && selectReachable(
                         Mode.EAT_ORANGE,
-                        state -> isOrangePile(state)
-                                && state.getValue(DroppedOrange.ORANGES) > 0)) {
+                        CreatureComfortGoal::hasConsumableOrange)) {
             return true;
         }
         if (CreatureLifeMemory.role(mob) == GroupRole.PROVISIONER
@@ -99,8 +98,7 @@ public final class CreatureComfortGoal extends Goal {
                 && mob.getRandom().nextInt(FULL_HEALTH_ORANGE_CHANCE) == 0
                 && selectReachable(
                         Mode.EAT_ORANGE,
-                        state -> isOrangePile(state)
-                                && state.getValue(DroppedOrange.ORANGES) > 0)) {
+                        CreatureComfortGoal::hasConsumableOrange)) {
             return true;
         }
         // Tall Changed cardboard boxes are real seats with their own open/close
@@ -356,15 +354,13 @@ public final class CreatureComfortGoal extends Goal {
             return false;
         }
         int count = state.getValue(DroppedOrange.ORANGES);
-        if (count <= 0) {
+        if (count <= RESERVED_ORANGES) {
             return false;
         }
-        BlockState replacement = count > 1
-                ? state.setValue(DroppedOrange.ORANGES, count - 1)
-                : state.getValue(DroppedOrange.WATERLOGGED)
-                        ? Blocks.WATER.defaultBlockState()
-                        : Blocks.AIR.defaultBlockState();
-        return level.setBlock(position, replacement, 3);
+        return level.setBlock(
+                position,
+                state.setValue(DroppedOrange.ORANGES, count - 1),
+                3);
     }
 
     private void orangeParticles(ServerLevel level) {
@@ -394,8 +390,7 @@ public final class CreatureComfortGoal extends Goal {
                     && mob.level().getBlockEntity(target.above())
                             instanceof CardboardBoxTallBlockEntity box
                     && box.getSeatedEntity() == null;
-            case EAT_ORANGE -> isOrangePile(state)
-                    && state.getValue(DroppedOrange.ORANGES) > 0;
+            case EAT_ORANGE -> hasConsumableOrange(state);
             case RESTOCK_ORANGE -> mob.level() instanceof ServerLevel level
                     && CreatureSettlementService.canRestockOrangePileAt(
                             level, target);
@@ -432,6 +427,11 @@ public final class CreatureComfortGoal extends Goal {
     private static boolean isOrangePile(BlockState state) {
         return state.is(ChangedBlocks.DROPPED_ORANGE.get())
                 && state.hasProperty(DroppedOrange.ORANGES);
+    }
+
+    private static boolean hasConsumableOrange(BlockState state) {
+        return isOrangePile(state)
+                && state.getValue(DroppedOrange.ORANGES) > RESERVED_ORANGES;
     }
 
     private static boolean isAvailableRestSeatState(BlockState state) {

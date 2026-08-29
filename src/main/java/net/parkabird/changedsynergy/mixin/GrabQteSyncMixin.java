@@ -145,6 +145,7 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
         }
         if (!entity.getLevel().isClientSide()
                 && entity.getEntity() instanceof ChangedEntity mob
+                && CreatureSocialProfile.allowsSynergySystems(mob)
                 && HypnosisProfile.isHypnoticCreature(mob)
                 && mob.getTarget() == target) {
             callback.setReturnValue(false);
@@ -153,7 +154,8 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
         if (!entity.getLevel().isClientSide()
                 && entity.getEntity() instanceof ChangedEntity mob
                 && target instanceof ServerPlayer player
-                && LatexSocialMemory.isSocialLatex(mob)) {
+                && LatexSocialMemory.isSocialLatex(mob)
+                && CreatureSocialProfile.allowsSynergySystems(mob)) {
             if (!LatexSocialMemory.isFriendlyArmHoldActive(mob, player)
                     && (!LatexSocialMemory.mayInitiateHostileGrab(mob, player)
                             || !LatexSocialMemory.passHostileGrabAttemptRoll(mob, player))) {

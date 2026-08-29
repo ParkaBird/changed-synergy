@@ -40,3 +40,10 @@ mandatory=false
 versionRange="[2.9.2,2.10)"
 ordering="AFTER"
 side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="changed_additions"
+mandatory=false
+versionRange="[0,)"
+ordering="AFTER"
+side="BOTH"

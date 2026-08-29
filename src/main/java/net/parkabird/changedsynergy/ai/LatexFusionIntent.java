@@ -46,7 +46,8 @@ public final class LatexFusionIntent {
         int maximumAge = player.level().getGameRules().getInt(
                 ChangedGameRules.RULE_FUSABILITY_DURATION_PLAYER);
         return ProcessTransfur.getPlayerTransfurVariantSafe(player)
-                .map(instance -> instance.ageAsVariant <= maximumAge)
+                .map(instance -> !instance.isTemporaryFromSuit()
+                        && instance.ageAsVariant <= maximumAge)
                 .orElse(false);
     }
 

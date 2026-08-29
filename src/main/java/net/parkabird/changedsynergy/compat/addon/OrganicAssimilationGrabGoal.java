@@ -22,6 +22,7 @@ import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.parkabird.changedsynergy.ai.HunterArchetype;
 import net.parkabird.changedsynergy.ai.HypnosisProfile;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
+import net.parkabird.changedsynergy.ai.InvoluntaryTransfurNegotiation;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.event.HuntAIEvents;
@@ -208,7 +209,8 @@ public final class OrganicAssimilationGrabGoal extends Goal {
     }
 
     private boolean isEligibleTarget(ServerPlayer player) {
-        return LatexSocialMemory.mayInitiateHostileGrab(mob, player);
+        return !InvoluntaryTransfurNegotiation.hasAbsorptionClaim(player)
+                && LatexSocialMemory.mayInitiateHostileGrab(mob, player);
     }
 
     private ServerPlayer findGrabTarget() {
@@ -270,6 +272,7 @@ public final class OrganicAssimilationGrabGoal extends Goal {
 
         completed = true;
         releaseGrab(target);
+        InvoluntaryTransfurNegotiation.abandonForSecondaryTransfur(target);
         if (bondConflict) {
             HuntAIEvents.celebrateOrganicBondConflict(mob, target);
         } else {

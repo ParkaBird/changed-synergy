@@ -126,6 +126,7 @@ public final class CreatureSettlementService {
     private static final int TERRITORY_CACHE_SEARCH_RADIUS = 10;
     private static final int NEARBY_CACHE_SEARCH_RADIUS = 16;
     private static final int CACHE_VERTICAL_SEARCH = 4;
+    private static final int SETTLEMENT_MIN_SPACING = 12;
     private static final int AQUATIC_SHORE_DETECTION_RADIUS = 56;
     private static final int AQUATIC_SHORE_PLACEMENT_RADIUS = 64;
     private static final int AQUATIC_NEARBY_SHORE_RADIUS = 80;
@@ -3063,6 +3064,7 @@ public final class CreatureSettlementService {
         BlockPos support = cache.below();
         if (!level.hasChunkAt(base)
                 || !level.getWorldBorder().isWithinBounds(base)
+                || isSettlementAreaOccupied(level, cache)
                 || !level.getBlockState(support)
                         .isFaceSturdy(level, support, Direction.UP)
                 || requireShore && !isNearWater(level, cache, 5)
@@ -3094,6 +3096,39 @@ public final class CreatureSettlementService {
             }
         }
         return true;
+    }
+
+    private static boolean isSettlementAreaOccupied(
+            ServerLevel level,
+            BlockPos candidateCache) {
+        if (CreatureCommunityData.isCacheAreaClaimed(
+                level, candidateCache, SETTLEMENT_MIN_SPACING)) {
+            return true;
+        }
+
+        int chunkRadius = (SETTLEMENT_MIN_SPACING >> 4) + 1;
+        int centerChunkX = candidateCache.getX() >> 4;
+        int centerChunkZ = candidateCache.getZ() >> 4;
+        double radiusSqr = (double) SETTLEMENT_MIN_SPACING
+                * SETTLEMENT_MIN_SPACING;
+        for (int dx = -chunkRadius; dx <= chunkRadius; dx++) {
+            for (int dz = -chunkRadius; dz <= chunkRadius; dz++) {
+                LevelChunk chunk = level.getChunkSource().getChunkNow(
+                        centerChunkX + dx, centerChunkZ + dz);
+                if (chunk == null) {
+                    continue;
+                }
+                for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
+                    CompoundTag persistent = blockEntity.getPersistentData();
+                    if (persistent.contains(CACHE_BLUEPRINT, Tag.TAG_STRING)
+                            && blockEntity.getBlockPos().distSqr(candidateCache)
+                                    <= radiusSqr) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean isDryStand(ServerLevel level, BlockPos stand) {

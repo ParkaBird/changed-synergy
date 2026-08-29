@@ -22,6 +22,9 @@ import net.parkabird.changedsynergy.ai.CreaturePersonality.RelationshipProgress;
 public final class RelationshipFavorService {
     private static final ResourceLocation ORANGE =
             ResourceLocation.fromNamespaceAndPath("changed", "orange");
+    private static final ResourceLocation CHANGED_ADDITIONS_GOLDEN_ORANGE =
+            ResourceLocation.fromNamespaceAndPath(
+                    "changed_additions", "golden_orange");
     private static final ResourceKey<Registry<TransfurVariant<?>>>
             TRANSFUR_VARIANT_REGISTRY = ResourceKey.createRegistryKey(
                     ResourceLocation.fromNamespaceAndPath(
@@ -63,8 +66,11 @@ public final class RelationshipFavorService {
     }
 
     public static boolean isOrange(ItemStack stack) {
-        return !stack.isEmpty()
-                && ORANGE.equals(ForgeRegistries.ITEMS.getKey(stack.getItem()));
+        if (stack.isEmpty()) {
+            return false;
+        }
+        ResourceLocation id = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        return ORANGE.equals(id) || CHANGED_ADDITIONS_GOLDEN_ORANGE.equals(id);
     }
 
     public static boolean acceptsOrange(ChangedEntity creature) {

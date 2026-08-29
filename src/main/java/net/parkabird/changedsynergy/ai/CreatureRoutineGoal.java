@@ -12,6 +12,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.animal.AbstractFish;
@@ -145,13 +146,14 @@ public final class CreatureRoutineGoal extends Goal {
             remainingTicks = 0;
             return;
         }
-        if ((state == RoutineState.GATHERING
-                        || state == RoutineState.DELIVERING)
+        if (state == RoutineState.GATHERING
                 && CreatureSettlementService.isFacilityCommunity(mob)
                 && !CreatureSettlementService.isInsideFacilityWorkSection(mob)) {
             // A door state can make navigation recalculate a previously valid
-            // route. Abort rather than allowing that repath to carry a worker
-            // through another coloured facility sector.
+            // gathering route. Abort rather than allowing that repath to carry
+            // a worker through another coloured facility sector. Delivery is
+            // deliberately exempt: combat may displace a loaded provisioner,
+            // and it must be allowed to return to its remembered storage room.
             mob.getNavigation().stop();
             remainingTicks = 0;
             return;
@@ -190,6 +192,8 @@ public final class CreatureRoutineGoal extends Goal {
 
     @Override
     public void stop() {
+        boolean resumeCargoAfterCombat = CreatureSettlementService.hasCargo(mob)
+                && hasLiveCombatTarget();
         mob.getNavigation().stop();
         if (mob.level() instanceof ServerLevel level) {
             FishingVisualEffects.cancel(level, mob);
@@ -199,9 +203,11 @@ public final class CreatureRoutineGoal extends Goal {
         CreatureSettlementService.releaseHuntClaim(mob, preyTarget);
         clearMiningProgress();
         restoreTool();
-        CreatureLifeMemory.finishRoutine(
-                mob, mob.level().getGameTime() + 80L
-                        + mob.getRandom().nextInt(161));
+        long now = mob.level().getGameTime();
+        CreatureLifeMemory.finishRoutine(mob,
+                resumeCargoAfterCombat
+                        ? now + 10L
+                        : now + 80L + mob.getRandom().nextInt(161));
         state = RoutineState.IDLE;
         clearTargets();
         remainingTicks = 0;
@@ -881,11 +887,19 @@ public final class CreatureRoutineGoal extends Goal {
     }
 
     private boolean movementAvailable() {
+        LivingEntity target = mob.getTarget();
+        if (target != null && (!target.isAlive() || target.isRemoved())) {
+            // Some interrupted Changed attack goals leave their defeated target
+            // attached for another selector pass. Do not let that stale target
+            // permanently suppress a loaded provisioner's delivery routine.
+            mob.setTarget(null);
+            target = null;
+        }
         if (!mob.isAlive()
                 || mob.isNoAi()
                 || mob.isPassenger()
                 || mob.isLeashed()
-                || mob.getTarget() != null
+                || target != null
                 || SocialAudienceGoal.isActive(mob)
                 || ChangedAddonCompat.isGrabberBusy(mob)
                 || HypnosisQteService.getActiveVictim(mob) != null) {
@@ -897,5 +911,10 @@ public final class CreatureRoutineGoal extends Goal {
             return false;
         }
         return !(mob instanceof TamableLatexEntity pet && pet.isTame());
+    }
+
+    private boolean hasLiveCombatTarget() {
+        LivingEntity target = mob.getTarget();
+        return target != null && target.isAlive() && !target.isRemoved();
     }
 }

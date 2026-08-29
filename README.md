@@ -30,7 +30,7 @@ Creatures have persistent names, individual personalities, memories and social b
 - Context-aware dialogue in English and Simplified Chinese
 - Grapple and hypnosis QTEs, improved movement, swimming and combat behavior
 - Creature gathering, fishing, hunting, mining, outposts and environmental interactions
-- Optional Changed Addon Plus integration
+- Optional Changed Addon Plus integration and basic Changed Additions support
 - Forge configuration screens and gamerules for the main systems
 
 The full feature list, screenshots and release downloads are available on the project pages:
@@ -94,7 +94,7 @@ Before opening an issue, check [KNOWN_ISSUES.md](KNOWN_ISSUES.md) and test witho
 
 - the crash report or `latest.log`
 - exact Forge, Changed and Synergy versions
-- whether Changed Addon Plus is installed
+- whether Changed Addon Plus or Changed Additions is installed
 - steps that reproduce the problem
 
 Use the [issue tracker](https://github.com/ParkaBird/changed-synergy/issues) for reproducible bugs. The [Changed: Synergy Discord](https://discord.gg/h2dC8WNpZm) is available for discussion, feedback and development updates.

@@ -7,6 +7,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
+import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 
 /**
  * Data-driven social capability for Changed creatures.
@@ -74,11 +75,25 @@ public final class CreatureSocialProfile {
      */
     public static boolean isPermanentlyExcluded(ChangedEntity creature) {
         ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(creature.getType());
-        return isPermanentlyExcluded(id);
+        return isPermanentlyExcluded(id)
+                || id != null
+                        && ChangedAddonCompat.MOD_ID.equals(id.getNamespace())
+                        && "luminarctic_leopard_male".equals(id.getPath())
+                        && ChangedAddonCompat.isSocialSystemExcludedBoss(creature);
     }
 
     public static boolean isPermanentlyExcluded(ResourceLocation id) {
-        if (id == null || !"changed".equals(id.getNamespace())) {
+        if (id == null) {
+            return false;
+        }
+        if (ChangedAddonCompat.MOD_ID.equals(id.getNamespace())) {
+            return switch (id.getPath()) {
+                case "experiment_009_boss", "experiment_10_boss",
+                        "latex_snow_fox_foxyas" -> true;
+                default -> false;
+            };
+        }
+        if (!"changed".equals(id.getNamespace())) {
             return false;
         }
         return switch (id.getPath()) {

@@ -17,10 +17,6 @@
     {
       "id": "changed_addon:experiment_10",
       "required": false
-    },
-    {
-      "id": "changed_addon:experiment_10_boss",
-      "required": false
     }
   ]
 }

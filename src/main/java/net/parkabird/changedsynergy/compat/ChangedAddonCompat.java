@@ -88,6 +88,14 @@ public final class ChangedAddonCompat {
                 pet));
     }
 
+    /** Runtime-only exclusions for Addon entities whose boss form shares a normal entity type. */
+    public static boolean isSocialSystemExcludedBoss(ChangedEntity creature) {
+        return Boolean.TRUE.equals(invokeOptional(
+                "isSocialSystemExcludedBoss",
+                new Class<?>[]{ChangedEntity.class},
+                creature));
+    }
+
     public static void initializeBondedCombatCondition(ChangedEntity pet) {
         invokeOptional(
                 "initializeBondedCombatCondition",

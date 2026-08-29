@@ -18,6 +18,10 @@ Synergy runs on both client and server. Every connecting player must use the sam
 ## Optional integrations
 
 - Changed Addon Plus adds diet, petting, grab and other compatibility hooks.
+- Changed Additions creatures participate in Synergy's core identity, social,
+  relationship and companion systems. Its golden orange is also recognised as
+  an orange gift. This is a lightweight runtime integration rather than a
+  version-pinned API dependency.
 - TACZ and Superb Warfare gunshots can alert creatures. These integrations use runtime detection.
 - Forge-compatible config menu providers can open Synergy's native configuration screen.
 

@@ -28,6 +28,7 @@ import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.network.FriendlySuitSyncPacket;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.network.PacketDistributor;
 
@@ -387,6 +388,11 @@ public final class BondedSuitService {
 
         TransfurVariantInstance<?> current = ProcessTransfur.getPlayerTransfurVariant(owner);
         boolean temporarySuit = current != null && current.isTemporaryFromSuit();
+        if (temporarySuit && !owner.onGround()) {
+            owner.displayClientMessage(Component.translatable(
+                    "message.changed_synergy.suit.airborne_release_blocked"), true);
+            return false;
+        }
         boolean emergency = LatexSocialMemory.isEmergencySuitActive(pet, owner);
         boolean combat = LatexSocialMemory.isCombatSuitActive(pet, owner);
         boolean drowning = pet.getPersistentData().getBoolean(DROWNING_SUIT);
@@ -427,7 +433,7 @@ public final class BondedSuitService {
     }
 
     /**
-     * Detaches a native Changed/Addon pet before its owner's temporary suit
+     * Detaches a native Changed/Addon pet before its wrapping around the owner
      * variant is reversed. The actual pet entity is retained; only the grab and
      * suit references are cleared.
      */

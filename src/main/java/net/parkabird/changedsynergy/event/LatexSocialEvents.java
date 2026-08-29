@@ -49,6 +49,7 @@ import net.parkabird.changedsynergy.ai.DarkLatexDisguise;
 import net.parkabird.changedsynergy.ai.DarkLatexDisguise.Observation;
 import net.parkabird.changedsynergy.ai.FactionReputation;
 import net.parkabird.changedsynergy.ai.FactionHostilityGrace;
+import net.parkabird.changedsynergy.ai.FlyingLatexGlideService;
 import net.parkabird.changedsynergy.ai.HypnosisQteService;
 import net.parkabird.changedsynergy.ai.HumanIntent;
 import net.parkabird.changedsynergy.ai.HuntMemory;
@@ -282,6 +283,9 @@ public final class LatexSocialEvents {
         }
         var previousPlayerForm = event.getAbstractedTargetEntity().getSelfVariant();
         if (event.getFusionEntity().getEntity() instanceof ServerPlayer player
+                && event.getAbstractedTargetEntity().getTransfurVariantInstance() != null
+                && !event.getAbstractedTargetEntity().getTransfurVariantInstance()
+                        .isTemporaryFromSuit()
                 && LatexFusionIntent.mayCapture(previous, previousPlayerForm)) {
             if (LatexFusionIntent.isWhiteKnight(previous)
                     && LatexFusionIntent.isOrdinaryWhiteLatexWolf(
@@ -1196,8 +1200,12 @@ public final class LatexSocialEvents {
             return;
         }
         if (!(event.getEntity() instanceof ChangedEntity mob)
-                || mob.level().isClientSide
-                || !LatexSocialMemory.isSocialLatex(mob)
+                || mob.level().isClientSide) {
+            return;
+        }
+        InvoluntaryTransfurNegotiation.tickReleaseHoldRecovery(mob);
+        FlyingLatexGlideService.tick(mob);
+        if (!LatexSocialMemory.isSocialLatex(mob)
                 || !CreatureSocialProfile.allowsSynergySystems(mob)) {
             return;
         }
@@ -1291,7 +1299,7 @@ public final class LatexSocialEvents {
     }
 
     /**
-     * Release a native pet before Changed removes the temporary suit form. This
+     * Release a native pet before Changed removes the wrapping form. This
      * keeps the original pet entity alive and lets it separate from its owner.
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -1299,8 +1307,21 @@ public final class LatexSocialEvents {
         if (!(event.getPlayer() instanceof ServerPlayer player)) {
             return;
         }
+        boolean temporarySuit = event.getVariantInstance().isTemporaryFromSuit();
+        if (!player.onGround()
+                && (temporarySuit
+                        || InvoluntaryTransfurNegotiation.hasAbsorptionClaim(player))) {
+            event.setCanceled(true);
+            if (temporarySuit) {
+                player.displayClientMessage(Component.translatable(
+                        "message.changed_synergy.suit.airborne_release_blocked"), true);
+            } else {
+                InvoluntaryTransfurNegotiation.warnAirborneRelease(player);
+            }
+            return;
+        }
         InvoluntaryTransfurNegotiation.onExternalUntransfur(player);
-        if (!event.getVariantInstance().isTemporaryFromSuit()) {
+        if (!temporarySuit) {
             return;
         }
         ChangedEntity pet = BondedSuitService.getWrappingPet(player);

@@ -184,6 +184,7 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
     @Override
     public void update(CompoundTag payload, LogicalSide receiver, @Nullable ServerPlayer origin) {
         if (receiver != LogicalSide.SERVER || origin == null || pet == null
+                || !stillValid(origin)
                 || !LatexSocialMemory.isPetOwner(pet, origin)) {
             return;
         }

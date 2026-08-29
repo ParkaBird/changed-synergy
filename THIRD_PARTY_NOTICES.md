@@ -14,6 +14,12 @@ Synergy has optional compatibility with [Changed Addon Plus](https://www.cursefo
 
 Source: <https://github.com/Foxyas/Changed-Addon-Rework>
 
+## Changed Additions
+
+Synergy has optional basic compatibility with [Changed Additions](https://github.com/Foxyas/Changed-Additions), maintained by Foxyas. Changed Additions is distributed under the MIT License. Synergy detects its registered Changed creatures and golden orange at runtime and does not bundle its JAR.
+
+Source: <https://github.com/Foxyas/Changed-Additions>
+
 ## Minecraft and other integrations
 
 Minecraft is a trademark of Microsoft. Synergy is not affiliated with or endorsed by Microsoft or Mojang Studios.

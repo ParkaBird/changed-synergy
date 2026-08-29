@@ -74,6 +74,7 @@ public final class HypnosisQteService {
         if (!enabled(source.level())
                 || !(source.level() instanceof ServerLevel level)
                 || !source.isAlive()
+                || !allowsSynergyHypnosis(source)
                 || !HypnosisProfile.activelyUsesHypnosis(source)) {
             return;
         }
@@ -95,6 +96,7 @@ public final class HypnosisQteService {
         if (!enabled(player.level())
                 || !applied || !isHypnosisConfusion(effect)
                 || !(player.level() instanceof ServerLevel)
+                || !allowsSynergyHypnosis(source)
                 || !HypnosisProfile.activelyUsesHypnosis(source)
                 || !isPotentialTarget(source, player)
                 || !hasUnobstructedEyeContact(source, player)) {
@@ -133,6 +135,7 @@ public final class HypnosisQteService {
             ChangedEntity source,
             ServerPlayer player) {
         if (!enabled(player.level())
+                || !CreatureSocialProfile.allowsSynergySystems(source)
                 || !HypnosisProfile.isHypnoticCreature(source)
                 || !source.isAlive() || !player.isAlive()
                 || player.isCreative() || player.isSpectator()
@@ -299,11 +302,17 @@ public final class HypnosisQteService {
     public static void onEntityJoin(EntityJoinLevelEvent event) {
         if (!event.getLevel().isClientSide()
                 && event.getEntity() instanceof ChangedEntity creature
+                && CreatureSocialProfile.allowsSynergySystems(creature)
                 && HypnosisProfile.isHypnoticCreature(creature)
                 && creature.goalSelector.getAvailableGoals().stream()
                         .noneMatch(wrapped -> wrapped.getGoal() instanceof HypnosisFocusGoal)) {
             creature.goalSelector.addGoal(0, new HypnosisFocusGoal(creature));
         }
+    }
+
+    private static boolean allowsSynergyHypnosis(LivingEntity source) {
+        return !(source instanceof ChangedEntity creature)
+                || CreatureSocialProfile.allowsSynergySystems(creature);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
