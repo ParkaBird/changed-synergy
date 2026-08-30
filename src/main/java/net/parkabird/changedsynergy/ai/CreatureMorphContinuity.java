@@ -16,7 +16,22 @@ public final class CreatureMorphContinuity {
     private static final String SOCIAL = "ChangedSynergySocial";
     private static final String LIFE = "ChangedSynergyLife";
     private static final String COMMUNITY = "ChangedSynergyCommunityId";
+    private static final String FACILITY_COMMUNITY_AFFINITY =
+            "ChangedSynergyFacilityCommunityAffinity";
     private static final String CARGO = "ChangedSynergyCarriedResource";
+    private static final String LAST_PROVISION_SOURCE =
+            "ChangedSynergyLastProvisionSource";
+    private static final String LAST_PROVISION_ITEM =
+            "ChangedSynergyLastProvisionItem";
+    private static final String NEXT_HUNT = "ChangedSynergyNextHunt";
+    private static final String FACILITY_WORK_CODE =
+            "ChangedSynergyFacilityWorkCode";
+    private static final String FACILITY_WORK_SECTION =
+            "ChangedSynergyFacilityWorkSection";
+    private static final String FACILITY_ORANGE_ROOM =
+            "ChangedSynergyFacilityOrangeRoom";
+    private static final String FACILITY_STORAGE_POS =
+            "ChangedSynergyFacilityStoragePos";
 
     private CreatureMorphContinuity() {
     }
@@ -69,6 +84,14 @@ public final class CreatureMorphContinuity {
         copyCompound(source, target, SOCIAL);
         copyCompound(source, target, LIFE);
         copyCompound(source, target, CARGO);
+        copyTag(source, target, LAST_PROVISION_SOURCE);
+        copyTag(source, target, LAST_PROVISION_ITEM);
+        copyTag(source, target, NEXT_HUNT);
+        copyTag(source, target, FACILITY_COMMUNITY_AFFINITY);
+        copyTag(source, target, FACILITY_WORK_CODE);
+        copyTag(source, target, FACILITY_WORK_SECTION);
+        copyTag(source, target, FACILITY_ORANGE_ROOM);
+        copyTag(source, target, FACILITY_STORAGE_POS);
         InvoluntaryTransfurNegotiation.copySourceMarker(previous, replacement);
         if (source.hasUUID(COMMUNITY)) {
             target.putUUID(COMMUNITY, source.getUUID(COMMUNITY));
@@ -112,6 +135,9 @@ public final class CreatureMorphContinuity {
     private static boolean hasPersonalContinuity(ChangedEntity creature) {
         CompoundTag data = creature.getPersistentData();
         return hasStoredRelationship(data)
+                || data.contains(LIFE, Tag.TAG_COMPOUND)
+                || data.contains(CARGO, Tag.TAG_COMPOUND)
+                || data.hasUUID(COMMUNITY)
                 || data.contains(
                         InvoluntaryTransfurNegotiation.SOURCE_ROOT,
                         Tag.TAG_COMPOUND)
@@ -156,6 +182,16 @@ public final class CreatureMorphContinuity {
             String key) {
         if (source.contains(key, Tag.TAG_COMPOUND)) {
             target.put(key, source.getCompound(key).copy());
+        }
+    }
+
+    private static void copyTag(
+            CompoundTag source,
+            CompoundTag target,
+            String key) {
+        Tag value = source.get(key);
+        if (value != null) {
+            target.put(key, value.copy());
         }
     }
 }

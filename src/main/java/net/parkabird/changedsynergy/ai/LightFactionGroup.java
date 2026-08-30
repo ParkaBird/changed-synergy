@@ -116,11 +116,14 @@ public final class LightFactionGroup {
         if (biomeId == null) {
             return GENERAL;
         }
+        String path = biomeId.getPath();
+        boolean underground = path.contains("cave")
+                || path.equals("deep_dark");
         return level.registryAccess().registry(Registries.BIOME)
                 .flatMap(registry -> registry.getHolder(ResourceKey.create(
                         Registries.BIOME, biomeId)))
                 .map(holder -> normalize(LatexTerritory.populationRegion(
-                        holder, biomeId, false)))
+                        holder, biomeId, underground)))
                 .orElse(GENERAL);
     }
 

@@ -33,6 +33,7 @@ public final class SocialFollowGoal extends Goal {
         }
         player = CreaturePersonality.socialPartner(mob);
         return player != null
+                && !CreatureSettlementService.hasCargo(mob)
                 && player.isAlive()
                 && !player.isSpectator()
                 && mob.getTarget() == null
@@ -47,6 +48,7 @@ public final class SocialFollowGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return player != null
+                && !CreatureSettlementService.hasCargo(mob)
                 && player.isAlive()
                 && !player.isSpectator()
                 && player.level() == mob.level()

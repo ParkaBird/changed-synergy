@@ -7,6 +7,8 @@ import net.ltxprogrammer.changed.entity.variant.TransfurVariant;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -25,6 +27,9 @@ public final class RelationshipFavorService {
     private static final ResourceLocation CHANGED_ADDITIONS_GOLDEN_ORANGE =
             ResourceLocation.fromNamespaceAndPath(
                     "changed_additions", "golden_orange");
+    private static final ResourceLocation CHANGED_ADDON_GOLDEN_ORANGE =
+            ResourceLocation.fromNamespaceAndPath(
+                    "changed_addon", "golden_orange");
     private static final ResourceKey<Registry<TransfurVariant<?>>>
             TRANSFUR_VARIANT_REGISTRY = ResourceKey.createRegistryKey(
                     ResourceLocation.fromNamespaceAndPath(
@@ -66,11 +71,24 @@ public final class RelationshipFavorService {
     }
 
     public static boolean isOrange(ItemStack stack) {
+        return isOrdinaryOrange(stack) || isGoldenOrange(stack);
+    }
+
+    public static boolean isOrdinaryOrange(ItemStack stack) {
         if (stack.isEmpty()) {
             return false;
         }
         ResourceLocation id = ForgeRegistries.ITEMS.getKey(stack.getItem());
-        return ORANGE.equals(id) || CHANGED_ADDITIONS_GOLDEN_ORANGE.equals(id);
+        return ORANGE.equals(id);
+    }
+
+    public static boolean isGoldenOrange(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+        ResourceLocation id = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        return CHANGED_ADDON_GOLDEN_ORANGE.equals(id)
+                || CHANGED_ADDITIONS_GOLDEN_ORANGE.equals(id);
     }
 
     public static boolean acceptsOrange(ChangedEntity creature) {
@@ -91,7 +109,8 @@ public final class RelationshipFavorService {
         }
 
         boolean orange = isOrange(stack);
-        boolean dedicated = isDedicatedDietFood(creature, stack);
+        boolean dedicated = !orange
+                && isDedicatedDietFood(creature, stack);
         if (!orange && !dedicated) {
             return Result.NOT_APPLICABLE;
         }
@@ -104,7 +123,9 @@ public final class RelationshipFavorService {
             return Result.CAT_ORANGE_REFUSED;
         }
 
-        int favor = dedicated
+        int favor = isGoldenOrange(stack)
+                ? CreatureSocialProfile.isJuvenile(creature) ? 18 : 16
+                : dedicated
                 ? CreatureSocialProfile.isJuvenile(creature) ? 16 : 14
                 : CreatureSocialProfile.isJuvenile(creature) ? 10 : 8;
         return acceptGift(
@@ -131,15 +152,18 @@ public final class RelationshipFavorService {
             showScentRejection(creature);
             return Result.CAT_ORANGE_REFUSED;
         }
-        boolean dedicated = isDedicatedDietFood(creature, stack);
+        boolean orange = isOrange(stack);
+        boolean dedicated = !orange
+                && isDedicatedDietFood(creature, stack);
         if (CreatureSocialProfile.isJuvenile(creature)
                 && !stack.isEdible()
-                && !isOrange(stack)
+                && !orange
                 && !dedicated) {
             return Result.UNSUITABLE;
         }
-        int favor = dedicated ? 14
-                : isOrange(stack) ? 8
+        int favor = isGoldenOrange(stack) ? 16
+                : dedicated ? 14
+                : orange ? 8
                 : stack.isEdible() ? 4 : 2;
         return acceptGift(
                 creature, player, stack, favor, false, dedicated);
@@ -194,13 +218,17 @@ public final class RelationshipFavorService {
             return Result.REJECTED;
         }
 
+        boolean goldenOrange = isGoldenOrange(stack);
         CreaturePersonality.rememberGiftReceived(creature, player, favor);
         healFromFood(creature, stack, dedicated);
+        applyGoldenOrangeBenefits(creature, stack);
         consumeOne(player, stack);
         FactionReputation.adjustFromInteraction(
-                creature, player, dedicated ? 2 : 1);
+                creature, player,
+                dedicated || goldenOrange ? 2 : 1);
         LatexSocialMemory.beginPatTruce(
-                creature, player, dedicated ? 1200L : 800L);
+                creature, player,
+                dedicated || goldenOrange ? 1200L : 800L);
         showPositiveFeedback(
                 creature, favor >= 12 ? 7 : favor >= 8 ? 5 : 3);
 
@@ -266,6 +294,21 @@ public final class RelationshipFavorService {
         if (healing > 0.0F && creature.getHealth() < creature.getMaxHealth()) {
             creature.heal(healing);
         }
+    }
+
+    /** Mirrors the effects supplied by both compatible Golden Orange items. */
+    public static void applyGoldenOrangeBenefits(
+            ChangedEntity creature,
+            ItemStack stack) {
+        if (!isGoldenOrange(stack)) {
+            return;
+        }
+        creature.addEffect(new MobEffectInstance(
+                MobEffects.REGENERATION, 100, 1));
+        creature.addEffect(new MobEffectInstance(
+                MobEffects.ABSORPTION, 2400, 0));
+        creature.addEffect(new MobEffectInstance(
+                MobEffects.MOVEMENT_SPEED, 100, 0));
     }
 
     private static void showScentRejection(ChangedEntity creature) {

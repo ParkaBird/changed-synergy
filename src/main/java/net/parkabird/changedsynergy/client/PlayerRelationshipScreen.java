@@ -276,7 +276,12 @@ public final class PlayerRelationshipScreen
     }
 
     private void renderManagerCards(GuiGraphics graphics) {
-        float alpha = RadialWheelAnimations.overallAlpha(this);
+        float wheelOffset = RadialWheelAnimations.horizontalOffset(this);
+        float socialOffset = socialWheelOffset();
+        float panelProgress = socialOffset <= 0.0F
+                ? 1.0F : clamp01(wheelOffset / socialOffset);
+        float alpha = RadialWheelAnimations.overallAlpha(this)
+                * smoothStep(panelProgress);
         if (alpha <= 0.01F) {
             return;
         }
@@ -374,7 +379,7 @@ public final class PlayerRelationshipScreen
 
         int x = 14;
         int wheelLeft = Math.round(width * 0.5F
-                + RadialWheelAnimations.horizontalOffset(this) - 128.0F);
+                + socialOffset - 128.0F);
         int availableWidth = Math.max(108, wheelLeft - x - 12);
         int cardWidth = Math.min(width >= 800 ? 260 : 214, availableWidth);
         int textWidth = Math.max(90, cardWidth - 18);
@@ -390,6 +395,21 @@ public final class PlayerRelationshipScreen
             renderInfoCard(graphics, card, x, y, cardWidth, accent, alpha);
             y += card.height() + gap;
         }
+    }
+
+    private float socialWheelOffset() {
+        float desired = Math.min(220.0F, width * 0.22F);
+        float roomAtRight = Math.max(0.0F, width * 0.5F - 136.0F);
+        return Math.min(desired, roomAtRight);
+    }
+
+    private static float clamp01(float value) {
+        return Math.max(0.0F, Math.min(1.0F, value));
+    }
+
+    private static float smoothStep(float value) {
+        float clamped = clamp01(value);
+        return clamped * clamped * (3.0F - 2.0F * clamped);
     }
 
     private Component currentForm() {

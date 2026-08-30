@@ -911,14 +911,24 @@ public final class ChangedAddonSocialEvents {
             GrabEntityAbilityInstance ability) {
         ServerPlayer player = InvoluntaryTransfurNegotiation
                 .releaseHoldPlayer(mob);
-        if (!(ability instanceof GrabEntityAbilityExtensor extensor)
-                || player == null
+        if (player == null
                 || !mob.isAlive()
                 || !player.isAlive()
-                || mob.level() != player.level()
-                || ability.grabbedEntity != player) {
+                || mob.level() != player.level()) {
             releaseNegotiatedHold(mob, grabber, ability, player);
             InvoluntaryTransfurNegotiation.abortReleaseHold(mob, player);
+            return;
+        }
+
+        // The Addon grab presentation can drop its target when Changed changes
+        // the player's form, or when its own short hold bookkeeping expires.
+        // Negotiation success is already committed at this point: losing the
+        // animation must complete the promised reversal instead of restoring
+        // the old negotiation progress and leaving the player transformed.
+        if (!(ability instanceof GrabEntityAbilityExtensor extensor)
+                || ability.grabbedEntity != player) {
+            releaseNegotiatedHold(mob, grabber, ability, player);
+            InvoluntaryTransfurNegotiation.finishReleaseHold(mob, player);
             return;
         }
 

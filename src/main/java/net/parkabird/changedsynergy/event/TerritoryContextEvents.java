@@ -1,8 +1,10 @@
 package net.parkabird.changedsynergy.event;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.world.data.ActiveFacilityInstance;
 import net.ltxprogrammer.changed.world.data.ChangedGameDataAccessor;
 import net.minecraft.core.BlockPos;
@@ -290,6 +292,52 @@ public final class TerritoryContextEvents {
                 java.util.Locale.ROOT,
                 "SY-%06d",
                 Math.floorMod(identity.hashCode(), 1_000_000));
+    }
+
+    /** Stable coloured work section encoded by Changed's facility templates. */
+    public static String facilitySectionId(@Nullable FacilitySnapshot snapshot) {
+        if (snapshot == null) {
+            return "";
+        }
+        String path = snapshot.piece().pieceName().getPath()
+                .toLowerCase(Locale.ROOT);
+        boolean blue = hasFacilityMarker(path, "blue");
+        boolean gray = hasFacilityMarker(path, "gray")
+                || hasFacilityMarker(path, "grey");
+        boolean red = hasFacilityMarker(path, "red");
+        boolean maintenance = hasFacilityMarker(path, "maintenance");
+        int matches = (blue ? 1 : 0)
+                + (gray ? 1 : 0)
+                + (red ? 1 : 0)
+                + (maintenance ? 1 : 0);
+        // Transition templates intentionally belong to neither adjacent work
+        // section. Treating e.g. blue_stairs_to_red as blue made workers from
+        // both populations intermittently share one community at the border.
+        if (matches != 1) {
+            return "";
+        }
+        if (blue) {
+            return "blue";
+        }
+        if (gray) {
+            return "gray";
+        }
+        if (red) {
+            return "red";
+        }
+        if (maintenance) {
+            return "maintenance";
+        }
+        return "";
+    }
+
+    private static boolean hasFacilityMarker(String path, String marker) {
+        int slash = path.lastIndexOf('/');
+        String file = slash >= 0 ? path.substring(slash + 1) : path;
+        return path.contains("/" + marker + "/")
+                || file.startsWith(marker + "_")
+                || file.contains("_" + marker + "_")
+                || file.endsWith("_" + marker);
     }
 
     public record FacilitySnapshot(

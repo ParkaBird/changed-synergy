@@ -10,7 +10,7 @@ Source: <https://github.com/LtxProgrammer/Changed-Minecraft-Mod>
 
 ## Changed Addon Plus
 
-Synergy has optional compatibility with [Changed Addon Plus](https://www.curseforge.com/minecraft/mc-mods/changed-addon-plus), maintained by Foxyas and its contributors. The public project is distributed under GPL-3.0. Synergy does not bundle the Addon JAR.
+Synergy has optional compatibility with [Changed Addon Plus](https://www.curseforge.com/minecraft/mc-mods/changed-addon-plus), maintained by Foxyas and its contributors. This includes runtime recognition of its golden orange. The public project is distributed under GPL-3.0. Synergy does not bundle the Addon JAR.
 
 Source: <https://github.com/Foxyas/Changed-Addon-Rework>
 

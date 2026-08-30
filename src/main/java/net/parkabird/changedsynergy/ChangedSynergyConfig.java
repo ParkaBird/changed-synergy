@@ -57,6 +57,7 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.BooleanValue firearmEvasion;
         public final ForgeConfigSpec.DoubleValue hostileGrabAttemptChance;
         public final ForgeConfigSpec.DoubleValue organicHostileGrabAttemptChance;
+        public final ForgeConfigSpec.BooleanValue allowMindlessMobTransfur;
         public final ForgeConfigSpec.IntValue behaviourConfigRevision;
 
         public final ForgeConfigSpec.DoubleValue npcDialogueRange;
@@ -132,6 +133,10 @@ public final class ChangedSynergyConfig {
                     .comment("Separate grab-attempt chance for organic creatures.",
                             "Organic assimilation relies on physical grabs, so its default is higher.")
                     .defineInRange("OrganicHostileGrabAttemptChance", 0.85, 0.0, 1.0);
+            allowMindlessMobTransfur = builder
+                    .comment("Allow mindless mobs such as zombies and skeletons to be fully transfurred.",
+                            "Disabled by default: they are absorbed instead to avoid creating extra persistent entities.")
+                    .define("AllowMindlessMobTransfur", false);
             behaviourConfigRevision = builder
                     .comment("Internal migration marker for perception and alert defaults.")
                     .defineInRange("BehaviourConfigRevision", 0, 0, 1);

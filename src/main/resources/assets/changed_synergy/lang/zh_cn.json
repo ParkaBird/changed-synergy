@@ -60,6 +60,8 @@
   "config.changed_synergy.option.grab_chance.description": "符合条件的敌对擒抱触发挣脱 QTE 的概率。",
   "config.changed_synergy.option.organic_grab_chance": "有机擒抱 QTE 概率",
   "config.changed_synergy.option.organic_grab_chance.description": "有机胶兽的独立擒抱概率；它们主要通过身体接触完成同化。",
+  "config.changed_synergy.option.mindless_mob_transfur": "允许兽化无意识生物",
+  "config.changed_synergy.option.mindless_mob_transfur.description": "允许胶兽完整兽化僵尸、骷髅等无意识生物。默认关闭，此时它们只会被吞噬，以减少新增的持久实体数量。",
   "config.changed_synergy.option.dialogue_range": "台词接收范围",
   "config.changed_synergy.option.dialogue_range.description": "玩家能够收到胶兽台词的最大距离。",
   "config.changed_synergy.option.dialogue_cooldown": "台词冷却",

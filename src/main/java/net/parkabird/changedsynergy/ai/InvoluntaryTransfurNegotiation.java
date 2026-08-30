@@ -557,15 +557,30 @@ public final class InvoluntaryTransfurNegotiation {
         if (before.used(approach)) {
             return;
         }
-        if (approach == Approach.FOOD_BRIBE
-                && !consumeFoodBribe(player, source, data)) {
+        int foodBribeSlot = approach == Approach.FOOD_BRIBE
+                ? findFoodBribeSlot(player, source) : -1;
+        if (approach == Approach.FOOD_BRIBE && foodBribeSlot < 0) {
+            player.displayClientMessage(Component.translatable(
+                    "message.changed_synergy.negotiation.no_bribe_food"),
+                    true);
             return;
+        }
+        boolean goldenFoodBribe = approach == Approach.FOOD_BRIBE
+                && RelationshipFavorService.isGoldenOrange(
+                        player.getInventory().getItem(foodBribeSlot));
+        if (goldenFoodBribe) {
+            RelationshipFavorService.applyGoldenOrangeBenefits(
+                    source, player.getInventory().getItem(foodBribeSlot));
+        }
+        if (approach == Approach.FOOD_BRIBE) {
+            consumeFoodBribeSlot(player, foodBribeSlot);
         }
         Trait trait = CreaturePersonality.dominantTrait(source);
         int usedApproaches = before.usedApproaches()
                 | approachBit(approach);
         int gain = approach == Approach.FOOD_BRIBE
                 ? foodBribeGain(before.reason(), trait)
+                        + (goldenFoodBribe ? 6 : 0)
                 : Math.max(2, approachGain(
                         approach, before.reason(), trait,
                         before.specialCompletion())
@@ -635,11 +650,15 @@ public final class InvoluntaryTransfurNegotiation {
                     true);
             return;
         }
+        boolean goldenFoodBribe = approach == Approach.FOOD_BRIBE
+                && RelationshipFavorService.isGoldenOrange(
+                        player.getInventory().getItem(foodBribeSlot));
         Trait trait = sourceTrait(data);
         int usedApproaches = before.usedApproaches()
                 | approachBit(approach);
         int gain = approach == Approach.FOOD_BRIBE
                 ? foodBribeGain(before.reason(), trait)
+                        + (goldenFoodBribe ? 6 : 0)
                 : Math.max(2, approachGain(
                         approach, before.reason(), trait,
                         before.specialCompletion())
@@ -1070,13 +1089,11 @@ public final class InvoluntaryTransfurNegotiation {
             // damage immunity and can be resolved when the player returns.
             return;
         }
-        if (release.getBoolean(RELEASE_REVERSED)) {
-            completeInterruptedRelease(
-                    source, player, release.getBoolean(RELEASE_BONDED));
-            source.getPersistentData().remove(RELEASE_ROOT);
-        } else {
-            abortReleaseHold(source, player);
-        }
+        // A completed negotiation remains committed across a skipped tick,
+        // chunk unload or server restart. finishReleaseHold applies a pending
+        // reversal, while its validation still rejects a genuinely stale or
+        // mismatched player/source pair.
+        finishReleaseHold(source, player);
     }
 
     public static void copySourceMarker(
@@ -2110,33 +2127,6 @@ public final class InvoluntaryTransfurNegotiation {
             default -> 0;
         };
         return gain;
-    }
-
-    private static boolean consumeFoodBribe(
-            ServerPlayer player,
-            @Nullable ChangedEntity source,
-            CompoundTag data) {
-        ChangedEntity target = source;
-        boolean temporary = false;
-        if (target == null) {
-            target = createFoodProfile(player, data);
-            temporary = target != null;
-        }
-        if (target == null) {
-            return false;
-        }
-        int slot = findFoodBribeSlot(player, target);
-        if (temporary) {
-            target.discard();
-        }
-        if (slot < 0) {
-            player.displayClientMessage(Component.translatable(
-                    "message.changed_synergy.negotiation.no_bribe_food"),
-                    true);
-            return false;
-        }
-        consumeFoodBribeSlot(player, slot);
-        return true;
     }
 
     private static int findAbsorptionFoodBribeSlot(

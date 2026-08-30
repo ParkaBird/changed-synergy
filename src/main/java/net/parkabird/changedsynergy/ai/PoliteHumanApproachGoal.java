@@ -40,6 +40,7 @@ public final class PoliteHumanApproachGoal extends Goal {
                         mob.level(), ChangedSynergyGameRules.FRIENDSHIP_SYSTEM)
                 || !(mob.level() instanceof ServerLevel level)
                 || mob.level().getGameTime() < nextScanTick
+                || CreatureSettlementService.hasCargo(mob)
                 || !movementAvailable()
                 || mob.getTarget() != null) {
             return false;
@@ -60,6 +61,7 @@ public final class PoliteHumanApproachGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         if (player == null || !player.isAlive() || player.isSpectator()
+                || CreatureSettlementService.hasCargo(mob)
                 || !movementAvailable()
                 || !PoliteHumanInteraction.isActiveWith(mob, player)
                 || !PoliteHumanInteraction.shouldWithholdHostility(mob, player)) {

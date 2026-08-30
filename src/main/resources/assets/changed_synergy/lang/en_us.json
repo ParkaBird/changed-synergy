@@ -60,6 +60,8 @@
   "config.changed_synergy.option.grab_chance.description": "Chance that an eligible hostile grab starts its escape QTE.",
   "config.changed_synergy.option.organic_grab_chance": "Organic Grab QTE Chance",
   "config.changed_synergy.option.organic_grab_chance.description": "Separate grab chance for organic creatures, whose assimilation relies on physical grabs.",
+  "config.changed_synergy.option.mindless_mob_transfur": "Allow Mindless Mob Transfur",
+  "config.changed_synergy.option.mindless_mob_transfur.description": "Let latex creatures fully transfur mindless mobs such as zombies and skeletons. Disabled by default so they are absorbed instead, reducing the number of persistent entities created.",
   "config.changed_synergy.option.dialogue_range": "Dialogue Range",
   "config.changed_synergy.option.dialogue_range.description": "Maximum distance at which a player can receive creature dialogue.",
   "config.changed_synergy.option.dialogue_cooldown": "Dialogue Cooldown",

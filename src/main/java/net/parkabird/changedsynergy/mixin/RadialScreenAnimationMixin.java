@@ -48,6 +48,9 @@ public abstract class RadialScreenAnimationMixin
     private static final long CLOSE_DURATION_MS = 255L;
     @Unique
     private static final long SWITCH_DURATION_MS = 245L;
+    @Unique
+    private static final long FULL_OPEN_DURATION_MS = FRAME_DURATION_MS
+            + ICON_DURATION_MS + SECTION_STAGGER_MS * 7L + 8L;
 
     @Shadow(remap = false)
     private int tickCount;
@@ -56,6 +59,12 @@ public abstract class RadialScreenAnimationMixin
     private long changedSynergy$openedAtNanos = System.nanoTime();
     @Unique
     private long changedSynergy$closingAtNanos;
+    @Unique
+    private long changedSynergy$closingOpenElapsedMs;
+    @Unique
+    private long changedSynergy$closingDurationMs = CLOSE_DURATION_MS;
+    @Unique
+    private boolean changedSynergy$reversingOpening;
     @Unique
     private boolean changedSynergy$closing;
     @Unique
@@ -101,9 +110,8 @@ public abstract class RadialScreenAnimationMixin
         if (!changedSynergy$closing || changedSynergy$completionRun) {
             return;
         }
-        long duration = changedSynergy$switching
-                ? SWITCH_DURATION_MS : CLOSE_DURATION_MS;
-        if (changedSynergy$closeElapsedMs() < duration) {
+        if (changedSynergy$closeElapsedMs()
+                < changedSynergy$closingDurationMs) {
             return;
         }
         changedSynergy$completionRun = true;
@@ -332,6 +340,19 @@ public abstract class RadialScreenAnimationMixin
         changedSynergy$completionRun = false;
         changedSynergy$completion = completion;
         changedSynergy$closingAtNanos = System.nanoTime();
+        changedSynergy$closingOpenElapsedMs = Math.min(
+                changedSynergy$openElapsedMs(), FULL_OPEN_DURATION_MS);
+        changedSynergy$reversingOpening = !wheelSwitch
+                && changedSynergy$closingOpenElapsedMs
+                        < FULL_OPEN_DURATION_MS;
+        long normalDuration = wheelSwitch
+                ? SWITCH_DURATION_MS : CLOSE_DURATION_MS;
+        changedSynergy$closingDurationMs = changedSynergy$reversingOpening
+                ? Math.max(40L, Math.round(
+                        normalDuration
+                                * changedSynergy$closingOpenElapsedMs
+                                / (double)FULL_OPEN_DURATION_MS))
+                : normalDuration;
         return true;
     }
 
@@ -343,8 +364,11 @@ public abstract class RadialScreenAnimationMixin
     @Override
     public float changedSynergy$getOverallAlpha() {
         if (changedSynergy$closing) {
-            long duration = changedSynergy$switching
-                    ? SWITCH_DURATION_MS : CLOSE_DURATION_MS;
+            if (changedSynergy$reversingOpening) {
+                return changedSynergy$smoothStep(
+                        changedSynergy$reverseOpenElapsedMs() / 180.0F);
+            }
+            long duration = changedSynergy$closingDurationMs;
             return 1.0F - changedSynergy$smoothStep(
                     changedSynergy$closeElapsedMs() / (float)duration);
         }
@@ -359,7 +383,7 @@ public abstract class RadialScreenAnimationMixin
         if (changedSynergy$closing && changedSynergy$switching) {
             float progress = changedSynergy$smoothStep(
                     changedSynergy$closeElapsedMs()
-                            / (float)SWITCH_DURATION_MS);
+                            / (float)changedSynergy$closingDurationMs);
             if (screen instanceof BondedLatexScreen) {
                 return socialOffset * progress;
             }
@@ -403,6 +427,13 @@ public abstract class RadialScreenAnimationMixin
         }
         float progress;
         if (changedSynergy$closing) {
+            if (changedSynergy$reversingOpening) {
+                changedSynergy$renderOpeningCenter(
+                        graphics, shiftedX, y, scale,
+                        shiftedMouseX, mouseY, entity,
+                        changedSynergy$reverseOpenElapsedMs());
+                return;
+            }
             progress = changedSynergy$clamp(
                     changedSynergy$closeElapsedMs() / 110.0F);
             if (progress >= 0.99F) {
@@ -416,9 +447,24 @@ public abstract class RadialScreenAnimationMixin
                     shiftedMouseX, mouseY, entity);
             return;
         }
-        progress = changedSynergy$clamp(
-                (changedSynergy$openElapsedMs() - 55L)
-                        / (float)CENTER_DURATION_MS);
+        changedSynergy$renderOpeningCenter(
+                graphics, shiftedX, y, scale,
+                shiftedMouseX, mouseY, entity,
+                changedSynergy$openElapsedMs());
+    }
+
+    @Unique
+    private void changedSynergy$renderOpeningCenter(
+            GuiGraphics graphics,
+            int x,
+            int y,
+            int scale,
+            float mouseX,
+            float mouseY,
+            LivingEntity entity,
+            long openElapsedMs) {
+        float progress = changedSynergy$clamp(
+                (openElapsedMs - 55L) / (float)CENTER_DURATION_MS);
         if (progress <= 0.0F) {
             return;
         }
@@ -428,8 +474,8 @@ public abstract class RadialScreenAnimationMixin
         int animatedY = y + Math.round(10.0F
                 * (1.0F - changedSynergy$easeOutCubic(progress)));
         changedSynergy$renderCenterContent(
-                graphics, shiftedX, animatedY, animatedScale,
-                shiftedMouseX, mouseY, entity);
+                graphics, x, animatedY, animatedScale,
+                mouseX, mouseY, entity);
     }
 
     @Unique
@@ -511,6 +557,11 @@ public abstract class RadialScreenAnimationMixin
     @Unique
     private LayerMotion changedSynergy$frameMotion(int section) {
         int slot = Math.floorMod(section, 8);
+        if (changedSynergy$closing
+                && changedSynergy$reversingOpening) {
+            return changedSynergy$openingFrameMotion(
+                    slot, changedSynergy$reverseOpenElapsedMs());
+        }
         if ((!changedSynergy$closing && changedSynergy$pairedArrival)
                 || (changedSynergy$closing && changedSynergy$switching)) {
             return new LayerMotion(1.0F, 1.0F, 1.0F);
@@ -531,8 +582,16 @@ public abstract class RadialScreenAnimationMixin
                     1.0F - 0.30F * eased + selectedPulse,
                     1.0F - changedSynergy$smoothStep(progress));
         }
+        return changedSynergy$openingFrameMotion(
+                slot, changedSynergy$openElapsedMs());
+    }
+
+    @Unique
+    private LayerMotion changedSynergy$openingFrameMotion(
+            int slot,
+            long openElapsedMs) {
         float progress = changedSynergy$clamp(
-                (changedSynergy$openElapsedMs() - slot * SECTION_STAGGER_MS)
+                (openElapsedMs - slot * SECTION_STAGGER_MS)
                         / (float)FRAME_DURATION_MS);
         return new LayerMotion(
                 0.16F + 0.84F * changedSynergy$easeOutCubic(progress),
@@ -544,6 +603,10 @@ public abstract class RadialScreenAnimationMixin
     private LayerMotion changedSynergy$iconMotion(int section) {
         int slot = Math.floorMod(section, 8);
         if (changedSynergy$closing) {
+            if (changedSynergy$reversingOpening) {
+                return changedSynergy$openingIconMotion(
+                        slot, changedSynergy$reverseOpenElapsedMs());
+            }
             if (changedSynergy$switching) {
                 float progress = changedSynergy$clamp(
                         (changedSynergy$closeElapsedMs() - slot * 16L)
@@ -561,17 +624,24 @@ public abstract class RadialScreenAnimationMixin
                     1.0F,
                     1.0F - changedSynergy$smoothStep(progress));
         }
+        return changedSynergy$openingIconMotion(
+                slot, changedSynergy$openElapsedMs());
+    }
+
+    @Unique
+    private LayerMotion changedSynergy$openingIconMotion(
+            int slot,
+            long openElapsedMs) {
         if (changedSynergy$pairedArrival) {
             float progress = changedSynergy$clamp(
-                    (changedSynergy$openElapsedMs() - slot * 18L)
-                            / 120.0F);
+                    (openElapsedMs - slot * 18L) / 120.0F);
             return new LayerMotion(
                     1.0F,
                     1.0F,
                     changedSynergy$smoothStep(progress));
         }
         float progress = changedSynergy$clamp(
-                (changedSynergy$openElapsedMs()
+                (openElapsedMs
                         - slot * SECTION_STAGGER_MS
                         - FRAME_DURATION_MS - 8L)
                         / (float)ICON_DURATION_MS);
@@ -652,6 +722,18 @@ public abstract class RadialScreenAnimationMixin
     private long changedSynergy$closeElapsedMs() {
         return Math.max(0L,
                 (System.nanoTime() - changedSynergy$closingAtNanos) / 1_000_000L);
+    }
+
+    @Unique
+    private long changedSynergy$reverseOpenElapsedMs() {
+        if (changedSynergy$closingDurationMs <= 0L) {
+            return 0L;
+        }
+        float remaining = 1.0F - changedSynergy$clamp(
+                changedSynergy$closeElapsedMs()
+                        / (float)changedSynergy$closingDurationMs);
+        return Math.max(0L, Math.round(
+                changedSynergy$closingOpenElapsedMs * remaining));
     }
 
     @Unique

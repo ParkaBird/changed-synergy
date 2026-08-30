@@ -76,6 +76,7 @@ public final class FallbackBondedWorkGoal extends Goal {
         if (!(pet.level() instanceof ServerLevel level)
                 || !BondedPetSettings.usesFallbackBackend(pet)
                 || !LatexSocialMemory.hasActiveBond(pet)
+                || CreatureSettlementService.hasCargo(pet)
                 || !movementAvailable()
                 || level.getGameTime() < nextSearchTick) {
             return false;
@@ -122,6 +123,7 @@ public final class FallbackBondedWorkGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return work != Work.NONE && destination != null
+                && !CreatureSettlementService.hasCargo(pet)
                 && movementAvailable()
                 && BondedPetSettings.favor(pet)
                         == (work == Work.FISHING

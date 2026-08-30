@@ -30,7 +30,8 @@ Creatures have persistent names, individual personalities, memories and social b
 - Context-aware dialogue in English and Simplified Chinese
 - Grapple and hypnosis QTEs, improved movement, swimming and combat behavior
 - Creature gathering, fishing, hunting, mining, outposts and environmental interactions
-- Optional Changed Addon Plus integration and basic Changed Additions support
+- Optional Changed Addon Plus integration, basic Changed Additions support,
+  and Golden Orange social/negotiation compatibility for both mods
 - Forge configuration screens and gamerules for the main systems
 
 The full feature list, screenshots and release downloads are available on the project pages:

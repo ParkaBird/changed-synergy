@@ -33,12 +33,13 @@ import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 
 /**
- * Low-priority role work. It has no clock or personal activity centre: a free
- * creature simply performs the next useful job for its stable role. Combat,
- * relationships, rescues and direct social interaction always pre-empt it.
+ * Role work. It has no clock or personal activity centre: a free creature
+ * simply performs the next useful job for its stable role. Combat, rescues and
+ * direct social interaction still pre-empt it, while Changed's ambient random
+ * stroll must not repeatedly replace an active delivery route.
  */
 public final class CreatureRoutineGoal extends Goal {
-    public static final int PRIORITY = 4;
+    public static final int PRIORITY = 2;
     private static final String NEXT_PRESENTATION =
             "ChangedSynergyNextRoutinePresentation";
     private static final double PRESENTATION_RANGE_SQR = 18.0D * 18.0D;
@@ -93,10 +94,22 @@ public final class CreatureRoutineGoal extends Goal {
                 ? RoutineState.DELIVERING : selectActivity();
         destination = chooseDestination();
         if (destination == null) {
+            if (CreatureSettlementService.hasCargo(mob)) {
+                // Cargo is authoritative. Do not let a temporarily unavailable
+                // or unloaded cache turn a provisioner into a wandering scout.
+                state = RoutineState.IDLE;
+                CreatureLifeMemory.scheduleNextDecision(
+                        mob, mob.level().getGameTime() + 40L);
+                return false;
+            }
             state = fallbackActivity();
             destination = chooseDestination();
         }
         remainingTicks = duration(state);
+        if (state == RoutineState.DELIVERING) {
+            remainingTicks = Math.max(
+                    remainingTicks, deliveryTravelBudget(destination));
+        }
         if (minecartTarget != null) {
             int travelBudget = 900 + (int)Math.ceil(
                     Math.sqrt(mob.distanceToSqr(minecartTarget)) * 14.0D);
@@ -192,8 +205,7 @@ public final class CreatureRoutineGoal extends Goal {
 
     @Override
     public void stop() {
-        boolean resumeCargoAfterCombat = CreatureSettlementService.hasCargo(mob)
-                && hasLiveCombatTarget();
+        boolean resumeCargo = CreatureSettlementService.hasCargo(mob);
         mob.getNavigation().stop();
         if (mob.level() instanceof ServerLevel level) {
             FishingVisualEffects.cancel(level, mob);
@@ -205,7 +217,7 @@ public final class CreatureRoutineGoal extends Goal {
         restoreTool();
         long now = mob.level().getGameTime();
         CreatureLifeMemory.finishRoutine(mob,
-                resumeCargoAfterCombat
+                resumeCargo
                         ? now + 10L
                         : now + 80L + mob.getRandom().nextInt(161));
         state = RoutineState.IDLE;
@@ -233,7 +245,11 @@ public final class CreatureRoutineGoal extends Goal {
             return RoutineState.TENDING;
         }
         if (CreatureSettlementService.isFacilityCommunity(mob)) {
-            return RoutineState.GATHERING;
+            // Maintenance has no orange garden or other real supply source.
+            // Other facility sections only gather once their actual work room
+            // has been discovered; otherwise they continue ordinary patrols.
+            return CreatureSettlementService.hasFacilityProvisionWork(mob)
+                    ? RoutineState.GATHERING : RoutineState.SCOUTING;
         }
         if (CreatureSettlementService.isCaveCommunity(mob)) {
             return mob.getRandom().nextInt(100) < 82
@@ -276,9 +292,28 @@ public final class CreatureRoutineGoal extends Goal {
             case TENDING -> tendingDestination();
             case GUARDING -> guardDestination();
             case PLAYING -> peerDestination(true);
-            case SCOUTING -> DefaultRandomPos.getPos(mob, 14, 7);
+            case SCOUTING -> scoutingDestination();
             default -> null;
         };
+    }
+
+    @Nullable
+    private Vec3 scoutingDestination() {
+        if (!CreatureSettlementService.isFacilityCommunity(mob)) {
+            return DefaultRandomPos.getPos(mob, 14, 7);
+        }
+        // Facility patrols stay in their own coloured/maintenance section.
+        // This also keeps maintenance provisioners available for local gifts
+        // instead of letting random strolls leak them into an adjacent wing.
+        for (int attempt = 0; attempt < 12; attempt++) {
+            Vec3 candidate = DefaultRandomPos.getPos(mob, 12, 6);
+            if (candidate != null
+                    && CreatureSettlementService.isInsideFacilitySection(
+                            mob, BlockPos.containing(candidate))) {
+                return candidate;
+            }
+        }
+        return mob.position();
     }
 
     @Nullable
@@ -749,7 +784,8 @@ public final class CreatureRoutineGoal extends Goal {
         glowBerrySite = null;
         sweetBerryTarget = false;
         actionTicks = 0;
-        remainingTicks = Math.max(remainingTicks, 360);
+        remainingTicks = Math.max(
+                remainingTicks, deliveryTravelBudget(destination));
         if (destination == null) {
             remainingTicks = 0;
         } else {
@@ -818,6 +854,20 @@ public final class CreatureRoutineGoal extends Goal {
         };
     }
 
+    /**
+     * Delivery may begin at the edge of a hunting or gathering range after most
+     * of the original activity budget has already elapsed. Give the return trip
+     * a distance-aware budget instead of the old fixed 360-tick minimum.
+     */
+    private int deliveryTravelBudget(@Nullable Vec3 target) {
+        if (target == null) {
+            return duration(RoutineState.DELIVERING);
+        }
+        int travelTicks = 500 + (int)Math.ceil(
+                Math.sqrt(mob.distanceToSqr(target)) * 14.0D);
+        return Math.min(2600, travelTicks);
+    }
+
     private void presentActivityStart() {
         if (!(mob.level() instanceof ServerLevel level)) {
             return;
@@ -866,6 +916,8 @@ public final class CreatureRoutineGoal extends Goal {
     }
 
     private void clearTargets() {
+        CreatureSettlementService.releaseResourceClaim(mob, itemTarget);
+        CreatureSettlementService.releaseSeaFishClaim(mob, fishTarget);
         CreatureSettlementService.releaseHuntClaim(mob, preyTarget);
         CreatureSettlementService.releaseMinecartClaim(mob, minecartTarget);
         destination = null;
@@ -887,6 +939,7 @@ public final class CreatureRoutineGoal extends Goal {
     }
 
     private boolean movementAvailable() {
+        boolean deliveringCargo = CreatureSettlementService.hasCargo(mob);
         LivingEntity target = mob.getTarget();
         if (target != null && (!target.isAlive() || target.isRemoved())) {
             // Some interrupted Changed attack goals leave their defeated target
@@ -908,13 +961,12 @@ public final class CreatureRoutineGoal extends Goal {
         if (LatexSocialMemory.hasActiveBond(mob)
                 || LatexSocialMemory.petOwnerUuid(mob).isPresent()
                 || CreaturePersonality.socialPartner(mob) != null) {
+            if (deliveringCargo) {
+                return true;
+            }
             return false;
         }
-        return !(mob instanceof TamableLatexEntity pet && pet.isTame());
-    }
-
-    private boolean hasLiveCombatTarget() {
-        LivingEntity target = mob.getTarget();
-        return target != null && target.isAlive() && !target.isRemoved();
+        return deliveringCargo
+                || !(mob instanceof TamableLatexEntity pet && pet.isTame());
     }
 }

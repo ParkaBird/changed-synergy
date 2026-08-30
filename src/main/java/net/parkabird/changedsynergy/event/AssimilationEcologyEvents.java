@@ -15,6 +15,7 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ai.EquipmentInheritance;
 import net.parkabird.changedsynergy.ai.EquipmentInheritance.EquipmentSnapshot;
 
@@ -43,9 +44,11 @@ public final class AssimilationEcologyEvents {
             return;
         }
 
-        if (victim.getType().is(MINDLESS_TARGETS)) {
-            if (decision.method()
-                    != LatexAssimilationDecision.Method.ABSORPTION) {
+        boolean mindless = victim.getType().is(MINDLESS_TARGETS);
+        if (mindless) {
+            if (!ChangedSynergyConfig.COMMON.allowMindlessMobTransfur.get()
+                    && decision.method()
+                            != LatexAssimilationDecision.Method.ABSORPTION) {
                 event.setDecision(forceAbsorption(decision));
                 decision = event.getDecision();
             }
@@ -76,10 +79,14 @@ public final class AssimilationEcologyEvents {
         if (victim instanceof Player || event.getDecision() == null) {
             return;
         }
-        if (victim.getType().is(MINDLESS_TARGETS)
-                || victim.getType().is(
-                                ChangedTags.EntityTypes.HUMANOIDS)
-                        && !victim.getType().is(SENTIENT_TARGETS)) {
+        boolean mindless = victim.getType().is(MINDLESS_TARGETS);
+        boolean blockedMindless = mindless
+                && !ChangedSynergyConfig.COMMON
+                        .allowMindlessMobTransfur.get();
+        boolean blockedHumanoid = !mindless
+                && victim.getType().is(ChangedTags.EntityTypes.HUMANOIDS)
+                && !victim.getType().is(SENTIENT_TARGETS);
+        if (blockedMindless || blockedHumanoid) {
             event.setCanceled(true);
         }
     }

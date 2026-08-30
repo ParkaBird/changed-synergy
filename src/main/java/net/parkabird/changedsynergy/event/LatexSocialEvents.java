@@ -720,7 +720,7 @@ public final class LatexSocialEvents {
         // override from another datapack cannot steal the orange interaction.
         if (creature instanceof DarkLatexWolfPup pup
                 && !pup.isTame()
-                && RelationshipFavorService.isOrange(
+                && RelationshipFavorService.isOrdinaryOrange(
                         player.getItemInHand(event.getHand()))) {
             return;
         }
@@ -900,7 +900,7 @@ public final class LatexSocialEvents {
                 || !(event.getTarget() instanceof DarkLatexWolfPup pup)
                 || pup.level().isClientSide
                 || pup.isTame()
-                || !RelationshipFavorService.isOrange(
+                || !RelationshipFavorService.isOrdinaryOrange(
                         player.getItemInHand(event.getHand()))) {
             return;
         }

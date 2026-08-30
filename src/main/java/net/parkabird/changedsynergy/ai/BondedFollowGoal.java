@@ -27,7 +27,8 @@ public final class BondedFollowGoal extends Goal {
     @Override
     public boolean canUse() {
         if (!(mob.level() instanceof ServerLevel)
-                || !LatexSocialMemory.isFollowingOwner(mob)) {
+                || !LatexSocialMemory.isFollowingOwner(mob)
+                || CreatureSettlementService.hasCargo(mob)) {
             return false;
         }
 
@@ -46,6 +47,7 @@ public final class BondedFollowGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return player != null && player.isAlive() && !player.isSpectator()
+                && !CreatureSettlementService.hasCargo(mob)
                 && LatexSocialMemory.isPetOwner(mob, player)
                 && LatexSocialMemory.isFollowingOwner(mob)
                 && mob.getTarget() == null

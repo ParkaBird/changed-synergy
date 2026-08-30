@@ -69,7 +69,8 @@ public final class ProvisionerGiftService {
                 || provider.isAggressive()
                 || provider.isPassenger()
                 || ChangedAddonCompat.isGrabberBusy(provider)
-                || !canPauseForGift(CreatureLifeMemory.routine(provider))) {
+                || !canPauseForGift(
+                        provider, CreatureLifeMemory.routine(provider))) {
             return;
         }
 
@@ -92,8 +93,11 @@ public final class ProvisionerGiftService {
             return;
         }
 
-        ProvisionSource source =
-                CreatureSettlementService.recentProvisionSource(provider);
+        ProvisionSource source = CreatureSettlementService
+                .isMaintenanceFacilityCommunity(provider)
+                        ? ProvisionSource.NEARSHORE_FISH
+                        : CreatureSettlementService.recentProvisionSource(
+                                provider);
         ItemStack gift = selectGift(level, provider, candidate.tier, source);
         if (gift.isEmpty()) {
             return;
@@ -321,10 +325,15 @@ public final class ProvisionerGiftService {
                 && provider.getRandom().nextInt(3) == 0 ? 3 : 2;
     }
 
-    private static boolean canPauseForGift(RoutineState routine) {
+    private static boolean canPauseForGift(
+            ChangedEntity provider,
+            RoutineState routine) {
         return routine == RoutineState.IDLE
                 || routine == RoutineState.TENDING
-                || routine == RoutineState.PLAYING;
+                || routine == RoutineState.PLAYING
+                || routine == RoutineState.SCOUTING
+                        && CreatureSettlementService
+                                .isMaintenanceFacilityCommunity(provider);
     }
 
     private static boolean eligiblePlayer(

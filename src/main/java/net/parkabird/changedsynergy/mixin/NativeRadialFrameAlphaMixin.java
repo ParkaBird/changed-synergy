@@ -39,29 +39,4 @@ public abstract class NativeRadialFrameAlphaMixin {
         return originalAlpha * RadialWheelAnimations.layerAlpha(this);
     }
 
-    @ModifyArg(
-            method = "renderSectionForeground",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/GuiGraphics;m_280246_(FFFF)V",
-                    remap = false),
-            index = 3,
-            remap = false,
-            require = 0)
-    private float changedSynergy$fadeNativeIcon(float originalAlpha) {
-        return originalAlpha * RadialWheelAnimations.layerAlpha(this);
-    }
-
-    @ModifyArg(
-            method = "renderSectionForeground",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/GuiGraphics;setColor(FFFF)V",
-                    remap = false),
-            index = 3,
-            remap = false,
-            require = 0)
-    private float changedSynergy$fadeNativeIconMojmap(float originalAlpha) {
-        return originalAlpha * RadialWheelAnimations.layerAlpha(this);
-    }
 }

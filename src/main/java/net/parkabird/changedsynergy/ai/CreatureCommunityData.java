@@ -1,27 +1,27 @@
 package net.parkabird.changedsynergy.ai;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
+import net.parkabird.changedsynergy.event.TerritoryContextEvents;
+import net.parkabird.changedsynergy.event.TerritoryContextEvents.FacilitySnapshot;
 
 /**
  * Server-wide memory for local creature communities.
@@ -34,7 +34,10 @@ import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 public final class CreatureCommunityData extends SavedData {
     private static final String DATA_NAME = "changed_synergy_communities";
     private static final String RECORDS = "Records";
+    private static final String ALIASES = "Aliases";
     private static final String COMMUNITY_ID = "ChangedSynergyCommunityId";
+    private static final String FACILITY_AFFINITY =
+            "ChangedSynergyFacilityCommunityAffinity";
     private static final double JOIN_DISTANCE_SQR = 56.0D * 56.0D;
     private static final double WHITE_REBIND_DISTANCE_SQR = 72.0D * 72.0D;
     private static final long TOUCH_INTERVAL = 200L;
@@ -43,6 +46,10 @@ public final class CreatureCommunityData extends SavedData {
     private static final int MIGRATION_FAILURE_THRESHOLD = 6;
 
     private final Map<UUID, Community> communities = new LinkedHashMap<>();
+    /** Retains old entity references after duplicate cache communities merge. */
+    private final Map<UUID, UUID> aliases = new LinkedHashMap<>();
+    /** Legacy records only need normalizing once after each world load. */
+    private final Set<String> migratedDimensions = new HashSet<>();
 
     public record Snapshot(
             UUID id,
@@ -96,6 +103,7 @@ public final class CreatureCommunityData extends SavedData {
 
     public static void detach(ChangedEntity creature) {
         creature.getPersistentData().remove(COMMUNITY_ID);
+        creature.getPersistentData().remove(FACILITY_AFFINITY);
     }
 
     public static void synchronizeActivityCenter(ChangedEntity creature) {
@@ -112,13 +120,15 @@ public final class CreatureCommunityData extends SavedData {
             community.cache = position.immutable();
             data.setDirty();
         }
+        community = data.mergeSharedCacheCommunities(community);
+        creature.getPersistentData().putUUID(COMMUNITY_ID, community.id);
     }
 
     /**
      * Returns nearby cache records that this creature's local faction branch
-     * may share. This deliberately does not merge community identity or its
-     * statistics; it only lets several neighbouring communities use one real
-     * container instead of placing a row of nearly identical caches.
+     * may share. Adopting one of these caches subsequently merges the adopting
+     * record into its authoritative community, so one physical outpost cannot
+     * accumulate several independent member lists and resource counters.
      */
     public static List<BlockPos> nearbyCompatibleCaches(
             ChangedEntity creature,
@@ -189,18 +199,14 @@ public final class CreatureCommunityData extends SavedData {
             boolean bounded) {
         CreatureCommunityData data = get(level.getServer());
         Community own = data.bindInternal(level, creature);
-        String lightGroup = own.faction == HunterFaction.LIGHT
-                ? LightFactionGroup.of(creature) : "";
         return data.communities.values().stream()
                 .filter(candidate -> candidate.cache != null)
                 .filter(candidate -> candidate.faction == own.faction)
                 .filter(candidate -> candidate.dimension.equals(own.dimension))
+                .filter(candidate -> candidate.group.equals(own.group))
                 .filter(candidate -> !bounded
                         || candidate.cache.distSqr(
                                 creature.blockPosition()) <= radiusSqr)
-                .filter(candidate -> own.faction != HunterFaction.LIGHT
-                        || lightGroup.equals(LightFactionGroup.at(
-                                level, candidate.center)))
                 .map(candidate -> candidate.cache.immutable())
                 .distinct()
                 .sorted(Comparator.comparingDouble(position ->
@@ -318,20 +324,29 @@ public final class CreatureCommunityData extends SavedData {
         HunterFaction faction = HunterFaction.of(creature);
         String dimension = level.dimension().location().toString();
         String group = groupKey(level, creature, faction);
+        migrateLegacyCommunities(level, dimension);
         BlockPos focus = creature.blockPosition();
         UUID storedId = readCommunityId(creature);
-        Community existing = storedId == null ? null : communities.get(storedId);
+        UUID resolvedId = resolveAlias(storedId);
+        Community existing = resolvedId == null ? null : communities.get(resolvedId);
         if (existing != null
                 && compatible(existing, faction, dimension, group)
                 && (faction != HunterFaction.WHITE
                         || existing.center.distSqr(focus) <= WHITE_REBIND_DISTANCE_SQR)) {
+            if (!existing.id.equals(storedId)) {
+                creature.getPersistentData().putUUID(COMMUNITY_ID, existing.id);
+            }
             touch(existing, level.getGameTime());
             return existing;
         }
 
         Community nearest = communities.values().stream()
                 .filter(candidate -> compatible(candidate, faction, dimension, group))
-                .filter(candidate -> candidate.center.distSqr(focus) <= JOIN_DISTANCE_SQR)
+                // One Changed facility section is one population even when
+                // its generated rooms span more than the outdoor joining
+                // radius. Distance still partitions ordinary settlements.
+                .filter(candidate -> group.startsWith("facility:")
+                        || candidate.center.distSqr(focus) <= JOIN_DISTANCE_SQR)
                 .min(Comparator.comparingDouble(candidate ->
                         candidate.center.distSqr(focus)))
                 .orElse(null);
@@ -375,23 +390,190 @@ public final class CreatureCommunityData extends SavedData {
             ServerLevel level,
             ChangedEntity creature,
             HunterFaction faction) {
-        if (faction == HunterFaction.WHITE || faction == HunterFaction.DARK) {
+        FacilitySnapshot facility = TerritoryContextEvents.facilityAt(
+                level, creature.blockPosition());
+        if (facility != null) {
+            String remembered = creature.getPersistentData()
+                    .getString(FACILITY_AFFINITY);
+            String facilityPrefix = "facility:"
+                    + facility.facilityCode() + ":";
+            // Crossing a colour boundary during combat is displacement, not a
+            // population transfer. Keep the original section until an
+            // explicit routine reset; only provisional transition-zone
+            // affinities are allowed to upgrade automatically.
+            if (remembered.startsWith(facilityPrefix)
+                    && !remembered.substring(facilityPrefix.length())
+                            .startsWith("zone:")) {
+                return remembered;
+            }
+            String section = TerritoryContextEvents.facilitySectionId(facility);
+            if (section.isBlank()) {
+                section = "zone:" + facility.piece().zone();
+            }
+            String affinity = facilityPrefix + section;
+            creature.getPersistentData().putString(
+                    FACILITY_AFFINITY, affinity);
+            return affinity;
+        }
+        String rememberedFacility = creature.getPersistentData()
+                .getString(FACILITY_AFFINITY);
+        if (rememberedFacility.startsWith("facility:")) {
+            return rememberedFacility;
+        }
+        if (faction == HunterFaction.WHITE
+                || faction == HunterFaction.DARK
+                || faction == HunterFaction.AQUATIC) {
             return faction.id();
+        }
+        if (faction == HunterFaction.LIGHT) {
+            return lightGroupKey(LightFactionGroup.of(creature));
         }
         ResourceLocation biome = level.getBiome(creature.blockPosition())
                 .unwrapKey()
-                .map(ResourceKey::location)
-                .orElseGet(() -> {
-                    Registry<Biome> registry = level.registryAccess()
-                            .registryOrThrow(Registries.BIOME);
-                    ResourceLocation id = registry.getKey(
-                            level.getBiome(creature.blockPosition()).value());
-                    return id == null
-                            ? ResourceLocation.fromNamespaceAndPath(
-                                    "minecraft", "unknown")
-                            : id;
-                });
+                .map(key -> key.location())
+                .orElse(ResourceLocation.fromNamespaceAndPath(
+                        "minecraft", "unknown"));
         return faction.id() + ":" + biome;
+    }
+
+    private static String lightGroupKey(String region) {
+        return HunterFaction.LIGHT.id() + ":" + LightFactionGroup.normalize(region);
+    }
+
+    /** Converts beta-1 biome keys such as light:minecraft:forest to stable regions. */
+    private static String normalizeStoredGroup(
+            ServerLevel level,
+            Community community) {
+        if (community.faction != HunterFaction.LIGHT
+                || community.group.startsWith("facility:")) {
+            return community.group;
+        }
+        String prefix = HunterFaction.LIGHT.id() + ":";
+        if (!community.group.startsWith(prefix)) {
+            return lightGroupKey(LightFactionGroup.GENERAL);
+        }
+        String value = community.group.substring(prefix.length());
+        ResourceLocation biome = value.contains(":")
+                ? ResourceLocation.tryParse(value) : null;
+        String region = biome == null
+                ? LightFactionGroup.normalize(value)
+                : LightFactionGroup.regionForBiome(level, biome);
+        return lightGroupKey(region);
+    }
+
+    /**
+     * Performs the beta-1 community migration lazily when a dimension is live.
+     * Communities that already share one real cache and stable branch become a
+     * single authoritative record; aliases keep unloaded entities attached.
+     */
+    private void migrateLegacyCommunities(ServerLevel level, String dimension) {
+        if (!migratedDimensions.add(dimension)) {
+            return;
+        }
+        boolean changed = false;
+        for (Community community : communities.values()) {
+            if (!community.dimension.equals(dimension)) {
+                continue;
+            }
+            String normalized = normalizeStoredGroup(level, community);
+            if (!normalized.equals(community.group)) {
+                community.group = normalized;
+                changed = true;
+            }
+        }
+
+        Map<CacheIdentity, Community> owners = new LinkedHashMap<>();
+        for (Community community : List.copyOf(communities.values())) {
+            if (!community.dimension.equals(dimension) || community.cache == null) {
+                continue;
+            }
+            CacheIdentity key = new CacheIdentity(
+                    community.faction,
+                    community.dimension,
+                    community.group,
+                    community.cache);
+            Community owner = owners.get(key);
+            if (owner == null) {
+                owners.put(key, community);
+                continue;
+            }
+            if (community.createdTick < owner.createdTick) {
+                mergeCommunities(community, owner);
+                owners.put(key, community);
+            } else {
+                mergeCommunities(owner, community);
+            }
+            changed = true;
+        }
+        if (changed) {
+            setDirty();
+        }
+    }
+
+    private Community mergeSharedCacheCommunities(Community community) {
+        if (community.cache == null) {
+            return community;
+        }
+        Community owner = communities.values().stream()
+                .filter(candidate -> candidate.cache != null)
+                .filter(candidate -> candidate.faction == community.faction)
+                .filter(candidate -> candidate.dimension.equals(community.dimension))
+                .filter(candidate -> candidate.group.equals(community.group))
+                .filter(candidate -> candidate.cache.equals(community.cache))
+                .min(Comparator.comparingLong(candidate -> candidate.createdTick))
+                .orElse(community);
+        for (Community duplicate : List.copyOf(communities.values())) {
+            if (duplicate != owner
+                    && duplicate.cache != null
+                    && duplicate.faction == owner.faction
+                    && duplicate.dimension.equals(owner.dimension)
+                    && duplicate.group.equals(owner.group)
+                    && duplicate.cache.equals(owner.cache)) {
+                mergeCommunities(owner, duplicate);
+            }
+        }
+        return owner;
+    }
+
+    private void mergeCommunities(Community owner, Community duplicate) {
+        if (owner == duplicate || !communities.containsKey(duplicate.id)) {
+            return;
+        }
+        owner.foodDelivered = saturatedAdd(
+                owner.foodDelivered, duplicate.foodDelivered);
+        owner.orangeStock = saturatedAdd(owner.orangeStock, duplicate.orangeStock);
+        owner.materialsDelivered = saturatedAdd(
+                owner.materialsDelivered, duplicate.materialsDelivered);
+        owner.forageFailures = Math.max(
+                owner.forageFailures, duplicate.forageFailures);
+        owner.migrations = saturatedAdd(owner.migrations, duplicate.migrations);
+        owner.lastSeenTick = Math.max(owner.lastSeenTick, duplicate.lastSeenTick);
+        owner.lastFailureTick = Math.max(
+                owner.lastFailureTick, duplicate.lastFailureTick);
+        owner.lastMigrationTick = Math.max(
+                owner.lastMigrationTick, duplicate.lastMigrationTick);
+        aliases.replaceAll((old, target) -> target.equals(duplicate.id)
+                ? owner.id : target);
+        aliases.put(duplicate.id, owner.id);
+        communities.remove(duplicate.id);
+    }
+
+    private static int saturatedAdd(int first, int second) {
+        long total = (long)first + second;
+        return (int)Math.min(Integer.MAX_VALUE, Math.max(0L, total));
+    }
+
+    @Nullable
+    private UUID resolveAlias(@Nullable UUID id) {
+        UUID resolved = id;
+        for (int depth = 0; resolved != null && depth < 32; depth++) {
+            UUID next = aliases.get(resolved);
+            if (next == null || next.equals(resolved)) {
+                return resolved;
+            }
+            resolved = next;
+        }
+        return resolved;
     }
 
     @Nullable
@@ -413,6 +595,15 @@ public final class CreatureCommunityData extends SavedData {
                 data.communities.put(community.id, community);
             }
         }
+        if (tag.contains(ALIASES, Tag.TAG_LIST)) {
+            ListTag aliases = tag.getList(ALIASES, Tag.TAG_COMPOUND);
+            for (int i = 0; i < aliases.size(); i++) {
+                CompoundTag alias = aliases.getCompound(i);
+                if (alias.hasUUID("Old") && alias.hasUUID("New")) {
+                    data.aliases.put(alias.getUUID("Old"), alias.getUUID("New"));
+                }
+            }
+        }
         return data;
     }
 
@@ -421,14 +612,29 @@ public final class CreatureCommunityData extends SavedData {
         ListTag records = new ListTag();
         communities.values().forEach(community -> records.add(community.save()));
         tag.put(RECORDS, records);
+        ListTag savedAliases = new ListTag();
+        aliases.forEach((oldId, newId) -> {
+            CompoundTag alias = new CompoundTag();
+            alias.putUUID("Old", oldId);
+            alias.putUUID("New", newId);
+            savedAliases.add(alias);
+        });
+        tag.put(ALIASES, savedAliases);
         return tag;
+    }
+
+    private record CacheIdentity(
+            HunterFaction faction,
+            String dimension,
+            String group,
+            BlockPos cache) {
     }
 
     private static final class Community {
         private final UUID id;
         private final HunterFaction faction;
         private final String dimension;
-        private final String group;
+        private String group;
         private BlockPos center;
         @Nullable
         private BlockPos cache;

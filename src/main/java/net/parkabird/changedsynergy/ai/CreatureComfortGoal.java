@@ -402,6 +402,7 @@ public final class CreatureComfortGoal extends Goal {
         if (!mob.isAlive()
                 || mob.isNoAi()
                 || mob.isLeashed()
+                || CreatureSettlementService.hasCargo(mob)
                 || mob.getTarget() != null
                 || SocialAudienceGoal.isActive(mob)
                 || ChangedAddonCompat.isGrabberBusy(mob)

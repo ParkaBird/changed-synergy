@@ -111,6 +111,14 @@ public final class CreatureSettlementService {
             "ChangedSynergyMinecartClaimedUntil";
     private static final String NEXT_HUNT =
             "ChangedSynergyNextHunt";
+    private static final String RESOURCE_CLAIMED_BY =
+            "ChangedSynergyResourceClaimedBy";
+    private static final String RESOURCE_CLAIMED_UNTIL =
+            "ChangedSynergyResourceClaimedUntil";
+    private static final String FISH_CLAIMED_BY =
+            "ChangedSynergyFishClaimedBy";
+    private static final String FISH_CLAIMED_UNTIL =
+            "ChangedSynergyFishClaimedUntil";
     private static final int CACHE_DECORATION_VERSION = 10;
     private static final List<BlockPos> LEGACY_CACHE_OFFSETS = List.of(
             new BlockPos(-1, 0, 0), new BlockPos(1, 0, 0),
@@ -134,7 +142,7 @@ public final class CreatureSettlementService {
     private static final int OFFSHORE_CACHE_SEARCH_RADIUS = 18;
     private static final int OFFSHORE_LEGACY_BIND_RADIUS = 32;
     private static final int FACILITY_STORAGE_CHUNK_RADIUS = 6;
-    private static final int FACILITY_PATH_CANDIDATE_LIMIT = 16;
+    private static final int FACILITY_PATH_CANDIDATE_LIMIT = 64;
     private static final double LAND_SHARED_CACHE_RADIUS = 72.0D;
     private static final double AQUATIC_SHORE_SHARED_CACHE_RADIUS = 80.0D;
     private static final int HUNT_SEARCH_RADIUS = 42;
@@ -383,7 +391,7 @@ public final class CreatureSettlementService {
 
     /** True only when one real orange can be moved into a placed pile. */
     public static boolean hasOrangeSupply(ChangedEntity creature) {
-        if (RelationshipFavorService.isOrange(cargo(creature))) {
+        if (RelationshipFavorService.isOrdinaryOrange(cargo(creature))) {
             return true;
         }
         if (creature.level() instanceof ServerLevel level) {
@@ -392,7 +400,8 @@ public final class CreatureSettlementService {
                     .orElse(null);
             if (container != null) {
                 for (int slot = 0; slot < container.getContainerSize(); slot++) {
-                    if (RelationshipFavorService.isOrange(container.getItem(slot))) {
+                    if (RelationshipFavorService.isOrdinaryOrange(
+                            container.getItem(slot))) {
                         return true;
                     }
                 }
@@ -406,7 +415,7 @@ public final class CreatureSettlementService {
     /** Removes exactly one orange from cargo, a cache, or white consensus stock. */
     public static boolean consumeOrangeSupply(ChangedEntity creature) {
         ItemStack carried = cargo(creature);
-        if (RelationshipFavorService.isOrange(carried)) {
+        if (RelationshipFavorService.isOrdinaryOrange(carried)) {
             carried.shrink(1);
             if (carried.isEmpty()) {
                 clearCargo(creature);
@@ -422,7 +431,8 @@ public final class CreatureSettlementService {
                     .orElse(null);
             if (container != null) {
                 for (int slot = 0; slot < container.getContainerSize(); slot++) {
-                    if (RelationshipFavorService.isOrange(container.getItem(slot))) {
+                    if (RelationshipFavorService.isOrdinaryOrange(
+                            container.getItem(slot))) {
                         shrinkOne(container, slot);
                         return true;
                     }
@@ -445,14 +455,51 @@ public final class CreatureSettlementService {
                         creature.getBoundingBox().inflate(radius, 5.0D, radius),
                         item -> item.isAlive()
                                 && !item.getItem().isEmpty()
+                                && item.getOwner() == null
                                 && item.tickCount >= RESOURCE_MIN_AGE
-                                && classify(creature, item.getItem()) != null)
+                                && classify(creature, item.getItem()) != null
+                                && claimAvailable(
+                                        item.getPersistentData(), creature,
+                                        level.getGameTime(),
+                                        RESOURCE_CLAIMED_BY,
+                                        RESOURCE_CLAIMED_UNTIL))
                 .stream()
-                .min(Comparator.comparingDouble(creature::distanceToSqr));
+                .min(Comparator.comparingDouble(creature::distanceToSqr))
+                .map(item -> {
+                    claim(item.getPersistentData(), creature,
+                            level.getGameTime() + 800L,
+                            RESOURCE_CLAIMED_BY,
+                            RESOURCE_CLAIMED_UNTIL);
+                    return item;
+                });
+    }
+
+    public static void releaseResourceClaim(
+            ChangedEntity creature,
+            @Nullable ItemEntity item) {
+        if (item != null) {
+            releaseClaim(item.getPersistentData(), creature,
+                    RESOURCE_CLAIMED_BY, RESOURCE_CLAIMED_UNTIL);
+        }
     }
 
     public static boolean isFacilityCommunity(ChangedEntity creature) {
         return facilityFor(creature) != null;
+    }
+
+    /** Maintenance has no harvestable facility supply room. */
+    public static boolean isMaintenanceFacilityCommunity(
+            ChangedEntity creature) {
+        FacilityWorkArea area = facilityWorkArea(creature);
+        return area != null && "maintenance".equals(area.section());
+    }
+
+    /** Whether this facility section has a reachable, real orange work room. */
+    public static boolean hasFacilityProvisionWork(ChangedEntity creature) {
+        FacilityWorkArea area = facilityWorkArea(creature);
+        return area != null
+                && !"maintenance".equals(area.section())
+                && area.orangeRoom() != null;
     }
 
     public static boolean isCaveCommunity(ChangedEntity creature) {
@@ -543,6 +590,26 @@ public final class CreatureSettlementService {
             if (section.isBlank()) {
                 section = facilitySection(centerRoom);
             }
+            if (section.isBlank()) {
+                BlockPos origin = creature.blockPosition();
+                double bestDistance = Double.MAX_VALUE;
+                for (var piece
+                        : facility.facility().getPieceGenerationInfos()) {
+                    FacilitySnapshot candidate = new FacilitySnapshot(
+                            facility.facility(), piece,
+                            facility.facilityCode());
+                    String candidateSection = facilitySection(candidate);
+                    if (candidateSection.isBlank()) {
+                        continue;
+                    }
+                    double distance = piece.region().getCenter()
+                            .distSqr(origin);
+                    if (distance < bestDistance) {
+                        section = candidateSection;
+                        bestDistance = distance;
+                    }
+                }
+            }
             if (!section.isBlank()) {
                 memory.putString(FACILITY_WORK_SECTION, section);
             }
@@ -562,14 +629,30 @@ public final class CreatureSettlementService {
                 memory.remove(FACILITY_ORANGE_ROOM);
             }
         }
-        if (orangeRoom == null) {
-            FacilitySnapshot candidate = isOrangeWorkRoom(
-                    exact, facility, section) ? exact : centerRoom;
-            if (isOrangeWorkRoom(candidate, facility, section)) {
-                orangeRoom = candidate;
-                memory.putLong(
-                        FACILITY_ORANGE_ROOM,
-                        candidate.piece().region().getCenter().asLong());
+        if (orangeRoom == null && !"maintenance".equals(section)) {
+            BlockPos origin = centerRoom != null
+                    ? centerRoom.piece().region().getCenter()
+                    : creature.blockPosition();
+            double bestDistance = Double.MAX_VALUE;
+            // A provider can spawn in any room in its coloured section. Scan
+            // the facility layout rather than assuming it started in (or had
+            // a community centre inside) the garden/tree room.
+            for (var piece : facility.facility().getPieceGenerationInfos()) {
+                FacilitySnapshot candidate = new FacilitySnapshot(
+                        facility.facility(), piece, facility.facilityCode());
+                if (!isOrangeWorkRoom(candidate, facility, section)) {
+                    continue;
+                }
+                double distance = candidate.piece().region().getCenter()
+                        .distSqr(origin);
+                if (distance < bestDistance) {
+                    orangeRoom = candidate;
+                    bestDistance = distance;
+                }
+            }
+            if (orangeRoom != null) {
+                memory.putLong(FACILITY_ORANGE_ROOM,
+                        orangeRoom.piece().region().getCenter().asLong());
             }
         }
         return new FacilityWorkArea(facility, section, orangeRoom);
@@ -577,14 +660,28 @@ public final class CreatureSettlementService {
 
     public static boolean isInsideFacilityWorkSection(
             ChangedEntity creature) {
+        return isInsideFacilityWorkSection(
+                creature, creature.blockPosition(), true);
+    }
+
+    public static boolean isInsideFacilitySection(
+            ChangedEntity creature,
+            BlockPos position) {
+        return isInsideFacilityWorkSection(creature, position, false);
+    }
+
+    private static boolean isInsideFacilityWorkSection(
+            ChangedEntity creature,
+            BlockPos position,
+            boolean requireOrangeRoom) {
         if (!(creature.level() instanceof ServerLevel level)) {
             return false;
         }
         FacilityWorkArea area = facilityWorkArea(creature);
         FacilitySnapshot exact = TerritoryContextEvents.facilityAt(
-                level, creature.blockPosition());
+                level, position);
         return area != null
-                && area.orangeRoom() != null
+                && (!requireOrangeRoom || area.orangeRoom() != null)
                 && sameFacilitySection(exact, area);
     }
 
@@ -621,25 +718,7 @@ public final class CreatureSettlementService {
 
     private static String facilitySection(
             @Nullable FacilitySnapshot snapshot) {
-        if (snapshot == null) {
-            return "";
-        }
-        String path = snapshot.piece().pieceName().getPath()
-                .toLowerCase(Locale.ROOT);
-        if (hasFacilityMarker(path, "blue")) {
-            return "blue";
-        }
-        if (hasFacilityMarker(path, "gray")
-                || hasFacilityMarker(path, "grey")) {
-            return "gray";
-        }
-        if (hasFacilityMarker(path, "red")) {
-            return "red";
-        }
-        if (hasFacilityMarker(path, "maintenance")) {
-            return "maintenance";
-        }
-        return "";
+        return TerritoryContextEvents.facilitySectionId(snapshot);
     }
 
     private static boolean hasFacilityMarker(
@@ -668,6 +747,16 @@ public final class CreatureSettlementService {
             BlockPos target,
             FacilityWorkArea area,
             int accuracy) {
+        return facilityPathWithinSection(
+                creature, target, area, accuracy, false);
+    }
+
+    private static boolean facilityPathWithinSection(
+            ChangedEntity creature,
+            BlockPos target,
+            FacilityWorkArea area,
+            int accuracy,
+            boolean returningCargo) {
         if (!(creature.level() instanceof ServerLevel level)
                 || !sameFacilitySection(
                         TerritoryContextEvents.facilityAt(level, target), area)) {
@@ -684,7 +773,15 @@ public final class CreatureSettlementService {
         for (int index = 0; index < path.getNodeCount(); index++) {
             FacilitySnapshot step = TerritoryContextEvents.facilityAt(
                     level, path.getNode(index).asBlockPos());
-            if (!sameFacilitySection(step, area)) {
+            if (returningCargo) {
+                // Combat may push a loaded worker through a transition or even
+                // just outside the facility. Permit a delivery route back
+                // through those spaces, but never through another facility.
+                if (step != null && !step.facilityCode().equals(
+                        area.facility().facilityCode())) {
+                    return false;
+                }
+            } else if (!sameFacilitySection(step, area)) {
                 return false;
             }
         }
@@ -1053,6 +1150,39 @@ public final class CreatureSettlementService {
                 && creature.getUUID().equals(data.getUUID(HUNT_CLAIMED_BY));
     }
 
+    private static boolean claimAvailable(
+            CompoundTag data,
+            ChangedEntity creature,
+            long now,
+            String ownerKey,
+            String untilKey) {
+        return data.getLong(untilKey) <= now
+                || data.hasUUID(ownerKey)
+                        && creature.getUUID().equals(data.getUUID(ownerKey));
+    }
+
+    private static void claim(
+            CompoundTag data,
+            ChangedEntity creature,
+            long until,
+            String ownerKey,
+            String untilKey) {
+        data.putUUID(ownerKey, creature.getUUID());
+        data.putLong(untilKey, until);
+    }
+
+    private static void releaseClaim(
+            CompoundTag data,
+            ChangedEntity creature,
+            String ownerKey,
+            String untilKey) {
+        if (data.hasUUID(ownerKey)
+                && creature.getUUID().equals(data.getUUID(ownerKey))) {
+            data.remove(ownerKey);
+            data.remove(untilKey);
+        }
+    }
+
     private static Item foodFromPrey(Animal prey) {
         EntityType<?> type = prey.getType();
         if (type == EntityType.COW) {
@@ -1124,7 +1254,8 @@ public final class CreatureSettlementService {
             double radius) {
         if (!(creature.level() instanceof ServerLevel level)
                 || !usesOpenOceanHarvest(creature)
-                || hasCargo(creature)) {
+                || hasCargo(creature)
+                || !level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
             return Optional.empty();
         }
         return level.getEntitiesOfClass(
@@ -1133,9 +1264,30 @@ public final class CreatureSettlementService {
                                 radius, Math.max(8.0D, radius * 0.5D), radius),
                         fish -> fish.isAlive()
                                 && !fish.isRemoved()
-                                && fish.isInWater())
+                                && fish.isInWater()
+                                && claimAvailable(
+                                        fish.getPersistentData(), creature,
+                                        level.getGameTime(),
+                                        FISH_CLAIMED_BY,
+                                        FISH_CLAIMED_UNTIL))
                 .stream()
-                .min(Comparator.comparingDouble(creature::distanceToSqr));
+                .min(Comparator.comparingDouble(creature::distanceToSqr))
+                .map(fish -> {
+                    claim(fish.getPersistentData(), creature,
+                            level.getGameTime() + 800L,
+                            FISH_CLAIMED_BY,
+                            FISH_CLAIMED_UNTIL);
+                    return fish;
+                });
+    }
+
+    public static void releaseSeaFishClaim(
+            ChangedEntity creature,
+            @Nullable AbstractFish fish) {
+        if (fish != null) {
+            releaseClaim(fish.getPersistentData(), creature,
+                    FISH_CLAIMED_BY, FISH_CLAIMED_UNTIL);
+        }
     }
 
     /** Captures a wild fish as real cargo without entering ordinary combat. */
@@ -1144,6 +1296,7 @@ public final class CreatureSettlementService {
             AbstractFish fish) {
         if (!(creature.level() instanceof ServerLevel level)
                 || hasCargo(creature)
+                || !level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)
                 || fish == null
                 || !fish.isAlive()
                 || fish.isRemoved()
@@ -1158,6 +1311,7 @@ public final class CreatureSettlementService {
                                 ? Items.TROPICAL_FISH
                                 : Items.COD;
         ItemStack caught = new ItemStack(item);
+        releaseSeaFishClaim(creature, fish);
         setCargo(creature, caught, ResourceKind.FOOD,
                 ProvisionSource.OPEN_OCEAN_FISH);
         Vec3 position = fish.position();
@@ -1275,6 +1429,7 @@ public final class CreatureSettlementService {
             int upwardRadius,
             int downwardRadius) {
         if (!(creature.level() instanceof ServerLevel level)
+                || !level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)
                 || !isCaveCommunity(creature)) {
             return Optional.empty();
         }
@@ -1302,7 +1457,8 @@ public final class CreatureSettlementService {
             ChangedEntity creature,
             BlockPos position) {
         if (!(creature.level() instanceof ServerLevel level)
-                || hasCargo(creature)) {
+                || hasCargo(creature)
+                || !level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
             return false;
         }
         BlockState state = level.getBlockState(position);
@@ -1589,19 +1745,26 @@ public final class CreatureSettlementService {
                 .getLootTable(BuiltInLootTables.FISHING);
         List<ItemStack> caught = table.getRandomItems(params);
         int carriedIndex = -1;
+        ResourceKind carriedKind = null;
         for (int i = 0; i < caught.size(); i++) {
-            if (!caught.get(i).isEmpty()) {
+            ResourceKind candidateKind = classify(creature, caught.get(i));
+            if (!caught.get(i).isEmpty() && candidateKind != null) {
                 carriedIndex = i;
+                carriedKind = candidateKind;
                 break;
             }
         }
         ItemStack carried = carriedIndex >= 0
                 ? caught.get(carriedIndex).copy() : ItemStack.EMPTY;
         if (carried.isEmpty()) {
+            caught.stream()
+                    .filter(stack -> !stack.isEmpty())
+                    .forEach(stack -> Block.popResource(
+                            level, creature.blockPosition(), stack));
             return false;
         }
-        setCargo(creature, carried, ResourceKind.FOOD,
-                ProvisionSource.NEARSHORE_FISH);
+        setCargo(creature, carried, carriedKind,
+                classifyProvisionSource(creature, carried, carriedKind));
         for (int i = 0; i < caught.size(); i++) {
             if (i != carriedIndex && !caught.get(i).isEmpty()) {
                 Block.popResource(level, creature.blockPosition(), caught.get(i));
@@ -1699,10 +1862,12 @@ public final class CreatureSettlementService {
         ItemStack source = itemEntity.getItem();
         ResourceKind kind = classify(creature, source);
         if (kind == null) {
+            releaseResourceClaim(creature, itemEntity);
             return false;
         }
         ItemStack carried = source.copy();
         carried.setCount(1);
+        releaseResourceClaim(creature, itemEntity);
         setCargo(creature, carried, kind,
                 classifyProvisionSource(creature, carried, kind));
         source.shrink(1);
@@ -1736,7 +1901,8 @@ public final class CreatureSettlementService {
         if (HunterFaction.of(creature) == HunterFaction.WHITE
                 && !isFacilityCommunity(creature)) {
             int amount = carried.getCount();
-            boolean orange = RelationshipFavorService.isOrange(carried);
+            boolean orange = RelationshipFavorService
+                    .isOrdinaryOrange(carried);
             clearCargo(creature);
             CreatureCommunityData.recordConsensusDeposit(
                     creature, kind, amount, orange);
@@ -1750,6 +1916,11 @@ public final class CreatureSettlementService {
         }
         Container container = containerAt(level, cache.get());
         if (container == null) {
+            // An unloaded chunk is not evidence that the cache was destroyed.
+            // Keep the binding and retry when the provider can approach it.
+            if (!level.hasChunkAt(cache.get())) {
+                return false;
+            }
             if (isFacilityCommunity(creature)) {
                 creature.getPersistentData().remove(FACILITY_STORAGE_POS);
             } else {
@@ -1789,6 +1960,9 @@ public final class CreatureSettlementService {
             }
             BlockPos position = BlockPos.of(
                     memory.getLong(FACILITY_STORAGE_POS));
+            if (!level.hasChunkAt(position)) {
+                return Optional.of(position);
+            }
             if (facilityStorageKind(level, position, area)
                             == FacilityStorageKind.NONE
                     || containerAt(level, position) == null) {
@@ -1802,6 +1976,9 @@ public final class CreatureSettlementService {
                 .flatMap(CreatureCommunityData.Snapshot::cache);
         if (stored.isEmpty()) {
             return Optional.empty();
+        }
+        if (!level.hasChunkAt(stored.get())) {
+            return stored;
         }
         if (containerAt(level, stored.get()) == null) {
             CreatureCommunityData.clearCache(creature);
@@ -1913,6 +2090,28 @@ public final class CreatureSettlementService {
                             "changed", "orange"));
             carried = orange == null ? ItemStack.EMPTY : new ItemStack(orange);
         }
+        boolean returningCargo = hasCargo(creature);
+        CompoundTag memory = creature.getPersistentData();
+        if (memory.contains(FACILITY_STORAGE_POS, Tag.TAG_LONG)) {
+            BlockPos remembered = BlockPos.of(
+                    memory.getLong(FACILITY_STORAGE_POS));
+            // Keep an unloaded binding: a temporarily unloaded chunk is not a
+            // destroyed box, and forgetting it causes repeated facility-wide
+            // container scans.
+            if (!level.hasChunkAt(remembered)) {
+                return Optional.of(remembered);
+            }
+            Container container = containerAt(level, remembered);
+            if (container != null
+                    && facilityStorageKind(level, remembered, area)
+                            != FacilityStorageKind.NONE
+                    && hasStorageRoom(container, carried)
+                    && facilityPathWithinSection(
+                            creature, remembered, area, 2, returningCargo)) {
+                return Optional.of(remembered);
+            }
+            memory.remove(FACILITY_STORAGE_POS);
+        }
         BlockPos origin = area.orangeRoom().piece().region().getCenter();
         int originChunkX = origin.getX() >> 4;
         int originChunkZ = origin.getZ() >> 4;
@@ -1945,7 +2144,8 @@ public final class CreatureSettlementService {
                         if (kind == FacilityStorageKind.NONE
                                 || !hasStorageRoom(container, carried)
                                 || !facilityPathWithinSection(
-                                        creature, position, area, 2)) {
+                                        creature, position, area, 2,
+                                        returningCargo)) {
                             continue;
                         }
                         double distance = position.distSqr(origin);
@@ -2067,6 +2267,23 @@ public final class CreatureSettlementService {
     private static Optional<Blueprint> blueprintFor(
             ChangedEntity creature,
             @Nullable BlockPos cache) {
+        // Once an outpost exists, its stored blueprint is authoritative. A
+        // visitor from another regional population must never dismantle and
+        // rebuild the same physical cache in its own style.
+        if (creature.level() instanceof ServerLevel level && cache != null) {
+            BlockEntity blockEntity = level.getBlockEntity(cache);
+            if (blockEntity != null) {
+                ResourceLocation stored = ResourceLocation.tryParse(
+                        blockEntity.getPersistentData().getString(CACHE_BLUEPRINT));
+                if (stored != null) {
+                    Optional<Blueprint> existing =
+                            CreatureSettlementBlueprints.INSTANCE.byId(stored);
+                    if (existing.isPresent()) {
+                        return existing;
+                    }
+                }
+            }
+        }
         ResourceLocation regionalLayout = switch (
                 settlementRegion(creature, cache)) {
             case "cave" -> CAVE_CACHE_BLUEPRINT;
@@ -2099,22 +2316,13 @@ public final class CreatureSettlementService {
         if (matched.isPresent()) {
             return matched;
         }
-        if (creature.level() instanceof ServerLevel level && cache != null) {
-            BlockEntity blockEntity = level.getBlockEntity(cache);
-            if (blockEntity != null) {
-                ResourceLocation stored = ResourceLocation.tryParse(
-                        blockEntity.getPersistentData().getString(CACHE_BLUEPRINT));
-                if (stored != null) {
-                    return CreatureSettlementBlueprints.INSTANCE.byId(stored);
-                }
-            }
-        }
         return Optional.empty();
     }
 
-    /** Selects decoration from the outpost's actual habitat, not stale entity
-     * memory. This prevents an old cave layout from following a community onto
-     * a mountain surface after worlds or biome mappings are updated. */
+    /** Selects decoration from the outpost's actual habitat when inspecting an
+     * existing cache. Before placement, the creature's stable light-faction
+     * region is authoritative so a trip underground cannot turn a forest
+     * community into a cave community. */
     private static String settlementRegion(
             ChangedEntity creature,
             @Nullable BlockPos cache) {
@@ -2122,12 +2330,9 @@ public final class CreatureSettlementService {
                 || HunterFaction.of(creature) != HunterFaction.LIGHT) {
             return LightFactionGroup.GENERAL;
         }
-        BlockPos anchor = cache != null
-                ? cache
-                : CreatureCommunityData.snapshot(creature)
-                        .map(CreatureCommunityData.Snapshot::center)
-                        .orElse(creature.blockPosition());
-        return LightFactionGroup.at(level, anchor);
+        return cache == null
+                ? LightFactionGroup.of(creature)
+                : LightFactionGroup.at(level, cache);
     }
 
     public static int storedItemCount(ChangedEntity creature) {
@@ -2194,6 +2399,8 @@ public final class CreatureSettlementService {
         if (facility != null) {
             FacilityWorkArea area = facilityWorkArea(creature);
             Optional<BlockPos> storage = area == null
+                            || area.orangeRoom() == null
+                            || "maintenance".equals(area.section())
                     ? Optional.empty()
                     : findFacilityStorage(creature, area);
             if (storage.isPresent()) {
@@ -2235,13 +2442,15 @@ public final class CreatureSettlementService {
 
         Optional<BlockPos> existing = cachePosition(creature);
         if (existing.isPresent()) {
+            if (!level.hasChunkAt(existing.get())) {
+                return existing;
+            }
             boolean structureMismatch = offshoreAnchor != null
                     && !cacheBelongsToStructure(
                             level, existing.get(), offshoreAnchor);
-            boolean aquaticMismatch = aquatic
-                    && !cacheMatchesHabitat(
-                            level, creature, existing.get(), blueprint.get());
-            if (structureMismatch || aquaticMismatch) {
+            boolean habitatMismatch = !cacheMatchesHabitat(
+                    level, creature, existing.get(), blueprint.get());
+            if (structureMismatch || habitatMismatch) {
                 CreatureCommunityData.clearCache(creature);
             } else {
                 Container container = containerAt(level, existing.get());
@@ -2464,6 +2673,10 @@ public final class CreatureSettlementService {
                         .getString(CACHE_BLUEPRINT));
         if (stored != null) {
             return stored.equals(desiredBlueprint.id());
+        }
+        Optional<Blueprint> inferred = blueprintFor(creature, position);
+        if (inferred.isPresent()) {
+            return inferred.get().id().equals(desiredBlueprint.id());
         }
         if (HunterArchetype.of(creature) != HunterArchetype.AQUATIC) {
             return true;
@@ -3325,16 +3538,23 @@ public final class CreatureSettlementService {
 
     private static ItemStack insert(Container container, ItemStack original) {
         ItemStack remaining = original.copy();
+        boolean changed = false;
         for (int slot = 0;
                 slot < container.getContainerSize() && !remaining.isEmpty();
                 slot++) {
+            if (!container.canPlaceItem(slot, remaining)) {
+                continue;
+            }
             ItemStack existing = container.getItem(slot);
             if (existing.isEmpty()) {
-                int moved = Math.min(remaining.getCount(), remaining.getMaxStackSize());
+                int moved = Math.min(
+                        remaining.getCount(),
+                        Math.min(remaining.getMaxStackSize(), container.getMaxStackSize()));
                 ItemStack placed = remaining.copy();
                 placed.setCount(moved);
                 container.setItem(slot, placed);
                 remaining.shrink(moved);
+                changed = true;
                 continue;
             }
             if (!ItemStack.isSameItemSameTags(existing, remaining)) {
@@ -3349,8 +3569,11 @@ public final class CreatureSettlementService {
             int moved = Math.min(space, remaining.getCount());
             existing.grow(moved);
             remaining.shrink(moved);
+            changed = true;
         }
-        container.setChanged();
+        if (changed) {
+            container.setChanged();
+        }
         return remaining;
     }
 
