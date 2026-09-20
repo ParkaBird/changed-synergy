@@ -827,6 +827,8 @@
   "dialogue.changed_synergy.organic.meet_species.1": "No need to test you. I knew as soon as you came close.",
   "dialogue.changed_synergy.organic.meet_category.0": "Our bodies move to a similar rhythm, despite the differences.",
   "dialogue.changed_synergy.organic.meet_category.1": "Close kin. Your scent puts me at ease.",
+  "dialogue.changed_synergy.organic.meet_category_away.0": "You're similar to me, I can notice that from far away.",
+  "dialogue.changed_synergy.organic.meet_category_away.0": "We're so similar, we have a similar rhythm. I feel it from far away",
   "dialogue.changed_synergy.organic.meet_friendly.0": "Unfamiliar scent, no hostility. You may come closer.",
   "dialogue.changed_synergy.organic.meet_friendly.1": "Different kinds can share the same space.",
   "dialogue.changed_synergy.organic.former_bond_welcome.0": "You are human again. I still know your scent.",
