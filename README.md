@@ -28,13 +28,16 @@ Creatures have persistent names, individual personalities, memories and social b
 - Linked faction reputations by default, with an optional server setting for independent reputations and simultaneous alliances with every faction. See [diplomacy rules](docs/FACTION_DIPLOMACY.md).
 - Social, relationship and creature-function radial menus
 - Negotiation after involuntary assimilation, absorption or fusion
+- Bonded-companion revival through repaired Dark Latex Masks or species samples processed in the Latex Infuser
+- Rest Together, shore waiting, protective wrapping and other companion actions
+- Smooth patting speed control, speed-dependent reactions and third-person animations for players and Changed creatures
 - Context-aware dialogue in English and Simplified Chinese
 - Grapple QTEs, gaze-based hypnosis resistance, and improved movement, swimming and combat behavior
 - Creature gathering, fishing, hunting, mining, outposts and environmental interactions
-- Optional Changed Addon Plus integration, basic Changed Additions support,
-  Changed Vanilla community/conversion compatibility, and Golden Orange
-  social/negotiation compatibility for Addon Plus and Additions
+- Optional integration with Changed Addon Plus, Changed Additions, Changed Vanilla,
+  Changed Extras and Domestication Innovation
 - Forge configuration screens and gamerules for the main systems
+- Server-side configuration commands and personality-selectable creature spawning for operators
 
 The full feature list, screenshots and release downloads are available on the project pages:
 
@@ -51,6 +54,8 @@ The full feature list, screenshots and release downloads are available on the pr
 | Changed | 0.15.7 | Yes |
 | Changed Addon Plus | 2.9.2c | No |
 | Changed Vanilla | 1.0.1 | No |
+| Changed Extras | 1.1.4-beta3b | No |
+| Domestication Innovation | 1.7.1 | No |
 
 Synergy uses targeted mixins and direct integration points. Compatibility with newer Changed or Changed Addon Plus releases is not guaranteed. See [COMPATIBILITY.md](COMPATIBILITY.md) for the complete support policy.
 

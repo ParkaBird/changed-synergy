@@ -10,7 +10,7 @@ Changed: Synergy is an unofficial Forge addon for Changed on Minecraft 1.20.1. I
 
 The official project homepage is [Changed: Synergy on CurseForge](https://www.curseforge.com/minecraft/mc-mods/changed-synergy).
 
-Chinese is my native language. Since my experience and English ability are limited, I used generative AI to assist with parts of the English text and code. I reviewed, edited, integrated, and tested the results, but you may still encounter awkward wording or bugs. Thank you for your understanding, and please report any problems you find.
+Chinese is my native language. Some of the English text may still sound awkward, so please report any problems you find. The AI assistance used during development is described in the credits below.
 
 To share feedback, discuss features, report a bug, or follow development, join the [Changed: Synergy Discord server](https://discord.gg/3yscxe2YgN).
 
@@ -23,7 +23,8 @@ To share feedback, discuss features, report a bug, or follow development, join t
 * Feeding, petting, gifting, disguises, and environmental interactions
 * Creature inventories plus compatible armor and melee weapons for close friends and bonded companions
 * Friendly wrapping, emergency rescue, and taur riding for supported companions
-* A revival process for bonded dark latex companions using broken and repaired Dark Latex Masks
+* Revival for bonded, non-organic latex companions through repaired Dark Latex Masks or species samples processed in the Latex Infuser
+* The **I'll Be Back** advancement for completing a bonded companion revival
 * Personality-based protective behavior that may require repeated release requests after several dangerous rescues
 * Named, befriended, and bonded creatures remain present on Peaceful difficulty
 * Lost or permanently removed creatures are cleared from contact lists
@@ -31,6 +32,7 @@ To share feedback, discuss features, report a bug, or follow development, join t
 ## Transfur and body control
 
 * Negotiation after involuntary assimilation, absorption, or fusion
+* Native fusion takes priority when takeover or hostile grab behavior could otherwise interrupt it
 * Reversible transfur interactions where the situation allows
 * Organic transformations that can be reversed by sleeping
 * Configurable absorption takeover during qualifying encounters
@@ -72,6 +74,7 @@ Creatures belong to regional factions with their own relationships and communiti
 * Shared land and water navigation for compatible companions
 * Creature gathering, fishing, hunting, and mining
 * Regional communities, resource storage, and faction outposts
+* Provisioner outposts in suitable Changed ruins, plus a hive-themed outpost inside latex bee hives
 * Provisioners that gather supplies and return them to their community
 * Supply exchanges with provisioners, backed by their community's real generated and delivered stock
 * Protected outpost stores with direct shared access for allied players
@@ -88,7 +91,7 @@ Human players can use light, bare-handed hits to warn an approaching creature to
 
 Competitive creatures may interpret the warning as a challenge and become even more determined.
 
-Patting can calm some approaching creatures. Server owners may disable the pacification effect without disabling ordinary patting or relationship progress.
+Patting supports smooth mouse-wheel speed control through both the H key and radial menu, speed-dependent reactions, and a third-person arm animation for players and Changed creatures. Patting can calm some approaching creatures. Server owners may disable the pacification effect without disabling ordinary patting or relationship progress.
 
 Voluntary transfur is only available at the highest friendship tier.
 
@@ -116,6 +119,8 @@ Configurable features include:
 * Mindless mob transfur behavior
 * Telepathy unlock requirements
 * Faction pursuit squads
+* Independent faction reputation and simultaneous all-faction alliances
+* Peace between latex creatures and tagged village civilians and protectors
 * Pure White Latex Wolf adaptation
 * Outpost spacing
 * Provisioner supply exchanges and community reserve levels
@@ -123,9 +128,9 @@ Configurable features include:
 * Dialogue popup and scrolling-text height
 * Transfur progress masks and skin coating
 
-`/changedsynergy relationship` opens the relationship manager. The remaining command branches include clickable help and can be used to inspect or manage the relevant systems.
+`/changedsynergy relationship` opens the relationship manager. Operators can inspect and change gameplay, AI, and performance settings with `/changedsynergy config`, or spawn a creature with a chosen dominant personality through `/changedsynergy spawn <creature_id> <personality>`. The remaining command branches include clickable help and can be used to inspect or manage the relevant systems.
 
-Client settings control local presentation. Common configuration and gamerules control server-side gameplay.
+Client settings control local presentation. The server's common configuration and gamerules are authoritative for multiplayer gameplay, and connected clients receive the relevant synchronized values.
 
 ## Requirements
 
