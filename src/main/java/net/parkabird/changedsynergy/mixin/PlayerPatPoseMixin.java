@@ -19,15 +19,10 @@ public abstract class PlayerPatPoseMixin {
     private void changedSynergy$patRightArm(LivingEntity player,
             float walkPosition, float walkSpeed, float age, float headYaw,
             float headPitch, CallbackInfo callback) {
-        float phase = PatAnimationClientState.phase(player.getId(), age - player.tickCount);
-        if (phase < 0.0F) {
-            return;
-        }
         PlayerModel<?> model = (PlayerModel<?>)(Object)this;
-        float sweep = (float)Math.sin(phase * Math.PI * 2.0D);
-        model.rightArm.xRot = -1.52F + 0.07F * sweep;
-        model.rightArm.yRot = -0.14F + 0.10F * sweep;
-        model.rightArm.zRot = 0.08F * sweep;
-        model.rightSleeve.copyFrom(model.rightArm);
+        if (PatAnimationClientState.applyRightArmPose(
+                player.getId(), age - player.tickCount, model.rightArm)) {
+            model.rightSleeve.copyFrom(model.rightArm);
+        }
     }
 }

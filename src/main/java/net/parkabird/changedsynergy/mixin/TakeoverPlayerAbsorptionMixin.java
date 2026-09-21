@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.parkabird.changedsynergy.ai.TakeoverAssimilationBehavior;
+import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -38,7 +39,8 @@ public abstract class TakeoverPlayerAbsorptionMixin {
         LivingEntity source = decision.context().source().map(
                 IAbstractChangedEntity::getEntity, ILatexAssimilatedEntity::getEntity);
         if (!(source instanceof ChangedEntity carrier)
-                || carrier.getUnderlyingPlayer() != null) return;
+                || carrier.getUnderlyingPlayer() != null
+                || LatexFusionIntent.nativeFusionAvailable(carrier, player)) return;
         callback.setReturnValue(new TakeoverAssimilationBehavior(
                 callback.getReturnValue(), carrier, player,
                 IAbstractChangedEntity.forEntity(carrier)));

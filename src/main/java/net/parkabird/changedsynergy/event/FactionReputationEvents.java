@@ -11,6 +11,7 @@ import net.ltxprogrammer.changed.entity.PlayerMover;
 import net.ltxprogrammer.changed.entity.TransfurCause;
 import net.ltxprogrammer.changed.init.ChangedDamageSources;
 import net.ltxprogrammer.changed.init.ChangedTags;
+import net.ltxprogrammer.changed.item.DarkLatexMask;
 import net.ltxprogrammer.changed.network.packet.SyncMoversPacket;
 import net.ltxprogrammer.changed.network.packet.SyncTransfurPacket;
 import net.ltxprogrammer.changed.network.packet.SyncTransfurProgressPacket;
@@ -26,6 +27,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -378,6 +380,14 @@ public final class FactionReputationEvents {
             ServerPlayer player,
             TransfurCause cause,
             EntityType<?> hazardType) {
+        // A worn mask is a deliberate item action, even though Changed reports
+        // its progress with FACE_HAZARD. Territory reputation must not suppress
+        // the original mask path or bonded-mask reconstruction can never start.
+        if (cause == TransfurCause.FACE_HAZARD
+                && player.getItemBySlot(EquipmentSlot.HEAD).getItem()
+                        instanceof DarkLatexMask) {
+            return false;
+        }
         HunterFaction faction = cause == TransfurCause.WHITE_LATEX
                 ? HunterFaction.WHITE
                 : resolveNearbyHazardFaction(player);

@@ -33,21 +33,14 @@ public final class LatexFusionIntent {
     public static boolean mayInitiate(
             ChangedEntity source,
             ServerPlayer player) {
-        if (!isCompatiblePair(source, player)
+        if (!nativeFusionAvailable(source, player)
                 || !mayUseBodyForFusion(source)
                 || CreaturePersonality.has(source, Trait.POLITE)
                 || isReleaseCooldownActive(source, player)) {
             return false;
         }
-        if (!player.level().getGameRules().getBoolean(
-                ChangedGameRules.RULE_NPC_WANT_FUSE_PLAYER)) {
-            return false;
-        }
-        int maximumAge = player.level().getGameRules().getInt(
-                ChangedGameRules.RULE_FUSABILITY_DURATION_PLAYER);
         return ProcessTransfur.getPlayerTransfurVariantSafe(player)
-                .map(instance -> !instance.isTemporaryFromSuit()
-                        && instance.ageAsVariant <= maximumAge)
+                .map(instance -> !instance.isTemporaryFromSuit())
                 .orElse(false);
     }
 
@@ -96,6 +89,26 @@ public final class LatexFusionIntent {
         return ProcessTransfur.getPlayerTransfurVariantSafe(player)
                 .map(instance -> hasNativeRecipe(
                         source.getSelfVariant(), instance.getParent()))
+                .orElse(false);
+    }
+
+    /**
+     * Mirrors Changed's current player-side fusion gates. Takeover may wrap an
+     * ordinary absorption only after this returns false, including on addon grab
+     * paths that ask for an absorption behavior before consulting fusion recipes.
+     */
+    public static boolean nativeFusionAvailable(
+            ChangedEntity source,
+            ServerPlayer player) {
+        if (!isCompatiblePair(source, player)
+                || !player.level().getGameRules().getBoolean(
+                        ChangedGameRules.RULE_NPC_WANT_FUSE_PLAYER)) {
+            return false;
+        }
+        int maximumAge = player.level().getGameRules().getInt(
+                ChangedGameRules.RULE_FUSABILITY_DURATION_PLAYER);
+        return ProcessTransfur.getPlayerTransfurVariantSafe(player)
+                .map(instance -> instance.ageAsVariant <= maximumAge)
                 .orElse(false);
     }
 

@@ -284,6 +284,10 @@ public final class InvoluntaryTransfurNegotiation {
         if (decision == null) {
             return;
         }
+        if (LatexFusionIntent.nativeFusionAvailable(source, player)) {
+            TakeoverService.revokeOrdinaryAuthorization(source, player);
+            return;
+        }
         if (VoluntaryBondTransfurService.isCompleting(source, player)) {
             TakeoverService.revokeOrdinaryAuthorization(source, player);
             return;

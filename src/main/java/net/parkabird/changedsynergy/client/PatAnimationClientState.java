@@ -4,6 +4,7 @@ import com.mojang.math.Axis;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.InteractionHand;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderHandEvent;
@@ -61,6 +62,22 @@ public final class PatAnimationClientState {
         }
         Minecraft minecraft = Minecraft.getInstance();
         return ACTIVE.get(actorId).phase(minecraft.level.getGameTime() + partialTick);
+    }
+
+    /** Applies the shared shoulder-height third-person stroke to any armed model. */
+    public static boolean applyRightArmPose(
+            int actorId,
+            float partialTick,
+            ModelPart arm) {
+        float phase = phase(actorId, partialTick);
+        if (phase < 0.0F) {
+            return false;
+        }
+        float sweep = (float)Math.sin(phase * Math.PI * 2.0D);
+        arm.xRot = -1.52F + 0.07F * sweep;
+        arm.yRot = -0.14F + 0.10F * sweep;
+        arm.zRot = 0.08F * sweep;
+        return true;
     }
 
     @SubscribeEvent

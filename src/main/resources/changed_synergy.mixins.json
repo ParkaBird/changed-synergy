@@ -61,6 +61,7 @@
     "BetterCombatFriendlyWrapTargetMixin",
     "AbilityRadialNegotiationMixin",
     "AbilityRadialScreenCloseMixin",
+    "ChangedEntityPatPoseMixin",
     "EmoteParticleMixin",
     "GrabOverlayAnimationMixin",
     "HeldCreaturePositionMixin",
