@@ -18,6 +18,8 @@ import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ai.EquipmentInheritance;
 import net.parkabird.changedsynergy.ai.EquipmentInheritance.EquipmentSnapshot;
+import net.parkabird.changedsynergy.ai.LatexCreatureCombatRules;
+import net.parkabird.changedsynergy.compat.ChangedVanillaCompat;
 
 /**
  * Keeps expensive replicated humanoids for conscious populations, while
@@ -43,10 +45,20 @@ public final class AssimilationEcologyEvents {
         if (victim instanceof Player || decision == null) {
             return;
         }
+        if (event.getSourceEntity() instanceof ChangedEntity source
+                && ChangedVanillaCompat.suppliesDedicatedConversion(decision)
+                && ChangedVanillaCompat.protectsAnimalNearRespectedHuman(
+                        source, victim)) {
+            event.setCanceled(true);
+            LatexCreatureCombatRules.disengage(source, victim);
+            return;
+        }
 
         boolean mindless = victim.getType().is(MINDLESS_TARGETS);
         if (mindless) {
             if (!ChangedSynergyConfig.COMMON.allowMindlessMobTransfur.get()
+                    && !ChangedVanillaCompat.suppliesDedicatedConversion(
+                            decision)
                     && decision.method()
                             != LatexAssimilationDecision.Method.ABSORPTION) {
                 event.setDecision(forceAbsorption(decision));

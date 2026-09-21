@@ -9,6 +9,8 @@ import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.event.HuntAIEvents;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.AABB;
@@ -39,6 +41,7 @@ public final class FirearmThreatService {
             boolean suppressed) {
         if (!(shooter.level() instanceof ServerLevel level)
                 || shooter.isCreative() || shooter.isSpectator()
+                || !SynergyPerformanceTracker.featureEnabled(Feature.HUNT)
                 || !level.getGameRules().getBoolean(ChangedSynergyGameRules.NPC_AI)) {
             return;
         }
@@ -105,6 +108,7 @@ public final class FirearmThreatService {
     public static void observeHeldFirearm(ServerPlayer player) {
         if (!(player.level() instanceof ServerLevel level)
                 || player.isCreative() || player.isSpectator()
+                || !SynergyPerformanceTracker.featureEnabled(Feature.HUNT)
                 || !level.getGameRules().getBoolean(ChangedSynergyGameRules.NPC_AI)
                 || !FirearmCompat.isHoldingFirearm(player)) {
             return;

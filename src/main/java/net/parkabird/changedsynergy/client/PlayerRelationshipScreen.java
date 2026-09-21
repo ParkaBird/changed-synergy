@@ -210,7 +210,7 @@ public final class PlayerRelationshipScreen
             return false;
         }
         if (section == 0) {
-            cycleContact();
+            cycleContact(1);
             return false;
         }
         CompoundTag payload = new CompoundTag();
@@ -239,16 +239,24 @@ public final class PlayerRelationshipScreen
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 2) {
+            Optional<Integer> section = getSectionAt((int)mouseX, (int)mouseY);
+            Contact contact = currentContact();
+            if (section.isPresent() && section.get() == 0 && contact != null) {
+                playClick();
+                CompoundTag payload = new CompoundTag();
+                payload.putString("command", "cancel_relationship");
+                payload.putUUID("contact", contact.uuid());
+                menu.setDirty(payload);
+                return true;
+            }
+        }
         if (button == 1) {
             Optional<Integer> section = getSectionAt((int)mouseX, (int)mouseY);
             if (section.isPresent() && section.get() == 0) {
-                Contact contact = currentContact();
-                if (contact != null) {
+                if (!menu.getContacts().isEmpty()) {
                     playClick();
-                    CompoundTag payload = new CompoundTag();
-                    payload.putString("command", "toggle_contact_follow");
-                    payload.putUUID("contact", contact.uuid());
-                    menu.setDirty(payload);
+                    cycleContact(-1);
                 }
                 return true;
             }
@@ -256,12 +264,12 @@ public final class PlayerRelationshipScreen
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    private void cycleContact() {
+    private void cycleContact(int direction) {
         List<Contact> contacts = menu.getContacts();
         if (contacts.isEmpty()) {
             return;
         }
-        selectedContact = (selectedContact + 1) % contacts.size();
+        selectedContact = Math.floorMod(selectedContact + direction, contacts.size());
     }
 
     @Nullable
@@ -335,6 +343,10 @@ public final class PlayerRelationshipScreen
             contactLines.add(Component.translatable(
                     "menu.changed_synergy.relationship.info.species",
                     entityName(contact.typeId())));
+            if (contact.pureWhiteAdapted()) {
+                contactLines.add(Component.translatable(
+                        "menu.changed_synergy.relationship.info.pure_white_adapted"));
+            }
             contactLines.add(Component.translatable(
                     "menu.changed_synergy.relationship.info.presence",
                     Component.translatable(contact.loaded()
@@ -342,6 +354,12 @@ public final class PlayerRelationshipScreen
                                     ? "menu.changed_synergy.relationship.same_dimension"
                                     : "menu.changed_synergy.relationship.other_dimension"
                             : "menu.changed_synergy.relationship.unloaded")));
+            if (contact.hasLastLocation()) {
+                contactLines.add(Component.translatable(
+                        "menu.changed_synergy.relationship.info.last_location",
+                        contact.dimension(), contact.lastX(),
+                        contact.lastY(), contact.lastZ()));
+            }
             if (contact.loaded()) {
                 contactLines.add(Component.translatable(
                         "menu.changed_synergy.relationship.info.contact_state",

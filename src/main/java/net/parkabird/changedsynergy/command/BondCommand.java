@@ -3,6 +3,7 @@ package net.parkabird.changedsynergy.command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -17,19 +18,26 @@ import net.parkabird.changedsynergy.ai.CreatureCommunityData;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService;
 import net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole;
 import net.parkabird.changedsynergy.ai.FactionReputation;
+import net.parkabird.changedsynergy.ai.HunterFaction;
+import net.parkabird.changedsynergy.ai.LightFactionGroup;
+import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
+import net.parkabird.changedsynergy.world.inventory.PlayerRelationshipMenu;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.UuidArgument;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-/** Player-accessible commands for voluntarily ending the player's single bond. */
+/** Player status, relationship and administration commands for Changed: Synergy. */
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class BondCommand {
     private BondCommand() {
@@ -38,8 +46,21 @@ public final class BondCommand {
     @SubscribeEvent
     public static void register(RegisterCommandsEvent event) {
         var root = Commands.literal("changedsynergy")
-                .requires(source -> source.getEntity() instanceof ServerPlayer);
-        root.then(Commands.literal("bond")
+                .executes(context -> showHelp(context.getSource()))
+                .then(Commands.literal("help")
+                        .executes(context -> showHelp(context.getSource())))
+                .then(bondCommand())
+                .then(relationshipCommand())
+                .then(reputationCommand())
+                .then(routineCommand())
+                .then(ServerConfigCommand.create())
+                .then(PersonalitySpawnCommand.create());
+        event.getDispatcher().register(root);
+    }
+
+    private static LiteralArgumentBuilder<CommandSourceStack> bondCommand() {
+        return Commands.literal("bond")
+                .requires(source -> source.getEntity() instanceof ServerPlayer)
                 .then(Commands.literal("release")
                         .executes(context -> releaseOnly(context.getSource()))
                         .then(Commands.literal("all")
@@ -47,13 +68,24 @@ public final class BondCommand {
                         .then(Commands.argument("creature", UuidArgument.uuid())
                                 .executes(context -> release(
                                         context.getSource(),
-                                        UuidArgument.getUuid(context, "creature"))))));
-        root.then(Commands.literal("relationship")
+                                        UuidArgument.getUuid(context, "creature")))));
+    }
+
+    private static LiteralArgumentBuilder<CommandSourceStack> relationshipCommand() {
+        return Commands.literal("relationship")
+                .executes(context -> openRelationshipManager(context.getSource()))
                 .then(Commands.literal("inspect")
                         .then(Commands.argument("creature", EntityArgument.entity())
                                 .executes(context -> inspectRelationship(
                                         context.getSource(),
-                                        EntityArgument.getEntity(context, "creature")))))
+                                        EntityArgument.getEntity(context, "creature"),
+                                        context.getSource().getPlayerOrException()))
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .requires(source -> source.hasPermission(2))
+                                        .executes(context -> inspectRelationship(
+                                                context.getSource(),
+                                                EntityArgument.getEntity(context, "creature"),
+                                                EntityArgument.getPlayer(context, "player"))))))
                 .then(Commands.literal("set")
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.argument("creature", EntityArgument.entity())
@@ -107,13 +139,31 @@ public final class BondCommand {
                                         .executes(context -> reconcileRelationship(
                                                 context.getSource(),
                                                 EntityArgument.getEntity(context, "creature"),
-                                                EntityArgument.getPlayer(context, "player")))))));
-        root.then(Commands.literal("reputation")
+                                                EntityArgument.getPlayer(context, "player"))))));
+    }
+
+    private static LiteralArgumentBuilder<CommandSourceStack> reputationCommand() {
+        return Commands.literal("reputation")
+                .executes(context -> showReputation(
+                        context.getSource(),
+                        context.getSource().getPlayerOrException()))
+                .then(Commands.argument("player", EntityArgument.player())
+                        .requires(source -> source.hasPermission(2))
+                        .executes(context -> showReputation(
+                                context.getSource(),
+                                EntityArgument.getPlayer(context, "player"))))
                 .then(Commands.literal("inspect")
                         .then(Commands.argument("creature", EntityArgument.entity())
                                 .executes(context -> inspectReputation(
                                         context.getSource(),
-                                        EntityArgument.getEntity(context, "creature")))))
+                                        EntityArgument.getEntity(context, "creature"),
+                                        context.getSource().getPlayerOrException()))
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .requires(source -> source.hasPermission(2))
+                                        .executes(context -> inspectReputation(
+                                                context.getSource(),
+                                                EntityArgument.getEntity(context, "creature"),
+                                                EntityArgument.getPlayer(context, "player"))))))
                 .then(Commands.literal("set")
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.argument("creature", EntityArgument.entity())
@@ -143,8 +193,11 @@ public final class BondCommand {
                                                         EntityArgument.getPlayer(
                                                                 context, "player"),
                                                         IntegerArgumentType.getInteger(
-                                                                context, "amount"))))))));
-        root.then(Commands.literal("routine")
+                                                                context, "amount")))))));
+    }
+
+    private static LiteralArgumentBuilder<CommandSourceStack> routineCommand() {
+        return Commands.literal("routine")
                 .then(Commands.literal("inspect")
                         .then(Commands.argument("creature", EntityArgument.entity())
                                 .executes(context -> inspectRoutine(
@@ -171,9 +224,119 @@ public final class BondCommand {
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.argument("creature", EntityArgument.entity())
                                 .executes(context -> resetRoutine(
-                                        context.getSource(),
-                                        EntityArgument.getEntity(context, "creature"))))));
-        event.getDispatcher().register(root);
+                                        context.getSource(), EntityArgument.getEntity(
+                                                context, "creature")))));
+    }
+
+    private static int showHelp(CommandSourceStack source) {
+        source.sendSuccess(() -> Component.translatable(
+                "command.changed_synergy.help.header")
+                .withStyle(ChatFormatting.GOLD), false);
+        sendHelpLine(source, "command.changed_synergy.help.reputation",
+                "/changedsynergy reputation");
+        sendHelpLine(source, "command.changed_synergy.help.relationship",
+                "/changedsynergy relationship");
+        sendHelpLine(source, "command.changed_synergy.help.inspect",
+                "/changedsynergy relationship inspect ");
+        if (source.getEntity() instanceof ServerPlayer) {
+            sendHelpLine(source, "command.changed_synergy.help.bond",
+                    "/changedsynergy bond release");
+        }
+        sendHelpLine(source, "command.changed_synergy.help.routine",
+                "/changedsynergy routine inspect ");
+        if (source.hasPermission(2)) {
+            sendHelpLine(source, "command.changed_synergy.help.config",
+                    "/changedsynergy config list");
+            sendHelpLine(source, "command.changed_synergy.help.spawn",
+                    "/changedsynergy spawn ");
+            source.sendSuccess(() -> Component.translatable(
+                    "command.changed_synergy.help.admin")
+                    .withStyle(ChatFormatting.GRAY), false);
+        }
+        return 1;
+    }
+
+    private static void sendHelpLine(
+            CommandSourceStack source,
+            String translationKey,
+            String command) {
+        source.sendSuccess(() -> Component.translatable(
+                translationKey, commandLink(command)), false);
+    }
+
+    private static Component commandLink(String command) {
+        return Component.literal(command)
+                .withStyle(style -> style
+                        .withColor(ChatFormatting.AQUA)
+                        .withUnderlined(true)
+                        .withClickEvent(new ClickEvent(
+                                ClickEvent.Action.SUGGEST_COMMAND, command))
+                        .withHoverEvent(new HoverEvent(
+                                HoverEvent.Action.SHOW_TEXT,
+                                Component.translatable(
+                                        "command.changed_synergy.help.click"))));
+    }
+
+    private static int openRelationshipManager(CommandSourceStack source)
+            throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        if (!player.isAlive() || player.isSpectator()) {
+            source.sendFailure(Component.translatable(
+                    "command.changed_synergy.relationship.unavailable"));
+            return 0;
+        }
+        PlayerRelationshipMenu.open(player);
+        return 1;
+    }
+
+    private static int showReputation(
+            CommandSourceStack source,
+            ServerPlayer player) {
+        if (!ChangedSynergyGameRules.enabled(
+                player.level(), ChangedSynergyGameRules.FACTION_REPUTATION)) {
+            source.sendFailure(Component.translatable(
+                    "command.changed_synergy.reputation.disabled",
+                    player.getDisplayName()));
+            return 0;
+        }
+
+        source.sendSuccess(() -> Component.translatable(
+                "command.changed_synergy.reputation.overview",
+                player.getDisplayName()).withStyle(ChatFormatting.GOLD), false);
+        for (HunterFaction faction : HunterFaction.values()) {
+            int score = FactionReputation.scoreAt(
+                    faction,
+                    player,
+                    player.level(),
+                    player.blockPosition());
+            FactionReputation.Standing standing =
+                    FactionReputation.Standing.forScore(score);
+            Component factionName = Component.translatable(
+                    faction == HunterFaction.LIGHT
+                            ? LightFactionGroup.translationKey(
+                                    LightFactionGroup.at(
+                                            player.level(), player.blockPosition()))
+                            : faction.translationKey());
+            Component standingName = Component.translatable(
+                    standing.translationKey())
+                    .withStyle(standingColor(standing));
+            source.sendSuccess(() -> Component.translatable(
+                    "command.changed_synergy.reputation.entry",
+                    factionName, standingName, score), false);
+        }
+        return HunterFaction.values().length;
+    }
+
+    private static ChatFormatting standingColor(
+            FactionReputation.Standing standing) {
+        return switch (standing) {
+            case HOSTILE -> ChatFormatting.RED;
+            case DISTRUSTED -> ChatFormatting.GOLD;
+            case NEUTRAL -> ChatFormatting.GRAY;
+            case RECOGNIZED -> ChatFormatting.AQUA;
+            case RESPECTED -> ChatFormatting.GREEN;
+            case ALLIED -> ChatFormatting.LIGHT_PURPLE;
+        };
     }
 
     private static int inspectRoutine(
@@ -239,10 +402,10 @@ public final class BondCommand {
 
     private static int inspectRelationship(
             CommandSourceStack source,
-            Entity entity) throws CommandSyntaxException {
+            Entity entity,
+            ServerPlayer player) {
         ChangedEntity creature = socialCreature(source, entity);
         if (creature == null) return 0;
-        ServerPlayer player = source.getPlayerOrException();
         int affection = CreaturePersonality.familiarity(creature, player);
         source.sendSuccess(() -> Component.translatable(
                 "command.changed_synergy.relationship.status",
@@ -324,10 +487,10 @@ public final class BondCommand {
 
     private static int inspectReputation(
             CommandSourceStack source,
-            Entity entity) throws CommandSyntaxException {
+            Entity entity,
+            ServerPlayer player) {
         ChangedEntity creature = socialCreature(source, entity);
         if (creature == null) return 0;
-        ServerPlayer player = source.getPlayerOrException();
         int score = FactionReputation.score(creature, player);
         source.sendSuccess(() -> reputationStatus(creature, player, score), false);
         return score;
@@ -392,8 +555,8 @@ public final class BondCommand {
                 player.getDisplayName(),
                 Component.translatable(
                         FactionReputation.displayTranslationKey(creature)),
-                Component.translatable(FactionReputation
-                        .standing(creature, player).translationKey()),
+                Component.translatable(FactionReputation.Standing
+                        .forScore(score).translationKey()),
                 score);
     }
 

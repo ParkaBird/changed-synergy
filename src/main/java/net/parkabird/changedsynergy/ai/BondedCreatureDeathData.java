@@ -9,9 +9,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.saveddata.SavedData;
 
 /**
- * Persistent tombstones for bonded creatures that die while their owner is
- * offline.  They are consumed the next time that owner is available, preventing
- * a dead pet UUID from being mistaken for an unloaded living companion.
+ * Persistent per-player tombstones for known creatures that die while the
+ * player is offline. They are consumed the next time that player is available,
+ * preventing a dead UUID from being mistaken for either an unloaded companion
+ * or an unloaded relationship contact.
  */
 public final class BondedCreatureDeathData extends SavedData {
     private static final String DATA_NAME = "changed_synergy_bond_deaths";
@@ -57,6 +58,13 @@ public final class BondedCreatureDeathData extends SavedData {
             pending.put(ownerKey, creatures);
         }
         setDirty();
+    }
+
+    /** True while a final-death tombstone protects this UUID from stale cards. */
+    public boolean isDead(UUID owner, UUID creature) {
+        String ownerKey = owner.toString();
+        return pending.contains(ownerKey, Tag.TAG_COMPOUND)
+                && pending.getCompound(ownerKey).getBoolean(creature.toString());
     }
 
     public Set<UUID> consume(UUID owner) {

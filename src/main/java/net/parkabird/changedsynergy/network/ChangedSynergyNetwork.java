@@ -8,7 +8,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class ChangedSynergyNetwork {
-    private static final String PROTOCOL = "22";
+    private static final String PROTOCOL = "35";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(ChangedSynergyMod.MOD_ID, "network"),
             () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
@@ -64,13 +64,6 @@ public final class ChangedSynergyNetwork {
                 HypnosisQteSyncPacket::decode,
                 HypnosisQteSyncPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(
-                6,
-                HypnosisQteInputPacket.class,
-                HypnosisQteInputPacket::encode,
-                HypnosisQteInputPacket::decode,
-                HypnosisQteInputPacket::handle,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(
                 7,
                 EmoteTransitionPacket.class,
@@ -149,5 +142,61 @@ public final class ChangedSynergyNetwork {
                 PatAnimationControlPacket::decode,
                 PatAnimationControlPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(
+                20,
+                TakeoverStatePacket.class,
+                TakeoverStatePacket::encode,
+                TakeoverStatePacket::decode,
+                TakeoverStatePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(
+                21,
+                TakeoverActionPacket.class,
+                TakeoverActionPacket::encode,
+                TakeoverActionPacket::decode,
+                TakeoverActionPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(
+                22,
+                ExoskeletonMotionPacket.class,
+                ExoskeletonMotionPacket::encode,
+                ExoskeletonMotionPacket::decode,
+                ExoskeletonMotionPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(
+                23,
+                PerformanceSnapshotPacket.class,
+                PerformanceSnapshotPacket::encode,
+                PerformanceSnapshotPacket::decode,
+                PerformanceSnapshotPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(
+                24,
+                MergedPlayerIdentityPacket.class,
+                MergedPlayerIdentityPacket::encode,
+                MergedPlayerIdentityPacket::decode,
+                MergedPlayerIdentityPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(
+                25,
+                ProvisionerTradeSyncPacket.class,
+                ProvisionerTradeSyncPacket::encode,
+                ProvisionerTradeSyncPacket::decode,
+                ProvisionerTradeSyncPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(
+                26,
+                PatAnimationSpeedPacket.class,
+                PatAnimationSpeedPacket::encode,
+                PatAnimationSpeedPacket::decode,
+                PatAnimationSpeedPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(
+                27,
+                RevivalGrabAbilityPacket.class,
+                RevivalGrabAbilityPacket::encode,
+                RevivalGrabAbilityPacket::decode,
+                RevivalGrabAbilityPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 }

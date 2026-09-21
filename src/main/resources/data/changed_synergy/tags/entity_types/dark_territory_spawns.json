@@ -2,6 +2,10 @@
   "replace": false,
   "values": [
     "changed:dark_latex_wolf_male",
-    "changed:dark_latex_wolf_female"
+    "changed:dark_latex_wolf_female",
+    "changed:dark_latex_wolf_pup",
+    "changed:dark_dragon",
+    "changed:dark_latex_yufeng",
+    "changed:dark_latex_double_yufeng"
   ]
 }

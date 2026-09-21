@@ -3,11 +3,15 @@ package net.parkabird.changedsynergy;
 import com.mojang.logging.LogUtils;
 import net.parkabird.changedsynergy.client.ChangedSynergyScreens;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
+import net.parkabird.changedsynergy.compat.ChangedExtrasCompat;
+import net.parkabird.changedsynergy.compat.ChangedVanillaCompat;
 import net.parkabird.changedsynergy.compat.FirearmCompat;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.parkabird.changedsynergy.init.ChangedSynergyEntities;
 import net.parkabird.changedsynergy.init.ChangedSynergyMenus;
 import net.parkabird.changedsynergy.init.ChangedSynergyMobEffects;
+import net.parkabird.changedsynergy.init.ChangedSynergyItems;
+import net.parkabird.changedsynergy.init.ChangedSynergyRecipeSerializers;
 import net.parkabird.changedsynergy.init.ChangedSynergySoundEvents;
 import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.world.LatexTerritoryBiomes;
@@ -36,14 +40,18 @@ public final class ChangedSynergyMod {
         ChangedSynergyGameRules.bootstrap();
         ChangedSynergyNetwork.register();
         ChangedAddonCompat.registerOptionalEvents();
+        ChangedExtrasCompat.logIntegration();
+        ChangedVanillaCompat.logIntegration();
         FirearmCompat.registerOptionalEvents();
 
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(ChangedSynergyMod::onConfigLoading);
         modBus.addListener(ChangedSynergyMod::onCommonSetup);
         ChangedSynergyEntities.REGISTRY.register(modBus);
+        ChangedSynergyItems.REGISTRY.register(modBus);
         ChangedSynergyMenus.REGISTRY.register(modBus);
         ChangedSynergyMobEffects.REGISTRY.register(modBus);
+        ChangedSynergyRecipeSerializers.REGISTRY.register(modBus);
         ChangedSynergySoundEvents.REGISTRY.register(modBus);
     }
 

@@ -10,6 +10,7 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
+import net.parkabird.changedsynergy.ai.CreatureSocialProfile;
 import net.parkabird.changedsynergy.dialogue.LatexTerritory;
 
 /** Preserves only explicit no-latex biomes; all other population balancing is
@@ -25,6 +26,7 @@ public final class LatexNaturalSpawnBalancer {
     public static void onFinalizeNaturalSpawn(
             MobSpawnEvent.FinalizeSpawn event) {
         if (!(event.getEntity() instanceof ChangedEntity creature)
+                || !CreatureSocialProfile.allowsSynergySystems(creature)
                 || !(creature.level() instanceof ServerLevel level)
                 || event.isSpawnCancelled()
                 || !isNatural(event.getSpawnType())) {

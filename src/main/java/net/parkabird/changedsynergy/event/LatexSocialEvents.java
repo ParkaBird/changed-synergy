@@ -2,10 +2,12 @@ package net.parkabird.changedsynergy.event;
 
 import java.util.HashMap;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.Emote;
 import net.ltxprogrammer.changed.entity.TamableLatexEntity;
@@ -20,6 +22,7 @@ import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
 import net.parkabird.changedsynergy.ai.BondedEmergencySuitGoal;
+import net.parkabird.changedsynergy.ai.AggressiveMercyService;
 import net.parkabird.changedsynergy.ai.BondedCreatureLifecycle;
 import net.parkabird.changedsynergy.ai.BondedFollowGoal;
 import net.parkabird.changedsynergy.ai.BondedPetSettings;
@@ -27,11 +30,13 @@ import net.parkabird.changedsynergy.ai.BondedOwnerDefenseGoal;
 import net.parkabird.changedsynergy.ai.BondedOwnerDefenseGoal.Mode;
 import net.parkabird.changedsynergy.ai.BondedOwnerGrabRescueGoal;
 import net.parkabird.changedsynergy.ai.BondedSuitService;
+import net.parkabird.changedsynergy.ai.BondedRevivalService;
 import net.parkabird.changedsynergy.ai.FallbackBondedTargetGoal;
 import net.parkabird.changedsynergy.ai.FallbackBondedWorkGoal;
 import net.parkabird.changedsynergy.ai.CompanionWorkDialogue;
 import net.parkabird.changedsynergy.ai.CacheGuardReturnGoal;
 import net.parkabird.changedsynergy.ai.CreaturePersonality;
+import net.parkabird.changedsynergy.ai.CreatureArmorService;
 import net.parkabird.changedsynergy.ai.CreatureCacheGuardService;
 import net.parkabird.changedsynergy.ai.CreaturePersonality.RelationshipProgress;
 import net.parkabird.changedsynergy.ai.CreatureIdentity;
@@ -40,10 +45,12 @@ import net.parkabird.changedsynergy.ai.CreatureCommunityData;
 import net.parkabird.changedsynergy.ai.CreatureMorphAliasData;
 import net.parkabird.changedsynergy.ai.CreatureMorphContinuity;
 import net.parkabird.changedsynergy.ai.CreatureRoleService;
+import net.parkabird.changedsynergy.ai.CreatureRelationshipForgetData;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService;
 import net.parkabird.changedsynergy.ai.PureWhiteReformationGoal;
 import net.parkabird.changedsynergy.ai.CreatureRoutineGoal;
 import net.parkabird.changedsynergy.ai.CreatureComfortGoal;
+import net.parkabird.changedsynergy.ai.SharedRestGoal;
 import net.parkabird.changedsynergy.ai.CreatureSocialProfile;
 import net.parkabird.changedsynergy.ai.DarkLatexDisguise;
 import net.parkabird.changedsynergy.ai.DarkLatexDisguise.Observation;
@@ -65,19 +72,24 @@ import net.parkabird.changedsynergy.ai.PoliteHumanInteraction;
 import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings;
 import net.parkabird.changedsynergy.ai.PatAnimationService;
 import net.parkabird.changedsynergy.ai.ProvisionerGiftService;
+import net.parkabird.changedsynergy.ai.ProvisionerTradeService;
 import net.parkabird.changedsynergy.ai.ProvisionerFishingFocus;
 import net.parkabird.changedsynergy.ai.RelationshipFavorService;
 import net.parkabird.changedsynergy.ai.RelationshipFavorService.Result;
 import net.parkabird.changedsynergy.ai.SocialAudienceGoal;
 import net.parkabird.changedsynergy.ai.SocialFollowGoal;
 import net.parkabird.changedsynergy.ai.SocialFriendDefenseGoal;
+import net.parkabird.changedsynergy.ai.TakeoverService;
 import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.dialogue.NpcEmoteState;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
+import net.parkabird.changedsynergy.compat.ChangedExtrasCompat;
+import net.parkabird.changedsynergy.compat.ChangedVanillaCompat;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.parkabird.changedsynergy.mixin.DarkLatexWolfPupAgeAccessor;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
 import net.parkabird.changedsynergy.world.inventory.BondedLatexMenu;
 import net.parkabird.changedsynergy.world.inventory.CentaurMountService;
 import net.parkabird.changedsynergy.world.inventory.SocialInteractionMenu;
@@ -91,6 +103,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
@@ -99,6 +112,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
@@ -137,6 +151,10 @@ public final class LatexSocialEvents {
 
     @SubscribeEvent
     public static void onEntityJoin(EntityJoinLevelEvent event) {
+        if (!event.getLevel().isClientSide() && event.getEntity() instanceof ItemFrame frame) {
+            CreatureSettlementService.normalizeDecorationEntity(frame);
+            return;
+        }
         if (event.getLevel().isClientSide()
                 || !(event.getEntity() instanceof ChangedEntity mob)
                 || !LatexSocialMemory.isSocialLatex(mob)
@@ -150,8 +168,19 @@ public final class LatexSocialEvents {
         NpcEmoteState.reset(mob);
         PoliteHumanInteraction.resetTransientState(mob);
         LatexSocialMemory.applyPendingManualReleases(mob);
+        for (UUID playerId : CreatureRelationshipForgetData.get(mob.getServer())
+                .consume(mob.getUUID())) {
+            CreaturePersonality.forgetRelationship(mob, playerId);
+        }
         boolean personalSocial =
                 CreatureSocialProfile.allowsPersonalRelationship(mob);
+        if (mob instanceof net.ltxprogrammer.changed.entity.beast.AbstractAquaticEntity
+                && mob.goalSelector.getAvailableGoals().stream()
+                        .noneMatch(wrapped -> wrapped.getGoal()
+                                instanceof net.parkabird.changedsynergy.ai.BondedShoreWaitGoal)) {
+            mob.goalSelector.addGoal(-2,
+                    new net.parkabird.changedsynergy.ai.BondedShoreWaitGoal(mob));
+        }
         if (!LatexSocialMemory.bondedPlayerUuids(mob).isEmpty()) {
             BondedCreatureLifecycle.track(mob);
             LatexSocialMemory.suppressBondedAvoidanceGoals(mob);
@@ -161,6 +190,28 @@ public final class LatexSocialEvents {
                 && mob.getPersistentData().getLong(NEXT_PAT_PLAYER) <= now) {
             scheduleNextActivePat(mob, now);
         }
+        ensureSocialGoals(mob);
+
+        ServerPlayer owner = LatexSocialMemory.getPetOwner(mob);
+        if (owner != null) {
+            if (LatexSocialMemory.isBonded(mob, owner)) {
+                LatexSocialMemory.addBond(mob, owner);
+            } else {
+                LatexSocialMemory.promoteNativePet(mob, owner);
+            }
+        }
+    }
+
+    /** Reinstalls social goals after an optional AI mod rebuilds the selectors. */
+    public static void ensureSocialGoals(ChangedEntity mob) {
+        if (mob.level().isClientSide
+                || !LatexSocialMemory.isSocialLatex(mob)
+                || !CreatureSocialProfile.allowsSynergySystems(mob)
+                || ChangedExtrasCompat.ownsWildAi(mob)) {
+            return;
+        }
+        boolean personalSocial =
+                CreatureSocialProfile.allowsPersonalRelationship(mob);
         if (mob.goalSelector.getAvailableGoals().stream()
                 .noneMatch(wrapped -> wrapped.getGoal() instanceof BondedFollowGoal)) {
             // Highest ordinary MOVE priority. Only forced owner rescue and
@@ -208,6 +259,10 @@ public final class LatexSocialEvents {
                     new CreatureComfortGoal(mob));
         }
         if (mob.goalSelector.getAvailableGoals().stream()
+                .noneMatch(wrapped -> wrapped.getGoal() instanceof SharedRestGoal)) {
+            mob.goalSelector.addGoal(-1, new SharedRestGoal(mob));
+        }
+        if (mob.goalSelector.getAvailableGoals().stream()
                 .noneMatch(wrapped -> wrapped.getGoal()
                         instanceof CacheGuardReturnGoal)) {
             mob.goalSelector.addGoal(
@@ -245,18 +300,9 @@ public final class LatexSocialEvents {
             mob.targetSelector.addGoal(4, new FallbackBondedTargetGoal(mob));
         }
         if (mob.targetSelector.getAvailableGoals().stream()
-                        .noneMatch(wrapped -> wrapped.getGoal()
-                                instanceof SocialFriendDefenseGoal)) {
+                .noneMatch(wrapped -> wrapped.getGoal()
+                        instanceof SocialFriendDefenseGoal)) {
             mob.targetSelector.addGoal(3, new SocialFriendDefenseGoal(mob));
-        }
-
-        ServerPlayer owner = LatexSocialMemory.getPetOwner(mob);
-        if (owner != null) {
-            if (LatexSocialMemory.isBonded(mob, owner)) {
-                LatexSocialMemory.addBond(mob, owner);
-            } else {
-                LatexSocialMemory.promoteNativePet(mob, owner);
-            }
         }
     }
 
@@ -325,6 +371,72 @@ public final class LatexSocialEvents {
                     key -> key.mobUuid().equals(mob.getUUID()));
             PENDING_DAMAGE_REACTIONS.keySet().removeIf(
                     key -> key.mobUuid().equals(mob.getUUID()));
+        }
+    }
+
+    /**
+     * Removes a final-death individual from every relationship contact index.
+     * Offline players receive a persistent tombstone that is consumed on login.
+     */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onCreatureDeathForgetContacts(LivingDeathEvent event) {
+        if (!(event.getEntity() instanceof ChangedEntity mob)
+                || !(mob.level() instanceof ServerLevel level)
+                || !LatexSocialMemory.isSocialLatex(mob)) {
+            return;
+        }
+
+        forgetDestroyedCreatureContacts(mob, level);
+    }
+
+    /**
+     * Death is not Minecraft's only terminal removal path.  Peaceful cleanup,
+     * commands and compatibility code commonly use discard(), which never
+     * posts LivingDeathEvent.  Chunk unload and dimension transfer are not
+     * terminal and must retain their relationship cards.
+     */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onCreaturePermanentlyRemoved(EntityLeaveLevelEvent event) {
+        if (event.getLevel().isClientSide()
+                || !(event.getEntity() instanceof ChangedEntity mob)
+                || !(event.getLevel() instanceof ServerLevel level)
+                || mob.getRemovalReason() == null
+                || !mob.getRemovalReason().shouldDestroy()
+                || BondedRevivalService.isProvisional(mob)
+                || !LatexSocialMemory.isSocialLatex(mob)) {
+            return;
+        }
+
+        forgetDestroyedCreatureContacts(mob, level);
+    }
+
+    private static void forgetDestroyedCreatureContacts(
+            ChangedEntity mob,
+            ServerLevel level) {
+
+        Set<UUID> relatedPlayers = new LinkedHashSet<>(
+                CreaturePersonality.establishedRelationshipPlayerUuids(mob));
+        relatedPlayers.addAll(LatexSocialMemory.bondedPlayerUuids(mob));
+        LatexSocialMemory.petOwnerUuid(mob).ifPresent(relatedPlayers::add);
+        for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
+            if (PlayerRelationshipSettings.hasRememberedContact(
+                    player, mob.getUUID())) {
+                relatedPlayers.add(player.getUUID());
+            }
+        }
+
+        var deaths = net.parkabird.changedsynergy.ai.BondedCreatureDeathData
+                .get(level.getServer());
+        for (UUID playerUuid : relatedPlayers) {
+            deaths.markDead(playerUuid, mob.getUUID());
+            ServerPlayer online = level.getServer().getPlayerList()
+                    .getPlayer(playerUuid);
+            if (online != null) {
+                // The same tombstone removes both ordinary contact cards and
+                // any player-side bond registry entry, and is idempotent when
+                // LivingDeathEvent and EntityLeaveLevelEvent both fire.
+                LatexSocialMemory.applyPendingBondDeaths(online);
+            }
         }
     }
 
@@ -453,6 +565,10 @@ public final class LatexSocialEvents {
         if (!(event.getEntity() instanceof ChangedEntity mob)
                 || !(event.getSource().getEntity() instanceof ServerPlayer player)
                 || mob.level().isClientSide) {
+            return;
+        }
+        if (net.parkabird.changedsynergy.ai.FactionHostilityGrace.damageLocked(mob, player)) {
+            event.setCanceled(true);
             return;
         }
         boolean protectedOwner = LatexSocialMemory.isBonded(mob, player)
@@ -605,18 +721,57 @@ public final class LatexSocialEvents {
     public static void onSocialTargetChange(LivingChangeTargetEvent event) {
         LivingEntity proposedTarget = event.getNewTarget();
         if (event.getEntity() instanceof Mob attacker
+                && proposedTarget instanceof ServerPlayer player
+                && !attacker.level().isClientSide) {
+            ChangedEntity takeoverCarrier = TakeoverService.controllingCarrier(player);
+            if (attacker instanceof ChangedEntity changed
+                    && takeoverCarrier != null
+                    && changed != takeoverCarrier) {
+                // A completed takeover ends the encounter. Another latex must
+                // not transfer its old player target onto the visible carrier.
+                event.setCanceled(true);
+                disengageTakeoverThreat(changed, player, takeoverCarrier);
+                return;
+            }
+            ChangedEntity shelter = takeoverCarrier != null
+                    ? takeoverCarrier : BondedSuitService.getWrappingPet(player);
+            if (shelter != null && shelter != attacker
+                    && shelter.isAlive() && !shelter.isRemoved()) {
+                // The contained player has no exposed body. External threats
+                // should fight the visible carrier instead of endlessly
+                // attacking an invulnerable hidden hitbox.
+                event.setNewTarget(shelter);
+                return;
+            }
+        }
+        if (event.getEntity() instanceof Mob attacker
                 && proposedTarget != null
                 && !attacker.level().isClientSide
                 && LatexCreatureCombatRules.mustRejectVillageTarget(
                         attacker, proposedTarget)) {
             event.setCanceled(true);
             LatexCreatureCombatRules.disengage(attacker, proposedTarget);
+        } else if (event.getEntity() instanceof ChangedEntity mob
+                && proposedTarget != null
+                && !mob.level().isClientSide
+                && ChangedVanillaCompat
+                        .protectsAnimalNearRespectedHuman(
+                                mob, proposedTarget)) {
+            event.setCanceled(true);
+            LatexCreatureCombatRules.disengage(mob, proposedTarget);
         } else if (event.getEntity() instanceof Mob attacker
                 && event.getNewTarget() instanceof ChangedEntity target
                 && !attacker.level().isClientSide
                 && LatexCreatureCombatRules.mustRejectTarget(attacker, target)) {
             event.setCanceled(true);
             LatexCreatureCombatRules.disengage(attacker, target);
+        } else if (event.getEntity() instanceof ChangedEntity mob
+                && event.getNewTarget() instanceof ServerPlayer player
+                && !mob.level().isClientSide
+                && TakeoverService.contains(mob, player)) {
+            event.setCanceled(true);
+            mob.setTarget(null);
+            LatexSocialMemory.clearRevengeMemoryToward(mob, player);
         } else if (event.getEntity() instanceof ChangedEntity mob
                 && event.getNewTarget() instanceof ServerPlayer player
                 && !mob.level().isClientSide
@@ -647,8 +802,12 @@ public final class LatexSocialEvents {
             event.setAmount(0.0F);
             return;
         }
+        float damage = attacker instanceof ChangedEntity changed
+                ? LatexCreatureCombatRules.limitNonRivalDamage(
+                        target, changed, event.getAmount())
+                : event.getAmount();
         event.setAmount(LatexCreatureCombatRules.limitDamageToBond(
-                target, attacker, event.getAmount()));
+                target, attacker, damage));
     }
 
     /** Bonded pets and their owner are on the same side, including friendly-fire rules. */
@@ -678,9 +837,32 @@ public final class LatexSocialEvents {
     /** Opens either the owner wheel or an acquaintance's dedicated social wheel. */
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onBondedPetInteract(PlayerInteractEvent.EntityInteract event) {
+        if (CreatureArmorService.handleInteraction(event)) {
+            return;
+        }
+        // The server opens the wheel, but the local right-click must also be
+        // consumed or vanilla starts eating/drinking the held gift.
+        if (event.getEntity().level().isClientSide
+                && event.getHand() == InteractionHand.MAIN_HAND
+                && event.getEntity().isShiftKeyDown()
+                && !event.getItemStack().isEmpty()
+                && event.getTarget() instanceof ChangedEntity candidate
+                && !(candidate instanceof DarkLatexWolfPup)
+                && CreatureSocialProfile.allowsSocialWheel(candidate)) {
+            event.setCancellationResult(InteractionResult.SUCCESS);
+            event.setCanceled(true);
+            return;
+        }
         if (!(event.getEntity() instanceof ServerPlayer player)
                 || !(event.getTarget() instanceof ChangedEntity creature)
                 || event.getHand() != InteractionHand.MAIN_HAND) {
+            return;
+        }
+
+        // Changed gives the dark latex wolf pup its own pet wheel and commands.
+        // Let that exact interaction reach the base entity; the shared radial-screen
+        // mixin still supplies Synergy's opening, selection and closing animation.
+        if (creature instanceof DarkLatexWolfPup) {
             return;
         }
 
@@ -911,6 +1093,9 @@ public final class LatexSocialEvents {
     }
 
     public static void openBondedPetMenu(ServerPlayer player, ChangedEntity pet) {
+        if (!CreatureSocialProfile.allowsSocialWheel(pet)) {
+            return;
+        }
         SocialAudienceGoal.begin(pet, player);
         int[] state = BondedLatexMenu.stateFor(pet);
         NetworkHooks.openScreen(
@@ -921,6 +1106,7 @@ public final class LatexSocialEvents {
                 extraData -> {
                     extraData.writeVarInt(pet.getId());
                     extraData.writeBoolean(LatexSocialMemory.isFollowingOwner(pet));
+                    extraData.writeBoolean(LatexSocialMemory.isWaitingOnShore(pet));
                     extraData.writeVarInt(state[0]);
                     extraData.writeVarInt(state[1]);
                     extraData.writeVarInt(state[2]);
@@ -942,7 +1128,8 @@ public final class LatexSocialEvents {
     public static void openNegotiationMenu(
             ServerPlayer player,
             ChangedEntity creature) {
-        if (!InvoluntaryTransfurNegotiation.canNegotiate(player, creature)) {
+        if (!CreatureSocialProfile.allowsSocialWheel(creature)
+                || !InvoluntaryTransfurNegotiation.canNegotiate(player, creature)) {
             return;
         }
         SocialAudienceGoal.begin(creature, player);
@@ -991,6 +1178,9 @@ public final class LatexSocialEvents {
             ServerPlayer player,
             ChangedEntity creature,
             boolean bonded) {
+        if (!CreatureSocialProfile.allowsSocialWheel(creature)) {
+            return;
+        }
         boolean negotiationAccess = !bonded
                 && InvoluntaryTransfurNegotiation.canNegotiate(
                         player, creature);
@@ -1032,6 +1222,8 @@ public final class LatexSocialEvents {
         }
         // A completed punitive secondary transfur ends the previous incident,
         // but any new attack must immediately open a fresh one.
+        if (net.parkabird.changedsynergy.ai.HumanBoundaryService.handleHit(
+                mob, player, event.getSource(), event.getAmount())) return;
         LatexSocialMemory.clearSecondaryTransfurSettlement(mob, player);
         CreaturePersonality.rememberHarm(mob, player, event.getAmount());
         RelationshipFavorService.showNegativeFeedback(mob, 3);
@@ -1193,37 +1385,40 @@ public final class LatexSocialEvents {
     /** Enforces bonds, neutral first contact and target-specific pat truces across all target goals. */
     @SubscribeEvent
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
-        if (event.getEntity() instanceof IronGolem golem
-                && !golem.level().isClientSide
-                && golem.getTarget() instanceof ChangedEntity target) {
-            LatexCreatureCombatRules.disengage(golem, target);
+        if (event.getEntity() instanceof Mob villageMob
+                && !villageMob.level().isClientSide
+                && villageMob.getTarget() instanceof ChangedEntity target
+                && LatexCreatureCombatRules.mustRejectVillageTarget(villageMob, target)) {
+            LatexCreatureCombatRules.disengage(villageMob, target);
             return;
         }
         if (!(event.getEntity() instanceof ChangedEntity mob)
                 || mob.level().isClientSide) {
             return;
         }
-        InvoluntaryTransfurNegotiation.tickReleaseHoldRecovery(mob);
-        FlyingLatexGlideService.tick(mob);
         if (!LatexSocialMemory.isSocialLatex(mob)
                 || !CreatureSocialProfile.allowsSynergySystems(mob)) {
             return;
         }
-        if (mob.getTarget() instanceof AbstractVillager villager) {
-            LatexCreatureCombatRules.disengage(mob, villager);
+        InvoluntaryTransfurNegotiation.tickReleaseHoldRecovery(mob);
+        FlyingLatexGlideService.tick(mob);
+        LivingEntity villageTarget = mob.getTarget();
+        if (villageTarget != null
+                && LatexCreatureCombatRules.mustRejectVillageTarget(mob, villageTarget)) {
+            LatexCreatureCombatRules.disengage(mob, villageTarget);
         }
         NpcEmoteState.tick(mob);
         CreatureRoleService.tick(mob);
+        ProvisionerTradeService.holdStillWhileTrading(mob);
         CreatureSettlementService.tickCargoIndicator(mob);
         CreatureCacheGuardService.tick(mob);
         ProvisionerFishingFocus.tick(mob);
         ProvisionerGiftService.tick(mob);
 
-        if (mob.tickCount % 40 == 0) {
+        if (mob.tickCount % 40 == Math.floorMod(mob.getId(), 40)) {
             CreatureIdentity.reconcilePersistence(mob);
             if (!LatexSocialMemory.bondedPlayerUuids(mob).isEmpty()) {
                 BondedCreatureLifecycle.track(mob);
-                LatexSocialMemory.suppressBondedAvoidanceGoals(mob);
             }
             ServerPlayer owner = LatexSocialMemory.getPetOwner(mob);
             if (owner != null
@@ -1241,8 +1436,17 @@ public final class LatexSocialEvents {
         }
 
         ServerPlayer owner = LatexSocialMemory.getPetOwner(mob);
-        CompanionWorkDialogue.tick(mob, owner);
-        if (owner != null && mob.tickCount % 20 == 0
+        if (owner == null
+                || mob.tickCount % 5 == Math.floorMod(mob.getId(), 5)) {
+            // Native work detection walks the goal selector. A five-tick,
+            // entity-staggered sample still catches starts and completions
+            // without repeating that traversal for every companion every tick.
+            CompanionWorkDialogue.tick(mob, owner);
+        }
+        if (owner != null
+                && mob.tickCount % 20 == Math.floorMod(mob.getId(), 20)
+                && SynergyPerformanceTracker.featureEnabled(
+                        SynergyPerformanceTracker.Feature.COMPANION_WORK)
                 && ChangedAddonCompat.supportsBondedPetBackend(mob)
                 && BondedPetSettings.hasWorkFavor(mob)) {
             ChangedAddonCompat.refreshBondedWorkItem(mob);
@@ -1252,13 +1456,20 @@ public final class LatexSocialEvents {
         }
         if (owner != null) {
             // Addon entities can install goals after joining. Reconcile every
-            // tick; the actual selector mutation remains deferred and deduplicated.
-            LatexSocialMemory.suppressBondedAvoidanceGoals(mob);
+            // second; the actual selector mutation remains deferred and
+            // deduplicated. Re-scanning every goal every tick scales poorly in
+            // large companion groups and provides no additional correctness.
+            if (mob.tickCount % 20 == Math.floorMod(mob.getId(), 20)) {
+                LatexSocialMemory.suppressBondedAvoidanceGoals(mob);
+            }
             LivingEntity target = mob.getTarget();
             if (target != null
                     && LatexSocialMemory.rejectsFollowingCombatTarget(mob, target)) {
                 LatexSocialMemory.clearRejectedFollowingTarget(mob, target);
             }
+        } else if (mob.tickCount % 20 == Math.floorMod(mob.getId(), 20)
+                && !LatexSocialMemory.bondedPlayerUuids(mob).isEmpty()) {
+            LatexSocialMemory.suppressBondedAvoidanceGoals(mob);
         }
         if (mob.getTarget() instanceof ChangedEntity other
                 && LatexCreatureCombatRules.mustRejectTarget(mob, other)) {
@@ -1280,6 +1491,22 @@ public final class LatexSocialEvents {
         BondedSuitService.tickNativeOwnerSuit(player);
         BondedSuitService.tickFriendlySuit(player);
         InvoluntaryTransfurNegotiation.tickPlayer(player);
+        if (player.tickCount % 20 == 0) {
+            ChangedEntity takeoverCarrier = TakeoverService.controllingCarrier(player);
+            if (takeoverCarrier != null) {
+                calmTakeoverThreats(player, takeoverCarrier);
+            } else {
+                ChangedEntity shelter = BondedSuitService.getWrappingPet(player);
+                if (shelter != null) {
+                    for (Mob attacker : player.serverLevel().getEntitiesOfClass(
+                            Mob.class, player.getBoundingBox().inflate(24.0D),
+                            candidate -> candidate != shelter
+                                    && candidate.getTarget() == player)) {
+                        attacker.setTarget(shelter);
+                    }
+                }
+            }
+        }
         if (player.tickCount % 100 == 0) {
             BondedCreatureLifecycle.audit(player);
         }
@@ -1296,6 +1523,34 @@ public final class LatexSocialEvents {
             return;
         }
         tryPatPlayer(player);
+    }
+
+    /** Immediately ends stale latex combat against a player whose encounter has become a takeover. */
+    public static void calmTakeoverThreats(
+            ServerPlayer player,
+            ChangedEntity carrier) {
+        for (ChangedEntity attacker : player.serverLevel().getEntitiesOfClass(
+                ChangedEntity.class,
+                carrier.getBoundingBox().inflate(32.0D),
+                candidate -> candidate != carrier
+                        && (candidate.getTarget() == player
+                            || candidate.getTarget() == carrier))) {
+            disengageTakeoverThreat(attacker, player, carrier);
+        }
+    }
+
+    private static void disengageTakeoverThreat(
+            ChangedEntity attacker,
+            ServerPlayer player,
+            ChangedEntity carrier) {
+        if (attacker.getTarget() == player || attacker.getTarget() == carrier) {
+            attacker.setTarget(null);
+        }
+        LatexSocialMemory.clearRevengeMemoryToward(attacker, player);
+        HuntMemory.clear(attacker);
+        attacker.setAggressive(false);
+        attacker.setSprinting(false);
+        attacker.getNavigation().stop();
     }
 
     /**
@@ -1335,6 +1590,7 @@ public final class LatexSocialEvents {
         if (event.getEntity() instanceof ServerPlayer player) {
             CreatureMorphAliasData.get(player.server).apply(player);
             LatexSocialMemory.applyPendingBondDeaths(player);
+            BondedRevivalService.applyCompletedReferences(player);
             player.server.execute(() -> BondedCreatureLifecycle.audit(player));
             player.server.execute(() ->
                     InvoluntaryTransfurNegotiation.onPlayerReady(player));
@@ -1344,6 +1600,9 @@ public final class LatexSocialEvents {
     @SubscribeEvent
     public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            BondedSuitService.clearStaleOwnerStateAfterDeath(player);
+            player.server.execute(() ->
+                    BondedSuitService.clearStaleOwnerStateAfterDeath(player));
             player.server.execute(() -> BondedCreatureLifecycle.audit(player));
             player.server.execute(() ->
                     InvoluntaryTransfurNegotiation.onPlayerReady(player));
@@ -1365,6 +1624,9 @@ public final class LatexSocialEvents {
             BondedCreatureLifecycle.copyPlayerData(original, clone);
             InvoluntaryTransfurNegotiation.copyPlayerData(original, clone);
             FactionHostilityGrace.copyPlayerData(original, clone);
+            if (event.isWasDeath()) {
+                BondedSuitService.clearStaleOwnerStateAfterDeath(clone);
+            }
         }
     }
 
@@ -1373,7 +1635,14 @@ public final class LatexSocialEvents {
         if (!LatexSocialMemory.isSocialLatex(mob)
                 || !mob.isAlive()
                 || !ChangedSynergyGameRules.socialSystemsEnabled(player.level())
-                || !CreatureSocialProfile.allowsPersonalRelationship(mob)) {
+                || !CreatureSocialProfile.allowsSynergySystems(mob)) {
+            return;
+        }
+        if (CreatureSocialProfile.isAggressive(mob)) {
+            AggressiveMercyService.appeal(mob, player);
+            return;
+        }
+        if (!CreatureSocialProfile.allowsPersonalRelationship(mob)) {
             return;
         }
         boolean wasHostile = LatexSocialMemory.hasHostilityToward(mob, player)
@@ -1396,6 +1665,7 @@ public final class LatexSocialEvents {
             return;
         }
         if (!personallyProtected
+                && ChangedSynergyConfig.COMMON.patPacification.get()
                 && LatexSocialMemory.hasBetrayedPatTruce(mob, player)) {
             // The touch still happened, but this creature no longer treats it
             // as proof that the chase is over.
@@ -1403,21 +1673,30 @@ public final class LatexSocialEvents {
             delayNextActivePat(mob, mob.level().getGameTime() + RETURN_PAT_DELAY);
             return;
         }
+        if (wasHostile
+                && !personallyProtected
+                && !ChangedSynergyConfig.COMMON.patPacification.get()) {
+            // Patting remains a valid social input, but with pacification
+            // disabled it cannot interrupt a hostile action or build trust
+            // while the creature is actively pursuing this player.
+            NpcDialogue.trigger(mob, player, Cue.PAT_RIVAL);
+            delayNextActivePat(
+                    mob, mob.level().getGameTime() + RETURN_PAT_DELAY);
+            return;
+        }
 
         if (HypnosisQteService.interruptByPat(mob, player)) {
-            LatexSocialMemory.beginPatTruce(mob, player, BASE_PAT_TRUCE);
-            calmTowards(mob, player);
-            rewardCalmingPat(player, wasHostile);
+            applyPatPacification(
+                    mob, player, BASE_PAT_TRUCE, wasHostile);
             delayNextActivePat(mob, mob.level().getGameTime() + RETURN_PAT_DELAY);
             return;
         }
 
         if (!personallyProtected
                 && DarkLatexDisguise.appearsAsDarkRivalToWhite(mob, player)) {
-            LatexSocialMemory.beginPatTruce(
-                    mob, player, Math.max(20L, BASE_PAT_TRUCE / 4L));
-            calmTowards(mob, player);
-            rewardCalmingPat(player, wasHostile);
+            applyPatPacification(
+                    mob, player,
+                    Math.max(20L, BASE_PAT_TRUCE / 4L), wasHostile);
             NpcDialogue.trigger(mob, player, Cue.PAT_DISGUISED_WHITE_RIVAL);
             return;
         }
@@ -1426,10 +1705,9 @@ public final class LatexSocialEvents {
                 && DarkLatexDisguise.isImpersonatingDarkLatex(player)) {
             if (DarkLatexDisguise.isRevealed(mob, player)
                     || LatexSocialMemory.isProvoked(mob, player)) {
-                LatexSocialMemory.beginPatTruce(
-                        mob, player, Math.max(20L, BASE_PAT_TRUCE / 4L));
-                calmTowards(mob, player);
-                rewardCalmingPat(player, wasHostile);
+                applyPatPacification(
+                        mob, player,
+                        Math.max(20L, BASE_PAT_TRUCE / 4L), wasHostile);
                 NpcDialogue.trigger(mob, player, Cue.PAT_DISGUISED_DARK_CAUGHT);
                 return;
             }
@@ -1438,16 +1716,14 @@ public final class LatexSocialEvents {
             if (inspection == Observation.REVEALED) {
                 DarkLatexDisguiseEvents.revealAndAlert(
                         mob, player, Cue.PAT_DISGUISED_DARK_CAUGHT);
-                LatexSocialMemory.beginPatTruce(
-                        mob, player, Math.max(20L, BASE_PAT_TRUCE / 4L));
-                calmTowards(mob, player);
-                rewardCalmingPat(player, wasHostile);
+                applyPatPacification(
+                        mob, player,
+                        Math.max(20L, BASE_PAT_TRUCE / 4L), wasHostile);
                 return;
             }
 
-            LatexSocialMemory.beginPatTruce(mob, player, BASE_PAT_TRUCE * 11L / 8L);
-            calmTowards(mob, player);
-            rewardCalmingPat(player, wasHostile);
+            applyPatPacification(
+                    mob, player, BASE_PAT_TRUCE * 11L / 8L, wasHostile);
             NpcDialogue.trigger(
                     mob,
                     player,
@@ -1464,9 +1740,8 @@ public final class LatexSocialEvents {
                 && !LatexSocialMemory.isProvoked(mob, player)) {
             RelationshipProgress progress =
                     CreaturePersonality.advanceRelationship(mob, player);
-            LatexSocialMemory.beginPatTruce(mob, player, BASE_PAT_TRUCE * 4L);
-            calmTowards(mob, player);
-            rewardCalmingPat(player, wasHostile);
+            applyPatPacification(
+                    mob, player, BASE_PAT_TRUCE * 4L, wasHostile);
             delayNextActivePat(mob, mob.level().getGameTime() + RETURN_PAT_DELAY);
             if (mob.level() instanceof ServerLevel level) {
                 int count = progress == RelationshipProgress.ESTABLISHED ? 5 : 2;
@@ -1512,9 +1787,7 @@ public final class LatexSocialEvents {
             case RIVAL -> Math.max(20L, BASE_PAT_TRUCE / 4L);
         };
 
-        LatexSocialMemory.beginPatTruce(mob, player, truceTicks);
-        calmTowards(mob, player);
-        rewardCalmingPat(player, wasHostile);
+        applyPatPacification(mob, player, truceTicks, wasHostile);
         delayNextActivePat(mob, mob.level().getGameTime() + RETURN_PAT_DELAY);
         boolean needsVouch = !FactionReputation.isRecognized(mob, player);
         Cue cue = lowReputationCalming ? Cue.LOW_REPUTATION_PAT
@@ -1551,6 +1824,19 @@ public final class LatexSocialEvents {
         }
     }
 
+    private static void applyPatPacification(
+            ChangedEntity mob,
+            ServerPlayer player,
+            long truceTicks,
+            boolean wasHostile) {
+        if (!ChangedSynergyConfig.COMMON.patPacification.get()) {
+            return;
+        }
+        LatexSocialMemory.beginPatTruce(mob, player, truceTicks);
+        calmTowards(mob, player);
+        rewardCalmingPat(player, wasHostile);
+    }
+
     public static void calmTowards(ChangedEntity mob, ServerPlayer player) {
         LatexSocialMemory.clearHostilityToward(mob, player);
     }
@@ -1569,7 +1855,8 @@ public final class LatexSocialEvents {
         if (!(player.level() instanceof ServerLevel level)) {
             return;
         }
-        if (BondedSuitService.getWrappingPet(player) != null) {
+        if (BondedSuitService.getWrappingPet(player) != null
+                || TakeoverService.active(player)) {
             return;
         }
         long now = level.getGameTime();
@@ -1586,8 +1873,13 @@ public final class LatexSocialEvents {
                 .filter(mob -> mob.getTarget() == null && mob.hasLineOfSight(player)
                         && mob.distanceToSqr(player) <= 12.25
                         && mob.getPersistentData().getLong(NEXT_PAT_PLAYER) <= now
+                        && !TakeoverService.carrying(mob)
                         && !ProvisionerFishingFocus.isFocusedFishing(mob)
-                        && LatexSocialMemory.shouldRemainNeutral(mob, player))
+                        && LatexSocialMemory.shouldRemainNeutral(mob, player)
+                        && !LatexSocialMemory.isProvoked(mob, player)
+                        && !LatexSocialMemory.hasRelationshipBetrayal(mob, player)
+                        && !LatexSocialMemory.hasBetrayedPatTruce(mob, player)
+                        && !FactionReputation.isHostile(mob, player))
                 .filter(mob -> {
                     LatexSocialRelation relation = LatexSocialRelation.between(mob, player);
                     return relation != LatexSocialRelation.RIVAL
@@ -1694,6 +1986,11 @@ public final class LatexSocialEvents {
         ChangedEntity pet = BondedSuitService.getWrappingPet(owner);
         if (pet != null && LatexSocialMemory.isBonded(pet, owner)) {
             RECENT_WRAPPED_OWNER_DEATHS.put(pet.getUUID(), owner.getUUID());
+        }
+        if (pet != null) {
+            BondedSuitService.breakFriendlySuitOnDeath(pet, owner);
+        } else {
+            BondedSuitService.clearStaleOwnerStateAfterDeath(owner);
         }
     }
 

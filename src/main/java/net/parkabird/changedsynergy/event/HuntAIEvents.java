@@ -15,6 +15,7 @@ import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.CreaturePersonality;
 import net.parkabird.changedsynergy.ai.CreaturePersonality.Trait;
 import net.parkabird.changedsynergy.ai.CreatureCacheGuardService;
+import net.parkabird.changedsynergy.ai.CreatureSocialProfile;
 import net.parkabird.changedsynergy.ai.DarkLatexDisguise;
 import net.parkabird.changedsynergy.ai.FirearmEvasionGoal;
 import net.parkabird.changedsynergy.ai.FirearmThreatService;
@@ -28,14 +29,18 @@ import net.parkabird.changedsynergy.ai.InvoluntaryTransfurNegotiation;
 import net.parkabird.changedsynergy.ai.LatexCreatureCombatRules;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.ai.LatexSocialRelation;
+import net.parkabird.changedsynergy.ai.TakeoverService;
 import net.parkabird.changedsynergy.ai.SmartSearchGoal;
 import net.parkabird.changedsynergy.ai.UnderwaterPursuitGoal;
 import net.parkabird.changedsynergy.ai.VoluntaryBondTransfurService;
 import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
+import net.parkabird.changedsynergy.compat.ChangedExtrasCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -69,8 +74,14 @@ public final class HuntAIEvents {
     private static final UUID CHASE_SPEED_MODIFIER = UUID.fromString("30a86f91-3890-44ea-b362-e78c5cf2774e");
     private static final String LAST_NOISE_TICK = "ChangedSynergyLastNoiseTick";
     private static final String NEXT_SOCIAL_TICK = "ChangedSynergyNextSocialTick";
+    private static final String LAST_SOCIAL_SIGHT_PREFIX =
+            "ChangedSynergyLastSocialSight_";
+    private static final long REUNION_ABSENCE_TICKS = 3600L;
     private static final String COMPATRIOT_RALLY_UNTIL =
             "ChangedSynergyCompatriotRallyUntil";
+    private static final String BOND_CONFINEMENT_OWNER = "ChangedSynergyBondConfinementOwner";
+    private static final String BOND_CONFINEMENT_UNTIL = "ChangedSynergyBondConfinementUntil";
+    private static final String BOND_CONFINEMENT_COOLDOWN = "ChangedSynergyBondConfinementCooldown";
     private static final TagKey<EntityType<?>> LATEXES = tag("changed", "latexes");
     private static final TagKey<EntityType<?>> ORGANIC_LATEX = tag("changed", "organic_latex");
     private static final TagKey<EntityType<?>> BENIGN_LATEXES = tag("changed", "benign_latexes");
@@ -92,6 +103,16 @@ public final class HuntAIEvents {
                 || !(event.getEntity() instanceof ChangedEntity mob)) {
             return;
         }
+        ensureHuntGoals(mob);
+    }
+
+    /** Reinstalls Synergy hunt goals after another mod rebuilds a creature's selectors. */
+    public static void ensureHuntGoals(ChangedEntity mob) {
+        if (mob.level().isClientSide
+                || !CreatureSocialProfile.allowsSynergySystems(mob)
+                || ChangedExtrasCompat.ownsWildAi(mob)) {
+            return;
+        }
         if (mob.goalSelector.getAvailableGoals().stream()
                 .noneMatch(wrapped -> wrapped.getGoal() instanceof SmartSearchGoal)) {
             mob.goalSelector.addGoal(1, new SmartSearchGoal(mob));
@@ -109,11 +130,25 @@ public final class HuntAIEvents {
     @SubscribeEvent
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
         if (!(event.getEntity() instanceof ChangedEntity mob)
-                || mob.level().isClientSide || mob.tickCount % 5 != 0) {
+                || mob.level().isClientSide) {
             return;
         }
 
-        if (!isHuntAIEnabled(mob) || !isEligibleHunter(mob)) {
+        tickBondConfinement(mob);
+
+        if (!isHuntAIEnabled(mob)) {
+            if (mob.tickCount % 20 == Math.floorMod(mob.getId(), 20)) {
+                removeChaseBoost(mob);
+                if (HuntMemory.getState(mob) != HuntState.IDLE) {
+                    HuntMemory.clear(mob);
+                }
+            }
+            return;
+        }
+        if (!SynergyPerformanceTracker.allowBackground(mob, Feature.HUNT, 5)) {
+            return;
+        }
+        if (!isEligibleHunter(mob)) {
             removeChaseBoost(mob);
             if (HuntMemory.getState(mob) != HuntState.IDLE) {
                 HuntMemory.clear(mob);
@@ -177,19 +212,9 @@ public final class HuntAIEvents {
             return;
         }
 
-        if (LatexSocialMemory.hasOtherBondedCreature(victim, speaker)) {
-            LatexAssimilationDecision<?> absorption = speaker.makeLatexAssimilationDecision(
-                    TransfurCause.GRAB_ABSORB, victim);
-            if (absorption != null) {
-                // Keep Changed's NPC absorption path: the player is consumed
-                // and the attacking individual survives in its resulting form.
-                event.setDecision(absorption);
-                event.appendTransfurListener(newForm ->
-                        celebrateBondConflictAbsorption(speaker, victim));
-                return;
-            }
-        }
-
+        // Never replace the creature's native result merely because the player
+        // already has another bonded companion. The final Changed decision is
+        // authoritative: only a real absorption may reach takeover routing.
         Cue successCue = event.getDecision().method() == LatexAssimilationDecision.Method.ABSORPTION
                 ? Cue.SUCCESS_ABSORB
                 : Cue.SUCCESS_ASSIMILATE;
@@ -356,6 +381,28 @@ public final class HuntAIEvents {
             return;
         }
 
+        for (ChangedEntity bond : nearbyKin) {
+            if (!LatexSocialMemory.isBonded(bond, player)
+                    || LatexSocialMemory.isOrganic(bond)
+                    || !LatexSocialRelation.sameSpecies(fallen, bond)) continue;
+            int kills = CreaturePersonality.recordWitnessedKinKill(bond, player);
+            if (kills < CreaturePersonality.witnessedKinKillLimit(bond)) {
+                player.sendSystemMessage(Component.translatable(
+                        "message.changed_synergy.bond_kin_kill_warning",
+                        bond.getDisplayName(), kills));
+            } else if (bond.getPersistentData().getLong(BOND_CONFINEMENT_COOLDOWN)
+                    <= level.getGameTime()) {
+                bond.getPersistentData().putUUID(BOND_CONFINEMENT_OWNER, player.getUUID());
+                bond.getPersistentData().putLong(BOND_CONFINEMENT_UNTIL,
+                        level.getGameTime() + 2400L);
+                bond.getPersistentData().putLong(BOND_CONFINEMENT_COOLDOWN,
+                        level.getGameTime() + 24000L);
+                player.sendSystemMessage(Component.translatable(
+                        "message.changed_synergy.bond_kin_kill_limit",
+                        bond.getDisplayName()));
+            }
+        }
+
         List<ChangedEntity> friendWitnesses = nearbyKin.stream()
                 .filter(ally -> !isOwnedBy(ally, player)
                         && CreaturePersonality.hasTrustedRelationship(ally, player))
@@ -416,6 +463,30 @@ public final class HuntAIEvents {
         witnesses.stream().skip(1).forEach(ally -> NpcDialogue.emoteOnly(ally, Cue.ALLY_FALLEN));
     }
 
+    private static void tickBondConfinement(ChangedEntity bond) {
+        if (bond.tickCount % 5 != 0
+                || !bond.getPersistentData().hasUUID(BOND_CONFINEMENT_OWNER)
+                || !(bond.level() instanceof ServerLevel level)) return;
+        long until = bond.getPersistentData().getLong(BOND_CONFINEMENT_UNTIL);
+        UUID ownerId = bond.getPersistentData().getUUID(BOND_CONFINEMENT_OWNER);
+        ServerPlayer owner = level.getServer().getPlayerList().getPlayer(ownerId);
+        if (until <= level.getGameTime() || owner == null || owner.level() != level
+                || !LatexSocialMemory.isBonded(bond, owner) || !bond.isAlive()
+                || !owner.isAlive() || owner.isCreative() || owner.isSpectator()) {
+            bond.getPersistentData().remove(BOND_CONFINEMENT_OWNER);
+            bond.getPersistentData().remove(BOND_CONFINEMENT_UNTIL);
+            return;
+        }
+        if (bond.distanceToSqr(owner) <= 9.0D) {
+            if (TakeoverService.beginBondedConfinement(bond, owner)) {
+                bond.getPersistentData().remove(BOND_CONFINEMENT_OWNER);
+                bond.getPersistentData().remove(BOND_CONFINEMENT_UNTIL);
+            }
+        } else if (!TakeoverService.active(owner)) {
+            bond.getNavigation().moveTo(owner, 1.0D);
+        }
+    }
+
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END
@@ -424,10 +495,15 @@ public final class HuntAIEvents {
         }
 
         if (player.tickCount % 40 == 0) {
-            socialEncounter(player);
-            FirearmThreatService.observeHeldFirearm(player);
+            if (SynergyPerformanceTracker.featureEnabled(Feature.SOCIAL)) {
+                socialEncounter(player);
+            }
+            if (SynergyPerformanceTracker.featureEnabled(Feature.HUNT)) {
+                FirearmThreatService.observeHeldFirearm(player);
+            }
         }
-        if (player.tickCount % 20 != 0 || !player.isSprinting()
+        if (!SynergyPerformanceTracker.featureEnabled(Feature.HUNT)
+                || player.tickCount % 20 != 0 || !player.isSprinting()
                 || player.getDeltaMovement().horizontalDistanceSqr() < 0.004) {
             return;
         }
@@ -475,11 +551,15 @@ public final class HuntAIEvents {
     }
 
     public static boolean isHuntAIEnabled(ChangedEntity mob) {
-        return mob.level().getGameRules().getBoolean(ChangedSynergyGameRules.NPC_AI);
+        return SynergyPerformanceTracker.featureEnabled(Feature.HUNT)
+                && mob.level().getGameRules().getBoolean(ChangedSynergyGameRules.NPC_AI)
+                && !ChangedExtrasCompat.ownsWildAi(mob);
     }
 
     public static boolean isEligibleHunter(ChangedEntity mob) {
-        if (!mob.isAlive() || mob.isNoAi() || !isHunterKind(mob)) {
+        if (!mob.isAlive() || mob.isNoAi()
+                || !CreatureSocialProfile.allowsSynergySystems(mob)
+                || !isHunterKind(mob)) {
             return false;
         }
         return !ChangedSynergyConfig.COMMON.respectPacifiedLatexes.get()
@@ -554,7 +634,7 @@ public final class HuntAIEvents {
             }
             if (!playfulFusion
                     && HunterFaction.of(mob) == HunterFaction.WHITE
-                    && mob.tickCount % 20 == 0) {
+                    && mob.tickCount % 20 == Math.floorMod(mob.getId(), 20)) {
                 shareAlert(mob, player, false);
             }
         }
@@ -662,6 +742,9 @@ public final class HuntAIEvents {
     }
 
     private static void alertByNoise(ServerPlayer player, Vec3 position, double radius) {
+        if (!SynergyPerformanceTracker.featureEnabled(Feature.HUNT)) {
+            return;
+        }
         if (!(player.level() instanceof ServerLevel level)
                 || player.isCreative() || player.isSpectator()
                 || !level.getGameRules().getBoolean(ChangedSynergyGameRules.NPC_AI)) {
@@ -813,27 +896,65 @@ public final class HuntAIEvents {
         }
 
         long now = level.getGameTime();
-        List<ChangedEntity> candidates = level.getEntitiesOfClass(
-                        ChangedEntity.class,
-                        player.getBoundingBox().inflate(14.0),
-                        mob -> mob.isAlive() && LatexSocialMemory.isSocialLatex(mob))
-                .stream()
-                .filter(mob -> mob.getTarget() != player && mob.hasLineOfSight(player)
-                        && mob.getPersistentData().getLong(NEXT_SOCIAL_TICK) <= now
-                        && !LatexSocialMemory.isBonded(mob, player)
-                        && (LatexSocialRelation.between(mob, player)
-                                        != LatexSocialRelation.HUMAN
-                                || reputationEncounterCue(mob, player) != null))
-                .sorted(Comparator.comparingDouble(mob -> mob.distanceToSqr(player)))
-                .toList();
+        List<SocialEncounterCandidate> candidates = new ArrayList<>();
+        String sightKey = LAST_SOCIAL_SIGHT_PREFIX + player.getStringUUID();
+        for (ChangedEntity mob : level.getEntitiesOfClass(
+                ChangedEntity.class,
+                player.getBoundingBox().inflate(14.0),
+                candidate -> candidate.isAlive()
+                        && LatexSocialMemory.isSocialLatex(candidate))) {
+            if (!mob.hasLineOfSight(player)) {
+                continue;
+            }
+
+            boolean seenBefore = mob.getPersistentData().contains(sightKey);
+            long lastSeen = mob.getPersistentData().getLong(sightKey);
+            mob.getPersistentData().putLong(sightKey, now);
+            if (isFollowingPlayer(mob, player)
+                    || mob.getTarget() == player
+                    || mob.getPersistentData().getLong(NEXT_SOCIAL_TICK) > now
+                    || LatexSocialRelation.between(mob, player)
+                                    == LatexSocialRelation.HUMAN
+                            && reputationEncounterCue(mob, player) == null) {
+                continue;
+            }
+
+            Cue cue = acquisitionCue(mob, player);
+            if (isReunionCue(cue)
+                    && (!seenBefore || now - lastSeen < REUNION_ABSENCE_TICKS)) {
+                continue;
+            }
+            candidates.add(new SocialEncounterCandidate(mob, cue));
+        }
+        candidates.sort(Comparator.comparingDouble(
+                candidate -> candidate.mob().distanceToSqr(player)));
         if (candidates.isEmpty()) {
             return;
         }
 
-        ChangedEntity speaker = candidates.get(0);
+        SocialEncounterCandidate candidate = candidates.get(0);
+        ChangedEntity speaker = candidate.mob();
         long delay = 400L + speaker.getRandom().nextInt(201);
         speaker.getPersistentData().putLong(NEXT_SOCIAL_TICK, now + delay);
-        NpcDialogue.trigger(speaker, player, acquisitionCue(speaker, player));
+        NpcDialogue.trigger(speaker, player, candidate.cue());
+    }
+
+    private static boolean isFollowingPlayer(
+            ChangedEntity mob,
+            ServerPlayer player) {
+        return LatexSocialMemory.isPetOwner(mob, player)
+                        && LatexSocialMemory.isFollowingOwner(mob)
+                || CreaturePersonality.isSocialFollowing(mob, player);
+    }
+
+    private static boolean isReunionCue(Cue cue) {
+        return cue == Cue.FORMER_BOND_WELCOME
+                || cue == Cue.FORMER_RESPECT_WELCOME
+                || cue == Cue.FRIEND_RESPECT_WELCOME
+                || cue == Cue.BOND_NEW_FORM_WELCOME;
+    }
+
+    private record SocialEncounterCandidate(ChangedEntity mob, Cue cue) {
     }
 
     private static void celebrateSuccess(ChangedEntity speaker, ServerPlayer player, Cue cue) {

@@ -11,7 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
@@ -29,8 +28,11 @@ import net.parkabird.changedsynergy.ai.CreatureSettlementService.FishingSite;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.GlowBerrySite;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.MinecartSupplyTarget;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
+import net.parkabird.changedsynergy.compat.ChangedVanillaCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 
 /**
  * Role work. It has no clock or personal activity centre: a free creature
@@ -63,8 +65,6 @@ public final class CreatureRoutineGoal extends Goal {
     @Nullable private BlockState openedIceState;
     private boolean sweetBerryTarget;
     @Nullable private ChangedEntity peer;
-    private ItemStack previousMainHand = ItemStack.EMPTY;
-    private boolean toolVisible;
     private int remainingTicks;
     private int repathTicks;
     private int dwellTicks;
@@ -81,20 +81,26 @@ public final class CreatureRoutineGoal extends Goal {
     @Override
     public boolean canUse() {
         if (!(mob.level() instanceof ServerLevel)
+                || !SynergyPerformanceTracker.featureEnabled(Feature.COMMUNITY)
                 || !CreatureLifeMemory.enabled(mob)
                 || !movementAvailable()
                 || mob.level().getGameTime()
                         < CreatureLifeMemory.nextDecisionTick(mob)) {
             return false;
         }
+        if (!SynergyPerformanceTracker.allowBackground(
+                mob, Feature.COMMUNITY,
+                SynergyPerformanceTracker.configuredBackgroundInterval())) {
+            return false;
+        }
         CreatureLifeMemory.ensure(mob);
         CreatureCommunityData.bind(mob);
         clearTargets();
-        state = CreatureSettlementService.hasCargo(mob)
+        state = hasDelivery()
                 ? RoutineState.DELIVERING : selectActivity();
         destination = chooseDestination();
         if (destination == null) {
-            if (CreatureSettlementService.hasCargo(mob)) {
+            if (hasDelivery()) {
                 // Cargo is authoritative. Do not let a temporarily unavailable
                 // or unloaded cache turn a provisioner into a wandering scout.
                 state = RoutineState.IDLE;
@@ -122,6 +128,7 @@ public final class CreatureRoutineGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return remainingTicks > 0
+                && SynergyPerformanceTracker.featureEnabled(Feature.COMMUNITY)
                 && CreatureLifeMemory.enabled(mob)
                 && movementAvailable()
                 && (peer == null || peer.isAlive() && !peer.isRemoved())
@@ -154,6 +161,7 @@ public final class CreatureRoutineGoal extends Goal {
 
     @Override
     public void tick() {
+        GatheringToolPresentation.heartbeat(mob);
         remainingTicks--;
         if (destination == null) {
             remainingTicks = 0;
@@ -205,7 +213,7 @@ public final class CreatureRoutineGoal extends Goal {
 
     @Override
     public void stop() {
-        boolean resumeCargo = CreatureSettlementService.hasCargo(mob);
+        boolean resumeCargo = hasDelivery();
         mob.getNavigation().stop();
         if (mob.level() instanceof ServerLevel level) {
             FishingVisualEffects.cancel(level, mob);
@@ -280,12 +288,12 @@ public final class CreatureRoutineGoal extends Goal {
     @Nullable
     private Vec3 chooseDestination() {
         return switch (state) {
-            case DELIVERING -> HunterFaction.of(mob) == HunterFaction.WHITE
-                    && !CreatureSettlementService.isFacilityCommunity(mob)
-                    ? mob.position()
-                    : CreatureSettlementService.ensureCachePosition(mob)
-                            .map(Vec3::atCenterOf)
-                            .orElse(null);
+            case DELIVERING -> CreatureSettlementService
+                    .ensureCachePosition(mob)
+                    .map(Vec3::atCenterOf)
+                    .orElseGet(() -> HunterFaction.of(mob) == HunterFaction.WHITE
+                            && !CreatureSettlementService.isFacilityCommunity(mob)
+                                    ? mob.position() : null);
             case GATHERING -> gatheringDestination();
             case FISHING -> fishingDestination();
             case MINING -> miningDestination();
@@ -529,7 +537,9 @@ public final class CreatureRoutineGoal extends Goal {
     }
 
     private void finishDelivery() {
-        if (CreatureSettlementService.depositCargo(mob)) {
+        boolean delivered = CreatureSettlementService.depositCargo(mob);
+        delivered |= CreatureSettlementService.depositTradeReturns(mob);
+        if (delivered) {
             presentRoleAction(Cue.ROLE_FORAGER_STORE);
         }
         remainingTicks = 0;
@@ -794,21 +804,14 @@ public final class CreatureRoutineGoal extends Goal {
     }
 
     private void showTool(ItemStack tool) {
-        if (toolVisible) {
+        if (ChangedVanillaCompat.equipmentChangeRebuildsGoals(mob)) {
             return;
         }
-        previousMainHand = mob.getItemBySlot(EquipmentSlot.MAINHAND).copy();
-        mob.setItemSlot(EquipmentSlot.MAINHAND, tool);
-        toolVisible = true;
+        GatheringToolPresentation.show(mob, tool);
     }
 
     private void restoreTool() {
-        if (!toolVisible) {
-            return;
-        }
-        mob.setItemSlot(EquipmentSlot.MAINHAND, previousMainHand);
-        previousMainHand = ItemStack.EMPTY;
-        toolVisible = false;
+        GatheringToolPresentation.restore(mob);
     }
 
     private void clearMiningProgress() {
@@ -939,7 +942,13 @@ public final class CreatureRoutineGoal extends Goal {
     }
 
     private boolean movementAvailable() {
-        boolean deliveringCargo = CreatureSettlementService.hasCargo(mob);
+        if (TakeoverService.carrying(mob) && !TakeoverService.allowsWork(mob)) {
+            return false;
+        }
+        if (ProvisionerTradeService.isTrading(mob)) {
+            return false;
+        }
+        boolean deliveringCargo = hasDelivery();
         LivingEntity target = mob.getTarget();
         if (target != null && (!target.isAlive() || target.isRemoved())) {
             // Some interrupted Changed attack goals leave their defeated target
@@ -954,7 +963,7 @@ public final class CreatureRoutineGoal extends Goal {
                 || mob.isLeashed()
                 || target != null
                 || SocialAudienceGoal.isActive(mob)
-                || ChangedAddonCompat.isGrabberBusy(mob)
+                || (ChangedAddonCompat.isGrabberBusy(mob) && !TakeoverService.allowsWork(mob))
                 || HypnosisQteService.getActiveVictim(mob) != null) {
             return false;
         }
@@ -968,5 +977,10 @@ public final class CreatureRoutineGoal extends Goal {
         }
         return deliveringCargo
                 || !(mob instanceof TamableLatexEntity pet && pet.isTame());
+    }
+
+    private boolean hasDelivery() {
+        return CreatureSettlementService.hasCargo(mob)
+                || CreatureSettlementService.hasTradeReturns(mob);
     }
 }

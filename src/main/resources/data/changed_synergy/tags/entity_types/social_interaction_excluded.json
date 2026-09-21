@@ -1,9 +1,6 @@
 {
   "replace": false,
   "values": [
-    "changed:latex_shark_feral",
-    "changed:headless_knight",
-    "changed:milk_pudding",
     "changed:latex_benign_wolf",
     "changed:latex_benign_orca",
     "changed:behemoth_head",
@@ -19,6 +16,10 @@
     },
     {
       "id": "changed_addon:latex_snow_fox_foxyas",
+      "required": false
+    },
+    {
+      "id": "changedextras:artist",
       "required": false
     }
   ]

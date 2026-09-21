@@ -21,14 +21,14 @@ import net.parkabird.changedsynergy.dialogue.LatexTerritory;
  */
 public final class LightFactionGroup {
     public static final String GENERAL = "general";
+    public static final String CAVE = "cave";
+    private static final int CAVE_MINIMUM_DEPTH = 12;
+    private static final int OPENING_PROBE_RADIUS = 4;
     private static final String GROUP_DATA =
             "ChangedSynergyLightReputationGroup";
     private static final String LEGACY_GROUP_DATA =
             "ChangedSynergyWildReputationGroup";
-    private static final List<String> REGIONS = List.of(
-            "cave", "taiga", "swamp", "jungle", "savanna",
-            "desert", "badlands", "snowy", "mountain", "beach",
-            "river", "ocean", "forest", "plains");
+    private static final List<String> REGIONS = FactionDiplomacy.REGIONS;
 
     private LightFactionGroup() {
     }
@@ -97,17 +97,50 @@ public final class LightFactionGroup {
                 || !canResolveAt(level, position)) {
             return GENERAL;
         }
-        int surface = serverLevel.getHeight(
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                position.getX(), position.getZ());
-        boolean underground = position.getY() <= surface - 6
-                && !serverLevel.canSeeSky(position.above());
+        boolean underground = isCaveHabitat(serverLevel, position);
         LatexTerritory.BiomePopulation population =
                 LatexTerritory.naturalPopulationAt(
                         serverLevel, position, underground);
         return normalize(population == null
                 ? GENERAL
                 : population.populationRegion());
+    }
+
+    /**
+     * A regional cave is enclosed and meaningfully below its local surface.
+     * A shallow roof, overhang, open pit or ravine should keep the surrounding
+     * surface identity even when the exact spawn block cannot see the sky.
+     */
+    public static boolean isCaveHabitat(
+            ServerLevel level,
+            BlockPos position) {
+        if (!canResolveAt(level, position)) {
+            return false;
+        }
+        int surface = level.getHeight(
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                position.getX(), position.getZ());
+        if (position.getY() > surface - CAVE_MINIMUM_DEPTH
+                || level.canSeeSky(position.above())) {
+            return false;
+        }
+
+        for (int dx = -OPENING_PROBE_RADIUS;
+                dx <= OPENING_PROBE_RADIUS;
+                dx += OPENING_PROBE_RADIUS) {
+            for (int dz = -OPENING_PROBE_RADIUS;
+                    dz <= OPENING_PROBE_RADIUS;
+                    dz += OPENING_PROBE_RADIUS) {
+                if (dx == 0 && dz == 0) {
+                    continue;
+                }
+                BlockPos probe = position.offset(dx, 1, dz);
+                if (canResolveAt(level, probe) && level.canSeeSky(probe)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public static String regionForBiome(

@@ -18,6 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.parkabird.changedsynergy.event.TerritoryContextEvents;
@@ -64,7 +65,17 @@ public final class CreatureCommunityData extends SavedData {
             int migrations,
             long createdTick,
             long lastSeenTick,
-            long lastMigrationTick) {
+            long lastMigrationTick,
+            int memberCount,
+            long tradeRevision) {
+    }
+
+    /** Exact community-owned item credit from generated stock or real deliveries. */
+    public record TradeStock(ItemStack stack, int count) {
+        public TradeStock {
+            stack = stack.copyWithCount(1);
+            count = Math.max(0, count);
+        }
     }
 
     private CreatureCommunityData() {
@@ -91,6 +102,18 @@ public final class CreatureCommunityData extends SavedData {
         return bind(creature);
     }
 
+    /** Finds a Synergy-built community cache without treating arbitrary containers as owned. */
+    public static Optional<Snapshot> snapshotAtCache(
+            ServerLevel level, BlockPos position) {
+        String dimension = level.dimension().location().toString();
+        return get(level.getServer()).communities.values().stream()
+                .filter(community -> community.cache != null
+                        && community.cache.equals(position)
+                        && community.dimension.equals(dimension))
+                .map(Community::snapshot)
+                .findFirst();
+    }
+
     public static boolean sameCommunity(
             ChangedEntity first,
             ChangedEntity second) {
@@ -104,10 +127,6 @@ public final class CreatureCommunityData extends SavedData {
     public static void detach(ChangedEntity creature) {
         creature.getPersistentData().remove(COMMUNITY_ID);
         creature.getPersistentData().remove(FACILITY_AFFINITY);
-    }
-
-    public static void synchronizeActivityCenter(ChangedEntity creature) {
-        // Compatibility no-op: individual activity centres were removed.
     }
 
     public static void markCache(ChangedEntity creature, BlockPos position) {
@@ -172,7 +191,8 @@ public final class CreatureCommunityData extends SavedData {
         for (Community community : data.communities.values()) {
             if (community.cache == null
                     || !community.dimension.equals(dimension)
-                    || community.cache.distSqr(position) > radiusSqr) {
+                    || horizontalDistanceSqr(community.cache, position)
+                            > radiusSqr) {
                 continue;
             }
             if (!level.hasChunkAt(community.cache)) {
@@ -190,6 +210,14 @@ public final class CreatureCommunityData extends SavedData {
             data.setDirty();
         }
         return claimed;
+    }
+
+    private static double horizontalDistanceSqr(
+            BlockPos first,
+            BlockPos second) {
+        double dx = first.getX() - second.getX();
+        double dz = first.getZ() - second.getZ();
+        return dx * dx + dz * dz;
     }
 
     private static List<BlockPos> compatibleCaches(
@@ -254,6 +282,99 @@ public final class CreatureCommunityData extends SavedData {
             community.materialsDelivered += amount;
         }
         community.forageFailures = 0;
+        data.setDirty();
+    }
+
+    /** Adds sellable credit for community-generated stock or actual provisioner deliveries. */
+    public static void recordTradeDeposit(
+            ChangedEntity creature, ItemStack delivered, int amount) {
+        if (!(creature.level() instanceof ServerLevel level)
+                || delivered.isEmpty() || amount <= 0) {
+            return;
+        }
+        CreatureCommunityData data = get(level.getServer());
+        Community community = data.bindInternal(level, creature);
+        community.addTradeStock(delivered, amount);
+        community.tradeRevision++;
+        data.setDirty();
+    }
+
+    public static List<TradeStock> tradeStock(ChangedEntity creature) {
+        if (!(creature.level() instanceof ServerLevel level)) {
+            return List.of();
+        }
+        Community community = get(level.getServer()).bindInternal(level, creature);
+        return community.tradeStock.stream()
+                .filter(entry -> entry.count > 0 && !entry.stack.isEmpty())
+                .map(entry -> new TradeStock(entry.stack, entry.count))
+                .toList();
+    }
+
+    public static int tradeCredit(ChangedEntity creature, ItemStack stack) {
+        if (!(creature.level() instanceof ServerLevel level) || stack.isEmpty()) {
+            return 0;
+        }
+        return get(level.getServer()).bindInternal(level, creature).tradeStock.stream()
+                .filter(entry -> ItemStack.isSameItemSameTags(entry.stack, stack))
+                .mapToInt(entry -> entry.count)
+                .sum();
+    }
+
+    /** Reconciles delivery credit downward when cache contents were removed elsewhere. */
+    public static int capTradeCredit(
+            ChangedEntity creature, ItemStack stack, int maximum) {
+        if (!(creature.level() instanceof ServerLevel level) || stack.isEmpty()) {
+            return 0;
+        }
+        CreatureCommunityData data = get(level.getServer());
+        Community community = data.bindInternal(level, creature);
+        TradeStockEntry entry = community.findTradeStock(stack);
+        if (entry == null) {
+            return 0;
+        }
+        int capped = Math.max(0, Math.min(entry.count, maximum));
+        if (capped != entry.count) {
+            entry.count = capped;
+            if (capped == 0) {
+                community.tradeStock.remove(entry);
+            }
+            community.tradeRevision++;
+            data.setDirty();
+        }
+        return capped;
+    }
+
+    public static boolean consumeTradeCredit(
+            ChangedEntity creature, ItemStack stack, int amount) {
+        if (!(creature.level() instanceof ServerLevel level)
+                || stack.isEmpty() || amount <= 0) {
+            return false;
+        }
+        CreatureCommunityData data = get(level.getServer());
+        Community community = data.bindInternal(level, creature);
+        TradeStockEntry entry = community.findTradeStock(stack);
+        if (entry == null || entry.count < amount) {
+            return false;
+        }
+        entry.count -= amount;
+        if (entry.count == 0) {
+            community.tradeStock.remove(entry);
+        }
+        community.tradeRevision++;
+        data.setDirty();
+        return true;
+    }
+
+    public static void restoreTradeCredit(
+            ChangedEntity creature, ItemStack stack, int amount) {
+        if (!(creature.level() instanceof ServerLevel level)
+                || stack.isEmpty() || amount <= 0) {
+            return;
+        }
+        CreatureCommunityData data = get(level.getServer());
+        Community community = data.bindInternal(level, creature);
+        community.addTradeStock(stack, amount);
+        community.tradeRevision++;
         data.setDirty();
     }
 
@@ -337,6 +458,9 @@ public final class CreatureCommunityData extends SavedData {
                 creature.getPersistentData().putUUID(COMMUNITY_ID, existing.id);
             }
             touch(existing, level.getGameTime());
+            if (existing.members.add(creature.getUUID())) {
+                setDirty();
+            }
             return existing;
         }
 
@@ -364,6 +488,9 @@ public final class CreatureCommunityData extends SavedData {
             setDirty();
         }
         creature.getPersistentData().putUUID(COMMUNITY_ID, nearest.id);
+        if (nearest.members.add(creature.getUUID())) {
+            setDirty();
+        }
         touch(nearest, level.getGameTime());
         return nearest;
     }
@@ -544,6 +671,10 @@ public final class CreatureCommunityData extends SavedData {
         owner.orangeStock = saturatedAdd(owner.orangeStock, duplicate.orangeStock);
         owner.materialsDelivered = saturatedAdd(
                 owner.materialsDelivered, duplicate.materialsDelivered);
+        duplicate.tradeStock.forEach(entry ->
+                owner.addTradeStock(entry.stack, entry.count));
+        owner.members.addAll(duplicate.members);
+        owner.tradeRevision = Math.max(owner.tradeRevision, duplicate.tradeRevision) + 1L;
         owner.forageFailures = Math.max(
                 owner.forageFailures, duplicate.forageFailures);
         owner.migrations = saturatedAdd(owner.migrations, duplicate.migrations);
@@ -641,6 +772,9 @@ public final class CreatureCommunityData extends SavedData {
         private int foodDelivered;
         private int orangeStock;
         private int materialsDelivered;
+        private final List<TradeStockEntry> tradeStock = new java.util.ArrayList<>();
+        private final Set<UUID> members = new HashSet<>();
+        private long tradeRevision;
         private int forageFailures;
         private int migrations;
         private final long createdTick;
@@ -680,7 +814,9 @@ public final class CreatureCommunityData extends SavedData {
                     migrations,
                     createdTick,
                     lastSeenTick,
-                    lastMigrationTick);
+                    lastMigrationTick,
+                    members.size(),
+                    tradeRevision);
         }
 
         private CompoundTag save() {
@@ -702,6 +838,25 @@ public final class CreatureCommunityData extends SavedData {
             tag.putLong("LastSeen", lastSeenTick);
             tag.putLong("LastFailure", lastFailureTick);
             tag.putLong("LastMigration", lastMigrationTick);
+            tag.putLong("TradeRevision", tradeRevision);
+            ListTag stock = new ListTag();
+            for (TradeStockEntry entry : tradeStock) {
+                if (entry.count <= 0 || entry.stack.isEmpty()) {
+                    continue;
+                }
+                CompoundTag saved = new CompoundTag();
+                saved.put("Stack", entry.stack.copyWithCount(1).save(new CompoundTag()));
+                saved.putInt("Count", entry.count);
+                stock.add(saved);
+            }
+            tag.put("TradeStock", stock);
+            ListTag savedMembers = new ListTag();
+            for (UUID member : members) {
+                CompoundTag saved = new CompoundTag();
+                saved.putUUID("Id", member);
+                savedMembers.add(saved);
+            }
+            tag.put("Members", savedMembers);
             return tag;
         }
 
@@ -735,7 +890,59 @@ public final class CreatureCommunityData extends SavedData {
             community.migrations = tag.getInt("Migrations");
             community.lastFailureTick = tag.getLong("LastFailure");
             community.lastMigrationTick = tag.getLong("LastMigration");
+            community.tradeRevision = tag.getLong("TradeRevision");
+            if (tag.contains("TradeStock", Tag.TAG_LIST)) {
+                ListTag stock = tag.getList("TradeStock", Tag.TAG_COMPOUND);
+                for (int i = 0; i < stock.size(); i++) {
+                    CompoundTag saved = stock.getCompound(i);
+                    ItemStack stack = ItemStack.of(saved.getCompound("Stack"));
+                    int count = saved.getInt("Count");
+                    if (!stack.isEmpty() && count > 0) {
+                        community.addTradeStock(stack, count);
+                    }
+                }
+            }
+            if (tag.contains("Members", Tag.TAG_LIST)) {
+                ListTag members = tag.getList("Members", Tag.TAG_COMPOUND);
+                for (int i = 0; i < members.size(); i++) {
+                    CompoundTag saved = members.getCompound(i);
+                    if (saved.hasUUID("Id")) {
+                        community.members.add(saved.getUUID("Id"));
+                    }
+                }
+            }
             return community;
+        }
+
+        @Nullable
+        private TradeStockEntry findTradeStock(ItemStack stack) {
+            return tradeStock.stream()
+                    .filter(entry -> ItemStack.isSameItemSameTags(entry.stack, stack))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        private void addTradeStock(ItemStack stack, int amount) {
+            if (stack.isEmpty() || amount <= 0) {
+                return;
+            }
+            TradeStockEntry entry = findTradeStock(stack);
+            if (entry == null) {
+                tradeStock.add(new TradeStockEntry(stack.copyWithCount(1), amount));
+            } else {
+                entry.count = saturatedAdd(entry.count, amount);
+            }
+        }
+
+    }
+
+    private static final class TradeStockEntry {
+        private final ItemStack stack;
+        private int count;
+
+        private TradeStockEntry(ItemStack stack, int count) {
+            this.stack = stack;
+            this.count = Math.max(0, count);
         }
     }
 }

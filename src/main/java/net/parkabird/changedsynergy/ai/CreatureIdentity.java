@@ -130,6 +130,29 @@ public final class CreatureIdentity {
         return generatedIntroductionName(identity);
     }
 
+    /** Groups real species by the kinds of sounds their anatomy can make. */
+    public static String vocalizationProfile(ChangedEntity mob) {
+        if (CreatureSocialProfile.isJuvenile(mob)) {
+            ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(mob.getType());
+            String path = id == null ? "" : id.getPath();
+            return path.contains("wolf") ? "canine" : "small_mammal";
+        }
+        return switch (SpeciesProfile.of(mob)) {
+            case WOLF, FOX, DOG, CERBERUS -> "canine";
+            case CAT, BIG_CAT -> "feline";
+            case SHARK, ORCA, RAY, EEL, SQUID_DOG, SIREN -> "aquatic";
+            case DRAGON, WYVERN, YUFENG -> "draconic";
+            case AVIAN -> "avian";
+            case DEER, RABBIT -> "herbivore";
+            case SMALL_MAMMAL -> "small_mammal";
+            case INSECT -> "insect";
+            case REPTILE -> "reptile";
+            case HYBRID -> "hybrid";
+            case CENTAUR, KNIGHT, ROYAL, EXPERIMENT, PUDDING,
+                    ALIEN, JUVENILE, OTHER -> "humanoid";
+        };
+    }
+
     /** Applies a changed persistence gamerule without touching identity or relationship NBT. */
     public static void reconcilePersistence(ChangedEntity mob) {
         CompoundTag identity = existingData(mob);

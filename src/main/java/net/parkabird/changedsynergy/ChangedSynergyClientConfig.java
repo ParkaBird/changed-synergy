@@ -23,13 +23,18 @@ public final class ChangedSynergyClientConfig {
         public final ForgeConfigSpec.DoubleValue legacyTransfurScreenOpacity;
         public final ForgeConfigSpec.BooleanValue friendlySuitVignette;
         public final ForgeConfigSpec.DoubleValue friendlySuitVignetteOpacity;
+        public final ForgeConfigSpec.BooleanValue disablePureWhiteVisionOverlays;
         public final ForgeConfigSpec.BooleanValue telepathicDanmaku;
+        public final ForgeConfigSpec.DoubleValue popupHeightOffset;
+        public final ForgeConfigSpec.DoubleValue danmakuHeightOffset;
         public final ForgeConfigSpec.EnumValue<DialogueDisplayMode>
                 dialogueDisplayMode;
         public final ForgeConfigSpec.BooleanValue territoryHud;
         public final ForgeConfigSpec.BooleanValue mechanicHints;
+        public final ForgeConfigSpec.BooleanValue negotiationNextStepHint;
         public final ForgeConfigSpec.BooleanValue qteAnimations;
         public final ForgeConfigSpec.BooleanValue reducedQteMotion;
+        public final ForgeConfigSpec.BooleanValue exoskeletonHypnosisVisual;
 
         private Client(ForgeConfigSpec.Builder builder) {
             builder.comment("Optional Changed 0.13-style transfur feedback").push("LEGACY TRANSFUR VISUALS");
@@ -48,6 +53,13 @@ public final class ChangedSynergyClientConfig {
                     .defineInRange("LegacyTransfurScreenOpacity", 1.0, 0.0, 1.0);
             builder.pop();
 
+            builder.comment("Pure-white transformed vision").push("PURE WHITE VISION");
+            disablePureWhiteVisionOverlays = builder
+                    .comment("Remove both Changed's reduced-vision veil and Synergy's pure-white consensus post-process.",
+                            "Target outlines and pure-white gameplay mechanics remain available.")
+                    .define("DisablePureWhiteVisionOverlays", false);
+            builder.pop();
+
             builder.comment("Friendly wrapping feedback").push("FRIENDLY SUIT VISUALS");
             friendlySuitVignette = builder
                     .comment("Show a soft, texture-free theme-colored veil while wrapped by a pet or bonded creature.")
@@ -58,6 +70,10 @@ public final class ChangedSynergyClientConfig {
             builder.pop();
 
             builder.comment("Telepathic dialogue presentation").push("TELEPATHY");
+            popupHeightOffset = builder.comment("Popup vertical offset as a fraction of screen height. Negative moves up; positive moves down.")
+                    .defineInRange("PopupHeightOffset", 0.0D, -0.75D, 0.75D);
+            danmakuHeightOffset = builder.comment("Scrolling dialogue vertical offset as a fraction of screen height. Clamped to visible screen bounds.")
+                    .defineInRange("DanmakuHeightOffset", 0.0D, -0.75D, 0.75D);
             telepathicDanmaku = builder
                     .comment("Show ordinary creature speech in the lightweight on-screen overlay.",
                             "When disabled, those lines fall back to the chat box.")
@@ -78,16 +94,23 @@ public final class ChangedSynergyClientConfig {
                     .comment("Show contextual top-right hints for Synergy interactions.",
                             "Each hint is remembered after it has been shown once.")
                     .define("MechanicHints", true);
+            negotiationNextStepHint = builder
+                    .comment("Show the fallible suggested next approach in negotiation.",
+                            "Offering food makes later suggestions more reliable.")
+                    .define("NegotiationNextStepHint", true);
             builder.pop();
 
-            builder.comment("Grab and hypnosis QTE presentation").push("QTE VISUALS");
+            builder.comment("Grab QTE and hypnosis-struggle presentation").push("QTE VISUALS");
             qteAnimations = builder
-                    .comment("Enable animated grab and hypnosis QTE interfaces.",
+                    .comment("Enable animated grab QTE and hypnosis-struggle interfaces.",
                             "Disabling this restores the simpler static presentation.")
                     .define("QteAnimations", true);
             reducedQteMotion = builder
                     .comment("Keep fades and input feedback while removing UI shake, drift and large scaling motion.")
                     .define("ReducedQteMotion", false);
+            exoskeletonHypnosisVisual = builder
+                    .comment("Show the exoskeleton hypnosis visual and status log on this client.")
+                    .define("ExoskeletonHypnosisVisual", true);
             builder.pop();
         }
     }

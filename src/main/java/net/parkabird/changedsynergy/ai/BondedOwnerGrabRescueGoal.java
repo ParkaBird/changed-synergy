@@ -13,6 +13,7 @@ import net.ltxprogrammer.changed.network.packet.GrabEntityPacket.GrabType;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
@@ -31,6 +32,7 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
     private static final double ATTACK_REACH_SQR = 2.75D * 2.75D;
 
     private final ChangedEntity pet;
+    private final CompanionFollowNavigation followNavigation;
     private ServerPlayer owner;
     private LivingEntity grabberEntity;
     private GrabEntityAbilityInstance grabAbility;
@@ -38,6 +40,7 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
 
     public BondedOwnerGrabRescueGoal(ChangedEntity pet) {
         this.pet = pet;
+        this.followNavigation = new CompanionFollowNavigation(pet);
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.TARGET));
     }
 
@@ -88,6 +91,7 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
     @Override
     public void start() {
         repathTicks = 0;
+        followNavigation.reset();
         pet.setTarget(grabberEntity);
         NpcDialogue.emoteOnly(pet, Emote.ANGRY);
     }
@@ -109,15 +113,27 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
             return;
         }
 
+        followNavigation.tickProgress(true);
+        if (followNavigation.isStalled()
+                && pet.level() instanceof ServerLevel level) {
+            boolean recovered = BondedTeleportSafety.teleportNearOwner(
+                    level, pet, owner);
+            followNavigation.resetProgress();
+            if (recovered) {
+                return;
+            }
+        }
+
         if (--repathTicks <= 0 || pet.getNavigation().isDone()) {
             repathTicks = 5;
-            pet.getNavigation().moveTo(grabberEntity, RESCUE_SPEED);
+            followNavigation.moveToward(grabberEntity, RESCUE_SPEED);
         }
     }
 
     @Override
     public void stop() {
         pet.getNavigation().stop();
+        followNavigation.reset();
         if (grabberEntity != null && grabberEntity.isAlive()) {
             // The rescue ends the hold, not the fight.
             pet.setTarget(grabberEntity);

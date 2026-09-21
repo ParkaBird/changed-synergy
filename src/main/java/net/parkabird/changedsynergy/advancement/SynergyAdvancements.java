@@ -14,6 +14,8 @@ public final class SynergyAdvancements {
     public static final String BONDED_COMPANION = "bonded_companion";
     public static final String PROTECTED_BY_SYNERGY = "protected_by_synergy";
     public static final String HYPNOSIS_ESCAPE = "hypnosis_escape";
+    public static final String TAKEOVER_BREAKOUT = "takeover_breakout";
+    public static final String WRAPPED_SLEEP = "wrapped_sleep";
     public static final String FACTION_ALLY = "faction_ally";
     public static final String WHITE_HIVE_CONSENSUS =
             "white_hive_consensus";
@@ -33,6 +35,7 @@ public final class SynergyAdvancements {
             "aquatic_faction_allied";
     public static final String LIGHT_FACTION_ALLIED =
             "light_faction_allied";
+    /** Legacy ID retained; now awards simultaneous respect across all political accounts. */
     public static final String ALL_FACTIONS_ALLIED =
             "all_factions_allied";
     public static final String MYSTERIOUS_FORAGING_SPOT =

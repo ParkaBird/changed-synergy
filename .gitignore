@@ -29,11 +29,16 @@ libs/*.jar
 libs/changedaddon_extracted/
 
 # Local audit/build artifacts (never publish)
+.diagnostics/
 .codex-tmp/
+.codex-crash-*/
+.codex-di-decompile/
 .changed-synergy-backups/
 recovery_backups/
 release_backups/
 .local-artifacts/
+analysis/
+logs/
 dist/
 latex_moth_high_style_export/
 mcmodsrepo/

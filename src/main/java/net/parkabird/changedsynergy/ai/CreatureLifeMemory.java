@@ -1,30 +1,21 @@
 package net.parkabird.changedsynergy.ai;
 
 import java.util.Locale;
-import java.util.Optional;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.server.level.ServerLevel;
-import net.parkabird.changedsynergy.dialogue.LatexTerritory;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 
 /**
  * Stable, versioned life data used by role-driven community work.
  *
- * <p>Legacy anchor and schedule fields are still read so old worlds migrate
- * safely, but they no longer drive creature movement. Communities may own a
- * cache; individual creatures no longer own an activity centre or timetable.</p>
+ * <p>Communities own shared locations. Individual creatures retain only their
+ * role, current routine and role-specific progress.</p>
  */
 public final class CreatureLifeMemory {
     private static final String ROOT = "ChangedSynergyLife";
     private static final String VERSION = "Version";
-    private static final String ANCHOR_KIND = "AnchorKind";
-    private static final String ANCHOR_DIMENSION = "AnchorDimension";
-    private static final String ANCHOR_POS = "AnchorPos";
     private static final String ROLE = "GroupRole";
-    private static final String SCHEDULE_OFFSET = "ScheduleOffset";
     private static final String ROUTINE = "Routine";
     private static final String LAST_ROUTINE = "LastRoutine";
     private static final String ROUTINE_SINCE = "RoutineSince";
@@ -32,38 +23,9 @@ public final class CreatureLifeMemory {
     private static final String ROLE_STAT_0 = "RoleStat0";
     private static final String ROLE_STAT_1 = "RoleStat1";
     private static final String ROLE_STAT_2 = "RoleStat2";
-    private static final int CURRENT_VERSION = 2;
-    private static final double CONSENSUS_REFRESH_DISTANCE_SQR = 48.0D * 48.0D;
+    private static final int CURRENT_VERSION = 3;
 
     private CreatureLifeMemory() {
-    }
-
-    public enum AnchorKind {
-        ACTIVITY_RANGE("activity_range"),
-        PATROL_POST("patrol_post"),
-        FACILITY_ROOM("facility_room"),
-        WATER_ROUTE("water_route"),
-        PERCH("perch"),
-        CONSENSUS("consensus");
-
-        private final String id;
-
-        AnchorKind(String id) {
-            this.id = id;
-        }
-
-        public String id() {
-            return id;
-        }
-
-        public static AnchorKind fromId(String id) {
-            for (AnchorKind value : values()) {
-                if (value.id.equalsIgnoreCase(id)) {
-                    return value;
-                }
-            }
-            return ACTIVITY_RANGE;
-        }
     }
 
     public enum GroupRole {
@@ -146,9 +108,6 @@ public final class CreatureLifeMemory {
     }
 
     public record Snapshot(
-            AnchorKind anchorKind,
-            String dimension,
-            BlockPos anchor,
             GroupRole role,
             RoutineState routine,
             RoutineState lastRoutine,
@@ -173,20 +132,15 @@ public final class CreatureLifeMemory {
         CompoundTag life = data(mob);
         boolean fresh = !life.contains(VERSION, Tag.TAG_INT);
         HunterFaction faction = HunterFaction.of(mob);
-        AnchorKind expected = initialAnchorKind(mob, faction);
 
         if (fresh || !life.contains(ROLE, Tag.TAG_STRING)) {
             life.putString(ROLE, assignRole(mob, faction).id());
         }
-        // SCHEDULE_OFFSET is intentionally no longer created or consulted.
-        if (fresh || !life.contains(ANCHOR_POS, Tag.TAG_LONG)
-                || !life.contains(ANCHOR_DIMENSION, Tag.TAG_STRING)) {
-            writeAnchor(mob, life, expected, initialAnchor(mob, expected));
-        } else if (faction == HunterFaction.WHITE
-                && AnchorKind.fromId(life.getString(ANCHOR_KIND)) != AnchorKind.CONSENSUS) {
-            // Migration from an ordinary fixed home to a mobile local consensus.
-            writeAnchor(mob, life, AnchorKind.CONSENSUS,
-                    consensusFocus(mob.blockPosition()));
+        if (fresh || life.getInt(VERSION) < CURRENT_VERSION) {
+            life.remove("AnchorKind");
+            life.remove("AnchorDimension");
+            life.remove("AnchorPos");
+            life.remove("ScheduleOffset");
         }
         if (!life.contains(ROUTINE, Tag.TAG_STRING)) {
             life.putString(ROUTINE, RoutineState.IDLE.id());
@@ -205,9 +159,6 @@ public final class CreatureLifeMemory {
         ensure(mob);
         CompoundTag life = data(mob);
         return new Snapshot(
-                AnchorKind.fromId(life.getString(ANCHOR_KIND)),
-                life.getString(ANCHOR_DIMENSION),
-                BlockPos.of(life.getLong(ANCHOR_POS)),
                 role(mob),
                 RoutineState.fromId(life.getString(ROUTINE)),
                 RoutineState.fromId(life.getString(LAST_ROUTINE)),
@@ -259,53 +210,6 @@ public final class CreatureLifeMemory {
         life.putInt(key, Math.min(Integer.MAX_VALUE - 1, life.getInt(key) + 1));
     }
 
-    public static Optional<BlockPos> centerInCurrentDimension(ChangedEntity mob) {
-        ensure(mob);
-        CompoundTag life = data(mob);
-        if (!life.contains(ANCHOR_POS, Tag.TAG_LONG)
-                || !mob.level().dimension().location().toString()
-                        .equals(life.getString(ANCHOR_DIMENSION))) {
-            return Optional.empty();
-        }
-        return Optional.of(BlockPos.of(life.getLong(ANCHOR_POS)));
-    }
-
-    public static AnchorKind anchorKind(ChangedEntity mob) {
-        ensure(mob);
-        return AnchorKind.fromId(data(mob).getString(ANCHOR_KIND));
-    }
-
-    public static void setCenterHere(ChangedEntity mob) {
-        ensure(mob);
-        HunterFaction faction = HunterFaction.of(mob);
-        AnchorKind kind = initialAnchorKind(mob, faction);
-        writeAnchor(mob, data(mob), kind, initialAnchor(mob, kind));
-        scheduleNextDecision(mob, mob.level().getGameTime() + 20L);
-    }
-
-    /** Applies a shared community centre without turning white consensus into a home. */
-    public static void applyCommunityCenter(ChangedEntity mob, BlockPos center) {
-        ensure(mob);
-        if (HunterFaction.of(mob) == HunterFaction.WHITE) {
-            return;
-        }
-        CompoundTag life = data(mob);
-        BlockPos current = life.contains(ANCHOR_POS, Tag.TAG_LONG)
-                ? BlockPos.of(life.getLong(ANCHOR_POS)) : mob.blockPosition();
-        if (current.equals(center)
-                && mob.level().dimension().location().toString()
-                        .equals(life.getString(ANCHOR_DIMENSION))) {
-            return;
-        }
-        AnchorKind kind = AnchorKind.fromId(life.getString(ANCHOR_KIND));
-        if (kind == AnchorKind.CONSENSUS) {
-            kind = initialAnchorKind(mob, HunterFaction.of(mob));
-        }
-        writeAnchor(mob, life, kind, center);
-        scheduleNextDecision(mob, Math.min(
-                nextDecisionTick(mob), mob.level().getGameTime() + 20L));
-    }
-
     public static void reset(ChangedEntity mob) {
         mob.getPersistentData().remove(ROOT);
         ensure(mob);
@@ -342,69 +246,6 @@ public final class CreatureLifeMemory {
 
     public static void scheduleNextDecision(ChangedEntity mob, long tick) {
         data(mob).putLong(NEXT_DECISION, tick);
-    }
-
-    /** Retained as a no-op compatibility API for pre-compression callers. */
-    public static int scheduleOffset(ChangedEntity mob) {
-        return 0;
-    }
-
-    /** Keeps a white-latex focus local without turning it into a return-home point. */
-    public static void refreshConsensusFocus(ChangedEntity mob) {
-        if (HunterFaction.of(mob) != HunterFaction.WHITE) {
-            return;
-        }
-        CompoundTag life = data(mob);
-        BlockPos old = life.contains(ANCHOR_POS, Tag.TAG_LONG)
-                ? BlockPos.of(life.getLong(ANCHOR_POS)) : mob.blockPosition();
-        boolean otherDimension = !mob.level().dimension().location().toString()
-                .equals(life.getString(ANCHOR_DIMENSION));
-        if (otherDimension || old.distSqr(mob.blockPosition())
-                > CONSENSUS_REFRESH_DISTANCE_SQR) {
-            writeAnchor(mob, life, AnchorKind.CONSENSUS,
-                    consensusFocus(mob.blockPosition()));
-        }
-    }
-
-    private static AnchorKind initialAnchorKind(
-            ChangedEntity mob,
-            HunterFaction faction) {
-        if (faction == HunterFaction.WHITE) {
-            return AnchorKind.CONSENSUS;
-        }
-        if (mob.level() instanceof ServerLevel level
-                && LatexTerritory.facilityFactionAt(level, mob.blockPosition()) != null) {
-            return AnchorKind.FACILITY_ROOM;
-        }
-        return switch (HunterArchetype.of(mob)) {
-            case AQUATIC -> AnchorKind.WATER_ROUTE;
-            case AVIAN -> AnchorKind.PERCH;
-            case SOLDIER, ROYAL -> AnchorKind.PATROL_POST;
-            default -> AnchorKind.ACTIVITY_RANGE;
-        };
-    }
-
-    private static BlockPos initialAnchor(ChangedEntity mob, AnchorKind kind) {
-        return kind == AnchorKind.CONSENSUS
-                ? consensusFocus(mob.blockPosition()) : mob.blockPosition();
-    }
-
-    private static BlockPos consensusFocus(BlockPos position) {
-        // A 32-block cell is a local meeting focus, not ownership or a nest.
-        int x = Math.floorDiv(position.getX(), 32) * 32 + 16;
-        int z = Math.floorDiv(position.getZ(), 32) * 32 + 16;
-        return new BlockPos(x, position.getY(), z);
-    }
-
-    private static void writeAnchor(
-            ChangedEntity mob,
-            CompoundTag life,
-            AnchorKind kind,
-            BlockPos position) {
-        life.putString(ANCHOR_KIND, kind.id());
-        life.putString(ANCHOR_DIMENSION,
-                mob.level().dimension().location().toString());
-        life.putLong(ANCHOR_POS, position.asLong());
     }
 
     private static GroupRole assignRole(

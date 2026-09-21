@@ -11,3 +11,7 @@ The first public release should favor fixes, compatibility and performance measu
 5. Review mixins after every supported Changed or Changed Addon Plus update.
 
 Larger mechanics should wait until the beta has enough field data to show which systems players actually use.
+
+Detailed post-stable concepts are recorded in
+[Future community design memo](FUTURE_COMMUNITY_DESIGN.md). They are design
+notes rather than announced or guaranteed features.

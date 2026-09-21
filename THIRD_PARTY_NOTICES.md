@@ -20,6 +20,44 @@ Synergy has optional basic compatibility with [Changed Additions](https://github
 
 Source: <https://github.com/Foxyas/Changed-Additions>
 
+## Changed Vanilla
+
+Synergy has optional compatibility with
+[Changed Vanilla](https://www.curseforge.com/minecraft/mc-mods/changed-vanilla),
+created by LtxProgrammer. Changed Vanilla is distributed under the MIT License.
+Synergy recognizes its registered forms and preserves its dedicated mob
+conversion behavior, but does not bundle its code, assets or JAR.
+
+Source: <https://github.com/LtxProgrammer/Changed-Vanilla>
+
+## GD656Peek
+
+The automatic taur-rider side lean was visually inspired by GD656Peek,
+created by Minecraft_GD656 and distributed under the MIT License. Synergy's
+implementation is self-contained, limited to supported taur riding, and does
+not bundle GD656Peek's code, assets or JAR.
+
+## Furmutage
+
+Synergy includes optional coexistence handling for Furmutage 0.1. Furmutage's
+entities are recognized only by their registered namespace and excluded from
+Synergy systems; no Furmutage code or assets are bundled. The supplied mod
+metadata identifies Furmutage as MIT-licensed.
+
+## Changed: Survive Protocol
+
+Synergy includes optional load-order metadata for Changed: Survive Protocol
+1.2.0 and does not bundle or link against its implementation. The supplied mod
+metadata identifies Changed: Survive Protocol as CC-BY-ND.
+
+## Better Combat
+
+Synergy includes an optional client-side compatibility hook for
+[Better Combat](https://github.com/ZsoltMolnarrr/BetterCombat), created by
+Daedelus and distributed under GPL-3.0. The hook only removes Synergy's hidden
+friendly wrapping entity from Better Combat's local attack-target candidates;
+no Better Combat code, assets or JAR are bundled.
+
 ## Minecraft and other integrations
 
 Minecraft is a trademark of Microsoft. Synergy is not affiliated with or endorsed by Microsoft or Mojang Studios.

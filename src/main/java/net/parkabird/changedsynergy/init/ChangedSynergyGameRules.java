@@ -22,6 +22,9 @@ public final class ChangedSynergyGameRules {
                     GameRules.BooleanValue.create(true));
     public static final GameRules.Key<GameRules.BooleanValue> FACTION_REPUTATION =
             enabledByDefault("changedSynergyFactionReputation", GameRules.Category.PLAYER);
+    public static final GameRules.Key<GameRules.IntegerValue> INITIAL_FACTION_REPUTATION =
+            GameRules.register("changedSynergyInitialFactionReputation",
+                    GameRules.Category.PLAYER, GameRules.IntegerValue.create(0));
     public static final GameRules.Key<GameRules.BooleanValue> BOND_SYSTEM =
             enabledByDefault("changedSynergyBondSystem", GameRules.Category.MOBS);
     public static final GameRules.Key<GameRules.BooleanValue> FRIENDSHIP_SYSTEM =
@@ -54,6 +57,12 @@ public final class ChangedSynergyGameRules {
     public static boolean socialSystemsEnabled(Level level) {
         return enabled(level, BOND_SYSTEM)
                 || enabled(level, FRIENDSHIP_SYSTEM);
+    }
+
+    public static int initialFactionReputation(Level level) {
+        if (level == null) return 0;
+        return Math.max(-100, Math.min(100,
+                level.getGameRules().getInt(INITIAL_FACTION_REPUTATION)));
     }
 
     private static GameRules.Key<GameRules.BooleanValue> enabledByDefault(

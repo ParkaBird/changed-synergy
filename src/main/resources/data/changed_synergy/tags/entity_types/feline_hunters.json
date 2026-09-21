@@ -1,4 +1,13 @@
 {
   "replace": false,
-  "values": []
+  "values": [
+    {
+      "id": "changedvanilla:latex_cat",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_ocelot",
+      "required": false
+    }
+  ]
 }

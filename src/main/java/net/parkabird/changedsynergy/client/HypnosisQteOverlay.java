@@ -1,8 +1,6 @@
 package net.parkabird.changedsynergy.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import java.util.Locale;
-import net.ltxprogrammer.changed.ability.AbstractAbilityInstance.KeyReference;
 import net.ltxprogrammer.changed.client.gui.GrabOverlay;
 import net.ltxprogrammer.changed.util.Color3;
 import net.minecraft.client.Minecraft;
@@ -29,9 +27,6 @@ public final class HypnosisQteOverlay {
     private static final ResourceLocation GRAB_PROGRESS_BAR =
             ResourceLocation.fromNamespaceAndPath(
                     "changed", "textures/gui/grab_progress_bar_player.png");
-    private static final ResourceLocation GRAB_ESCAPE_KEYS =
-            ResourceLocation.fromNamespaceAndPath(
-                    "changed", "textures/gui/grab_escape_keys.png");
 
     private HypnosisQteOverlay() {
     }
@@ -60,7 +55,8 @@ public final class HypnosisQteOverlay {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         if (state.state() == HypnosisQteSyncPacket.ACTIVE) {
-            renderActiveQte(gui, graphics, partialTick, screenWidth, screenHeight, state);
+            renderActiveGazeContest(
+                    gui, graphics, partialTick, screenWidth, screenHeight, state);
         } else {
             renderResult(
                     gui,
@@ -73,7 +69,7 @@ public final class HypnosisQteOverlay {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    private static void renderActiveQte(
+    private static void renderActiveGazeContest(
             ForgeGui gui,
             GuiGraphics graphics,
             float partialTick,
@@ -92,6 +88,9 @@ public final class HypnosisQteOverlay {
         float entry = HypnosisQteAnimationState.entryProgress();
         float reveal = animated && !reducedMotion ? entry : 1.0F;
 
+        float resistance = Mth.clamp(state.resistance(), 0.0F, 1.0F);
+        float gazeAlignment = HypnosisQteClientState.gazeAlignment();
+
         if (animated) {
             renderFocusReticle(
                     graphics,
@@ -99,7 +98,7 @@ public final class HypnosisQteOverlay {
                     centerX,
                     centerY - 1,
                     themeRgb,
-                    state.controlStrength(),
+                    gazeAlignment,
                     entry);
         }
 
@@ -113,19 +112,18 @@ public final class HypnosisQteOverlay {
                 graphics, GRAB_PROGRESS_BAR, barX, barY, 200, 32, background);
         GrabOverlay.renderForeground(
                 graphics, GRAB_PROGRESS_BAR, barX, barY, 200, 32,
-                Mth.clamp(state.controlStrength(), 0.0F, 1.0F), theme);
+                resistance, theme);
         graphics.disableScissor();
 
         int timeWidth = Math.round(196.0F * Mth.clamp(
-                HypnosisQteClientState.ticksRemaining() / 120.0F,
+                HypnosisQteClientState.ticksRemaining() / 160.0F,
                 0.0F,
                 1.0F));
         graphics.fill(barX + 2, barY + 30, barX + 2 + Math.max(0, timeWidth),
                 barY + 32, withAlpha(theme.toInt(), 190));
 
-        Component title = state.expectedKey() < 0
-                ? Component.translatable("overlay.changed_synergy.hypnosis.focus")
-                : Component.translatable("overlay.changed_synergy.hypnosis.title");
+        Component title = Component.translatable(
+                "overlay.changed_synergy.hypnosis.look_away");
         float titleAlpha = animated
                 ? QteAnimationUtil.smooth((entry - 0.52F) / 0.48F)
                 : 1.0F;
@@ -135,61 +133,14 @@ public final class HypnosisQteOverlay {
                         brightenRgb(themeRgb, 0.48F),
                         Math.round(titleAlpha * 255.0F)));
 
-        int keyX = centerX - 8;
-        int keyY = centerY + 20;
-        float ticksUnpressed = HypnosisQteClientState.ticksUnpressed() + partialTick;
-        KeyReference lastKey = key(state.lastKey());
-        if (lastKey != null) {
-            if (animated) {
-                renderDepartingHypnosisKey(
-                        gui,
-                        graphics,
-                        keyX,
-                        keyY - 25,
-                        lastKey,
-                        ticksUnpressed,
-                        themeRgb,
-                        entry);
-            } else {
-                float alpha = Mth.clamp(
-                        (12.0F - ticksUnpressed) / 7.0F,
-                        0.0F,
-                        1.0F);
-                renderEscapeKeyAt(
-                        gui,
-                        graphics,
-                        keyX,
-                        keyY + animatePreviousKey(ticksUnpressed),
-                        lastKey,
-                        alpha,
-                        themeRgb);
-            }
-        }
-
-        KeyReference expectedKey = key(state.expectedKey());
-        if (expectedKey != null) {
-            if (animated) {
-                renderArrivingHypnosisKey(
-                        gui,
-                        graphics,
-                        partialTick,
-                        keyX,
-                        keyY - 25,
-                        expectedKey,
-                        themeRgb,
-                        state.controlStrength(),
-                        entry);
-            } else {
-                renderEscapeKeyAt(
-                        gui,
-                        graphics,
-                        keyX,
-                        keyY - 25,
-                        expectedKey,
-                        1.0F,
-                        themeRgb);
-            }
-        }
+        Component hint = Component.translatable(
+                gazeAlignment < 0.72F
+                        ? "overlay.changed_synergy.hypnosis.resisting"
+                        : "overlay.changed_synergy.hypnosis.captured");
+        graphics.drawCenteredString(
+                gui.getFont(), hint, centerX, barY + 37,
+                withAlpha(brightenRgb(themeRgb, 0.44F),
+                        Math.round(titleAlpha * 220.0F)));
     }
 
     private static void renderFocusReticle(
@@ -248,113 +199,6 @@ public final class HypnosisQteOverlay {
                         theme,
                         entry * (0.24F + pressure * 0.24F)));
         graphics.pose().popPose();
-    }
-
-    private static void renderDepartingHypnosisKey(
-            ForgeGui gui,
-            GuiGraphics graphics,
-            int x,
-            int y,
-            KeyReference key,
-            float ticksUnpressed,
-            int theme,
-            float entry) {
-        float progress = QteAnimationUtil.clamp(ticksUnpressed / 12.0F);
-        float eased = QteAnimationUtil.easeOutCubic(progress);
-        int travel = QteAnimationUtil.reducedMotion()
-                ? 0
-                : Math.round(16.0F * eased);
-        int movedX = x + QteAnimationUtil.directionX(key) * travel;
-        int movedY = y + QteAnimationUtil.directionY(key) * travel;
-        float alpha = 1.0F - QteAnimationUtil.smooth(
-                (progress - 0.12F) / 0.88F);
-        float scale = QteAnimationUtil.reducedMotion()
-                ? 1.0F
-                : progress < 0.2F
-                        ? Mth.lerp(progress / 0.2F, 1.0F, 0.86F)
-                        : Mth.lerp(
-                                (progress - 0.2F) / 0.8F,
-                                0.86F,
-                                1.10F);
-        renderKeyScaled(
-                gui,
-                graphics,
-                movedX,
-                movedY,
-                key,
-                scale,
-                alpha * entry,
-                theme);
-
-        int ripple = 10 + Math.round(17.0F * eased);
-        graphics.pose().pushPose();
-        graphics.pose().translate(x + 8, y + 8, 0.0F);
-        graphics.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(45.0F));
-        drawFrame(
-                graphics,
-                -ripple,
-                -ripple,
-                ripple,
-                ripple,
-                1,
-                QteAnimationUtil.withAlpha(
-                        theme,
-                        alpha * entry * 0.42F));
-        graphics.pose().popPose();
-    }
-
-    private static void renderArrivingHypnosisKey(
-            ForgeGui gui,
-            GuiGraphics graphics,
-            float partialTick,
-            int x,
-            int y,
-            KeyReference key,
-            int theme,
-            float controlStrength,
-            float entry) {
-        float keyProgress = HypnosisQteAnimationState.keyProgress();
-        float settled = QteAnimationUtil.clamp(keyProgress);
-        float ghost = 1.0F - settled;
-        if (!QteAnimationUtil.reducedMotion() && ghost > 0.02F) {
-            int distance = Math.round(18.0F * ghost);
-            int[][] offsets = {
-                {-distance, 0},
-                {distance, 0},
-                {0, -distance},
-                {0, distance}
-            };
-            for (int[] offset : offsets) {
-                renderEscapeKeyAt(
-                        gui,
-                        graphics,
-                        x + offset[0],
-                        y + offset[1],
-                        key,
-                        ghost * entry * 0.22F,
-                        theme);
-            }
-        }
-
-        Minecraft minecraft = Minecraft.getInstance();
-        float time = (minecraft.level == null
-                ? 0.0F
-                : minecraft.level.getGameTime()) + partialTick;
-        float pressure = Mth.clamp(controlStrength, 0.0F, 1.0F);
-        float pulse = QteAnimationUtil.reducedMotion()
-                ? 1.0F
-                : 1.0F + Mth.sin(time * 0.22F)
-                        * (0.010F + pressure * 0.018F);
-        float scale = (0.82F + 0.18F * keyProgress) * pulse;
-        renderKeyScaled(
-                gui,
-                graphics,
-                x,
-                y,
-                key,
-                scale,
-                settled * entry,
-                theme);
     }
 
     private static void renderResult(
@@ -523,15 +367,41 @@ public final class HypnosisQteOverlay {
                     graphics, partialTick, screenWidth, screenHeight, theme, intensity);
             return;
         }
+        renderActiveHypnosisVision(
+                graphics, partialTick, screenWidth, screenHeight, theme, theme, intensity,
+                reducedMotion);
+    }
+
+    /** The moving induction effect shown while hypnosis is actively being applied. */
+    private static void renderActiveHypnosisVision(
+            GuiGraphics graphics,
+            float partialTick,
+            int screenWidth,
+            int screenHeight,
+            int theme,
+            int alternate,
+            float intensity,
+            boolean reducedMotion) {
+        Minecraft minecraft = Minecraft.getInstance();
+        float time = (minecraft.level == null ? 0.0F : minecraft.level.getGameTime()) + partialTick;
+        float colorPhase = reducedMotion
+                ? 0.0F
+                : (1.0F - Mth.cos(time * Mth.TWO_PI / 80.0F)) * 0.5F;
+        int currentColor = blendVisionColor(theme, alternate, colorPhase);
         graphics.fill(0, 0, screenWidth, screenHeight,
-                withAlpha(theme, Math.round(22.0F * intensity)));
+                withAlpha(currentColor, Math.round(22.0F * intensity)));
 
         int edge = Math.max(18, Math.min(screenWidth, screenHeight) / 7);
         for (int layer = 0; layer < 6; layer++) {
             int inset = layer * edge / 6;
             int thickness = Math.max(2, edge / 6);
             int alpha = Math.round((62.0F - layer * 8.0F) * intensity);
-            int dark = withAlpha(scaleRgb(theme, 0.08F), alpha);
+            float layerPhase = reducedMotion
+                    ? layer % 2
+                    : (1.0F - Mth.cos(time * Mth.TWO_PI / 80.0F
+                            + layer * Mth.PI / 3.0F)) * 0.5F;
+            int dark = withAlpha(scaleRgb(
+                    blendVisionColor(theme, alternate, layerPhase), 0.08F), alpha);
             graphics.fill(inset, inset, screenWidth - inset, inset + thickness, dark);
             graphics.fill(inset, screenHeight - inset - thickness,
                     screenWidth - inset, screenHeight - inset, dark);
@@ -541,8 +411,6 @@ public final class HypnosisQteOverlay {
                     screenWidth - inset, screenHeight - inset - thickness, dark);
         }
 
-        Minecraft minecraft = Minecraft.getInstance();
-        float time = (minecraft.level == null ? 0.0F : minecraft.level.getGameTime()) + partialTick;
         int centerX = screenWidth / 2;
         int centerY = screenHeight / 2;
         int maxSize = Math.max(72, Math.min(screenWidth, screenHeight) / 2);
@@ -557,7 +425,12 @@ public final class HypnosisQteOverlay {
             graphics.pose().translate(centerX, centerY, 0.0F);
             graphics.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(
                     reducedMotion ? 45.0F : 45.0F + time * 0.35F));
-            drawFrame(graphics, -size, -size, size, size, 2, withAlpha(theme, alpha));
+            float framePhase = reducedMotion
+                    ? index % 2
+                    : (1.0F - Mth.cos(time * Mth.TWO_PI / 80.0F
+                            + index * Mth.PI)) * 0.5F;
+            drawFrame(graphics, -size, -size, size, size, 2,
+                    withAlpha(blendVisionColor(theme, alternate, framePhase), alpha));
             graphics.pose().popPose();
         }
 
@@ -566,7 +439,7 @@ public final class HypnosisQteOverlay {
                         ? 0.72F
                         : 0.5F + 0.5F * Mth.sin(time * 0.18F)));
         graphics.fill(0, centerY - 1, screenWidth, centerY + 1,
-                withAlpha(theme, shimmerAlpha));
+                withAlpha(currentColor, shimmerAlpha));
     }
 
     /** A slower, heavier pulse distinguishes Mesmerized from the active gaze. */
@@ -577,6 +450,22 @@ public final class HypnosisQteOverlay {
             int screenHeight,
             int theme,
             float intensity) {
+        renderMesmerizedVision(graphics, partialTick, screenWidth, screenHeight,
+                theme, theme, intensity);
+    }
+
+    /** Shares and slightly strengthens the existing induction visual for exoskeleton takeover. */
+    public static void renderTakeoverVision(GuiGraphics graphics, float partialTick,
+            int width, int height, float intensity) {
+        boolean reducedMotion = QteAnimationUtil.enabled()
+                && QteAnimationUtil.reducedMotion();
+        renderActiveHypnosisVision(graphics, partialTick, width, height,
+                0xFFE84C, 0xF53E69,
+                Mth.clamp(intensity * 1.18F, 0, 1), reducedMotion);
+    }
+
+    private static void renderMesmerizedVision(GuiGraphics graphics, float partialTick,
+            int screenWidth, int screenHeight, int theme, int alternate, float intensity) {
         Minecraft minecraft = Minecraft.getInstance();
         float time = (minecraft.level == null ? 0.0F : minecraft.level.getGameTime())
                 + partialTick;
@@ -629,36 +518,17 @@ public final class HypnosisQteOverlay {
                             ? 45.0F + ring * 30.0F
                             : -time * 0.22F + ring * 30.0F));
             drawFrame(graphics, -size, -size, size, size, 2,
-                    withAlpha(brightenRgb(theme, 0.18F), alpha));
+                    withAlpha(brightenRgb(blendVisionColor(theme, alternate,
+                            reducedMotion ? ring % 2 : (1 - Mth.cos(time * Mth.TWO_PI / 80
+                                    + ring * Mth.PI)) * 0.5F), 0.18F), alpha));
             graphics.pose().popPose();
         }
     }
 
-    private static void renderKeyScaled(
-            ForgeGui gui,
-            GuiGraphics graphics,
-            int x,
-            int y,
-            KeyReference key,
-            float scale,
-            float alpha,
-            int theme) {
-        if (alpha <= 0.02F) {
-            return;
-        }
-        graphics.pose().pushPose();
-        graphics.pose().translate(x + 8.0F, y + 8.0F, 0.0F);
-        graphics.pose().scale(scale, scale, 1.0F);
-        graphics.pose().translate(-(x + 8.0F), -(y + 8.0F), 0.0F);
-        renderEscapeKeyAt(
-                gui,
-                graphics,
-                x,
-                y,
-                key,
-                QteAnimationUtil.clamp(alpha),
-                theme);
-        graphics.pose().popPose();
+    private static int blendVisionColor(int first, int second, float weight) {
+        return Math.round(Mth.lerp(weight, first >> 16 & 255, second >> 16 & 255)) << 16
+                | Math.round(Mth.lerp(weight, first >> 8 & 255, second >> 8 & 255)) << 8
+                | Math.round(Mth.lerp(weight, first & 255, second & 255));
     }
 
     private static void drawCenteredScaledText(
@@ -692,60 +562,6 @@ public final class HypnosisQteOverlay {
         graphics.fill(right - thickness, top + thickness, right, bottom - thickness, color);
     }
 
-    private static void renderEscapeKeyAt(
-            ForgeGui gui,
-            GuiGraphics graphics,
-            int x,
-            int y,
-            KeyReference key,
-            float alpha,
-            int theme) {
-        if (alpha <= 0.05F) {
-            return;
-        }
-        int keyX = switch (key) {
-            case MOVE_FORWARD, MOVE_LEFT -> 0;
-            case MOVE_RIGHT, MOVE_BACKWARD -> 16;
-            default -> 0;
-        };
-        int keyY = switch (key) {
-            case MOVE_BACKWARD, MOVE_LEFT -> 16;
-            default -> 0;
-        };
-        graphics.setColor(
-                channel(theme, 16), channel(theme, 8), channel(theme, 0), alpha);
-        graphics.blit(GRAB_ESCAPE_KEYS, x, y, keyX, keyY, 16, 16, 32, 32);
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-
-        String keyName = key.getName(Minecraft.getInstance().level)
-                .getString().toUpperCase(Locale.ROOT);
-        Font font = gui.getFont();
-        int keyWidth = font.width(keyName);
-        graphics.drawString(
-                font,
-                keyName,
-                x + 8 - keyWidth / 2,
-                y + 5,
-                withAlpha(brightenRgb(theme, 0.62F), Math.round(alpha * 255.0F)),
-                false);
-    }
-
-    private static int animatePreviousKey(float ticksUnpressed) {
-        float progress = Mth.clamp(ticksUnpressed / 15.0F, 0.0F, 1.0F);
-        float remaining = 1.0F - progress;
-        return Math.round(25.0F - 50.0F * remaining * remaining * remaining);
-    }
-
-    private static KeyReference key(int index) {
-        return switch (index) {
-            case 0 -> KeyReference.MOVE_FORWARD;
-            case 1 -> KeyReference.MOVE_BACKWARD;
-            case 2 -> KeyReference.MOVE_LEFT;
-            case 3 -> KeyReference.MOVE_RIGHT;
-            default -> null;
-        };
-    }
-
     private static int withAlpha(int rgb, int alpha) {
         return Mth.clamp(alpha, 0, 255) << 24 | rgb & 0x00FFFFFF;
     }
@@ -764,7 +580,4 @@ public final class HypnosisQteOverlay {
         return red << 16 | green << 8 | blue;
     }
 
-    private static float channel(int rgb, int shift) {
-        return ((rgb >> shift) & 0xFF) / 255.0F;
-    }
 }

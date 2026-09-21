@@ -104,6 +104,11 @@ public final class PlayerRelationshipSettings {
             boolean bonded) {
         CompoundTag contacts = contactData(player);
         String key = creature.getStringUUID();
+        if (!creature.isAlive() || BondedCreatureDeathData.get(player.server)
+                .isDead(player.getUUID(), creature.getUUID())) {
+            contacts.remove(key);
+            return;
+        }
         if (!CreatureSocialProfile.allowsSynergySystems(creature)) {
             contacts.remove(key);
             return;
@@ -116,6 +121,11 @@ public final class PlayerRelationshipSettings {
         contact.putString("Type", type.toString());
         contact.putBoolean("Bonded", bonded);
         contact.putString("Dimension", creature.level().dimension().location().toString());
+        contact.putInt("X", creature.blockPosition().getX());
+        contact.putInt("Y", creature.blockPosition().getY());
+        contact.putInt("Z", creature.blockPosition().getZ());
+        contact.putBoolean("PureWhiteAdapted",
+                PureWhiteWolfAdaptation.isAdaptedForm(creature));
         contact.putLong("LastSeen", creature.level().getGameTime());
         contact.putInt("Familiarity", CreaturePersonality.familiarity(creature, player));
         contacts.put(key, contact);
@@ -172,9 +182,14 @@ public final class PlayerRelationshipSettings {
     public static List<Contact> contacts(ServerPlayer player) {
         Map<UUID, Contact> merged = new LinkedHashMap<>();
         CompoundTag stored = contactData(player);
-        for (String key : stored.getAllKeys()) {
+        BondedCreatureDeathData deaths = BondedCreatureDeathData.get(player.server);
+        for (String key : new ArrayList<>(stored.getAllKeys())) {
             try {
                 UUID uuid = UUID.fromString(key);
+                if (deaths.isDead(player.getUUID(), uuid)) {
+                    stored.remove(key);
+                    continue;
+                }
                 CompoundTag tag = stored.getCompound(key);
                 ResourceLocation type = ResourceLocation.tryParse(
                         tag.getString("Type"));
@@ -223,6 +238,10 @@ public final class PlayerRelationshipSettings {
 
     @Nullable
     public static ChangedEntity findLoaded(ServerPlayer player, UUID uuid) {
+        if (BondedCreatureDeathData.get(player.server).isDead(player.getUUID(), uuid)) {
+            forgetContact(player, uuid);
+            return null;
+        }
         for (var level : player.server.getAllLevels()) {
             Entity entity = level.getEntity(uuid);
             if (entity instanceof ChangedEntity creature
@@ -329,10 +348,15 @@ public final class PlayerRelationshipSettings {
             String name,
             String typeId,
             String dimension,
+            boolean hasLastLocation,
+            int lastX,
+            int lastY,
+            int lastZ,
             boolean bonded,
             boolean loaded,
             boolean sameDimension,
             boolean following,
+            boolean pureWhiteAdapted,
             int familiarity,
             float health,
             float maxHealth) {
@@ -350,10 +374,15 @@ public final class PlayerRelationshipSettings {
                     net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE
                             .getKey(creature.getType()).toString(),
                     creature.level().dimension().location().toString(),
+                    true,
+                    creature.blockPosition().getX(),
+                    creature.blockPosition().getY(),
+                    creature.blockPosition().getZ(),
                     bonded,
                     true,
                     creature.level() == player.level(),
                     following,
+                    PureWhiteWolfAdaptation.isAdaptedForm(creature),
                     CreaturePersonality.familiarity(creature, player),
                     creature.getHealth(),
                     creature.getMaxHealth());
@@ -366,10 +395,15 @@ public final class PlayerRelationshipSettings {
                     tag.getString("Name"),
                     tag.getString("Type"),
                     tag.getString("Dimension"),
+                    tag.contains("X", Tag.TAG_INT)
+                            && tag.contains("Y", Tag.TAG_INT)
+                            && tag.contains("Z", Tag.TAG_INT),
+                    tag.getInt("X"), tag.getInt("Y"), tag.getInt("Z"),
                     tag.getBoolean("Bonded"),
                     false,
                     false,
                     false,
+                    tag.getBoolean("PureWhiteAdapted"),
                     tag.getInt("Familiarity"),
                     0.0F,
                     0.0F);

@@ -1,6 +1,6 @@
 # AI assistance disclosure
 
-Generative AI was used as an assistive tool during development of parts of the code and English and Chinese text.
+Generative AI was used as an assistive tool during development of parts of the English and Chinese text and code.
 
 ParkaBird reviewed, edited, integrated and tested the resulting work. The project is not an unattended code dump. Its design, direction, acceptance decisions and final release are ParkaBird's responsibility.
 

@@ -12,6 +12,7 @@ import net.ltxprogrammer.changed.init.ChangedSounds;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket.GrabType;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -19,6 +20,8 @@ import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.PacketDistributor;
 import net.parkabird.changedsynergy.ai.CreaturePersonality;
+import net.parkabird.changedsynergy.ai.BondedTeleportSafety;
+import net.parkabird.changedsynergy.ai.CompanionFollowNavigation;
 import net.parkabird.changedsynergy.ai.HuntMemory;
 import net.parkabird.changedsynergy.ai.HypnosisProfile;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
@@ -44,6 +47,7 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
 
     private final ChangedEntity mob;
     private final IGrabberEntity grabber;
+    private final CompanionFollowNavigation followNavigation;
     private ServerPlayer owner;
     private GrabEntityAbilityInstance ability;
     private LivingEntity threat;
@@ -62,6 +66,7 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
             IGrabberEntity grabber) {
         this.mob = mob;
         this.grabber = grabber;
+        this.followNavigation = new CompanionFollowNavigation(mob);
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.TARGET));
     }
 
@@ -136,6 +141,7 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
         mob.setLastHurtByMob(null);
         LatexSocialMemory.clearPetDefense(mob, null);
         HuntMemory.clear(mob);
+        followNavigation.reset();
     }
 
     @Override
@@ -149,15 +155,26 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
         LatexSocialEvents.calmTowards(mob, owner);
 
         if (!holding) {
+            followNavigation.tickProgress(
+                    mob.distanceToSqr(owner) > GRAB_REACH_SQR);
             if (mob.getBoundingBox().inflate(0.75D)
                             .intersects(owner.getBoundingBox())
                     || mob.distanceToSqr(owner) <= GRAB_REACH_SQR) {
                 beginHold();
                 return;
             }
+            if (followNavigation.isStalled()
+                    && mob.level() instanceof ServerLevel level) {
+                boolean recovered = BondedTeleportSafety.teleportNearOwner(
+                        level, mob, owner);
+                followNavigation.resetProgress();
+                if (recovered) {
+                    return;
+                }
+            }
             if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
                 repathTicks = 5;
-                mob.getNavigation().moveTo(owner, APPROACH_SPEED);
+                followNavigation.moveToward(owner, APPROACH_SPEED);
             }
             return;
         }
@@ -207,6 +224,7 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
         }
         mob.setSprinting(false);
         mob.getNavigation().stop();
+        followNavigation.reset();
         if (ability instanceof GrabEntityAbilityExtensor extensor) {
             extensor.setSafeModeAuthoritative(false);
         }

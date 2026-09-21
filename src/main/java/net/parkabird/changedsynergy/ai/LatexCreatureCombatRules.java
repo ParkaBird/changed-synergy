@@ -7,13 +7,18 @@ import java.util.Map;
 import java.util.UUID;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.latex.LatexType;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.tags.TagKey;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 
 /**
  * Creature-to-creature combat rules. These deliberately do not participate in
@@ -24,6 +29,8 @@ public final class LatexCreatureCombatRules {
     private static final float HEALTH_EPSILON = 0.01F;
     private static final Map<CombatPair, PendingDisengagement>
             PENDING_DISENGAGEMENTS = new LinkedHashMap<>();
+    private static final TagKey<EntityType<?>> VILLAGE_CIVILIANS = tag("village_civilians");
+    private static final TagKey<EntityType<?>> VILLAGE_PROTECTORS = tag("village_protectors");
 
     private LatexCreatureCombatRules() {
     }
@@ -67,7 +74,7 @@ public final class LatexCreatureCombatRules {
 
     public static boolean mustRejectTarget(Mob attacker, ChangedEntity target) {
         if (attacker == target) {
-            return false;
+            return true;
         }
         if (isProtectedLowHealthBond(target)) {
             return true;
@@ -91,14 +98,22 @@ public final class LatexCreatureCombatRules {
                         changed, owner, target);
     }
 
-    /** Villagers are civilians, and iron golems no longer classify Changed creatures as threats. */
+    /** Keeps village civilians/protectors and Changed creatures out of mutual combat. */
     public static boolean mustRejectVillageTarget(
             Mob attacker,
             LivingEntity target) {
-        return attacker instanceof ChangedEntity
-                        && target instanceof AbstractVillager
-                || attacker instanceof IronGolem
-                        && target instanceof ChangedEntity;
+        if (!ChangedSynergyConfig.COMMON.peacefulVillageRelations.get()) {
+            return false;
+        }
+        return attacker instanceof ChangedEntity && isVillageEntity(target)
+                || target instanceof ChangedEntity && isVillageEntity(attacker);
+    }
+
+    public static boolean isVillageEntity(LivingEntity entity) {
+        return entity instanceof AbstractVillager
+                || entity instanceof IronGolem
+                || entity.getType().is(VILLAGE_CIVILIANS)
+                || entity.getType().is(VILLAGE_PROTECTORS);
     }
 
     /**
@@ -120,6 +135,18 @@ public final class LatexCreatureCombatRules {
             return damage;
         }
         disengage(attacker, target);
+        return Math.min(damage, allowed);
+    }
+
+    /** Incidental fights between non-rival latexes end before either can die. */
+    public static float limitNonRivalDamage(
+            ChangedEntity target, ChangedEntity attacker, float damage) {
+        if (damage <= 0.0F || areRivals(attacker, target)
+                || !LatexSocialMemory.isSocialLatex(attacker)
+                || !LatexSocialMemory.isSocialLatex(target)) return damage;
+        float minimumHealth = Math.max(1.0F, target.getMaxHealth() * 0.2F);
+        float allowed = Math.max(0.0F, target.getHealth() - minimumHealth);
+        if (damage + HEALTH_EPSILON >= allowed) disengage(attacker, target);
         return Math.min(damage, allowed);
     }
 
@@ -227,6 +254,11 @@ public final class LatexCreatureCombatRules {
             HuntMemory.clear(changed);
             LatexSocialMemory.clearPetDefense(changed, opponent);
         }
+    }
+
+    private static TagKey<EntityType<?>> tag(String path) {
+        return TagKey.create(Registries.ENTITY_TYPE,
+                ResourceLocation.fromNamespaceAndPath("changed_synergy", path));
     }
 
     private record CombatPair(UUID first, UUID second) {

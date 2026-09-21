@@ -1,6 +1,6 @@
 # Changed: Synergy game rules
 
-Use `/gamerule <name> true|false`. All Synergy rules default to `true`.
+Boolean rules use `/gamerule <name> true|false`. The initial-reputation rule accepts an integer.
 
 | Rule | What it controls |
 | --- | --- |
@@ -8,12 +8,13 @@ Use `/gamerule <name> true|false`. All Synergy rules default to `true`.
 | `changedSynergyNpcDialogue` | Contextual creature dialogue. |
 | `changedSynergyNpcEmotes` | Contextual emotion bubbles. |
 | `changedSynergyFactionReputation` | Faction standing changes and their effects on creature behaviour. |
+| `changedSynergyInitialFactionReputation` | Reputation assigned when a player first encounters an uninitialized faction account. Default `0`; values are clamped to `-100..100`. Existing records are never overwritten. |
 | `changedSynergyBondSystem` | Bond creation, bonded following, rescue, wrapping and companion controls. Existing bonds are kept while the rule is off. |
 | `changedSynergyFriendshipSystem` | Familiarity, friendship, friend following and combat assistance. Existing memories are kept while the rule is off. |
 | `changedSynergyTerritoryDisplay` | Territory and facility presentation on the HUD. It does not alter world generation or spawning. |
 | `changedSynergyPersonalitySystem` | Stable individual traits and their AI and dialogue effects. Stored traits are not deleted when disabled. |
 | `changedSynergyCreatureLife` | Persistence for related creatures, role-driven activities, community memory, resource gathering, outposts and pure-white reformation. It also respects vanilla `mobGriefing` when placing outposts. |
-| `changedSynergyHypnosisQte` | Synergy's hypnosis escape sequence, input restrictions and mesmerized penalty. Changed's original hypnosis remains when disabled. |
+| `changedSynergyHypnosisQte` | Synergy's gaze-based hypnosis resistance, input restrictions and mesmerized penalty. Changed's original hypnosis remains when disabled. |
 | `changedSynergyGrabQteEnhancements` | Server-synchronized grab prompts and the post-escape safety stun. Changed's original grab remains when disabled. |
 
 ## Consolidated rules

@@ -43,7 +43,9 @@ import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.ai.SynergyPatService;
 import net.parkabird.changedsynergy.ai.RelationshipFavorService;
 import net.parkabird.changedsynergy.ai.RelationshipFavorService.Result;
+import net.parkabird.changedsynergy.ai.ProvisionerTradeService;
 import net.parkabird.changedsynergy.ai.SocialAudienceGoal;
+import net.parkabird.changedsynergy.ai.SharedRestGoal;
 import net.parkabird.changedsynergy.ai.VoluntaryBondTransfurService;
 import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
@@ -74,6 +76,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
     private final boolean voluntaryBondAvailable;
     private final boolean foodBribeAvailable;
     private final boolean felineFoodBribe;
+    private final boolean provisionerTradeAvailable;
     @Nullable
     private View negotiationView;
     private final PanelData panelData;
@@ -146,6 +149,9 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
                 && negotiation
                 && InvoluntaryTransfurNegotiation.usesFelineFoodBribe(
                         serverPlayer, creature);
+        this.provisionerTradeAvailable = serverPlayer != null
+                && !negotiation
+                && ProvisionerTradeService.canOpen(creature, serverPlayer);
         this.panelData = PanelData.of(creature, serverPlayer);
         this.negotiationSpeakerName = creature.getDisplayName();
         this.negotiationAppearance = new CompoundTag();
@@ -186,6 +192,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         this.felineFoodBribe = serverPlayer != null
                 && InvoluntaryTransfurNegotiation.usesFelineFoodBribe(
                         serverPlayer, null);
+        this.provisionerTradeAvailable = false;
         this.panelData = PanelData.empty();
         this.negotiationSpeakerName = serverPlayer == null
                 ? Component.translatable(
@@ -225,6 +232,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         this.voluntaryBondAvailable = extraData.readBoolean();
         this.foodBribeAvailable = extraData.readBoolean();
         this.felineFoodBribe = extraData.readBoolean();
+        this.provisionerTradeAvailable = extraData.readBoolean();
         this.panelData = PanelData.read(extraData);
         if (virtualAbsorptionNegotiation) {
             this.negotiationSpeakerName = extraData.readComponent();
@@ -299,6 +307,10 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
 
     public boolean isFelineFoodBribe() {
         return felineFoodBribe;
+    }
+
+    public boolean isProvisionerTradeAvailable() {
+        return provisionerTradeAvailable;
     }
 
     public boolean isNegotiationAvailable() {
@@ -439,6 +451,10 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
                 || tier == RelationshipTier.CLOSE;
     }
 
+    public boolean canFriendInventory() {
+        return !negotiation && trustedRelationship && tier == RelationshipTier.CLOSE;
+    }
+
     public void toggleLocalFollowing() {
         following = !following;
     }
@@ -504,6 +520,13 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
             Approach.fromCommand(command).ifPresent(approach ->
                     InvoluntaryTransfurNegotiation.attemptAbsorption(
                             origin, approach));
+            return;
+        }
+        if (!negotiation && "social_inventory".equals(command)) {
+            if (BondedInventoryService.canAccess(origin, creature)) {
+                releaseAudience(origin);
+                BondedInventoryService.open(origin, creature);
+            }
             return;
         }
         if (!negotiation && !bonded
@@ -610,6 +633,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
                         newState ? Cue.SOCIAL_FOLLOW : Cue.SOCIAL_WAIT);
             }
             case "social_rest" -> sharedRest(origin);
+            case "social_trade" -> ProvisionerTradeService.open(origin, creature);
             case "social_goodbye" ->
                     NpcDialogue.trigger(creature, origin, Cue.SOCIAL_GOODBYE);
             case "open_function_wheel" -> {
@@ -688,6 +712,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
                 NEXT_SHARED_REST,
                 now + CreaturePersonality.sharedRestCooldown(creature, origin));
         creature.getNavigation().stop();
+        SharedRestGoal.begin(creature, origin);
         float healing = CreaturePersonality.sharedRestHealing(creature, origin);
         creature.heal(healing);
         origin.heal(healing);
@@ -853,7 +878,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
             return false;
         }
 
-        int duration = 48 + creature.getRandom().nextInt(21);
+        int duration = 140 + creature.getRandom().nextInt(41);
         if (CreatureSocialProfile.isJuvenile(creature)) {
             duration += 6;
         }
@@ -913,6 +938,8 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         buffer.writeBoolean(negotiation
                 && InvoluntaryTransfurNegotiation.usesFelineFoodBribe(
                         player, creature));
+        buffer.writeBoolean(!negotiation
+                && ProvisionerTradeService.canOpen(creature, player));
         PanelData.of(creature, player).write(buffer);
     }
 
@@ -950,6 +977,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
                 .canOfferFoodBribe(player, null));
         buffer.writeBoolean(InvoluntaryTransfurNegotiation
                 .usesFelineFoodBribe(player, null));
+        buffer.writeBoolean(false);
         PanelData.empty().write(buffer);
         buffer.writeComponent(InvoluntaryTransfurNegotiation
                 .absorptionSourceName(player));

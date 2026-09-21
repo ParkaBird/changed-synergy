@@ -45,6 +45,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.FactionReputation;
 import net.parkabird.changedsynergy.ai.FactionHostilityGrace;
+import net.parkabird.changedsynergy.ai.CreatureSocialProfile;
 import net.parkabird.changedsynergy.ai.HunterFaction;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.ai.LightFactionGroup;
@@ -79,7 +80,40 @@ public final class FactionReputationEvents {
         if (!event.getEntity().level().isClientSide
                 && event.getEntity() instanceof ChangedEntity creature
                 && event.getSource().getEntity() instanceof ServerPlayer player) {
-            FactionHostilityGrace.clear(creature, player);
+            if (FactionHostilityGrace.damageLocked(creature, player)) {
+                event.setCanceled(true);
+            } else {
+                FactionHostilityGrace.clear(creature, player);
+            }
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onLockedMelee(net.minecraftforge.event.entity.player.AttackEntityEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player
+                && event.getTarget() instanceof ChangedEntity creature
+                && FactionHostilityGrace.damageLocked(creature, player)) {
+            event.setCanceled(true);
+            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                    "message.changed_synergy.faction.secondary_damage_locked"), true);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onLockedHurt(LivingHurtEvent event) {
+        if (event.getEntity() instanceof ChangedEntity creature
+                && event.getSource().getEntity() instanceof ServerPlayer player
+                && FactionHostilityGrace.damageLocked(creature, player)) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onLockedDamage(net.minecraftforge.event.entity.living.LivingDamageEvent event) {
+        if (event.getEntity() instanceof ChangedEntity creature
+                && event.getSource().getEntity() instanceof ServerPlayer player
+                && FactionHostilityGrace.damageLocked(creature, player)) {
+            event.setCanceled(true);
         }
     }
 
@@ -87,6 +121,7 @@ public final class FactionReputationEvents {
     public static void onCreatureJoin(EntityJoinLevelEvent event) {
         if (!event.getLevel().isClientSide()
                 && event.getEntity() instanceof ChangedEntity creature
+                && CreatureSocialProfile.allowsSynergySystems(creature)
                 && HunterFaction.of(creature) == HunterFaction.LIGHT
                 && !LightFactionGroup.isAssigned(creature)) {
             PENDING_LIGHT_GROUP_ASSIGNMENTS.put(
@@ -162,6 +197,13 @@ public final class FactionReputationEvents {
             return;
         }
         long now = creature.level().getGameTime();
+        if (FactionHostilityGrace.damageLocked(creature, player)) {
+            event.setCanceled(true);
+            return;
+        }
+        if (net.parkabird.changedsynergy.ai.HumanBoundaryService.isSoftBoundaryHit(
+                creature, player, event.getSource(), event.getAmount())) return;
+        FactionHostilityGrace.noteAggression(creature, player);
         var memory = creature.getPersistentData();
         if (memory.hasUUID(LAST_REPUTATION_ATTACKER)
                 && player.getUUID().equals(

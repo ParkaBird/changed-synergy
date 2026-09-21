@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.AABB;
@@ -18,6 +19,7 @@ import net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole;
 import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
+import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 
 /** Reputation-gated, temporary defence of a real community cache. */
 public final class CreatureCacheGuardService {
@@ -38,13 +40,33 @@ public final class CreatureCacheGuardService {
     private CreatureCacheGuardService() {
     }
 
-    public static void handleCacheAccess(
+    public static boolean handleCacheAccess(
             ServerLevel level,
             ServerPlayer player,
             BlockPos position) {
+        if (player.isCreative() || player.isSpectator()
+                || !ChangedSynergyGameRules.enabled(
+                        level, ChangedSynergyGameRules.FACTION_REPUTATION)) {
+            return true;
+        }
+        Optional<CreatureCommunityData.Snapshot> community =
+                CreatureCommunityData.snapshotAtCache(level, position);
+        if (community.isEmpty()) {
+            return true;
+        }
         List<ChangedEntity> members = membersAtCache(level, player, position);
         if (members.isEmpty()) {
-            return;
+            FactionReputation.Standing standing =
+                    FactionReputation.Standing.forScore(
+                            FactionReputation.scoreAt(
+                                    community.get().faction(), player,
+                                    level, position));
+            if (standing == FactionReputation.Standing.ALLIED) {
+                return true;
+            }
+            player.displayClientMessage(Component.translatable(
+                    "message.changed_synergy.cache.trade_required"), true);
+            return false;
         }
         ChangedEntity witness = members.get(0);
         FactionReputation.Standing standing =
@@ -53,25 +75,25 @@ public final class CreatureCacheGuardService {
             if (recordAccess(witness, player, level.getGameTime()) == 1) {
                 NpcDialogue.trigger(witness, player, Cue.CACHE_ALLIED_ACCESS);
             }
-            return;
+            return true;
         }
         if (standing == FactionReputation.Standing.RESPECTED) {
             int accessCount = recordAccess(
                     witness, player, level.getGameTime());
             if (accessCount == 1) {
                 NpcDialogue.trigger(witness, player, Cue.CACHE_TOLERATED);
-                return;
+                return false;
             }
             if (accessCount == TOLERATED_ACCESS_COUNT) {
                 NpcDialogue.trigger(witness, player, Cue.CACHE_FINAL_WARNING);
-                return;
+                return false;
             }
             if (accessCount == TOLERATED_ACCESS_COUNT + 1) {
                 NpcDialogue.trigger(witness, player, Cue.CACHE_OVERUSED);
                 applyReputationCost(witness, player, level.getGameTime(), -1);
             }
             attackIntruder(members, witness, player, position);
-            return;
+            return false;
         }
 
         SynergyAdvancements.grant(
@@ -79,6 +101,7 @@ public final class CreatureCacheGuardService {
         applyReputationCost(witness, player, level.getGameTime(), -2);
         NpcDialogue.trigger(witness, player, Cue.CACHE_INTRUSION);
         attackIntruder(members, witness, player, position);
+        return false;
     }
 
     /** Breaking a community cache is an immediate offence at every standing. */

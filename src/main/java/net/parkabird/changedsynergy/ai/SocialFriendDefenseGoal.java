@@ -20,6 +20,8 @@ import net.minecraft.world.entity.monster.Ghast;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.event.NpcDispositionEvents;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 
 /** Lets trusted friends and high-standing faction members defend a player. */
 public final class SocialFriendDefenseGoal extends TargetGoal {
@@ -50,11 +52,17 @@ public final class SocialFriendDefenseGoal extends TargetGoal {
     @Override
     public boolean canUse() {
         if (!(friend.level() instanceof ServerLevel)
+                || !SynergyPerformanceTracker.featureEnabled(Feature.SOCIAL)
                 || friend.getTarget() != null
                 || !LatexSocialMemory.petOwnerUuid(friend).isEmpty()
                 || LatexSocialMemory.hasActiveBond(friend)
                 || SocialAudienceGoal.isActive(friend)
                 || ChangedAddonCompat.isGrabberBusy(friend)) {
+            return false;
+        }
+        if (!SynergyPerformanceTracker.allowBackground(
+                friend, Feature.SOCIAL,
+                SynergyPerformanceTracker.configuredBackgroundInterval())) {
             return false;
         }
         player = findPlayer();
@@ -78,6 +86,7 @@ public final class SocialFriendDefenseGoal extends TargetGoal {
     public boolean canContinueToUse() {
         return player != null
                 && threat != null
+                && SynergyPerformanceTracker.featureEnabled(Feature.SOCIAL)
                 && isSupported(player)
                 && canDefendAgainst(threat, player)
                 && remainsThreat(threat, player)

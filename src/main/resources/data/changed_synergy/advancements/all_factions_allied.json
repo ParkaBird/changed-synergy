@@ -1,5 +1,5 @@
 {
-  "parent": "changed_synergy:faction_ally",
+  "parent": "changed_synergy:white_faction_respected",
   "display": {
     "icon": {
       "item": "minecraft:beacon"

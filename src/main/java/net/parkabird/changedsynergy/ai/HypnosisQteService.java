@@ -43,17 +43,13 @@ import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.network.HypnosisQteSyncPacket;
 
-/** Server-authoritative hypnosis escape using Changed's grab-QTE rhythm. */
+/** Server-authoritative hypnosis escape driven by gaze resistance. */
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class HypnosisQteService {
-    private static final float CORRECT_KEY_STRENGTH = 0.19F;
-    private static final float WRONG_KEY_RECOVERY = 0.23F;
-    private static final int INPUT_GRACE_TICKS = 8;
-    private static final int SESSION_TICKS = 120;
-    private static final int OBSERVATION_GRACE_TICKS = 3;
+    private static final int OBSERVATION_GRACE_TICKS = 12;
+    private static final int SYNC_INTERVAL_TICKS = 2;
     private static final int SUCCESS_IMMUNITY_TICKS = 70;
     private static final int FAILURE_MESMERIZED_TICKS = 80;
-    private static final int FRIENDLY_SESSION_TICKS = SESSION_TICKS;
     private static final int INTERRUPTED_SOURCE_LOCK_TICKS = 40;
     private static final double HYPNOSIS_RANGE = 9.0D;
     public static final int HYPNOSIS_COOLDOWN_TICKS = 300;
@@ -157,40 +153,6 @@ public final class HypnosisQteService {
         return true;
     }
 
-    public static void handleInput(ServerPlayer player, int sessionId, int pressedKey) {
-        if (!enabled(player.level()) || pressedKey < 0 || pressedKey > 3) {
-            return;
-        }
-        Session session = SESSIONS.get(player.getUUID());
-        long now = player.level().getGameTime();
-        if (session == null || session.id != sessionId || session.expectedKey < 0
-                || session.lastInputTick == now || now >= session.endTick) {
-            return;
-        }
-        session.lastInputTick = now;
-        session.lastKey = session.expectedKey;
-
-        if (pressedKey == session.expectedKey) {
-            float trustStrength = Mth.clamp(session.ticksUnpressed / 5.0F, 0.0F, 1.0F);
-            session.controlStrength = Math.max(
-                    0.0F,
-                    session.controlStrength - CORRECT_KEY_STRENGTH * trustStrength);
-        } else {
-            session.controlStrength = Math.min(
-                    1.0F,
-                    session.controlStrength + WRONG_KEY_RECOVERY);
-        }
-
-        if (session.controlStrength <= 0.0F) {
-            finish(player, session, HypnosisQteSyncPacket.SUCCESS);
-            return;
-        }
-
-        session.expectedKey = player.getRandom().nextInt(4);
-        session.ticksUnpressed = 0;
-        sync(player, session, HypnosisQteSyncPacket.ACTIVE);
-    }
-
     /** Blocks only the two exact effects used by Changed hypnosis during an escape window. */
     public static boolean shouldBlockHypnosisEffect(
             LivingEntity target,
@@ -215,6 +177,9 @@ public final class HypnosisQteService {
     private static boolean shouldBlockHypnosisFrom(
             ServerPlayer player,
             LivingEntity hypnotist) {
+        if (isHypnotizing(hypnotist, player)) {
+            return false;
+        }
         long now = player.level().getGameTime();
         return TARGET_IMMUNITY.getOrDefault(player.getUUID(), 0L) > now
                 || SOURCE_LOCK.getOrDefault(hypnotist.getUUID(), 0L) > now
@@ -367,13 +332,37 @@ public final class HypnosisQteService {
             return;
         }
 
-        lockView(player, source);
         suppressActions(player);
-        if (hasUnobstructedEyeContact(source, player)) {
+        if (hasUnobstructedLineOfSight(source, player)) {
             session.lastObservedTick = now;
         }
         if (now - session.lastObservedTick > OBSERVATION_GRACE_TICKS) {
             clear(player, session);
+            return;
+        }
+
+        session.gazeAlignment = gazeAlignment(source, player);
+        float previousResistance = session.resistance;
+        session.resistance = HypnosisGazeContest.nextResistance(
+                session.resistance, session.gazeAlignment);
+        if (HypnosisGazeContest.isActivelyLookingAway(session.gazeAlignment)) {
+            session.offGazeTicks++;
+        } else {
+            session.offGazeTicks = 0;
+        }
+
+        float elapsed = Mth.clamp(
+                (now - session.startTick)
+                        / (float)HypnosisGazeContest.DURATION_TICKS,
+                0.0F,
+                1.0F);
+        CameraUtil.tugEntityLookDirection(
+                player,
+                source,
+                HypnosisGazeContest.pullStrength(session.gazeAlignment, elapsed));
+
+        if (session.resistance >= 1.0F) {
+            finish(player, session, HypnosisQteSyncPacket.SUCCESS);
             return;
         }
         if (now >= session.endTick) {
@@ -381,12 +370,10 @@ public final class HypnosisQteService {
             return;
         }
 
-        if (session.expectedKey < 0 && now - session.startTick >= INPUT_GRACE_TICKS) {
-            session.expectedKey = player.getRandom().nextInt(4);
-            session.ticksUnpressed = 0;
+        if (now - session.lastSyncTick >= SYNC_INTERVAL_TICKS
+                || Math.abs(session.resistance - previousResistance) >= 0.025F) {
+            session.lastSyncTick = now;
             sync(player, session, HypnosisQteSyncPacket.ACTIVE);
-        } else if (session.expectedKey >= 0) {
-            session.ticksUnpressed++;
         }
     }
 
@@ -396,16 +383,7 @@ public final class HypnosisQteService {
         player.stopUsingItem();
     }
 
-    /** Keeps the authoritative player rotation centered on the hypnotist. */
-    private static void lockView(ServerPlayer player, LivingEntity source) {
-        Vec3 offset = source.getEyePosition().subtract(player.getEyePosition());
-        double horizontal = Math.sqrt(offset.x * offset.x + offset.z * offset.z);
-        float yRot = (float)(Mth.atan2(offset.z, offset.x) * Mth.RAD_TO_DEG) - 90.0F;
-        float xRot = (float)(-Mth.atan2(offset.y, horizontal) * Mth.RAD_TO_DEG);
-        lockView(player, yRot, xRot);
-    }
-
-    /** Holds the failed victim at the exact view angle reached when the QTE ended. */
+    /** Holds a fully mesmerized victim at the view angle where resistance ended. */
     private static void lockView(ServerPlayer player, float yRot, float xRot) {
         player.setYRot(yRot);
         player.setXRot(xRot);
@@ -549,9 +527,13 @@ public final class HypnosisQteService {
     private static boolean hasUnobstructedEyeContact(
             LivingEntity source,
             ServerPlayer player) {
-        if (!isLookingAtSource(source, player)) {
-            return false;
-        }
+        return isLookingAtSource(source, player)
+                && hasUnobstructedLineOfSight(source, player);
+    }
+
+    private static boolean hasUnobstructedLineOfSight(
+            LivingEntity source,
+            ServerPlayer player) {
         Vec3 playerEyes = player.getEyePosition();
         Vec3 sourceEyes = source.getEyePosition();
         return player.level().clip(new ClipContext(
@@ -560,6 +542,15 @@ public final class HypnosisQteService {
                 ClipContext.Block.COLLIDER,
                 ClipContext.Fluid.NONE,
                 player)).getType() == HitResult.Type.MISS;
+    }
+
+    private static float gazeAlignment(LivingEntity source, ServerPlayer player) {
+        Vec3 towardSource = source.getEyePosition().subtract(player.getEyePosition());
+        if (towardSource.lengthSqr() < 1.0E-4D) {
+            return 1.0F;
+        }
+        return HypnosisGazeContest.alignmentFromDot(
+                player.getLookAngle().dot(towardSource.normalize()));
     }
 
     private static boolean isHypnosisConfusion(MobEffectInstance effect) {
@@ -588,7 +579,7 @@ public final class HypnosisQteService {
         LivingEntity source = findSource(player, session);
         beginCooldown(source, player);
         if (result == HypnosisQteSyncPacket.SUCCESS) {
-            session.controlStrength = 0.0F;
+            session.resistance = 1.0F;
             TARGET_IMMUNITY.put(player.getUUID(), now + SUCCESS_IMMUNITY_TICKS);
             IMMUNITY_SOURCE.put(player.getUUID(), session.sourceUuid);
             releaseMindEffects(player);
@@ -606,6 +597,9 @@ public final class HypnosisQteService {
             if (session.friendlyPractice) {
                 calmAfterEscape(source, player);
                 dialogue(source, player, Cue.HYPNOSIS_PLAY_FAILED);
+                if (source != null) {
+                    PatAnimationService.startFixed(source, player, 4);
+                }
             } else {
                 player.addEffect(new MobEffectInstance(
                         ChangedSynergyMobEffects.MESMERIZED.get(),
@@ -753,8 +747,8 @@ public final class HypnosisQteService {
         ChangedSynergyNetwork.CHANNEL.send(
                 PacketDistributor.PLAYER.with(() -> player),
                 new HypnosisQteSyncPacket(
-                        session.id, session.sourceId, session.expectedKey, session.lastKey,
-                        session.ticksUnpressed, session.controlStrength, remaining, state));
+                        session.id, session.sourceId, session.offGazeTicks,
+                        session.resistance, session.gazeAlignment, remaining, state));
     }
 
     private static void prune(long now) {
@@ -773,15 +767,14 @@ public final class HypnosisQteService {
         private final int id;
         private final UUID sourceUuid;
         private final int sourceId;
-        private int expectedKey;
-        private int lastKey;
-        private int ticksUnpressed;
-        private float controlStrength;
+        private int offGazeTicks;
+        private float resistance;
+        private float gazeAlignment;
         private final long startTick;
         private final long endTick;
         private final boolean friendlyPractice;
         private long lastObservedTick;
-        private long lastInputTick;
+        private long lastSyncTick;
 
         private Session(
                 int id,
@@ -791,16 +784,14 @@ public final class HypnosisQteService {
             this.id = id;
             this.sourceUuid = source.getUUID();
             this.sourceId = source.getId();
-            this.expectedKey = -1;
-            this.lastKey = -1;
-            this.ticksUnpressed = 0;
-            this.controlStrength = 1.0F;
+            this.offGazeTicks = 0;
+            this.resistance = 0.0F;
+            this.gazeAlignment = 1.0F;
             this.startTick = now;
-            this.endTick = now + (friendlyPractice
-                    ? FRIENDLY_SESSION_TICKS : SESSION_TICKS);
+            this.endTick = now + HypnosisGazeContest.DURATION_TICKS;
             this.friendlyPractice = friendlyPractice;
             this.lastObservedTick = now;
-            this.lastInputTick = Long.MIN_VALUE;
+            this.lastSyncTick = now;
         }
     }
 

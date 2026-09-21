@@ -1,0 +1,27 @@
+{
+  "factions": [],
+  "requires_dry": true,
+  "cache": {"x": 0, "y": 0, "z": 0},
+  "rest_points": [
+    {"x": -3, "y": 0, "z": 1},
+    {"x": 2, "y": 0, "z": -2},
+    {"x": 3, "y": 0, "z": 1}
+  ],
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "block": "minecraft:barrel"},
+    {"x": -1, "y": 0, "z": 0, "block": "changed:beehive_wall"},
+    {"x": -2, "y": 0, "z": 0, "block": "minecraft:honeycomb_block"},
+    {"x": -2, "y": 0, "z": 1, "block": "minecraft:birch_planks"},
+    {"x": 1, "y": 0, "z": 1, "block": "changed:beehive_wall"},
+    {"x": 2, "y": 0, "z": -1, "block": "minecraft:stripped_birch_log", "properties": {"axis": "z"}},
+    {"x": 1, "y": 0, "z": -2, "block": "minecraft:yellow_carpet"},
+    {"x": -1, "y": 0, "z": 2, "block": "minecraft:yellow_carpet"},
+    {"x": 2, "y": 0, "z": 1, "block": "minecraft:lantern"},
+    {"x": -2, "y": 0, "z": -1, "block": "changed:yellow_pillow"}
+  ],
+  "displays": [
+    {"x": 1, "y": 1, "z": 1, "item": "minecraft:honey_bottle", "facing": "up", "rotation": 3},
+    {"x": -2, "y": 1, "z": 0, "item": "minecraft:honeycomb", "facing": "up", "rotation": 6},
+    {"x": -2, "y": 1, "z": 1, "item": "minecraft:dandelion", "facing": "up", "rotation": 1}
+  ]
+}

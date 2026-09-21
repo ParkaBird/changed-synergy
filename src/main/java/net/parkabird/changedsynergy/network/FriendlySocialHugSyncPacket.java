@@ -4,7 +4,7 @@ import java.util.function.Supplier;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
-/** Tells the grabbed client that this arm hold is a timed social hug, not a QTE. */
+/** Negative duration marks a scripted, non-QTE carry; positive duration allows play QTE. */
 public record FriendlySocialHugSyncPacket(
         int grabberId,
         int grabbedId,

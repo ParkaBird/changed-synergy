@@ -227,6 +227,7 @@ public final class HostileTransfurredGrabGoal extends Goal {
         completed = true;
         releaseGrab(target);
         InvoluntaryTransfurNegotiation.abandonForSecondaryTransfur(target);
+        net.parkabird.changedsynergy.ai.FactionHostilityGrace.beginSecondary(mob, target);
         settleNearbyHostility(target);
         if (bondConflict) {
             HuntAIEvents.celebrateBondConflictAbsorption(mob, target);

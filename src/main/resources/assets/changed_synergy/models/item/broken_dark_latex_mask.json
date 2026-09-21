@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "changed_synergy:item/broken_dark_latex_mask"
+  }
+}

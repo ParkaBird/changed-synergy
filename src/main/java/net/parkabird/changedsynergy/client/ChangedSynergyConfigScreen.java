@@ -63,9 +63,14 @@ public final class ChangedSynergyConfigScreen extends Screen {
                 .build());
         client.active = section != Section.CLIENT;
 
-        int rowsPerPage = Math.max(2, (height - TOP - 42) / ROW_HEIGHT);
-        pages = buildPages(section == Section.GAMEPLAY
-                ? gameplayCategories : clientCategories, rowsPerPage);
+        // Reserve the live diagnostics and server note above the action buttons.
+        int rowsPerPage = Math.max(2, (height - TOP - 88) / ROW_HEIGHT);
+        pages = remoteGameplay()
+                ? List.of(new Page(Component.translatable(
+                        "config.changed_synergy.remote_title"),
+                        List.of(), 1, 1, false))
+                : buildPages(section == Section.GAMEPLAY
+                        ? gameplayCategories : clientCategories, rowsPerPage);
         pageIndex = Math.max(0, Math.min(pageIndex, pages.size() - 1));
         Page page = pages.get(pageIndex);
 
@@ -93,12 +98,13 @@ public final class ChangedSynergyConfigScreen extends Screen {
 
         int bottomY = height - 27;
         int buttonWidth = Math.min(120, (contentWidth - 12) / 3);
-        addRenderableWidget(Button.builder(
+        Button defaults = addRenderableWidget(Button.builder(
                         Component.translatable("config.changed_synergy.defaults"),
                         button -> resetPage(page))
                 .bounds(width / 2 - buttonWidth * 3 / 2 - 6,
                         bottomY, buttonWidth, 20)
                 .build());
+        defaults.active = !remoteGameplay();
         addRenderableWidget(Button.builder(CommonComponents.GUI_CANCEL,
                         button -> onClose())
                 .bounds(width / 2 - buttonWidth / 2,
@@ -215,13 +221,18 @@ public final class ChangedSynergyConfigScreen extends Screen {
     }
 
     private void saveAndClose() {
-        List<ConfigEntry> entries = allEntries();
+        boolean remote = isRemoteServer();
+        List<ConfigEntry> entries = remote
+                ? clientCategories.stream().flatMap(category -> category.entries().stream()).toList()
+                : allEntries();
         if (entries.stream().anyMatch(entry -> !entry.valid())) {
             status = Component.translatable("config.changed_synergy.invalid_value");
             return;
         }
         entries.forEach(ConfigEntry::save);
-        ChangedSynergyConfig.SPEC.save();
+        if (!remote) {
+            ChangedSynergyConfig.SPEC.save();
+        }
         ChangedSynergyClientConfig.SPEC.save();
         if (minecraft != null) {
             minecraft.setScreen(parent);
@@ -263,6 +274,28 @@ public final class ChangedSynergyConfigScreen extends Screen {
             graphics.drawString(font, row.entry().label(),
                     contentLeft + 6, row.y() + 8, 0xFFFFFF, false);
         }
+        if (remoteGameplay()) {
+            graphics.drawCenteredString(font,
+                    Component.translatable("config.changed_synergy.remote_line_1"),
+                    width / 2, TOP + 28, 0xFFFFFF);
+            graphics.drawCenteredString(font,
+                    Component.translatable("config.changed_synergy.remote_line_2"),
+                    width / 2, TOP + 48, 0xA0A0A0);
+        }
+        if (showsPerformanceDiagnostics()) {
+            graphics.drawCenteredString(font,
+                    PerformanceDiagnosticsClient.primarySummary(),
+                    width / 2, height - 72,
+                    PerformanceDiagnosticsClient.color());
+            graphics.drawCenteredString(font,
+                    PerformanceDiagnosticsClient.secondarySummary(),
+                    width / 2, height - 61,
+                    PerformanceDiagnosticsClient.color());
+            graphics.drawCenteredString(font,
+                    PerformanceDiagnosticsClient.tertiarySummary(),
+                    width / 2, height - 50,
+                    PerformanceDiagnosticsClient.color());
+        }
         if (!status.equals(CommonComponents.EMPTY)) {
             graphics.drawCenteredString(font, status,
                     width / 2, height - 39, 0xFFD36A);
@@ -292,7 +325,8 @@ public final class ChangedSynergyConfigScreen extends Screen {
                 int from = part * rowsPerPage;
                 int to = Math.min(category.entries().size(), from + rowsPerPage);
                 result.add(new Page(category.title(),
-                        category.entries().subList(from, to), part + 1, partCount));
+                        category.entries().subList(from, to), part + 1, partCount,
+                        category.performance()));
             }
         }
         return result;
@@ -302,14 +336,47 @@ public final class ChangedSynergyConfigScreen extends Screen {
         ChangedSynergyConfig.Common config = ChangedSynergyConfig.COMMON;
         List<Category> categories = new ArrayList<>();
         categories.addAll(List.of(
+                category("performance",
+                        bool("performance_diagnostics", config.performanceDiagnostics, true),
+                        bool("stagger_background_ai", config.staggerBackgroundAi, true),
+                        integer("background_scan_interval", config.backgroundScanInterval, 10, 1, 40),
+                        bool("distant_ai_throttling", config.distantAiThrottling, true),
+                        decimal("distant_ai_range", config.distantAiRange, 48.0, 16.0, 128.0, 4.0),
+                        integer("distant_ai_multiplier", config.distantAiIntervalMultiplier, 4, 1, 12),
+                        bool("adaptive_ai_budget", config.adaptiveAiBudget, true),
+                        decimal("latex_ai_budget", config.latexAiBudgetMs, 8.0, 1.0, 40.0, 1.0),
+                        bool("community_ai", config.communityAi, true),
+                        bool("companion_work_ai", config.companionWorkAi, true),
+                        bool("ambient_social_ai", config.ambientSocialAi, true),
+                        bool("enhanced_hunt_ai", config.enhancedHuntAi, true)),
                 category("relationships",
                         integer("pet_regeneration", config.tamedCompanionRegeneration, 0, 0, 5),
                         decimal("awareness_range", config.npcAwarenessRange, 32.0, 8.0, 96.0, 1.0),
+                        bool("pat_pacification", config.patPacification, true),
+                        bool("ordinary_transfur_reversal", config.ordinaryTransfurReversal, true),
+                        bool("bond_protective_release_requests", config.bondProtectiveReleaseRequests, true),
+                        bool("allow_multiple_bonds", config.allowMultipleBonds, false),
+                        bool("peaceful_village_relations", config.peacefulVillageRelations, true),
+                        bool("faction_pursuit", config.factionPursuit, true),
+                        bool("independent_faction_reputation", config.independentFactionReputation, false),
+                        integer("post_transfur_truce", config.postTransfurTruceSeconds, 90, 0, 600),
                         bool("polite_interaction", config.politeHumanInteraction, true),
                         decimal("polite_range", config.politeApproachRange, 12.0, 4.0, 32.0, 1.0),
                         decimal("polite_speed", config.politeApproachSpeed, 0.42, 0.05, 1.5, 0.05),
                         integer("polite_wait", config.politeResponseSeconds, 14, 4, 60),
                         integer("polite_attempts", config.politeUnansweredLimit, 2, 1, 6)),
+                category("communities",
+                        integer("outpost_spacing", config.settlementMinimumSpacing, 48, 16, 256),
+                        bool("changed_structure_outposts", config.useChangedStructureOutposts, true),
+                        bool("latex_bee_hive_outposts", config.latexBeeHiveOutposts, true),
+                        integer("structure_outpost_search_radius",
+                                config.structureOutpostSearchRadiusChunks, 6, 2, 12),
+                        bool("provisioner_trade", config.provisionerTrading, true),
+                        decimal("provisioner_trade_reserve",
+                                config.provisionerTradeReserveMultiplier,
+                                1.0, 0.25, 4.0, 0.25)),
+                category("ecology",
+                        bool("pure_white_wolf_adaptation", config.pureWhiteWolfAdaptation, true)),
                 category("behaviour",
                         decimal("visual_range", config.visualAcquisitionRange, 18.0, 6.0, 48.0, 1.0),
                         decimal("pursuit_range", config.maximumPursuitRange, 28.0, 8.0, 64.0, 1.0),
@@ -321,14 +388,29 @@ public final class ChangedSynergyConfigScreen extends Screen {
                         bool("firearm_evasion", config.firearmEvasion, true),
                         decimal("grab_chance", config.hostileGrabAttemptChance, 0.65, 0.0, 1.0, 0.05),
                         decimal("organic_grab_chance", config.organicHostileGrabAttemptChance, 0.85, 0.0, 1.0, 0.05),
-                        bool("mindless_mob_transfur", config.allowMindlessMobTransfur, false)),
+                        bool("mindless_mob_transfur", config.allowMindlessMobTransfur, false),
+                        bool("randomize_creature_transfur_method",
+                                config.randomizeCreatureTransfurMethod, false)),
+                category("takeover",
+                        bool("takeover_enabled", config.takeoverEnabled, true),
+                        bool("takeover_punitive", config.takeoverPunitive, true),
+                        bool("takeover_competitive", config.takeoverCompetitive, true),
+                        bool("takeover_exoskeleton", config.takeoverExoskeleton, true),
+                        bool("exoskeleton_sleep", config.exoskeletonSleep, true),
+                        bool("takeover_borrow", config.takeoverBorrow, true),
+                        bool("takeover_escape", config.takeoverEscape, true),
+                        bool("takeover_oranges", config.takeoverOranges, true),
+                        integer("takeover_seconds", config.takeoverSeconds, 180, 30, 300),
+                        integer("takeover_punitive_seconds", config.takeoverPunitiveSeconds, 240, 30, 300),
+                        integer("takeover_exoskeleton_seconds", config.takeoverExoskeletonSeconds, 30, 5, 60),
+                        bool("takeover_transfur_after_sleep", config.takeoverTransfurAfterSleep, false)),
                 category("dialogue",
                         decimal("dialogue_range", config.npcDialogueRange, 32.0, 4.0, 96.0, 1.0),
                         integer("dialogue_cooldown", config.npcDialogueCooldownSeconds, 12, 2, 120),
                         decimal("dialogue_chance", config.npcDialogueChance, 0.72, 0.0, 1.0, 0.05),
                         decimal("personality_chance", config.personalityDialogueChance, 0.68, 0.0, 1.0, 0.05),
                         bool("translator", config.npcDialogueUsesTranslator, true),
-                        integer("telepathy_unlock", config.telepathyUnlockTransfurs, 3, 1, 20))));
+                        integer("telepathy_unlock", config.telepathyUnlockTransfurs, 3, 0, 20))));
         if (ModList.get().isLoaded("changed_addon")) {
             categories.add(category("changed_addon",
                     bool("respect_pacified", config.respectPacifiedLatexes, true),
@@ -344,26 +426,50 @@ public final class ChangedSynergyConfigScreen extends Screen {
                         bool("legacy_screen", config.legacyTransfurScreenEffect, false),
                         bool("legacy_skin", config.legacyTransfurSkinEffect, false),
                         decimal("legacy_opacity", config.legacyTransfurScreenOpacity, 1.0, 0.0, 1.0, 0.05)),
+                category("pure_white_visuals",
+                        bool("disable_pure_white_overlays",
+                                config.disablePureWhiteVisionOverlays, false)),
                 category("suit_visuals",
                         bool("suit_vignette", config.friendlySuitVignette, true),
                         decimal("suit_opacity", config.friendlySuitVignetteOpacity, 0.25, 0.0, 0.5, 0.05)),
                 category("telepathy",
                         bool("danmaku", config.telepathicDanmaku, true),
+                        decimal("popup_height", config.popupHeightOffset, 0.0, -0.75, 0.75, 0.05),
+                        decimal("danmaku_height", config.danmakuHeightOffset, 0.0, -0.75, 0.75, 0.05),
                         displayMode(
                                 "dialogue_display",
                                 config.dialogueDisplayMode,
                                 DialogueDisplayMode.AUTO),
                         bool("territory_hud", config.territoryHud, true)),
                 category("hints",
-                        bool("mechanic_hints", config.mechanicHints, true)),
+                        bool("mechanic_hints", config.mechanicHints, true),
+                        bool("negotiation_next_step_hint", config.negotiationNextStepHint, true)),
                 category("qte",
                         bool("qte_animations", config.qteAnimations, true),
-                        bool("reduced_motion", config.reducedQteMotion, false)));
+                        bool("reduced_motion", config.reducedQteMotion, false),
+                        bool("exoskeleton_hypnosis_visual",
+                                config.exoskeletonHypnosisVisual, true)));
     }
 
     private static Category category(String key, ConfigEntry... entries) {
         return new Category(Component.translatable(
-                "config.changed_synergy.category." + key), List.of(entries));
+                "config.changed_synergy.category." + key), List.of(entries),
+                "performance".equals(key));
+    }
+
+    private boolean showsPerformanceDiagnostics() {
+        return section == Section.GAMEPLAY
+                && !pages.isEmpty()
+                && pages.get(pageIndex).performance();
+    }
+
+    private boolean isRemoteServer() {
+        return minecraft != null && minecraft.getConnection() != null
+                && minecraft.getSingleplayerServer() == null;
+    }
+
+    private boolean remoteGameplay() {
+        return section == Section.GAMEPLAY && isRemoteServer();
     }
 
     private static BooleanEntry bool(String key,
@@ -394,11 +500,12 @@ public final class ChangedSynergyConfigScreen extends Screen {
         CLIENT
     }
 
-    private record Category(Component title, List<ConfigEntry> entries) {
+    private record Category(Component title, List<ConfigEntry> entries,
+            boolean performance) {
     }
 
     private record Page(Component title, List<ConfigEntry> entries,
-            int partIndex, int partCount) {
+            int partIndex, int partCount, boolean performance) {
     }
 
     private record RowLabel(ConfigEntry entry, int y) {

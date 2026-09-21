@@ -273,6 +273,7 @@ public final class OrganicAssimilationGrabGoal extends Goal {
         completed = true;
         releaseGrab(target);
         InvoluntaryTransfurNegotiation.abandonForSecondaryTransfur(target);
+        net.parkabird.changedsynergy.ai.FactionHostilityGrace.beginSecondary(mob, target);
         if (bondConflict) {
             HuntAIEvents.celebrateOrganicBondConflict(mob, target);
         } else {
@@ -300,9 +301,9 @@ public final class OrganicAssimilationGrabGoal extends Goal {
     }
 
     private enum OrganicContactStyle {
-        BITE(14, Cue.ORGANIC_GRAPPLE_BITE),
-        CLAW(12, Cue.ORGANIC_GRAPPLE_CLAW),
-        PIN(16, Cue.ORGANIC_GRAPPLE_PIN);
+        BITE(16, Cue.ORGANIC_GRAPPLE_BITE),
+        CLAW(14, Cue.ORGANIC_GRAPPLE_CLAW),
+        PIN(18, Cue.ORGANIC_GRAPPLE_PIN);
 
         private final int pulseInterval;
         private final Cue cue;

@@ -77,6 +77,9 @@ public enum HunterFaction {
     }
 
     public static HunterFaction of(ChangedEntity entity) {
+        if (PureWhiteWolfAdaptation.isAdaptedForm(entity)) {
+            return WHITE;
+        }
         EntityType<?> type = entity.getType();
         HunterFaction classified = of(type);
         if (isOrganicType(type)) {

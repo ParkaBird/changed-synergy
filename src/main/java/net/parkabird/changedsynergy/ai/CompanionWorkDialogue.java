@@ -9,6 +9,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 
 /**
  * Adds stage-based speech to both work backends. Native Changed pets and
@@ -40,7 +42,9 @@ public final class CompanionWorkDialogue {
 
     /** Watches Changed/Addon native utility goals that Synergy does not own. */
     public static void tick(ChangedEntity creature, @Nullable ServerPlayer owner) {
-        if (!(creature.level() instanceof ServerLevel level) || owner == null) {
+        if (!SynergyPerformanceTracker.featureEnabled(Feature.COMPANION_WORK)
+                || !(creature.level() instanceof ServerLevel level)
+                || owner == null) {
             OBSERVED.remove(creature);
             return;
         }

@@ -12,6 +12,8 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.event.HuntAIEvents;
@@ -21,6 +23,7 @@ import net.parkabird.changedsynergy.event.NpcDispositionEvents;
 public final class PoliteHumanApproachGoal extends Goal {
     public static final int PRIORITY = -1;
     private final ChangedEntity mob;
+    private final CompanionFollowNavigation followNavigation;
     private ServerPlayer player;
     private long nextScanTick;
     private int observeTicks;
@@ -31,6 +34,7 @@ public final class PoliteHumanApproachGoal extends Goal {
 
     public PoliteHumanApproachGoal(ChangedEntity mob) {
         this.mob = mob;
+        this.followNavigation = new CompanionFollowNavigation(mob);
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
@@ -38,11 +42,16 @@ public final class PoliteHumanApproachGoal extends Goal {
     public boolean canUse() {
         if (!ChangedSynergyGameRules.enabled(
                         mob.level(), ChangedSynergyGameRules.FRIENDSHIP_SYSTEM)
+                || !SynergyPerformanceTracker.featureEnabled(Feature.SOCIAL)
                 || !(mob.level() instanceof ServerLevel level)
                 || mob.level().getGameTime() < nextScanTick
-                || CreatureSettlementService.hasCargo(mob)
                 || !movementAvailable()
                 || mob.getTarget() != null) {
+            return false;
+        }
+        if (!SynergyPerformanceTracker.allowBackground(
+                mob, Feature.SOCIAL,
+                SynergyPerformanceTracker.configuredBackgroundInterval())) {
             return false;
         }
         nextScanTick = mob.level().getGameTime() + 20L + mob.getRandom().nextInt(21);
@@ -51,6 +60,7 @@ public final class PoliteHumanApproachGoal extends Goal {
         double rangeSqr = range * range;
         player = level.players().stream()
                 .filter(candidate -> mob.distanceToSqr(candidate) <= rangeSqr)
+                .filter(candidate -> !TakeoverService.active(candidate))
                 .filter(candidate -> PoliteHumanInteraction.canBeginApproach(mob, candidate))
                 .filter(candidate -> NpcDispositionEvents.canVisuallyAcquire(mob, candidate))
                 .min(Comparator.comparingDouble(mob::distanceToSqr))
@@ -61,7 +71,7 @@ public final class PoliteHumanApproachGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         if (player == null || !player.isAlive() || player.isSpectator()
-                || CreatureSettlementService.hasCargo(mob)
+                || !SynergyPerformanceTracker.featureEnabled(Feature.SOCIAL)
                 || !movementAvailable()
                 || !PoliteHumanInteraction.isActiveWith(mob, player)
                 || !PoliteHumanInteraction.shouldWithholdHostility(mob, player)) {
@@ -79,6 +89,7 @@ public final class PoliteHumanApproachGoal extends Goal {
         unseenTicks = 0;
         repathTicks = 0;
         mob.getNavigation().stop();
+        followNavigation.reset();
         mob.setAggressive(false);
         if (!PoliteHumanInteraction.beginApproach(mob, player)) {
             completed = true;
@@ -141,7 +152,7 @@ public final class PoliteHumanApproachGoal extends Goal {
             closeTicks = 0;
             if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
                 repathTicks = 10;
-                mob.getNavigation().moveTo(
+                followNavigation.moveToward(
                         player,
                         ChangedSynergyConfig.COMMON.politeApproachSpeed.get());
             }
@@ -149,6 +160,7 @@ public final class PoliteHumanApproachGoal extends Goal {
         }
 
         mob.getNavigation().stop();
+        followNavigation.reset();
         if (++closeTicks < 16) {
             return;
         }
@@ -167,6 +179,7 @@ public final class PoliteHumanApproachGoal extends Goal {
             PoliteHumanInteraction.cancelApproach(mob, player);
         }
         mob.getNavigation().stop();
+        followNavigation.reset();
         mob.setAggressive(false);
         player = null;
         completed = false;

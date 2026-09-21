@@ -46,6 +46,8 @@ public final class SocialInteractionScreen
             32);
     private static final Action NEGOTIATION_ENTRY =
             emote("social_negotiation", "pause");
+    private static final Action PROVISIONER_TRADE = synergyIcon(
+            "social_trade", "cooked_fish_gray.png", 16);
     private static final List<Action> BONDED_ACTIONS = List.of(
             emote("social_talk", "pause"),
             emote("social_pat", "heart"),
@@ -84,7 +86,11 @@ public final class SocialInteractionScreen
             }
             actions = List.copyOf(entries);
         } else if (menu.isBondedMode()) {
-            actions = BONDED_ACTIONS;
+            List<Action> entries = new ArrayList<>(BONDED_ACTIONS);
+            if (menu.isProvisionerTradeAvailable()) {
+                entries.add(PROVISIONER_TRADE);
+            }
+            actions = List.copyOf(entries);
         } else {
             List<Action> entries = new ArrayList<>();
             if (menu.hasTrustedRelationship()) {
@@ -93,8 +99,13 @@ public final class SocialInteractionScreen
             if (menu.isVoluntaryBondAvailable()) {
                 entries.add(VOLUNTARY_TRANSFUR);
             }
+            if (menu.canFriendInventory()) entries.add(changedIcon("social_inventory",
+                    "textures/gui/tamed_dl_interactions/view_inventory.png", 16));
             if (menu.isNegotiationAvailable()) {
                 entries.add(NEGOTIATION_ENTRY);
+            }
+            if (menu.isProvisionerTradeAvailable()) {
+                entries.add(PROVISIONER_TRADE);
             }
             actions = List.copyOf(entries);
         }
@@ -242,6 +253,13 @@ public final class SocialInteractionScreen
                             "menu.changed_synergy.social.social_negotiation"),
                     Component.translatable(
                             "menu.changed_synergy.social.social_negotiation_hint"));
+        }
+        if ("social_trade".equals(action.command())) {
+            return List.of(
+                    Component.translatable(
+                            "menu.changed_synergy.social.social_trade"),
+                    Component.translatable(
+                            "menu.changed_synergy.social.social_trade_hint"));
         }
         if (menu.isNegotiationMode()) {
             String key = "menu.changed_synergy.social." + action.command();
@@ -443,12 +461,15 @@ public final class SocialInteractionScreen
                                 .toLowerCase(Locale.ROOT)));
         guidance.add(Component.translatable(
                 "menu.changed_synergy.negotiation.info.single_use_hint"));
-        Approach next = menu.getSuggestedNegotiationApproach();
-        guidance.add(Component.translatable(
-                "menu.changed_synergy.negotiation.info.next",
-                Component.translatable(
-                        "menu.changed_synergy.social.negotiation_"
-                                + next.name().toLowerCase(Locale.ROOT))));
+        if (net.parkabird.changedsynergy.ChangedSynergyClientConfig.CLIENT
+                .negotiationNextStepHint.get()) {
+            Approach next = menu.getSuggestedNegotiationApproach();
+            guidance.add(Component.translatable(
+                    "menu.changed_synergy.negotiation.info.next",
+                    Component.translatable(
+                            "menu.changed_synergy.social.negotiation_"
+                                    + next.name().toLowerCase(Locale.ROOT))));
+        }
 
         List<InfoCard> cards = List.of(
                 new InfoCard(speakerName, circumstances),

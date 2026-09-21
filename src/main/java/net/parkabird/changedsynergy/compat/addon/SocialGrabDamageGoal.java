@@ -17,10 +17,15 @@ import net.minecraft.world.entity.ai.goal.Goal;
  */
 public final class SocialGrabDamageGoal extends Goal {
     private static final double DAMAGE_INTERVAL_MULTIPLIER = 4.0D / 3.0D;
+    private static final double PLAYER_DAMAGE_INTERVAL_MULTIPLIER = 1.5D;
+    private static final long PLAYER_REACTION_TICKS = 20L;
 
     private final ChangedEntity mob;
     private final IGrabberEntity grabber;
     private int cooldown;
+    private LivingEntity observedHeld;
+    private long firstPlayerPulseAt;
+    private boolean playerPulse;
 
     public SocialGrabDamageGoal(ChangedEntity mob, IGrabberEntity grabber) {
         this.mob = mob;
@@ -29,6 +34,12 @@ public final class SocialGrabDamageGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        GrabEntityAbilityInstance currentAbility = grabber.getGrabAbilityInstance();
+        LivingEntity currentHeld = currentAbility == null ? null : currentAbility.grabbedEntity;
+        if (currentHeld != observedHeld) {
+            observedHeld = currentHeld;
+            firstPlayerPulseAt = mob.level().getGameTime() + PLAYER_REACTION_TICKS;
+        }
         if (cooldown > 0) {
             cooldown--;
             return false;
@@ -43,7 +54,8 @@ public final class SocialGrabDamageGoal extends Goal {
         }
         LivingEntity held = ability.grabbedEntity;
         if (held instanceof ServerPlayer player) {
-            return !LatexSocialMemory.isOrganic(mob)
+            return mob.level().getGameTime() >= firstPlayerPulseAt
+                    && !LatexSocialMemory.isOrganic(mob)
                     && !LatexSocialMemory.isFriendlyArmHoldTarget(mob, player)
                     && LatexSocialMemory.mayInitiateHostileGrab(mob, player)
                     && !LatexSocialMemory.isSecondaryGrabActive(mob, player);
@@ -69,6 +81,7 @@ public final class SocialGrabDamageGoal extends Goal {
 
     @Override
     public void start() {
+        playerPulse = observedHeld instanceof ServerPlayer;
         grabber.setCausingGrabDamage(true);
     }
 
@@ -89,7 +102,8 @@ public final class SocialGrabDamageGoal extends Goal {
     public void stop() {
         grabber.setCausingGrabDamage(false);
         int baseCooldown = Math.max(5, grabber.getGrabDamageCooldown());
-        cooldown = (int)Math.ceil(baseCooldown * DAMAGE_INTERVAL_MULTIPLIER);
+        cooldown = (int)Math.ceil(baseCooldown * (playerPulse
+                ? PLAYER_DAMAGE_INTERVAL_MULTIPLIER : DAMAGE_INTERVAL_MULTIPLIER));
     }
 
     @Override

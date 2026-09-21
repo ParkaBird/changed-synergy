@@ -35,9 +35,14 @@ public final class BondedLatexScreen extends AbstractRadialScreen<BondedLatexMen
                         "changed.tamed_dark_latex.title.view_inventory")), () -> false),
                 interaction("cycle_follow", () -> List.of(
                         Component.translatable("changed.tamed_dark_latex.title.cycle_follow"),
-                        Component.translatable(menu.isFollowing()
-                                ? "changed.tamed_dark_latex.follow"
-                                : "changed.tamed_dark_latex.wander")), () -> false),
+                        Component.translatable(menu.isShoreWaiting()
+                                ? "menu.changed_synergy.bonded_latex.shore_wait"
+                                : menu.isFollowing()
+                                        ? "changed.tamed_dark_latex.follow"
+                                        : "changed.tamed_dark_latex.wander"),
+                        Component.translatable(menu.isAquaticPet()
+                                ? "menu.changed_synergy.bonded_latex.shore_wait_hint"
+                                : "menu.changed_synergy.bonded_latex.follow_hint")), () -> false),
                 interaction("cycle_target_type", () -> List.of(
                         Component.translatable("changed.tamed_dark_latex.title.cycle_target_type"),
                         Component.translatable(targetTypeKey(menu.getTargetType()))), () -> false),
@@ -285,6 +290,14 @@ public final class BondedLatexScreen extends AbstractRadialScreen<BondedLatexMen
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         Optional<Integer> section = getSectionAt((int)mouseX, (int)mouseY);
+        if (button == 1 && menu.isAquaticPet()
+                && section.filter(value -> value == 1).isPresent()) {
+            Minecraft.getInstance().getSoundManager().play(
+                    SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            menu.applyLocalCommand("wait_on_shore");
+            sendCommand("wait_on_shore");
+            return true;
+        }
         int suitSection = suitSection();
         if (button == 1 && suitSection >= 0
                 && section.filter(value -> value == suitSection).isPresent()) {

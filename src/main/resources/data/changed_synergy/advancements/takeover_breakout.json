@@ -1,0 +1,13 @@
+{
+  "parent": "changed_synergy:negotiated_release",
+  "display": {
+    "icon": { "item": "minecraft:iron_bars" },
+    "title": { "translate": "advancement.changed_synergy.takeover_breakout.title" },
+    "description": { "translate": "advancement.changed_synergy.takeover_breakout.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": { "complete": { "trigger": "minecraft:impossible" } }
+}

@@ -7,10 +7,8 @@ import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.data.AccessorySlotType;
 import net.ltxprogrammer.changed.data.AccessorySlots;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
-import net.ltxprogrammer.changed.entity.variant.ClothingShape;
-import net.ltxprogrammer.changed.item.ExtendedItemProperties;
 import net.ltxprogrammer.changed.init.ChangedRegistry;
-import net.ltxprogrammer.changed.world.enchantments.FormFittingEnchantment;
+import net.parkabird.changedsynergy.ai.CreatureArmorService;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.compat.curios.CuriosCompat;
 import net.parkabird.changedsynergy.init.ChangedSynergyMenus;
@@ -189,6 +187,7 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player viewer, int buttonId) {
+        if (!stillValid(viewer)) return false;
         if (buttonId == CURIOS_BUTTON_ID && hasCurios()) {
             curiosVisible = !curiosVisible;
             return true;
@@ -201,6 +200,11 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
     }
 
     @Override
+    public void clicked(int slot, int button, net.minecraft.world.inventory.ClickType type, Player viewer) {
+        if (stillValid(viewer)) super.clicked(slot, button, type, viewer);
+    }
+
+    @Override
     public boolean stillValid(Player viewer) {
         if (viewer.level().isClientSide) {
             return true;
@@ -208,9 +212,8 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
         return pet != null
                 && pet.isAlive()
                 && !pet.isRemoved()
-                && LatexSocialMemory.petOwnerUuid(pet)
-                        .map(viewer.getUUID()::equals)
-                        .orElse(false)
+                && viewer instanceof net.minecraft.server.level.ServerPlayer serverPlayer
+                && BondedInventoryService.canAccess(serverPlayer, pet)
                 && viewer.distanceToSqr(pet) <= 64.0D;
     }
 
@@ -222,6 +225,7 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player viewer, int slotIndex) {
+        if (!stillValid(viewer)) return ItemStack.EMPTY;
         if (slotIndex < 0 || slotIndex >= slots.size()) {
             return ItemStack.EMPTY;
         }
@@ -356,28 +360,7 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
     }
 
     private boolean canPetWear(ItemStack original, EquipmentSlot slot) {
-        if (pet == null || original.isEmpty()) {
-            return pet != null;
-        }
-        ItemStack stack = FormFittingEnchantment.getFormFitted(pet, original, slot);
-        if (stack.getItem() instanceof ExtendedItemProperties properties) {
-            if (!properties.allowedInSlot(stack, pet, slot)) {
-                return false;
-            }
-        } else {
-            var shape = pet.getEntityShape();
-            boolean compatible = switch (slot) {
-                case HEAD -> shape.getHeadShape() == ClothingShape.Head.ANTHRO;
-                case CHEST -> shape.getTorsoShape() == ClothingShape.Torso.ANTHRO;
-                case LEGS -> shape.getLegsShape() == ClothingShape.Legs.BIPEDAL;
-                case FEET -> shape.getFeetShape() == ClothingShape.Feet.BIPEDAL;
-                default -> true;
-            };
-            if (!compatible) {
-                return false;
-            }
-        }
-        return pet.isItemAllowedInSlot(stack, slot);
+        return pet != null && CreatureArmorService.canWear(pet, original, slot);
     }
 
     private static int armorMenuSlot(EquipmentSlot equipmentSlot) {

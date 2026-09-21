@@ -61,6 +61,9 @@ public final class ChangedSynergyScreens {
                     ChangedSynergyMenus.SOCIAL_INTERACTION.get(),
                     SocialInteractionScreen::new);
             MenuScreens.register(
+                    ChangedSynergyMenus.PROVISIONER_TRADE.get(),
+                    ProvisionerTradeScreen::new);
+            MenuScreens.register(
                     ChangedSynergyMenus.PLAYER_RELATIONSHIPS.get(),
                     PlayerRelationshipScreen::new);
             MenuScreens.register(

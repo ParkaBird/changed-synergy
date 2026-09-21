@@ -4,19 +4,28 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.TamableLatexEntity;
+import net.ltxprogrammer.changed.init.ChangedLatexTypes;
+import net.ltxprogrammer.changed.init.ChangedParticles;
+import net.ltxprogrammer.changed.util.Color3;
+import net.ltxprogrammer.changed.world.LatexCoverState;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.LatexTerritory;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 
 /** Idle pure-white latex can dissolve into its territory and reform nearby. */
 public final class PureWhiteReformationGoal extends Goal {
@@ -24,11 +33,16 @@ public final class PureWhiteReformationGoal extends Goal {
     private static final String NEXT_REFORMATION =
             "ChangedSynergyNextWhiteReformation";
     private static final double OBSERVER_RANGE_SQR = 20.0D * 20.0D;
+    private static final TagKey<Block> WHITE_LATEX_SURFACES = TagKey.create(
+            Registries.BLOCK,
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
+                    "changed_synergy", "white_territory_blocks"));
 
     private final ChangedEntity mob;
     private Vec3 destination;
     private int ticks;
     private boolean wasInvisible;
+    private long nextAttemptTick;
 
     public PureWhiteReformationGoal(ChangedEntity mob) {
         this.mob = mob;
@@ -44,28 +58,43 @@ public final class PureWhiteReformationGoal extends Goal {
                 || !movementAvailable()
                 || level.getGameTime()
                         < mob.getPersistentData().getLong(NEXT_REFORMATION)
-                || mob.getRandom().nextInt(100) != 0
-                || LatexTerritory.dominantFactionAt(
-                        level, mob.blockPosition()) != HunterFaction.WHITE) {
+                || level.getGameTime() < nextAttemptTick) {
             return false;
         }
 
-        CreatureLifeMemory.refreshConsensusFocus(mob);
+        if (!SynergyPerformanceTracker.allowBackground(
+                mob,
+                Feature.COMMUNITY,
+                SynergyPerformanceTracker.configuredBackgroundInterval())) {
+            return false;
+        }
+        // The old one-in-100 per-tick roll averaged one attempt every five
+        // seconds. Keep that cadence while preventing every white latex from
+        // running territory, entity, and block searches on arbitrary ticks.
+        nextAttemptTick = level.getGameTime()
+                + 80L + mob.getRandom().nextInt(41);
+        if (!isWhiteTerritorySurface(level, mob.blockPosition())) {
+            return false;
+        }
+
         BlockPos focus = chooseFocus(level);
         destination = BondedTeleportSafety.findSafeLandingNear(
                         level, mob, focus, 2, 8, 5)
                 .filter(position -> mob.distanceToSqr(position) >= 6.0D * 6.0D)
+                .filter(position -> isWhiteTerritorySurface(
+                        level, BlockPos.containing(position)))
                 .or(() -> BondedTeleportSafety.findSafeLandingNear(
                         level, mob, mob.blockPosition(), 6, 12, 5))
-                .filter(position -> LatexTerritory.dominantFactionAt(
-                        level, BlockPos.containing(position)) == HunterFaction.WHITE)
+                .filter(position -> isWhiteTerritorySurface(
+                        level, BlockPos.containing(position)))
                 .orElse(null);
         return destination != null;
     }
 
     @Override
     public boolean canContinueToUse() {
-        return ticks < 26 && destination != null && movementAvailable();
+        return SynergyPerformanceTracker.featureEnabled(Feature.COMMUNITY)
+                && ticks < 26 && destination != null && movementAvailable();
     }
 
     @Override
@@ -179,6 +208,36 @@ public final class PureWhiteReformationGoal extends Goal {
                 0.08D,
                 0.28D,
                 0.01D);
+        level.sendParticles(
+                ChangedParticles.drippingLatex(Color3.WHITE),
+                position.x,
+                position.y + mob.getBbHeight() * 0.4D,
+                position.z,
+                Math.max(6, count / 2),
+                0.30D,
+                0.32D,
+                0.30D,
+                0.0D);
+    }
+
+    private static boolean isWhiteTerritorySurface(
+            ServerLevel level,
+            BlockPos feet) {
+        if (LatexTerritory.dominantFactionAt(level, feet)
+                != HunterFaction.WHITE) {
+            return false;
+        }
+        return isWhiteLatex(level, feet)
+                || isWhiteLatex(level, feet.below());
+    }
+
+    private static boolean isWhiteLatex(ServerLevel level, BlockPos position) {
+        if (level.getBlockState(position).is(WHITE_LATEX_SURFACES)) {
+            return true;
+        }
+        LatexCoverState cover = LatexCoverState.getAt(level, position);
+        return cover.isPresent()
+                && cover.getType() == ChangedLatexTypes.WHITE_LATEX.get();
     }
 
     private void presentReformation() {

@@ -59,7 +59,8 @@ TEXT_SUFFIXES = {
 SKIP_PARTS = {
     ".git", ".gradle", ".idea", ".codex-tmp", ".local-artifacts", "build", "libs",
     "dist", "latex_moth_high_style_export", "mcmodsrepo", "release_backups",
-    "recovery_backups", "run", "run-data",
+    "recovery_backups", "run", "run-data", ".diagnostics", "analysis", "net",
+    ".codex-di-decompile",
 }
 
 
@@ -81,7 +82,12 @@ def iter_publishable_files() -> list[Path]:
         if not path.is_file():
             continue
         relative = path.relative_to(ROOT)
-        if any(part in SKIP_PARTS or part.startswith("build-") for part in relative.parts):
+        if any(
+            part in SKIP_PARTS
+            or part.startswith("build-")
+            or part.startswith(".codex-crash-")
+            for part in relative.parts
+        ):
             continue
         files.append(path)
     return files

@@ -22,7 +22,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyClientConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 
-/** CJK danmaku and an English-specific, collision-aware speech popup layout. */
+/** Scrolling dialogue and a collision-aware popup layout for Latin-script languages. */
 @OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(
         modid = ChangedSynergyMod.MOD_ID,
@@ -32,6 +32,9 @@ public final class TelepathyDanmakuOverlay {
     private static final float ENGLISH_SCALE = 0.86F;
     private static final float DANMAKU_SCALE = 0.94F;
     private static final Map<Long, PopupMotion> POPUP_MOTION = new HashMap<>();
+    private static int lastWidth;
+    private static int lastHeight;
+    private static double lastPopupOffset;
 
     private TelepathyDanmakuOverlay() {
     }
@@ -56,6 +59,11 @@ public final class TelepathyDanmakuOverlay {
         }
 
         Font font = minecraft.font;
+        double popupOffset = ChangedSynergyClientConfig.CLIENT.popupHeightOffset.get();
+        if (screenWidth != lastWidth || screenHeight != lastHeight || popupOffset != lastPopupOffset) {
+            POPUP_MOTION.clear();
+            lastWidth = screenWidth; lastHeight = screenHeight; lastPopupOffset = popupOffset;
+        }
         long now = Util.getMillis();
         List<TelepathyDanmakuState.Line> active =
                 TelepathyDanmakuState.activeLines();
@@ -67,6 +75,11 @@ public final class TelepathyDanmakuOverlay {
                 baseY + font.lineHeight,
                 (int)(screenHeight * 0.35F) - font.lineHeight);
         int visibleLanes = Math.max(1, (upperLimit - baseY) / laneSpacing + 1);
+        int maxBottom = Math.max(0, screenHeight - font.lineHeight - 4);
+        visibleLanes = Math.min(visibleLanes, Math.max(1, maxBottom / laneSpacing + 1));
+        baseY = Mth.clamp(baseY + (int)Math.round(screenHeight
+                * ChangedSynergyClientConfig.CLIENT.danmakuHeightOffset.get()), 0,
+                Math.max(0, maxBottom - (visibleLanes - 1) * laneSpacing));
         List<TelepathyDanmakuState.Line> english = new ArrayList<>();
 
         for (TelepathyDanmakuState.Line line : active) {
@@ -190,6 +203,10 @@ public final class TelepathyDanmakuOverlay {
         float maxX = Math.max(minX, screenWidth - width - 22.0F);
         float minY = Math.max(20.0F, screenHeight * 0.025F);
         float maxY = Math.max(minY, screenHeight * 0.36F - height);
+        float offset = (float)(screenHeight * ChangedSynergyClientConfig.CLIENT.popupHeightOffset.get());
+        float bottom = Math.max(0, screenHeight - height - 4);
+        minY = Mth.clamp(minY + offset, 0, bottom);
+        maxY = Mth.clamp(maxY + offset, minY, bottom);
         float anchorX = Mth.lerp(unit(first), minX, maxX);
         float anchorY = Mth.lerp(unit(second), minY, maxY);
         if (anchorX + width > screenWidth * 0.82F
@@ -216,6 +233,10 @@ public final class TelepathyDanmakuOverlay {
         float maxX = Math.max(minX, screenWidth - width - 18.0F);
         float minY = Math.max(18.0F, screenHeight * 0.02F);
         float maxY = Math.max(minY, screenHeight * 0.37F - height);
+        float offset = (float)(screenHeight * ChangedSynergyClientConfig.CLIENT.popupHeightOffset.get());
+        float bottom = Math.max(0, screenHeight - height - 4);
+        minY = Mth.clamp(minY + offset, 0, bottom);
+        maxY = Mth.clamp(maxY + offset, minY, bottom);
         Position best = new Position(
                 Mth.clamp(anchorX, minX, maxX),
                 Mth.clamp(anchorY, minY, maxY));

@@ -9,14 +9,14 @@ public record PatAnimationPacket(
         int actorId,
         boolean active,
         int durationTicks,
-        int cycleTicks) {
+        float cycleTicks) {
     public static void encode(
             PatAnimationPacket packet,
             FriendlyByteBuf buffer) {
         buffer.writeVarInt(packet.actorId);
         buffer.writeBoolean(packet.active);
         buffer.writeVarInt(packet.durationTicks);
-        buffer.writeVarInt(packet.cycleTicks);
+        buffer.writeFloat(packet.cycleTicks);
     }
 
     public static PatAnimationPacket decode(FriendlyByteBuf buffer) {
@@ -24,7 +24,7 @@ public record PatAnimationPacket(
                 buffer.readVarInt(),
                 buffer.readBoolean(),
                 buffer.readVarInt(),
-                buffer.readVarInt());
+                buffer.readFloat());
     }
 
     public static void handle(

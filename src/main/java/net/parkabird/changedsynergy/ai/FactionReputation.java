@@ -11,12 +11,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
 import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 
 /** Persistent player standing with each faction. */
 public final class FactionReputation {
-    public static final int ALLIED_THRESHOLD = 70;
-    public static final int RESPECTED_THRESHOLD = 40;
+    public static final int ALLIED_THRESHOLD = FactionDiplomacy.ALLIED;
+    public static final int RESPECTED_THRESHOLD = FactionDiplomacy.RESPECTED;
     public static final int RECOGNIZED_THRESHOLD = 20;
     public static final int DISTRUSTED_THRESHOLD = -15;
     public static final int HOSTILE_THRESHOLD = -40;
@@ -44,9 +45,11 @@ public final class FactionReputation {
         HunterFaction faction = HunterFaction.of(creature);
         CompoundTag reputation = data(player);
         String key = keyFor(creature);
+        initializeOrdinaryScore(reputation, faction, key, player.level());
         initializeLightScore(
                 reputation, faction, key,
-                creature.level(), creature.blockPosition());
+                creature.level(), creature.blockPosition(), player.level());
+        reconcileDiplomacy(player, reputation);
         return reputation.getInt(key);
     }
 
@@ -61,7 +64,9 @@ public final class FactionReputation {
         }
         CompoundTag reputation = data(player);
         String key = keyAt(faction, level, position);
-        initializeLightScore(reputation, faction, key, level, position);
+        initializeOrdinaryScore(reputation, faction, key, player.level());
+        initializeLightScore(reputation, faction, key, level, position, player.level());
+        reconcileDiplomacy(player, reputation);
         return reputation.getInt(key);
     }
 
@@ -142,6 +147,12 @@ public final class FactionReputation {
                 MINIMUM,
                 Math.min(MAXIMUM, previous + amount));
         data.putInt(key, updated);
+        if (amount > 0 && !independentFactions()) {
+            var scores = reputationScores(data);
+            FactionDiplomacy.applyGain(scores, key);
+            writeDiplomacy(player, data, scores, key);
+        }
+        if (updated <= MINIMUM) FactionPursuitService.record(creature, player);
         Standing newStanding = Standing.forScore(updated);
         if (newStanding != oldStanding) {
             player.sendSystemMessage(Component.translatable(
@@ -156,13 +167,13 @@ public final class FactionReputation {
                     player, SynergyAdvancements.FACTION_ALLY);
             grantFactionAlliedAdvancement(
                     player, HunterFaction.of(creature));
-            grantAllFactionsAdvancementIfEligible(player, data);
         }
         if (previous < RESPECTED_THRESHOLD
                 && updated >= RESPECTED_THRESHOLD) {
             grantFactionAdvancement(
                     player, HunterFaction.of(creature));
         }
+        grantAllFactionsAdvancementIfEligible(player, data);
         return updated;
     }
 
@@ -224,7 +235,8 @@ public final class FactionReputation {
             return;
         }
         CompoundTag reputation = data(player);
-        migrateSharedLightBaseline(reputation);
+        migrateSharedLightBaseline(reputation, player.level());
+        reconcileDiplomacy(player, reputation);
         int white = reputation.getInt(factionKey(HunterFaction.WHITE));
         int dark = reputation.getInt(factionKey(HunterFaction.DARK));
         int aquatic = reputation.getInt(factionKey(HunterFaction.AQUATIC));
@@ -299,20 +311,14 @@ public final class FactionReputation {
     private static void grantAllFactionsAdvancementIfEligible(
             ServerPlayer player,
             CompoundTag reputation) {
-        if (reputation.getInt(factionKey(HunterFaction.WHITE))
-                        >= ALLIED_THRESHOLD
-                && reputation.getInt(factionKey(HunterFaction.DARK))
-                        >= ALLIED_THRESHOLD
-                && reputation.getInt(factionKey(HunterFaction.AQUATIC))
-                        >= ALLIED_THRESHOLD
-                && highestLightScore(reputation) >= ALLIED_THRESHOLD) {
+        if (FactionDiplomacy.allRespected(reputationScores(reputation))) {
             SynergyAdvancements.grant(
                     player, SynergyAdvancements.ALL_FACTIONS_ALLIED);
         }
     }
 
     private static int highestLightScore(CompoundTag reputation) {
-        int highest = reputation.getInt(LIGHT_MIGRATION_BASELINE);
+        int highest = 0;
         for (String key : reputation.getAllKeys()) {
             if (key.startsWith("faction:light:")) {
                 highest = Math.max(highest, reputation.getInt(key));
@@ -343,12 +349,13 @@ public final class FactionReputation {
             HunterFaction faction,
             String key,
             Level level,
-            BlockPos position) {
+            BlockPos position,
+            Level rulesLevel) {
         if (faction != HunterFaction.LIGHT
                 || reputation.contains(key, Tag.TAG_INT)) {
             return;
         }
-        migrateSharedLightBaseline(reputation);
+        migrateSharedLightBaseline(reputation, rulesLevel);
         int initial = reputation.getInt(LIGHT_MIGRATION_BASELINE);
         if (!reputation.getBoolean(LIGHT_MIGRATION_FROM_GLOBAL)) {
             String legacyKey = legacyWildBiomeKey(level, position);
@@ -357,9 +364,24 @@ public final class FactionReputation {
             }
         }
         reputation.putInt(key, initial);
+        reputation.putBoolean("diplomacy_dirty", true);
     }
 
-    private static void migrateSharedLightBaseline(CompoundTag reputation) {
+    private static void initializeOrdinaryScore(
+            CompoundTag reputation,
+            HunterFaction faction,
+            String key,
+            Level level) {
+        if (faction != HunterFaction.LIGHT
+                && !reputation.contains(key, Tag.TAG_INT)) {
+            reputation.putInt(key,
+                    ChangedSynergyGameRules.initialFactionReputation(level));
+        }
+    }
+
+    private static void migrateSharedLightBaseline(
+            CompoundTag reputation,
+            Level level) {
         if (reputation.getBoolean(LIGHT_MIGRATION_DONE)) {
             return;
         }
@@ -368,7 +390,9 @@ public final class FactionReputation {
                 || reputation.contains(LEGACY_WILD_FACTION_KEY, Tag.TAG_INT);
         int baseline = reputation.contains(sharedKey, Tag.TAG_INT)
                 ? reputation.getInt(sharedKey)
-                : reputation.getInt(LEGACY_WILD_FACTION_KEY);
+                : reputation.contains(LEGACY_WILD_FACTION_KEY, Tag.TAG_INT)
+                        ? reputation.getInt(LEGACY_WILD_FACTION_KEY)
+                        : ChangedSynergyGameRules.initialFactionReputation(level);
         reputation.putInt(LIGHT_MIGRATION_BASELINE, baseline);
         reputation.putBoolean(LIGHT_MIGRATION_FROM_GLOBAL, fromGlobal);
         reputation.putBoolean(LIGHT_MIGRATION_DONE, true);
@@ -378,6 +402,73 @@ public final class FactionReputation {
 
     private static String factionKey(HunterFaction faction) {
         return "faction:" + faction.id();
+    }
+
+    private static java.util.Map<String, Integer> reputationScores(CompoundTag data) {
+        var scores = new java.util.LinkedHashMap<String, Integer>();
+        for (String key : data.getAllKeys()) {
+            if (key.startsWith("faction:") && data.contains(key, Tag.TAG_INT)) scores.put(key, data.getInt(key));
+        }
+        return scores;
+    }
+
+    private static void reconcileDiplomacy(ServerPlayer player, CompoundTag data) {
+        boolean independent = independentFactions();
+        if (data.getBoolean("diplomacy_independent") != independent) {
+            data.putBoolean("diplomacy_independent", independent);
+            data.putBoolean("diplomacy_dirty", true);
+        }
+        if (data.getBoolean("migration:diplomacy_v1") && !data.getBoolean("diplomacy_dirty")) return;
+        migrateSharedLightBaseline(data, player.level());
+        // Materialize the old shared baseline once so visiting a new region cannot
+        // resurrect a conflicting alliance that was already reconciled at login.
+        if (!data.getBoolean("migration:diplomacy_v1")) {
+            if (data.getBoolean(LIGHT_MIGRATION_FROM_GLOBAL)) {
+                for (String region : FactionDiplomacy.REGIONS) {
+                    String key = "faction:light:" + region;
+                    if (!data.contains(key, Tag.TAG_INT)) data.putInt(key, data.getInt(LIGHT_MIGRATION_BASELINE));
+                }
+            }
+            data.putBoolean("migration:diplomacy_v1", true);
+        }
+        if (!independent) {
+            var scores = reputationScores(data);
+            FactionDiplomacy.normalize(scores);
+            writeDiplomacy(player, data, scores, null);
+        }
+        data.remove("diplomacy_dirty");
+    }
+
+    private static boolean independentFactions() {
+        return ChangedSynergyConfig.COMMON.independentFactionReputation.get();
+    }
+
+    private static void writeDiplomacy(ServerPlayer player, CompoundTag data,
+            java.util.Map<String, Integer> scores, String source) {
+        for (var entry : scores.entrySet()) {
+            int old = data.getInt(entry.getKey());
+            int next = entry.getValue();
+            if (old == next) continue;
+            data.putInt(entry.getKey(), next);
+            if (old >= ALLIED_THRESHOLD && next < ALLIED_THRESHOLD) {
+                player.sendSystemMessage(Component.translatable("message.changed_synergy.reputation.alliance_ended",
+                        nameForAccount(entry.getKey()), next));
+            } else if (source != null) {
+                long now = player.level().getGameTime();
+                String notice = "diplomacy_notice:" + entry.getKey();
+                if (data.getLong(notice) <= now) {
+                    data.putLong(notice, now + 200L);
+                    player.sendSystemMessage(Component.translatable("message.changed_synergy.reputation.rival_concern",
+                            nameForAccount(entry.getKey()), nameForAccount(source), next));
+                }
+            }
+        }
+    }
+
+    private static Component nameForAccount(String key) {
+        return Component.translatable(key.startsWith("faction:light:")
+                ? LightFactionGroup.translationKey(key.substring("faction:light:".length()))
+                : "faction.changed_synergy." + key.substring("faction:".length()));
     }
 
     private static String keyFor(ChangedEntity creature) {

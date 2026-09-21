@@ -7,8 +7,8 @@ import net.ltxprogrammer.changed.init.ChangedEntities;
 import net.ltxprogrammer.changed.util.CameraUtil;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -21,11 +21,10 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
+import net.parkabird.changedsynergy.ai.HypnosisGazeContest;
 import net.parkabird.changedsynergy.ai.HypnosisProfile;
 import net.parkabird.changedsynergy.ai.HypnosisQteService;
 import net.parkabird.changedsynergy.init.ChangedSynergyMobEffects;
-import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
-import net.parkabird.changedsynergy.network.HypnosisQteInputPacket;
 import net.parkabird.changedsynergy.network.HypnosisQteSyncPacket;
 
 @OnlyIn(Dist.CLIENT)
@@ -36,10 +35,11 @@ import net.parkabird.changedsynergy.network.HypnosisQteSyncPacket;
 public final class HypnosisQteClientState {
     private static HypnosisQteSyncPacket current;
     private static int localTicksRemaining;
-    private static int localTicksUnpressed;
+    private static int localOffGazeTicks;
+    private static float smoothedGazeAlignment = 1.0F;
+    private static float targetGazeAlignment = 1.0F;
     private static int cachedThemeColor = HypnosisProfile.GENERIC.color();
     private static final Map<UUID, Long> HYPNOSIS_COOLDOWNS = new HashMap<>();
-    private static final boolean[] WAS_DOWN = new boolean[4];
     private static UUID activeHypnotistUuid;
     private static ResourceKey<Level> lockedDimension;
     private static float lockedYRot;
@@ -69,13 +69,15 @@ public final class HypnosisQteClientState {
             rememberActiveHypnotist(packet.hypnotistId());
             if (newActiveSession) {
                 captureRestraint();
+                smoothedGazeAlignment = packet.gazeAlignment();
             }
+            targetGazeAlignment = packet.gazeAlignment();
         } else {
             beginCooldown(packet.hypnotistId());
         }
         cachedThemeColor = resolveThemeColor(packet.hypnotistId(), fallbackColor);
         localTicksRemaining = packet.ticksRemaining();
-        localTicksUnpressed = packet.ticksUnpressed();
+        localOffGazeTicks = packet.offGazeTicks();
         if (packet.state() != HypnosisQteSyncPacket.ACTIVE) {
             releaseClientMind();
         }
@@ -89,7 +91,6 @@ public final class HypnosisQteClientState {
         if (isControlLocked()) {
             suppressActionKeys(Minecraft.getInstance());
         }
-        snapshotKeys();
     }
 
     public static HypnosisQteSyncPacket current() {
@@ -100,8 +101,16 @@ public final class HypnosisQteClientState {
         return Math.max(0, localTicksRemaining);
     }
 
-    public static int ticksUnpressed() {
-        return Math.max(0, localTicksUnpressed);
+    public static int offGazeTicks() {
+        return Math.max(0, localOffGazeTicks);
+    }
+
+    public static float resistance() {
+        return current == null ? 0.0F : Mth.clamp(current.resistance(), 0.0F, 1.0F);
+    }
+
+    public static float gazeAlignment() {
+        return Mth.clamp(smoothedGazeAlignment, 0.0F, 1.0F);
     }
 
     public static boolean isControlLocked() {
@@ -109,6 +118,18 @@ public final class HypnosisQteClientState {
                 && (current.state() == HypnosisQteSyncPacket.ACTIVE
                         || current.state() == HypnosisQteSyncPacket.FAILED
                                 && localTicksRemaining > 0)) {
+            return true;
+        }
+        Minecraft minecraft = Minecraft.getInstance();
+        return minecraft.player != null
+                && minecraft.player.hasEffect(ChangedSynergyMobEffects.MESMERIZED.get());
+    }
+
+    /** Mouse look remains available during resistance, then freezes after failure. */
+    public static boolean isViewFrozen() {
+        if (current != null
+                && current.state() == HypnosisQteSyncPacket.FAILED
+                && localTicksRemaining > 0) {
             return true;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -189,7 +210,7 @@ public final class HypnosisQteClientState {
             return 0.0F;
         }
         if (current.state() == HypnosisQteSyncPacket.ACTIVE) {
-            return 0.45F + 0.45F * current.controlStrength();
+            return 0.30F + 0.60F * gazeAlignment();
         }
         float fade = Math.min(1.0F, (localTicksRemaining + partialTick) / 30.0F);
         return current.state() == HypnosisQteSyncPacket.FAILED ? 0.8F * fade : 0.35F * fade;
@@ -221,7 +242,6 @@ public final class HypnosisQteClientState {
             } else {
                 clearRestraint();
             }
-            snapshotKeys();
             pruneCooldowns(minecraft);
             return;
         }
@@ -243,39 +263,33 @@ public final class HypnosisQteClientState {
             return;
         }
 
-        if (current.expectedKey() >= 0) {
-            localTicksUnpressed++;
-        }
-        lockViewOnHypnotist(minecraft);
-        KeyMapping[] keys = keys();
-        for (int index = 0; index < keys.length; index++) {
-            boolean down = keys[index].isDown();
-            if (down && !WAS_DOWN[index] && current.expectedKey() >= 0) {
-                ChangedSynergyNetwork.CHANNEL.sendToServer(
-                        new HypnosisQteInputPacket(current.sessionId(), index));
-            }
-            WAS_DOWN[index] = down;
-        }
+        updateLocalGazeAlignment(minecraft);
 
         captureRestraint();
         enforceControlLock(minecraft, false);
         pruneCooldowns(minecraft);
     }
 
-    private static void lockViewOnHypnotist(Minecraft minecraft) {
+    private static void updateLocalGazeAlignment(Minecraft minecraft) {
         if (minecraft.level == null || minecraft.player == null || current == null) {
             return;
         }
         Entity hypnotist = minecraft.level.getEntity(current.hypnotistId());
         if (!(hypnotist instanceof LivingEntity living)) {
+            smoothedGazeAlignment = Mth.lerp(
+                    0.2F, smoothedGazeAlignment, targetGazeAlignment);
             return;
         }
         activeHypnotistUuid = living.getUUID();
-        minecraft.player.lookAt(
-                EntityAnchorArgument.Anchor.EYES,
-                living.getEyePosition());
-        minecraft.player.xRotO = minecraft.player.getXRot();
-        minecraft.player.yRotO = minecraft.player.getYRot();
+        var towardEyes = living.getEyePosition().subtract(
+                minecraft.player.getEyePosition());
+        float localAlignment = towardEyes.lengthSqr() < 1.0E-4D
+                ? 1.0F
+                : HypnosisGazeContest.alignmentFromDot(
+                        minecraft.player.getLookAngle().dot(towardEyes.normalize()));
+        targetGazeAlignment = Mth.lerp(0.35F, targetGazeAlignment, localAlignment);
+        smoothedGazeAlignment = Mth.lerp(
+                0.28F, smoothedGazeAlignment, targetGazeAlignment);
     }
 
     @SubscribeEvent
@@ -289,19 +303,6 @@ public final class HypnosisQteClientState {
         if (event.getEntity().level().isClientSide() && isControlLocked()) {
             event.setCanceled(true);
             event.setCancellationResult(net.minecraft.world.InteractionResult.FAIL);
-        }
-    }
-
-    /** Matches GrabEntityAbilityInstance's ordered key list exactly. */
-    private static KeyMapping[] keys() {
-        var options = Minecraft.getInstance().options;
-        return new KeyMapping[] {options.keyUp, options.keyDown, options.keyLeft, options.keyRight};
-    }
-
-    private static void snapshotKeys() {
-        KeyMapping[] keys = keys();
-        for (int index = 0; index < keys.length; index++) {
-            WAS_DOWN[index] = keys[index].isDown();
         }
     }
 
@@ -405,10 +406,9 @@ public final class HypnosisQteClientState {
         HypnosisQteAnimationState.clear();
         cachedThemeColor = HypnosisProfile.GENERIC.color();
         localTicksRemaining = 0;
-        localTicksUnpressed = 0;
-        for (int index = 0; index < WAS_DOWN.length; index++) {
-            WAS_DOWN[index] = false;
-        }
+        localOffGazeTicks = 0;
+        smoothedGazeAlignment = 1.0F;
+        targetGazeAlignment = 1.0F;
     }
 
     private static void clearRestraint() {

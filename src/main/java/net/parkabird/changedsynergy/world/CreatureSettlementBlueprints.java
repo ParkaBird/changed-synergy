@@ -32,7 +32,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
-import net.parkabird.changedsynergy.ai.CreatureLifeMemory.AnchorKind;
 import net.parkabird.changedsynergy.ai.HunterFaction;
 import net.parkabird.changedsynergy.ai.LightFactionGroup;
 
@@ -100,20 +99,6 @@ public final class CreatureSettlementBlueprints extends SimpleJsonResourceReload
                 HunterFaction faction = HunterFaction.fromId(element.getAsString());
                 if (faction != null) {
                     factions.add(faction);
-                }
-            }
-        }
-
-        Set<AnchorKind> anchors = EnumSet.noneOf(AnchorKind.class);
-        JsonArray anchorArray = json.getAsJsonArray("anchors");
-        if (anchorArray != null) {
-            for (JsonElement element : anchorArray) {
-                String value = element.getAsString();
-                for (AnchorKind anchor : AnchorKind.values()) {
-                    if (anchor.id().equalsIgnoreCase(value)) {
-                        anchors.add(anchor);
-                        break;
-                    }
                 }
             }
         }
@@ -207,7 +192,6 @@ public final class CreatureSettlementBlueprints extends SimpleJsonResourceReload
         return new Blueprint(
                 id,
                 Set.copyOf(factions),
-                Set.copyOf(anchors),
                 Set.copyOf(lightGroups),
                 cache,
                 List.copyOf(restPoints),
@@ -229,7 +213,6 @@ public final class CreatureSettlementBlueprints extends SimpleJsonResourceReload
     public record Blueprint(
             ResourceLocation id,
             Set<HunterFaction> factions,
-            Set<AnchorKind> anchors,
             Set<String> lightGroups,
             BlockPos cacheOffset,
             List<BlockPos> restPoints,
@@ -237,8 +220,6 @@ public final class CreatureSettlementBlueprints extends SimpleJsonResourceReload
             List<Cell> blocks,
             List<Display> displays) {
         private boolean matches(HunterFaction faction, String lightGroup) {
-            // "anchors" remains a readable datapack field for old packs, but
-            // no longer selects a personal activity-centre variant.
             return factions.contains(faction)
                     && (lightGroups.isEmpty() || lightGroups.contains(lightGroup));
         }

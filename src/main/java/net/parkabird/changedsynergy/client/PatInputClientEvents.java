@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
@@ -14,6 +15,7 @@ import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.network.PatAnimationControlPacket;
+import net.parkabird.changedsynergy.network.PatAnimationSpeedPacket;
 
 /**
  * Drives Synergy's own held pat input and mirrors Addon's pat key only for the
@@ -71,6 +73,20 @@ public final class PatInputClientEvents {
                             true,
                             newStroke && source == InputSource.SYNERGY));
         }
+    }
+
+    @SubscribeEvent
+    public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null || minecraft.screen != null
+                || event.getScrollDelta() == 0.0D
+                || !PatAnimationClientState.isActive(
+                        minecraft.player.getId())) {
+            return;
+        }
+        ChangedSynergyNetwork.CHANNEL.sendToServer(
+                new PatAnimationSpeedPacket(event.getScrollDelta()));
+        event.setCanceled(true);
     }
 
     private static void resolveAddonKey(Minecraft minecraft) {

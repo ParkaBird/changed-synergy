@@ -11,7 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.ItemStack;
@@ -29,9 +28,12 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
+import net.parkabird.changedsynergy.compat.ChangedVanillaCompat;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.FishingSite;
 import net.parkabird.changedsynergy.ai.CompanionWorkDialogue.WorkKind;
 import net.parkabird.changedsynergy.world.inventory.BondedCreatureInventory;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 
 /**
  * Complete Changed-style fishing/caving implementation for bonded creatures
@@ -63,8 +65,6 @@ public final class FallbackBondedWorkGoal extends Goal {
     private int repathTicks;
     private int workTicks;
     private long nextSearchTick;
-    private ItemStack previousMainHand = ItemStack.EMPTY;
-    private boolean showingTool;
 
     public FallbackBondedWorkGoal(ChangedEntity pet) {
         this.pet = pet;
@@ -73,7 +73,8 @@ public final class FallbackBondedWorkGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (!(pet.level() instanceof ServerLevel level)
+        if (!SynergyPerformanceTracker.featureEnabled(Feature.COMPANION_WORK)
+                || !(pet.level() instanceof ServerLevel level)
                 || !BondedPetSettings.usesFallbackBackend(pet)
                 || !LatexSocialMemory.hasActiveBond(pet)
                 || CreatureSettlementService.hasCargo(pet)
@@ -84,6 +85,12 @@ public final class FallbackBondedWorkGoal extends Goal {
         ServerPlayer owner = LatexSocialMemory.getPetOwner(pet);
         if (owner == null || owner.level() != pet.level()
                 || pet.distanceToSqr(owner) > OWNER_WORK_LEASH * OWNER_WORK_LEASH) {
+            return false;
+        }
+        if (!SynergyPerformanceTracker.allowBackground(
+                pet,
+                Feature.COMPANION_WORK,
+                SynergyPerformanceTracker.configuredBackgroundInterval())) {
             return false;
         }
 
@@ -122,7 +129,8 @@ public final class FallbackBondedWorkGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return work != Work.NONE && destination != null
+        return SynergyPerformanceTracker.featureEnabled(Feature.COMPANION_WORK)
+                && work != Work.NONE && destination != null
                 && !CreatureSettlementService.hasCargo(pet)
                 && movementAvailable()
                 && BondedPetSettings.favor(pet)
@@ -148,6 +156,7 @@ public final class FallbackBondedWorkGoal extends Goal {
 
     @Override
     public void tick() {
+        GatheringToolPresentation.heartbeat(pet);
         if (destination == null || ++workTicks > MAX_WORK_TICKS) {
             stopWork();
             return;
@@ -350,27 +359,21 @@ public final class FallbackBondedWorkGoal extends Goal {
     }
 
     private void showTool() {
-        if (inventory == null || toolSlot < 0) {
+        if (inventory == null || toolSlot < 0
+                || ChangedVanillaCompat.equipmentChangeRebuildsGoals(pet)) {
             return;
         }
         ItemStack tool = inventory.storageItem(toolSlot);
         if (tool.isEmpty()) {
             return;
         }
-        previousMainHand = pet.getItemBySlot(EquipmentSlot.MAINHAND).copy();
         ItemStack visual = tool.copy();
         visual.setCount(1);
-        pet.setItemSlot(EquipmentSlot.MAINHAND, visual);
-        showingTool = true;
+        GatheringToolPresentation.show(pet, visual);
     }
 
     private void restoreTool() {
-        if (!showingTool) {
-            return;
-        }
-        pet.setItemSlot(EquipmentSlot.MAINHAND, previousMainHand);
-        previousMainHand = ItemStack.EMPTY;
-        showingTool = false;
+        GatheringToolPresentation.restore(pet);
     }
 
     private void moveToTarget() {
@@ -386,6 +389,8 @@ public final class FallbackBondedWorkGoal extends Goal {
             FishingVisualEffects.cancel(level, pet);
             FishingVisualEffects.setRodCastModel(pet, false);
         }
+        clearBreakingAnimation();
+        restoreTool();
         work = Work.NONE;
         pet.getNavigation().stop();
     }

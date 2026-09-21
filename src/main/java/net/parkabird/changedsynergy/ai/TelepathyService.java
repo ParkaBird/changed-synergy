@@ -34,7 +34,8 @@ public final class TelepathyService {
         CompoundTag data = data(player);
         int count = Math.min(1_000_000, data.getInt(TRANSFUR_COUNT) + 1);
         data.putInt(TRANSFUR_COUNT, count);
-        if (count >= ChangedSynergyConfig.COMMON.telepathyUnlockTransfurs.get()) {
+        int required = ChangedSynergyConfig.COMMON.telepathyUnlockTransfurs.get();
+        if (required > 0 && count >= required) {
             unlock(player);
         }
     }

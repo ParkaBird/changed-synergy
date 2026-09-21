@@ -20,6 +20,8 @@ import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 public final class GrabEscapeStunService {
     private static final int STUN_TICKS = 60;
     private static final String STUN_UNTIL = "ChangedSynergyGrabEscapeStunUntil";
+    private static final String PLAYER_PROTECTED_UNTIL =
+            "ChangedSynergyGrabEscapeProtectedUntil";
 
     private GrabEscapeStunService() {
     }
@@ -34,6 +36,9 @@ public final class GrabEscapeStunService {
         }
         grabber.getPersistentData().putLong(
                 STUN_UNTIL, grabber.level().getGameTime() + STUN_TICKS);
+        escapedPlayer.getPersistentData().putLong(
+                PLAYER_PROTECTED_UNTIL,
+                escapedPlayer.level().getGameTime() + STUN_TICKS);
         suppress(grabber);
         if (grabber instanceof ChangedEntity changed) {
             HuntMemory.clear(changed);
@@ -58,6 +63,20 @@ public final class GrabEscapeStunService {
 
     public static boolean shouldSuppressAttack(Mob attacker, LivingEntity target) {
         return isStunned(attacker);
+    }
+
+    /** Prevents another nearby latex from replacing the just-broken hold before
+     * the release and QTE synchronization packets have reached the client. */
+    public static boolean isEscapeProtected(LivingEntity target) {
+        if (!(target instanceof ServerPlayer player)
+                || !ChangedSynergyGameRules.enabled(
+                        player.level(), ChangedSynergyGameRules.GRAB_QTE_ENHANCEMENTS)) {
+            return false;
+        }
+        long until = player.getPersistentData().getLong(PLAYER_PROTECTED_UNTIL);
+        if (until > player.level().getGameTime()) return true;
+        if (until != 0L) player.getPersistentData().remove(PLAYER_PROTECTED_UNTIL);
+        return false;
     }
 
     @SubscribeEvent

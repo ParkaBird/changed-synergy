@@ -97,8 +97,13 @@ public final class TelepathyDanmakuState {
             return false;
         }
         String language = minecraft.getLanguageManager().getSelected();
-        return language != null
-                && language.toLowerCase(Locale.ROOT).startsWith("en_");
+        if (language == null) {
+            return false;
+        }
+        String locale = language.toLowerCase(Locale.ROOT);
+        return locale.startsWith("en_")
+                || locale.startsWith("de_")
+                || locale.startsWith("es_");
     }
 
     public record Line(

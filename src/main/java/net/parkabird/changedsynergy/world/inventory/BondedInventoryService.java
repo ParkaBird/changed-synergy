@@ -15,21 +15,50 @@ public final class BondedInventoryService {
     private BondedInventoryService() {
     }
 
+    public static boolean canAccess(ServerPlayer player, ChangedEntity pet) {
+        if (!pet.isAlive() || pet.isRemoved() || pet.level() != player.level()
+                || player.isSpectator() || player.distanceToSqr(pet) > 64.0D) return false;
+        if (LatexSocialMemory.isPetOwner(pet, player)) return true;
+        return LatexSocialMemory.petOwnerUuid(pet).isEmpty()
+                && pet.level().getGameRules().getBoolean(net.parkabird.changedsynergy.init.ChangedSynergyGameRules.FRIENDSHIP_SYSTEM)
+                && !net.parkabird.changedsynergy.ai.FactionPursuitService.isPursuer(pet)
+                && net.parkabird.changedsynergy.ai.CreatureSocialProfile.allowsPersonalRelationship(pet)
+                && net.parkabird.changedsynergy.ai.CreaturePersonality.hasTrustedRelationship(pet, player)
+                && net.parkabird.changedsynergy.ai.CreaturePersonality.relationshipTier(pet, player)
+                    == net.parkabird.changedsynergy.ai.CreaturePersonality.RelationshipTier.CLOSE
+                && !LatexSocialMemory.isProvoked(pet, player);
+    }
+
     public static boolean open(ServerPlayer owner, ChangedEntity pet) {
         if (!pet.isAlive()
                 || pet.level() != owner.level()
-                || !LatexSocialMemory.isPetOwner(pet, owner)
+                || !canAccess(owner, pet)
                 || owner.distanceToSqr(pet) > 64.0D) {
             return false;
         }
 
-        LatexSocialMemory.promoteNativePet(pet, owner);
+        // The fallback container has a per-open storage view: serialize viewers to
+        // avoid stale snapshots duplicating items. This also protects native APIs.
+        for (ServerPlayer other : owner.serverLevel().players()) {
+            if (other != owner && other.containerMenu instanceof BondedCreatureInventoryMenu menu
+                    && menu.getPet() == pet) {
+                owner.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                        "message.changed_synergy.inventory.busy"), true);
+                return false;
+            }
+        }
+        boolean owned = LatexSocialMemory.isPetOwner(pet, owner);
+        if (owned) LatexSocialMemory.promoteNativePet(pet, owner);
         Container creatureInventory = null;
-        if (pet instanceof AbstractDarkLatexEntity darkLatex) {
-            darkLatex.setOwnerUUID(owner.getUUID());
-            darkLatex.setTame(true);
+        if (pet.getPersistentData().contains("ChangedSynergyBondedInventory")) {
+            creatureInventory = new BondedCreatureInventory(pet);
+        } else if (pet instanceof AbstractDarkLatexEntity darkLatex) {
+            if (owned) {
+                darkLatex.setOwnerUUID(owner.getUUID());
+                darkLatex.setTame(true);
+            }
             creatureInventory = darkLatex.getInventory();
-        } else {
+        } else if (owned) {
             creatureInventory = ChangedAddonCompat.prepareBondedInventory(pet, owner);
         }
 

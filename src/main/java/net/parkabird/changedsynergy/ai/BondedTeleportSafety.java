@@ -1,5 +1,8 @@
 package net.parkabird.changedsynergy.ai;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import javax.annotation.Nullable;
@@ -10,6 +13,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -29,6 +34,10 @@ public final class BondedTeleportSafety {
     private static final int MAX_HORIZONTAL_RADIUS = 10;
     private static final int MAX_BELOW_OWNER = 14;
     private static final int MAX_ABOVE_OWNER = 6;
+
+    /** A reachable water node and the adjacent dry block used to leave it. */
+    public record ShoreApproach(Vec3 water, Vec3 land) {
+    }
 
     private BondedTeleportSafety() {
     }
@@ -86,6 +95,84 @@ public final class BondedTeleportSafety {
         creature.teleportTo(position.x, position.y, position.z);
         settleAfterTeleport(creature);
         return true;
+    }
+
+    /**
+     * Finds shoreline transitions near a dry target for an aquatic companion.
+     * Water navigation cannot path to the target's dry block directly, so the
+     * follower first reaches {@link ShoreApproach#water()} and then uses its
+     * move controller for the final short step onto {@link ShoreApproach#land()}.
+     */
+    public static List<ShoreApproach> findShoreApproaches(
+            ServerLevel level,
+            ChangedEntity creature,
+            LivingEntity target,
+            int horizontalRadius,
+            int verticalRadius) {
+        BlockPos origin = target.blockPosition();
+        List<ShoreApproach> approaches = new ArrayList<>();
+        int entityBlocksHigh = Math.max(1, (int)Math.ceil(creature.getBbHeight()));
+        for (int radius = 0; radius <= horizontalRadius; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    if (radius > 0
+                            && Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
+                        continue;
+                    }
+                    int x = origin.getX() + dx;
+                    int z = origin.getZ() + dz;
+                    for (int step = 0; step <= verticalRadius * 2; step++) {
+                        int magnitude = (step + 1) / 2;
+                        int dy = step == 0 ? 0
+                                : step % 2 == 1 ? -magnitude : magnitude;
+                        int y = origin.getY() + dy;
+                        BlockPos stand = new BlockPos(x, y, z);
+                        if (!level.getFluidState(stand).isEmpty()) {
+                            continue;
+                        }
+                        Optional<Vec3> land = validate(
+                                level, creature, target, x, y, z,
+                                entityBlocksHigh);
+                        if (land.isEmpty()) {
+                            continue;
+                        }
+                        for (Direction direction : Direction.Plane.HORIZONTAL) {
+                            BlockPos beside = stand.relative(direction);
+                            for (int drop = 0; drop <= 1; drop++) {
+                                BlockPos water = beside.below(drop);
+                                if (!level.getFluidState(water)
+                                        .is(FluidTags.WATER)) {
+                                    continue;
+                                }
+                                Optional<Vec3> waterPosition = validate(
+                                        level, creature, target,
+                                        water.getX(), water.getY(), water.getZ(),
+                                        entityBlocksHigh);
+                                if (waterPosition.isPresent()) {
+                                    ShoreApproach approach = new ShoreApproach(
+                                            Vec3.atCenterOf(water), land.get());
+                                    if (!approaches.contains(approach)) {
+                                        approaches.add(approach);
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            // The nearest owner-centered ring is preferable. Once it contains
+            // several alternatives, do not scan a much larger area every tick.
+            if (approaches.size() >= 8) {
+                break;
+            }
+        }
+        approaches.sort(Comparator
+                .comparingDouble((ShoreApproach approach) ->
+                        approach.land().distanceToSqr(target.position()))
+                .thenComparingDouble(approach ->
+                        approach.water().distanceToSqr(creature.position())));
+        return List.copyOf(approaches);
     }
 
     /**
@@ -244,7 +331,8 @@ public final class BondedTeleportSafety {
             return Optional.empty();
         }
 
-        boolean aquaticLanding = HunterFaction.isAquatic(creature)
+        boolean aquaticLanding = (HunterFaction.isAquatic(creature)
+                || creature.getNavigation() instanceof WaterBoundPathNavigation)
                 && level.getFluidState(feet).is(FluidTags.WATER);
         if (!aquaticLanding) {
             BlockPos supportPos = feet.below();
@@ -279,7 +367,7 @@ public final class BondedTeleportSafety {
         return Optional.of(position);
     }
 
-    private static boolean isDangerous(BlockState state) {
+    static boolean isDangerous(BlockState state) {
         Block block = state.getBlock();
         return state.is(BlockTags.FIRE)
                 || block == Blocks.CACTUS

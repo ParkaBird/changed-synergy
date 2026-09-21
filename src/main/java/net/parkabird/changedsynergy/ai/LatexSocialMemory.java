@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
+import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.TamableLatexEntity;
 import net.ltxprogrammer.changed.entity.beast.AbstractDarkLatexEntity;
@@ -28,6 +29,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -45,6 +47,7 @@ public final class LatexSocialMemory {
     private static final String FRIENDLY_HITS = "FriendlyHitWarnings";
     private static final String PET_OWNER = "PetOwner";
     private static final String FOLLOW_OWNER = "FollowOwner";
+    private static final String SHORE_WAIT = "ShoreWait";
     private static final String PET_DEFENSE_PLAYER = "PetDefensePlayer";
     private static final String PET_DEFENSE_UNTIL = "PetDefenseUntil";
     private static final String PET_DEFENSE_FORCED = "PetDefenseForced";
@@ -69,6 +72,16 @@ public final class LatexSocialMemory {
     private static final String FRIENDLY_SUIT_EMERGENCY = "FriendlySuitEmergency";
     private static final String FRIENDLY_SUIT_COMBAT = "FriendlySuitCombat";
     private static final String FRIENDLY_SUIT_STARTED = "FriendlySuitStarted";
+    private static final String FRIENDLY_SUIT_RELEASE_REQUESTS_REQUIRED =
+            "FriendlySuitReleaseRequestsRequired";
+    private static final String FRIENDLY_SUIT_RELEASE_REQUESTS_ACCEPTED =
+            "FriendlySuitReleaseRequestsAccepted";
+    private static final String FRIENDLY_SUIT_NEXT_RELEASE_REQUEST =
+            "FriendlySuitNextReleaseRequest";
+    private static final String FRIENDLY_SUIT_HOLD_ANNOUNCED =
+            "FriendlySuitHoldAnnounced";
+    private static final String FRIENDLY_SUIT_CONCERN_RECORDED =
+            "FriendlySuitConcernRecorded";
     private static final String EMERGENCY_RESCUE_COOLDOWN = "EmergencyRescueCooldown";
     private static final String JEALOUS_FORMS = "JealousOwnerForms";
     private static final String PLAYER_BONDS = "ChangedSynergyBondedCreatures";
@@ -195,13 +208,15 @@ public final class LatexSocialMemory {
     }
 
     public static boolean isBonded(ChangedEntity mob, ServerPlayer player) {
-        return bondEnabled(mob)
+        return CreatureSocialProfile.allowsPersonalRelationship(mob)
+                && bondEnabled(mob)
                 && child(mob, BONDS).getBoolean(player.getUUID().toString());
     }
 
     /** Active behavior check; the raw UUID set remains available for lifecycle cleanup. */
     public static boolean hasActiveBond(ChangedEntity mob) {
-        return bondEnabled(mob) && !bondedPlayerUuids(mob).isEmpty();
+        return CreatureSocialProfile.allowsPersonalRelationship(mob)
+                && bondEnabled(mob) && !bondedPlayerUuids(mob).isEmpty();
     }
 
     public static boolean isPetOwner(ChangedEntity mob, ServerPlayer player) {
@@ -233,6 +248,33 @@ public final class LatexSocialMemory {
             return Optional.of(nativePet.getOwnerUUID());
         }
         return Optional.empty();
+    }
+
+    /** Updates the companion owner used by optional pet-system integrations. */
+    public static void setPetOwnerUuid(ChangedEntity mob, @Nullable UUID ownerUuid) {
+        if (!bondEnabled(mob)) {
+            return;
+        }
+        CompoundTag social = data(mob);
+        if (ownerUuid == null) {
+            social.remove(PET_OWNER);
+            social.remove(FOLLOW_OWNER);
+        } else {
+            social.putUUID(PET_OWNER, ownerUuid);
+            social.putBoolean(FOLLOW_OWNER, true);
+        }
+        if (mob instanceof TamableLatexEntity nativePet) {
+            try {
+                invokeMethod(mob, "setOwnerUUID", new Class<?>[]{UUID.class}, ownerUuid);
+                invokeMethod(mob, "setTame", new Class<?>[]{boolean.class}, ownerUuid != null);
+                nativePet.setFollowOwner(ownerUuid != null);
+            } catch (ReflectiveOperationException | RuntimeException exception) {
+                ChangedSynergyMod.LOGGER.warn(
+                        "Could not update native pet ownership for {}", mob.getType(), exception);
+            }
+        }
+        mob.setTarget(null);
+        mob.getNavigation().stop();
     }
 
     public static ServerPlayer getPetOwner(ChangedEntity mob) {
@@ -307,6 +349,7 @@ public final class LatexSocialMemory {
     }
 
     public static void setFollowingOwner(ChangedEntity mob, boolean following) {
+        data(mob).putBoolean(SHORE_WAIT, false);
         data(mob).putBoolean(FOLLOW_OWNER, following);
         if (mob instanceof TamableLatexEntity nativePet) {
             nativePet.setFollowOwner(following);
@@ -315,6 +358,26 @@ public final class LatexSocialMemory {
         if (!following) {
             mob.setTarget(null);
         }
+    }
+
+    public static boolean isWaitingOnShore(ChangedEntity mob) {
+        return mob instanceof net.ltxprogrammer.changed.entity.beast.AbstractAquaticEntity
+                && data(mob).getBoolean(SHORE_WAIT)
+                && hasActiveBond(mob);
+    }
+
+    public static void setWaitingOnShore(ChangedEntity mob, ServerPlayer owner) {
+        if (!(mob instanceof net.ltxprogrammer.changed.entity.beast.AbstractAquaticEntity)
+                || !isPetOwner(mob, owner)) {
+            return;
+        }
+        setFollowingOwner(mob, false);
+        data(mob).putBoolean(SHORE_WAIT, true);
+        if (mob.isInWater() && !owner.isInWater()
+                && mob.level() instanceof net.minecraft.server.level.ServerLevel level) {
+            BondedTeleportSafety.teleportNearOwner(level, mob, owner);
+        }
+        mob.getNavigation().stop();
     }
 
     public static boolean hasSamePetOwner(ChangedEntity first, ChangedEntity second) {
@@ -649,7 +712,7 @@ public final class LatexSocialMemory {
             if (online != null) {
                 playerBondData(online).remove(mob.getUUID().toString());
                 BondedCreatureLifecycle.forget(online, mob.getUUID());
-                deaths.clear(playerUuid, mob.getUUID());
+                PlayerRelationshipSettings.forgetContact(online, mob.getUUID());
             }
         }
 
@@ -660,10 +723,7 @@ public final class LatexSocialMemory {
         social.remove(PET_DEFENSE_PLAYER);
         social.remove(PET_DEFENSE_UNTIL);
         social.remove(PET_DEFENSE_FORCED);
-        social.remove(FRIENDLY_SUIT_PLAYER);
-        social.remove(FRIENDLY_SUIT_EMERGENCY);
-        social.remove(FRIENDLY_SUIT_COMBAT);
-        social.remove(FRIENDLY_SUIT_STARTED);
+        clearFriendlySuitState(social);
         social.remove(ORGANIC_EVACUATION_PLAYER);
         social.remove(ORGANIC_EVACUATION_UNTIL);
     }
@@ -674,6 +734,7 @@ public final class LatexSocialMemory {
                 .consume(player.getUUID())) {
             playerBondData(player).remove(creature.toString());
             BondedCreatureLifecycle.forget(player, creature);
+            PlayerRelationshipSettings.forgetContact(player, creature);
         }
     }
 
@@ -716,6 +777,37 @@ public final class LatexSocialMemory {
                 .clear(player.getUUID(), previousId);
     }
 
+    /** Restores the player-side half of a bond after a mask rebuilds its creature. */
+    public static void restorePlayerBondReference(
+            ServerPlayer player,
+            UUID previousId,
+            ChangedEntity replacement) {
+        restorePlayerBondReference(
+                player, previousId, replacement, replacement.getUUID());
+    }
+
+    /** Also works while the rebuilt entity's chunk is unloaded. */
+    public static void restorePlayerBondReference(
+            ServerPlayer player,
+            UUID previousId,
+            @Nullable ChangedEntity replacement,
+            UUID replacementId) {
+        CompoundTag bonds = playerBondData(player);
+        bonds.remove(previousId.toString());
+        bonds.putBoolean(replacementId.toString(), true);
+        BondedCreatureDeathData deaths = BondedCreatureDeathData.get(player.server);
+        deaths.clear(player.getUUID(), previousId);
+        deaths.clear(player.getUUID(), replacementId);
+        BondedCreatureReleaseData releases = BondedCreatureReleaseData.get(player.server);
+        releases.clear(player.getUUID(), previousId);
+        releases.clear(player.getUUID(), replacementId);
+        BondedCreatureLifecycle.replaceReference(
+                player, previousId, replacementId);
+        if (replacement != null) {
+            PlayerRelationshipSettings.rememberContact(player, replacement, true);
+        }
+    }
+
     private static void removeCreatureBondState(ChangedEntity mob, UUID ownerUuid) {
         CompoundTag social = data(mob);
         child(mob, BONDS).remove(ownerUuid.toString());
@@ -733,10 +825,7 @@ public final class LatexSocialMemory {
         }
         if (social.hasUUID(FRIENDLY_SUIT_PLAYER)
                 && ownerUuid.equals(social.getUUID(FRIENDLY_SUIT_PLAYER))) {
-            social.remove(FRIENDLY_SUIT_PLAYER);
-            social.remove(FRIENDLY_SUIT_EMERGENCY);
-            social.remove(FRIENDLY_SUIT_COMBAT);
-            social.remove(FRIENDLY_SUIT_STARTED);
+            clearFriendlySuitState(social);
         }
         if (social.hasUUID(SECONDARY_GRAB_PLAYER)
                 && ownerUuid.equals(social.getUUID(SECONDARY_GRAB_PLAYER))) {
@@ -808,10 +897,21 @@ public final class LatexSocialMemory {
             boolean emergency,
             boolean combat) {
         CompoundTag social = data(mob);
+        boolean continuing = social.hasUUID(FRIENDLY_SUIT_PLAYER)
+                && player.getUUID().equals(social.getUUID(FRIENDLY_SUIT_PLAYER));
         social.putUUID(FRIENDLY_SUIT_PLAYER, player.getUUID());
-        social.putBoolean(FRIENDLY_SUIT_EMERGENCY, emergency);
-        social.putBoolean(FRIENDLY_SUIT_COMBAT, combat);
-        social.putLong(FRIENDLY_SUIT_STARTED, mob.level().getGameTime());
+        social.putBoolean(FRIENDLY_SUIT_EMERGENCY,
+                emergency || continuing && social.getBoolean(FRIENDLY_SUIT_EMERGENCY));
+        social.putBoolean(FRIENDLY_SUIT_COMBAT,
+                combat || continuing && social.getBoolean(FRIENDLY_SUIT_COMBAT));
+        if (!continuing) {
+            social.putLong(FRIENDLY_SUIT_STARTED, mob.level().getGameTime());
+            social.putInt(FRIENDLY_SUIT_RELEASE_REQUESTS_REQUIRED, 1);
+            social.putInt(FRIENDLY_SUIT_RELEASE_REQUESTS_ACCEPTED, 0);
+            social.remove(FRIENDLY_SUIT_NEXT_RELEASE_REQUEST);
+            social.putBoolean(FRIENDLY_SUIT_HOLD_ANNOUNCED, false);
+            social.putBoolean(FRIENDLY_SUIT_CONCERN_RECORDED, false);
+        }
     }
 
     public static boolean isFriendlySuitActive(ChangedEntity mob, ServerPlayer player) {
@@ -834,15 +934,100 @@ public final class LatexSocialMemory {
         return data(mob).getLong(FRIENDLY_SUIT_STARTED);
     }
 
+    public static void configureFriendlySuitReleaseRequests(
+            ChangedEntity mob,
+            ServerPlayer player,
+            int required) {
+        if (!isFriendlySuitActive(mob, player)) {
+            return;
+        }
+        CompoundTag social = data(mob);
+        social.putInt(FRIENDLY_SUIT_RELEASE_REQUESTS_REQUIRED,
+                Mth.clamp(required, 1, 3));
+        social.putInt(FRIENDLY_SUIT_RELEASE_REQUESTS_ACCEPTED, 0);
+        social.remove(FRIENDLY_SUIT_NEXT_RELEASE_REQUEST);
+        social.putBoolean(FRIENDLY_SUIT_HOLD_ANNOUNCED, false);
+    }
+
+    public static int friendlySuitReleaseRequestsRequired(
+            ChangedEntity mob,
+            ServerPlayer player) {
+        if (!isFriendlySuitActive(mob, player)) {
+            return 1;
+        }
+        return Mth.clamp(data(mob).getInt(
+                FRIENDLY_SUIT_RELEASE_REQUESTS_REQUIRED), 1, 3);
+    }
+
+    /** Returns the new accepted count, or -1 while the short click debounce is active. */
+    public static int acceptFriendlySuitReleaseRequest(
+            ChangedEntity mob,
+            ServerPlayer player,
+            long debounceTicks) {
+        if (!isFriendlySuitActive(mob, player)) {
+            return -1;
+        }
+        CompoundTag social = data(mob);
+        long now = mob.level().getGameTime();
+        if (social.getLong(FRIENDLY_SUIT_NEXT_RELEASE_REQUEST) > now) {
+            return -1;
+        }
+        int accepted = Math.min(3,
+                social.getInt(FRIENDLY_SUIT_RELEASE_REQUESTS_ACCEPTED) + 1);
+        social.putInt(FRIENDLY_SUIT_RELEASE_REQUESTS_ACCEPTED, accepted);
+        social.putLong(FRIENDLY_SUIT_NEXT_RELEASE_REQUEST,
+                now + Math.max(1L, debounceTicks));
+        return accepted;
+    }
+
+    /** Claims the single ready-to-release line for this wrapping session. */
+    public static boolean claimFriendlySuitHoldAnnouncement(
+            ChangedEntity mob,
+            ServerPlayer player) {
+        if (!isFriendlySuitActive(mob, player)) {
+            return false;
+        }
+        CompoundTag social = data(mob);
+        if (social.getBoolean(FRIENDLY_SUIT_HOLD_ANNOUNCED)) {
+            return false;
+        }
+        social.putBoolean(FRIENDLY_SUIT_HOLD_ANNOUNCED, true);
+        return true;
+    }
+
+    /** Prevents one rescue session from increasing concern more than once. */
+    public static boolean claimFriendlySuitConcernRecord(
+            ChangedEntity mob,
+            ServerPlayer player) {
+        if (!isFriendlySuitActive(mob, player)) {
+            return false;
+        }
+        CompoundTag social = data(mob);
+        if (social.getBoolean(FRIENDLY_SUIT_CONCERN_RECORDED)) {
+            return false;
+        }
+        social.putBoolean(FRIENDLY_SUIT_CONCERN_RECORDED, true);
+        return true;
+    }
+
     public static void endFriendlySuit(ChangedEntity mob, ServerPlayer player) {
         CompoundTag social = data(mob);
         if (social.hasUUID(FRIENDLY_SUIT_PLAYER)
                 && player.getUUID().equals(social.getUUID(FRIENDLY_SUIT_PLAYER))) {
-            social.remove(FRIENDLY_SUIT_PLAYER);
-            social.remove(FRIENDLY_SUIT_EMERGENCY);
-            social.remove(FRIENDLY_SUIT_COMBAT);
-            social.remove(FRIENDLY_SUIT_STARTED);
+            clearFriendlySuitState(social);
         }
+    }
+
+    private static void clearFriendlySuitState(CompoundTag social) {
+        social.remove(FRIENDLY_SUIT_PLAYER);
+        social.remove(FRIENDLY_SUIT_EMERGENCY);
+        social.remove(FRIENDLY_SUIT_COMBAT);
+        social.remove(FRIENDLY_SUIT_STARTED);
+        social.remove(FRIENDLY_SUIT_RELEASE_REQUESTS_REQUIRED);
+        social.remove(FRIENDLY_SUIT_RELEASE_REQUESTS_ACCEPTED);
+        social.remove(FRIENDLY_SUIT_NEXT_RELEASE_REQUEST);
+        social.remove(FRIENDLY_SUIT_HOLD_ANNOUNCED);
+        social.remove(FRIENDLY_SUIT_CONCERN_RECORDED);
     }
 
     public static boolean canStartEmergencyRescue(ChangedEntity mob) {
@@ -1003,6 +1188,11 @@ public final class LatexSocialMemory {
     }
 
     private static void applyBondedGoalSuppression(ChangedEntity mob) {
+        if (mob instanceof net.ltxprogrammer.changed.entity.beast.AbstractAquaticEntity
+                && mob.goalSelector.getAvailableGoals().stream()
+                        .noneMatch(wrapped -> wrapped.getGoal() instanceof BondedShoreWaitGoal)) {
+            mob.goalSelector.addGoal(-2, new BondedShoreWaitGoal(mob));
+        }
         if (mob.goalSelector.getAvailableGoals().stream()
                 .noneMatch(wrapped -> wrapped.getGoal() instanceof BondedFollowGoal)) {
             // Some native/Add-on tame-state refreshes rebuild their goal list
@@ -1248,6 +1438,13 @@ public final class LatexSocialMemory {
         return data(mob).hasUUID(FRIENDLY_HUG_PLAYER);
     }
 
+    public static ServerPlayer friendlySocialHugPlayer(ChangedEntity mob) {
+        CompoundTag social = data(mob);
+        return social.hasUUID(FRIENDLY_HUG_PLAYER) && mob.getServer() != null
+                ? mob.getServer().getPlayerList().getPlayer(social.getUUID(FRIENDLY_HUG_PLAYER))
+                : null;
+    }
+
     /**
      * Checks ownership of the friendly-hug marker without applying its timer.
      * Release cleanup uses this form so hostile QTE and damage code cannot take
@@ -1348,6 +1545,7 @@ public final class LatexSocialMemory {
             ChangedEntity mob,
             LivingEntity target) {
         return isFriendlySocialHugTarget(mob, target)
+                || SharedRestGoal.isCarryTarget(mob, target)
                 || isOrganicEvacuationTarget(mob, target)
                 || InvoluntaryTransfurNegotiation.isReleaseHoldTarget(
                         mob, target);
@@ -1357,6 +1555,7 @@ public final class LatexSocialMemory {
             ChangedEntity mob,
             LivingEntity target) {
         return isFriendlySocialHugActive(mob, target)
+                || SharedRestGoal.isCarryTarget(mob, target)
                 || isOrganicEvacuationActive(mob, target)
                 || InvoluntaryTransfurNegotiation.isReleaseHoldActive(
                         mob, target);
@@ -1412,6 +1611,7 @@ public final class LatexSocialMemory {
         double chance = isOrganic(mob)
                 ? ChangedSynergyConfig.COMMON.organicHostileGrabAttemptChance.get()
                 : ChangedSynergyConfig.COMMON.hostileGrabAttemptChance.get();
+        if (chance > 0 && HumanBoundaryService.isChallenged(mob, player)) chance = Math.min(1.0D, chance * 1.35D);
         if (chance >= 1.0D || mob.getRandom().nextDouble() < chance) {
             return true;
         }
@@ -1455,6 +1655,13 @@ public final class LatexSocialMemory {
             return false;
         }
         if (data.getLong(TRUCE_UNTIL) > mob.level().getGameTime()) {
+            if (data.getBoolean(TRUCE_FROM_PAT)
+                    && !ChangedSynergyConfig.COMMON.patPacification.get()) {
+                data.remove(TRUCE_PLAYER);
+                data.remove(TRUCE_UNTIL);
+                data.remove(TRUCE_FROM_PAT);
+                return false;
+            }
             return true;
         }
         data.remove(TRUCE_PLAYER);
@@ -1542,6 +1749,7 @@ public final class LatexSocialMemory {
         if (FactionHostilityGrace.active(mob, player)) {
             return true;
         }
+        if (HumanBoundaryService.isBackingOff(mob, player)) return true;
         if (InvoluntaryTransfurNegotiation.canNegotiate(player, mob)) {
             // The responsible individual has agreed to hear the player out.
             // Reacquiring them here would make the negotiation impossible.

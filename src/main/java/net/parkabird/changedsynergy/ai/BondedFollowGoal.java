@@ -11,9 +11,11 @@ import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 /** Lets a latex creature follow players it personally transfurred. */
 public final class BondedFollowGoal extends Goal {
     public static final int PRIORITY = -1;
-    private static final double FOLLOW_SPEED = 0.35;
+    private static final double FOLLOW_SPEED = 0.35D;
     private static final double TELEPORT_DISTANCE = 24.0D;
+    private static final double STUCK_TELEPORT_DISTANCE = 8.0D;
     private final ChangedEntity mob;
+    private final CompanionFollowNavigation followNavigation;
     private ServerPlayer player;
     private int repathTicks;
     private int teleportRetryTicks;
@@ -21,6 +23,7 @@ public final class BondedFollowGoal extends Goal {
 
     public BondedFollowGoal(ChangedEntity mob) {
         this.mob = mob;
+        this.followNavigation = new CompanionFollowNavigation(mob);
         setFlags(EnumSet.of(Flag.MOVE));
     }
 
@@ -66,6 +69,7 @@ public final class BondedFollowGoal extends Goal {
         oldWaterCost = mob.getPathfindingMalus(BlockPathTypes.WATER);
         mob.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
         mob.getNavigation().stop();
+        followNavigation.reset();
     }
 
     @Override
@@ -81,6 +85,8 @@ public final class BondedFollowGoal extends Goal {
                 .bondedStopDistance(player);
         double startDistance = PlayerRelationshipSettings
                 .bondedStartDistance(player);
+        followNavigation.tickProgress(
+                distanceSqr > stopDistance * stopDistance);
         if (distanceSqr <= stopDistance * stopDistance) {
             mob.getNavigation().stop();
             repathTicks = 0;
@@ -88,16 +94,23 @@ public final class BondedFollowGoal extends Goal {
         }
         if (distanceSqr <= startDistance * startDistance
                 && mob.getNavigation().isDone()) {
+            followNavigation.resetProgress();
             return;
         }
         mob.getLookControl().setLookAt(player, 30.0F, 30.0F);
         if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
             repathTicks = 5;
-            if (distanceSqr >= TELEPORT_DISTANCE * TELEPORT_DISTANCE
+            boolean farAway = distanceSqr
+                    >= TELEPORT_DISTANCE * TELEPORT_DISTANCE;
+            boolean stuckAway = followNavigation.isStalled()
+                    && distanceSqr >= STUCK_TELEPORT_DISTANCE
+                            * STUCK_TELEPORT_DISTANCE;
+            if ((farAway || stuckAway)
                     && teleportRetryTicks <= 0
                     && !mob.isPassenger() && !mob.isLeashed()
                     && mob.level() instanceof ServerLevel level) {
                 if (BondedTeleportSafety.teleportNearOwner(level, mob, player)) {
+                    followNavigation.reset();
                     return;
                 }
                 // A flying owner or a cramped room may currently have no safe
@@ -105,7 +118,7 @@ public final class BondedFollowGoal extends Goal {
                 // dropping the creature into open air.
                 teleportRetryTicks = 60;
             }
-            mob.getNavigation().moveTo(player, FOLLOW_SPEED);
+            followNavigation.moveToward(player, FOLLOW_SPEED);
         }
     }
 
@@ -114,6 +127,7 @@ public final class BondedFollowGoal extends Goal {
         player = null;
         mob.getNavigation().stop();
         mob.setPathfindingMalus(BlockPathTypes.WATER, oldWaterCost);
+        followNavigation.reset();
     }
 
     @Override

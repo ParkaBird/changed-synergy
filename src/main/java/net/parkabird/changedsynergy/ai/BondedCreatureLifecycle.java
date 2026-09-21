@@ -6,10 +6,7 @@ import java.util.function.Function;
 import java.util.Optional;
 import net.ltxprogrammer.changed.ability.GrabEntityAbilityInstance;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
-import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
-import net.parkabird.changedsynergy.dialogue.NpcDialogue;
-import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -40,11 +37,9 @@ public final class BondedCreatureLifecycle {
     private static final String TICKET_DIMENSION = "ChangedSynergyBondTicketDimension";
     private static final String TICKET_CHUNK_X = "ChangedSynergyBondTicketChunkX";
     private static final String TICKET_CHUNK_Z = "ChangedSynergyBondTicketChunkZ";
-    private static final String RECOVERY_WELCOME_PREFIX = "ChangedSynergyRecoveryWelcome_";
     private static final int CONFIRMED_MISSING_CHECKS = 3;
     private static final int UNLOCATED_MISSING_CHECKS = 12;
     private static final double EMERGENCY_TELEPORT_DISTANCE_SQR = 64.0 * 64.0;
-    private static final long RECOVERY_WELCOME_COOLDOWN = 6000L;
 
     private BondedCreatureLifecycle() {
     }
@@ -267,7 +262,6 @@ public final class BondedCreatureLifecycle {
         BondedTeleportSafety.settleAfterTeleport(arrived);
         arrived.setTarget(null);
         track(arrived);
-        greetAfterRecoveryTeleport(arrived, owner);
     }
 
     /** Stops forced loading while retaining the remembered location for re-enable. */
@@ -303,27 +297,6 @@ public final class BondedCreatureLifecycle {
                 entity.level(), ChangedSynergyGameRules.BOND_SYSTEM)
                 && ChangedSynergyGameRules.enabled(
                         entity.level(), ChangedSynergyGameRules.CREATURE_LIFE);
-    }
-
-    /** A bonded welcome is reserved for a real reunion after recovery teleporting. */
-    public static void greetAfterRecoveryTeleport(
-            ChangedEntity creature,
-            ServerPlayer owner) {
-        if (!creature.isAlive() || !LatexSocialMemory.isBonded(creature, owner)) {
-            return;
-        }
-        long now = creature.level().getGameTime();
-        String cooldownKey = RECOVERY_WELCOME_PREFIX + owner.getStringUUID();
-        if (creature.getPersistentData().getLong(cooldownKey) > now) {
-            return;
-        }
-        creature.getPersistentData().putLong(
-                cooldownKey, now + RECOVERY_WELCOME_COOLDOWN);
-        if (!ProcessTransfur.isPlayerTransfurred(owner)) {
-            NpcDialogue.trigger(creature, owner, Cue.FORMER_BOND_WELCOME);
-        } else if (LatexSocialMemory.isBondedOwnerInOtherForm(creature, owner)) {
-            NpcDialogue.trigger(creature, owner, Cue.BOND_NEW_FORM_WELCOME);
-        }
     }
 
     private static void rememberLocation(

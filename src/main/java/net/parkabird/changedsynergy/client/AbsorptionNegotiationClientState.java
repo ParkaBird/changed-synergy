@@ -24,7 +24,7 @@ public final class AbsorptionNegotiationClientState {
     }
 
     public static boolean isActive() {
-        return active;
+        return active && !TakeoverClientState.active();
     }
 
     @SubscribeEvent

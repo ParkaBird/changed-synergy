@@ -24,10 +24,11 @@ public final class FriendlySocialHugState {
             return;
         }
         long durationNanos =
-                Math.max(1L, Math.min(600L, durationTicks)) * 50_000_000L;
+                Math.max(1L, Math.min(72000L, Math.abs((long)durationTicks))) * 50_000_000L;
         ACTIVE.put(
                 grabberId,
-                new Entry(grabbedId, System.nanoTime() + durationNanos));
+                new Entry(grabbedId, System.nanoTime() + durationNanos,
+                        durationTicks < 0));
     }
 
     public static boolean isActive(int grabberId, int grabbedId) {
@@ -42,6 +43,11 @@ public final class FriendlySocialHugState {
         return entry.grabbedId() == grabbedId;
     }
 
-    private record Entry(int grabbedId, long expiresAtNanos) {
+    public static boolean isLocked(int grabberId, int grabbedId) {
+        Entry entry = ACTIVE.get(grabberId);
+        return entry != null && entry.locked() && isActive(grabberId, grabbedId);
+    }
+
+    private record Entry(int grabbedId, long expiresAtNanos, boolean locked) {
     }
 }

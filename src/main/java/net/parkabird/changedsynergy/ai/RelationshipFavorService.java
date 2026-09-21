@@ -226,7 +226,7 @@ public final class RelationshipFavorService {
         FactionReputation.adjustFromInteraction(
                 creature, player,
                 dedicated || goldenOrange ? 2 : 1);
-        LatexSocialMemory.beginPatTruce(
+        LatexSocialMemory.beginTruce(
                 creature, player,
                 dedicated || goldenOrange ? 1200L : 800L);
         showPositiveFeedback(

@@ -1,4 +1,9 @@
 {
   "replace": false,
-  "values": []
+  "values": [
+    {
+      "id": "changedvanilla:latex_spider",
+      "required": false
+    }
+  ]
 }

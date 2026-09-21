@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** Prevents mouse movement from pulling the camera away during hypnosis. */
+/** Allows gaze resistance, but freezes mouse look once the player is mesmerized. */
 @Mixin(MouseHandler.class)
 public abstract class HypnosisMouseControlMixin {
     @Inject(
@@ -18,7 +18,7 @@ public abstract class HypnosisMouseControlMixin {
             require = 0,
             remap = false)
     private void changedSynergy$lockHypnotizedView(CallbackInfo callback) {
-        if (HypnosisQteClientState.isControlLocked()) {
+        if (HypnosisQteClientState.isViewFrozen()) {
             callback.cancel();
         }
     }

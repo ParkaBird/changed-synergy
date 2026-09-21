@@ -5,16 +5,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.block.DroppedOrange;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.init.ChangedBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -38,8 +41,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CaveVines;
@@ -60,7 +66,9 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
+import net.parkabird.changedsynergy.compat.ChangedVanillaCompat;
 import net.parkabird.changedsynergy.dialogue.LatexTerritory;
 import net.parkabird.changedsynergy.event.TerritoryContextEvents;
 import net.parkabird.changedsynergy.event.TerritoryContextEvents.FacilitySnapshot;
@@ -69,28 +77,49 @@ import net.parkabird.changedsynergy.world.CreatureSettlementBlueprints;
 import net.parkabird.changedsynergy.world.CreatureSettlementBlueprints.Blueprint;
 import net.parkabird.changedsynergy.world.CreatureSettlementBlueprints.Cell;
 import net.parkabird.changedsynergy.world.CreatureSettlementBlueprints.Display;
+import net.parkabird.changedsynergy.world.OrangeLeafRegrowthData;
 
 /** Real item carrying and datapack-driven community cache placement. */
 public final class CreatureSettlementService {
     private static final String CARGO = "ChangedSynergyCarriedResource";
     private static final String CARGO_STACK = "Stack";
     private static final String CARGO_KIND = "Kind";
+    private static final String TRADE_RETURNS =
+            "ChangedSynergyTradeReturns";
     private static final String LAST_PROVISION_SOURCE =
             "ChangedSynergyLastProvisionSource";
     private static final String LAST_PROVISION_ITEM =
             "ChangedSynergyLastProvisionItem";
     private static final String CACHE_INITIALIZED =
             "ChangedSynergyCacheInitialized";
+    private static final String CACHE_TRADE_STOCK_VERSION =
+            "ChangedSynergyTradeStockVersion";
+    private static final int TRADE_STOCK_VERSION = 1;
     private static final String CACHE_DECORATED =
             "ChangedSynergyCacheDecorated";
     private static final String CACHE_DECORATION_ENTITY =
             "ChangedSynergyCacheDecoration";
     private static final String CACHE_DECORATIVE_MINECART =
             "ChangedSynergyDecorativeMinecart";
+
+    /** Migrates decoration entities created by older builds that made their item frames fixed. */
+    public static void normalizeDecorationEntity(ItemFrame frame) {
+        if (!frame.getPersistentData().getBoolean(CACHE_DECORATION_ENTITY)) return;
+        CompoundTag tag = new CompoundTag();
+        frame.saveWithoutId(tag);
+        tag.remove("Fixed");
+        tag.putBoolean("Invulnerable", false);
+        frame.load(tag);
+        frame.setInvulnerable(false);
+    }
     private static final String CACHE_BLUEPRINT =
             "ChangedSynergyCacheBlueprint";
     private static final String CACHE_STRUCTURE_ANCHOR =
             "ChangedSynergyCacheStructureAnchor";
+    private static final String CACHE_STRUCTURE_ID =
+            "ChangedSynergyCacheStructureId";
+    private static final String NEXT_STRUCTURE_OUTPOST_SEARCH =
+            "ChangedSynergyNextStructureOutpostSearch";
     private static final String CACHE_HAS_ORANGE_PILE =
             "ChangedSynergyCacheHasOrangePile";
     private static final String FACILITY_WORK_CODE =
@@ -119,7 +148,7 @@ public final class CreatureSettlementService {
             "ChangedSynergyFishClaimedBy";
     private static final String FISH_CLAIMED_UNTIL =
             "ChangedSynergyFishClaimedUntil";
-    private static final int CACHE_DECORATION_VERSION = 10;
+    private static final int CACHE_DECORATION_VERSION = 11;
     private static final List<BlockPos> LEGACY_CACHE_OFFSETS = List.of(
             new BlockPos(-1, 0, 0), new BlockPos(1, 0, 0),
             new BlockPos(0, 0, -1), new BlockPos(0, 0, 1),
@@ -134,7 +163,6 @@ public final class CreatureSettlementService {
     private static final int TERRITORY_CACHE_SEARCH_RADIUS = 10;
     private static final int NEARBY_CACHE_SEARCH_RADIUS = 16;
     private static final int CACHE_VERTICAL_SEARCH = 4;
-    private static final int SETTLEMENT_MIN_SPACING = 12;
     private static final int AQUATIC_SHORE_DETECTION_RADIUS = 56;
     private static final int AQUATIC_SHORE_PLACEMENT_RADIUS = 64;
     private static final int AQUATIC_NEARBY_SHORE_RADIUS = 80;
@@ -153,6 +181,7 @@ public final class CreatureSettlementService {
     private static final int BADLANDS_MINECART_PATH_CANDIDATES = 20;
     private static final long HUNT_COOLDOWN_MIN = 5L * 60L * 20L;
     private static final int HUNT_COOLDOWN_VARIATION = 3 * 60 * 20;
+    private static final long STRUCTURE_SEARCH_RETRY_TICKS = 60L * 20L;
     private static final TagKey<Item> BUILDING_MATERIALS = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(
@@ -193,6 +222,21 @@ public final class CreatureSettlementService {
     private static final ResourceLocation BADLANDS_CACHE_BLUEPRINT =
             ResourceLocation.fromNamespaceAndPath(
                     ChangedSynergyMod.MOD_ID, "badlands_cache");
+    private static final ResourceLocation RUIN_CACHE_BLUEPRINT =
+            ResourceLocation.fromNamespaceAndPath(
+                    ChangedSynergyMod.MOD_ID, "ruin_cache");
+    private static final ResourceLocation DARK_RUIN_CACHE_BLUEPRINT =
+            ResourceLocation.fromNamespaceAndPath(
+                    ChangedSynergyMod.MOD_ID, "dark_ruin_cache");
+    private static final ResourceLocation WHITE_RUIN_CACHE_BLUEPRINT =
+            ResourceLocation.fromNamespaceAndPath(
+                    ChangedSynergyMod.MOD_ID, "white_ruin_cache");
+    private static final ResourceLocation AQUATIC_RUIN_CACHE_BLUEPRINT =
+            ResourceLocation.fromNamespaceAndPath(
+                    ChangedSynergyMod.MOD_ID, "aquatic_ruin_cache");
+    private static final ResourceLocation BEE_HIVE_CACHE_BLUEPRINT =
+            ResourceLocation.fromNamespaceAndPath(
+                    ChangedSynergyMod.MOD_ID, "latex_bee_hive_cache");
     private static final TagKey<Biome> HAS_ORANGE_TREE = TagKey.create(
             Registries.BIOME,
             ResourceLocation.fromNamespaceAndPath(
@@ -201,6 +245,16 @@ public final class CreatureSettlementService {
             Registries.STRUCTURE,
             ResourceLocation.fromNamespaceAndPath(
                     ChangedSynergyMod.MOD_ID, "aquatic_cache_anchors"));
+    private static final TagKey<Structure> CLAIMABLE_CHANGED_RUINS = TagKey.create(
+            Registries.STRUCTURE,
+            ResourceLocation.fromNamespaceAndPath(
+                    ChangedSynergyMod.MOD_ID, "claimable_changed_ruins"));
+    private static final TagKey<Structure> LATEX_BEE_HIVES = TagKey.create(
+            Registries.STRUCTURE,
+            ResourceLocation.fromNamespaceAndPath(
+                    ChangedSynergyMod.MOD_ID, "latex_bee_hives"));
+    private static final ResourceLocation LATEX_BEE =
+            ResourceLocation.fromNamespaceAndPath("changed", "latex_bee");
 
     public record FishingSite(
             BlockPos stand,
@@ -224,6 +278,14 @@ public final class CreatureSettlementService {
             FacilitySnapshot facility,
             String section,
             @Nullable FacilitySnapshot orangeRoom) {
+    }
+
+    private record StructureOutpost(
+            BlockPos anchor,
+            BoundingBox bounds,
+            ResourceLocation structureId,
+            ResourceLocation blueprintId,
+            boolean outside) {
     }
 
     private enum FacilityStorageKind {
@@ -269,7 +331,11 @@ public final class CreatureSettlementService {
             this.id = id;
         }
 
-        private static ProvisionSource fromId(String id) {
+        public String id() {
+            return id;
+        }
+
+        public static ProvisionSource fromId(String id) {
             for (ProvisionSource source : values()) {
                 if (source.id.equals(id)) {
                     return source;
@@ -817,7 +883,10 @@ public final class CreatureSettlementService {
                         Math.min(radius, HUNT_SEARCH_RADIUS),
                         8.0D,
                         Math.min(radius, HUNT_SEARCH_RADIUS)),
-                prey -> isHuntablePrey(prey));
+                prey -> isHuntablePrey(prey)
+                        && !ChangedVanillaCompat
+                                .protectsAnimalNearRespectedHuman(
+                                        creature, prey));
         long now = level.getGameTime();
         return nearby.stream()
                 .filter(prey -> claimAvailable(prey, creature, now))
@@ -858,6 +927,8 @@ public final class CreatureSettlementService {
         if (!(creature.level() instanceof ServerLevel level)
                 || prey == null
                 || !isHuntablePrey(prey)
+                || ChangedVanillaCompat.protectsAnimalNearRespectedHuman(
+                        creature, prey)
                 || hasCargo(creature)
                 || creature.distanceToSqr(prey) > 3.0D * 3.0D
                 || !claimOwnedBy(prey, creature)
@@ -1408,7 +1479,13 @@ public final class CreatureSettlementService {
                 || !level.getBlockState(position).is(orangeLeaves)) {
             return false;
         }
-        level.setBlock(position, localLeaves(level, position), Block.UPDATE_ALL);
+        BlockState fruitingLeaves = level.getBlockState(position);
+        BlockState harvestedLeaves = localLeaves(level, position);
+        if (!level.setBlock(position, harvestedLeaves, Block.UPDATE_ALL)) {
+            return false;
+        }
+        OrangeLeafRegrowthData.schedule(
+                level, position, fruitingLeaves, harvestedLeaves);
         setCargo(creature, new ItemStack(orange), ResourceKind.FOOD,
                 ProvisionSource.ORANGE);
         level.sendParticles(ParticleTypes.COMPOSTER,
@@ -1898,19 +1975,26 @@ public final class CreatureSettlementService {
         }
         ItemStack carried = cargo(creature);
         ResourceKind kind = cargoKind(creature);
+        ProvisionSource source = recentProvisionSource(creature);
+        Optional<BlockPos> cache = ensureCachePosition(creature);
         if (HunterFaction.of(creature) == HunterFaction.WHITE
-                && !isFacilityCommunity(creature)) {
+                && !isFacilityCommunity(creature)
+                && cache.isEmpty()) {
             int amount = carried.getCount();
+            ItemStack delivered = carried.copy();
             boolean orange = RelationshipFavorService
                     .isOrdinaryOrange(carried);
             clearCargo(creature);
             CreatureCommunityData.recordConsensusDeposit(
                     creature, kind, amount, orange);
+            CreatureCommunityData.recordTradeDeposit(
+                    creature, delivered, amount);
+            ProvisionerTradeService.recordDelivery(
+                    creature, delivered, source);
             showDepositParticles(level, creature.blockPosition());
             return true;
         }
 
-        Optional<BlockPos> cache = ensureCachePosition(creature);
         if (cache.isEmpty()) {
             return false;
         }
@@ -1940,6 +2024,9 @@ public final class CreatureSettlementService {
             setCargo(creature, remainder, kind);
         }
         CreatureCommunityData.recordDeposit(creature, kind, inserted);
+        ItemStack delivered = carried.copyWithCount(inserted);
+        CreatureCommunityData.recordTradeDeposit(creature, delivered, inserted);
+        ProvisionerTradeService.recordDelivery(creature, delivered, source);
         CreatureLifeMemory.incrementRoleStat(creature, 1);
         showDepositParticles(level, cache.get());
         return true;
@@ -2352,6 +2439,202 @@ public final class CreatureSettlementService {
         return count;
     }
 
+    /** Loaded physical storage used by server-authoritative community trades. */
+    @Nullable
+    public static Container communityContainer(ChangedEntity creature) {
+        if (!(creature.level() instanceof ServerLevel level)) {
+            return null;
+        }
+        return cachePosition(creature)
+                .map(position -> containerAt(level, position))
+                .orElse(null);
+    }
+
+    public static int storedCount(ChangedEntity creature, ItemStack sample) {
+        Container container = communityContainer(creature);
+        if (container == null || sample.isEmpty()) {
+            return 0;
+        }
+        int count = 0;
+        for (int slot = 0; slot < container.getContainerSize(); slot++) {
+            ItemStack stack = container.getItem(slot);
+            if (ItemStack.isSameItemSameTags(stack, sample)) {
+                count += stack.getCount();
+            }
+        }
+        return count;
+    }
+
+    public static boolean canStoreFully(ChangedEntity creature, ItemStack offered) {
+        Container container = communityContainer(creature);
+        if (container == null || offered.isEmpty()) {
+            return false;
+        }
+        int remaining = offered.getCount();
+        for (int slot = 0;
+                slot < container.getContainerSize() && remaining > 0;
+                slot++) {
+            if (!container.canPlaceItem(slot, offered)) {
+                continue;
+            }
+            ItemStack existing = container.getItem(slot);
+            if (existing.isEmpty()) {
+                remaining -= Math.min(
+                        offered.getMaxStackSize(), container.getMaxStackSize());
+            } else if (ItemStack.isSameItemSameTags(existing, offered)) {
+                remaining -= Math.max(0, Math.min(
+                        existing.getMaxStackSize(), container.getMaxStackSize())
+                        - existing.getCount());
+            }
+        }
+        return remaining <= 0;
+    }
+
+    public static boolean storeCommunityPayment(
+            ChangedEntity creature, ItemStack payment) {
+        Container container = communityContainer(creature);
+        return container != null
+                && canStoreFully(creature, payment)
+                && insert(container, payment).isEmpty();
+    }
+
+    /** Goods accepted from a player stay on the provisioner until its next
+     * delivery trip, so the exchange remains visible in creature behaviour. */
+    public static void queueTradeReturn(
+            ChangedEntity creature, ItemStack received) {
+        if (received.isEmpty()) {
+            return;
+        }
+        CompoundTag memory = creature.getPersistentData();
+        List<ItemStack> stacks = new ArrayList<>();
+        ListTag saved = memory.getList(TRADE_RETURNS, Tag.TAG_COMPOUND);
+        for (int index = 0; index < saved.size(); index++) {
+            ItemStack stack = ItemStack.of(saved.getCompound(index));
+            if (!stack.isEmpty()) {
+                stacks.add(stack);
+            }
+        }
+        ItemStack remainder = received.copy();
+        for (ItemStack stack : stacks) {
+            if (ItemStack.isSameItemSameTags(stack, remainder)
+                    && stack.getCount() < stack.getMaxStackSize()) {
+                int moved = Math.min(
+                        remainder.getCount(),
+                        stack.getMaxStackSize() - stack.getCount());
+                stack.grow(moved);
+                remainder.shrink(moved);
+                if (remainder.isEmpty()) {
+                    break;
+                }
+            }
+        }
+        while (!remainder.isEmpty()) {
+            int moved = Math.min(remainder.getCount(), remainder.getMaxStackSize());
+            stacks.add(remainder.copyWithCount(moved));
+            remainder.shrink(moved);
+        }
+        writeTradeReturns(memory, stacks);
+        CreatureLifeMemory.scheduleNextDecision(
+                creature, creature.level().getGameTime() + 10L);
+    }
+
+    public static boolean hasTradeReturns(ChangedEntity creature) {
+        return !creature.getPersistentData()
+                .getList(TRADE_RETURNS, Tag.TAG_COMPOUND).isEmpty();
+    }
+
+    public static boolean depositTradeReturns(ChangedEntity creature) {
+        if (!(creature.level() instanceof ServerLevel level)
+                || !hasTradeReturns(creature)) {
+            return false;
+        }
+        CompoundTag memory = creature.getPersistentData();
+        ListTag saved = memory.getList(TRADE_RETURNS, Tag.TAG_COMPOUND);
+        Optional<BlockPos> cache = ensureCachePosition(creature);
+        boolean consensus = HunterFaction.of(creature) == HunterFaction.WHITE
+                && !isFacilityCommunity(creature) && cache.isEmpty();
+        Container container = cache.map(position -> containerAt(level, position))
+                .orElse(null);
+        if (!consensus && container == null) {
+            return false;
+        }
+        List<ItemStack> remaining = new ArrayList<>();
+        int deposited = 0;
+        for (int index = 0; index < saved.size(); index++) {
+            ItemStack original = ItemStack.of(saved.getCompound(index));
+            if (original.isEmpty()) {
+                continue;
+            }
+            ItemStack remainder = consensus
+                    ? ItemStack.EMPTY : insert(container, original);
+            int inserted = original.getCount() - remainder.getCount();
+            if (inserted > 0) {
+                ItemStack delivered = original.copyWithCount(inserted);
+                ResourceKind kind = classify(creature, delivered);
+                if (kind == null) {
+                    kind = isGeneralFood(delivered)
+                            ? ResourceKind.FOOD : ResourceKind.MATERIAL;
+                }
+                CreatureCommunityData.recordDeposit(creature, kind, inserted);
+                CreatureCommunityData.recordTradeDeposit(
+                        creature, delivered, inserted);
+                deposited += inserted;
+            }
+            if (!remainder.isEmpty()) {
+                remaining.add(remainder);
+            }
+        }
+        writeTradeReturns(memory, remaining);
+        if (deposited > 0) {
+            showDepositParticles(
+                    level, cache.orElse(creature.blockPosition()));
+        }
+        return deposited > 0;
+    }
+
+    private static void writeTradeReturns(
+            CompoundTag memory, List<ItemStack> stacks) {
+        if (stacks.isEmpty()) {
+            memory.remove(TRADE_RETURNS);
+            return;
+        }
+        ListTag saved = new ListTag();
+        for (ItemStack stack : stacks) {
+            if (!stack.isEmpty()) {
+                saved.add(stack.save(new CompoundTag()));
+            }
+        }
+        memory.put(TRADE_RETURNS, saved);
+    }
+
+    /** Removes an exact stack only after confirming that the full amount exists. */
+    public static ItemStack extractStored(
+            ChangedEntity creature, ItemStack sample, int amount) {
+        Container container = communityContainer(creature);
+        if (container == null || sample.isEmpty() || amount <= 0
+                || storedCount(creature, sample) < amount) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack extracted = sample.copyWithCount(amount);
+        int remaining = amount;
+        for (int slot = 0;
+                slot < container.getContainerSize() && remaining > 0;
+                slot++) {
+            ItemStack stack = container.getItem(slot);
+            if (!ItemStack.isSameItemSameTags(stack, sample)) {
+                continue;
+            }
+            int moved = Math.min(remaining, stack.getCount());
+            stack.shrink(moved);
+            remaining -= moved;
+            if (stack.isEmpty()) {
+                container.setItem(slot, ItemStack.EMPTY);
+            }
+        }
+        container.setChanged();
+        return remaining == 0 ? extracted : ItemStack.EMPTY;
+    }
+
     /** Consumes one real food item from the shared cache. */
     public static boolean consumeFood(ChangedEntity creature) {
         if (!(creature.level() instanceof ServerLevel level)) {
@@ -2412,8 +2695,48 @@ public final class CreatureSettlementService {
             return storage;
         }
 
+        Optional<BlockPos> recordedCache = cachePosition(creature);
+        if (recordedCache.isPresent()) {
+            BlockPos position = recordedCache.get();
+            if (!level.hasChunkAt(position)) {
+                return recordedCache;
+            }
+            BlockEntity blockEntity = level.getBlockEntity(position);
+            if (blockEntity instanceof Container container
+                    && blockEntity.getPersistentData().contains(
+                            CACHE_STRUCTURE_ID, Tag.TAG_STRING)) {
+                prepareCache(level, creature, position, container);
+                return recordedCache;
+            }
+        }
+        if (HunterFaction.of(creature) == HunterFaction.WHITE
+                && recordedCache.isPresent()) {
+            BlockPos position = recordedCache.get();
+            if (!level.hasChunkAt(position)) {
+                return recordedCache;
+            }
+            Container container = containerAt(level, position);
+            if (container != null) {
+                prepareCache(level, creature, position, container);
+                return recordedCache;
+            }
+            CreatureCommunityData.clearCache(creature);
+            recordedCache = Optional.empty();
+        }
+
+        if (recordedCache.isEmpty()
+                && CreatureLifeMemory.role(creature)
+                        == CreatureLifeMemory.GroupRole.PROVISIONER) {
+            Optional<BlockPos> claimed = tryClaimChangedStructure(creature, level);
+            if (claimed.isPresent()) {
+                return claimed;
+            }
+        }
+
         // Pure-white bodies outside a facility can dissolve back into their
-        // territory and therefore use the hive stock counter instead.
+        // territory and therefore use the hive stock counter instead. A
+        // provisioner may still establish the one fixed wild cache allowed
+        // for this faction by claiming an existing Changed ruin above.
         if (HunterFaction.of(creature) == HunterFaction.WHITE) {
             return Optional.empty();
         }
@@ -2448,7 +2771,7 @@ public final class CreatureSettlementService {
             boolean structureMismatch = offshoreAnchor != null
                     && !cacheBelongsToStructure(
                             level, existing.get(), offshoreAnchor);
-            boolean habitatMismatch = !cacheMatchesHabitat(
+            boolean habitatMismatch = !cacheMatchesProvisionMode(
                     level, creature, existing.get(), blueprint.get());
             if (structureMismatch || habitatMismatch) {
                 CreatureCommunityData.clearCache(creature);
@@ -2556,6 +2879,286 @@ public final class CreatureSettlementService {
         return Optional.of(cache);
     }
 
+    /** Claims already-generated Changed ruins without loading or generating
+     * chunks solely for the search. The facility is absent from both tags and
+     * can therefore never enter this path. */
+    private static Optional<BlockPos> tryClaimChangedStructure(
+            ChangedEntity creature,
+            ServerLevel level) {
+        boolean ruinsEnabled = ChangedSynergyConfig.COMMON
+                .useChangedStructureOutposts.get();
+        boolean beeEnabled = ChangedSynergyConfig.COMMON
+                .latexBeeHiveOutposts.get() && isLatexBee(creature);
+        if ((!ruinsEnabled && !beeEnabled)
+                || !level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
+            return Optional.empty();
+        }
+        long now = level.getGameTime();
+        CompoundTag memory = creature.getPersistentData();
+        if (memory.getLong(NEXT_STRUCTURE_OUTPOST_SEARCH) > now) {
+            return Optional.empty();
+        }
+
+        BlockPos center = CreatureCommunityData.snapshot(creature)
+                .map(CreatureCommunityData.Snapshot::center)
+                .orElse(creature.blockPosition());
+        Registry<Structure> structures = level.registryAccess()
+                .registryOrThrow(Registries.STRUCTURE);
+        Predicate<Structure> accepted = structure -> {
+            var holder = structures.wrapAsHolder(structure);
+            return ruinsEnabled && holder.is(CLAIMABLE_CHANGED_RUINS)
+                    || beeEnabled && holder.is(LATEX_BEE_HIVES);
+        };
+        int radius = ChangedSynergyConfig.COMMON
+                .structureOutpostSearchRadiusChunks.get();
+        int centerChunkX = center.getX() >> 4;
+        int centerChunkZ = center.getZ() >> 4;
+        List<StructureOutpost> candidates = new ArrayList<>();
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                int chunkX = centerChunkX + dx;
+                int chunkZ = centerChunkZ + dz;
+                if (level.getChunkSource().getChunkNow(chunkX, chunkZ) == null) {
+                    continue;
+                }
+                for (StructureStart start : level.structureManager()
+                        .startsForStructure(new ChunkPos(chunkX, chunkZ), accepted)) {
+                    if (!start.isValid()) {
+                        continue;
+                    }
+                    ResourceLocation structureId = structures.getKey(
+                            start.getStructure());
+                    if (structureId == null) {
+                        continue;
+                    }
+                    BoundingBox bounds = start.getBoundingBox();
+                    BlockPos anchor = new BlockPos(
+                            (bounds.minX() + bounds.maxX()) / 2,
+                            bounds.minY(),
+                            (bounds.minZ() + bounds.maxZ()) / 2);
+                    if (candidates.stream().anyMatch(candidate ->
+                            candidate.anchor().equals(anchor)
+                                    && candidate.structureId().equals(structureId))) {
+                        continue;
+                    }
+                    boolean hive = structures.wrapAsHolder(start.getStructure())
+                            .is(LATEX_BEE_HIVES);
+                    candidates.add(new StructureOutpost(
+                            anchor,
+                            bounds,
+                            structureId,
+                            structureBlueprint(structureId, hive),
+                            hive));
+                }
+            }
+        }
+        candidates.sort(Comparator.comparingDouble(candidate ->
+                candidate.anchor().distSqr(center)));
+        for (StructureOutpost candidate : candidates) {
+            Optional<BlockPos> claimed = establishStructureOutpost(
+                    level, creature, candidate);
+            if (claimed.isPresent()) {
+                memory.remove(NEXT_STRUCTURE_OUTPOST_SEARCH);
+                return claimed;
+            }
+        }
+        memory.putLong(
+                NEXT_STRUCTURE_OUTPOST_SEARCH,
+                now + STRUCTURE_SEARCH_RETRY_TICKS);
+        return Optional.empty();
+    }
+
+    private static boolean isLatexBee(ChangedEntity creature) {
+        return LATEX_BEE.equals(
+                ForgeRegistries.ENTITY_TYPES.getKey(creature.getType()));
+    }
+
+    private static ResourceLocation structureBlueprint(
+            ResourceLocation structureId,
+            boolean hive) {
+        if (hive) {
+            return BEE_HIVE_CACHE_BLUEPRINT;
+        }
+        String path = structureId.getPath();
+        if (path.startsWith("office_area")) {
+            return DARK_RUIN_CACHE_BLUEPRINT;
+        }
+        if (path.startsWith("white_latex_lab")) {
+            return WHITE_RUIN_CACHE_BLUEPRINT;
+        }
+        if (path.startsWith("aquatic")) {
+            return AQUATIC_RUIN_CACHE_BLUEPRINT;
+        }
+        return RUIN_CACHE_BLUEPRINT;
+    }
+
+    private static Optional<BlockPos> establishStructureOutpost(
+            ServerLevel level,
+            ChangedEntity creature,
+            StructureOutpost outpost) {
+        Optional<BlockPos> shared = CreatureCommunityData.compatibleCaches(creature)
+                .stream()
+                .filter(position -> cacheBelongsToStructure(
+                        level, position, outpost.anchor()))
+                .findFirst();
+        if (shared.isPresent()) {
+            Container container = containerAt(level, shared.get());
+            if (container != null) {
+                CreatureCommunityData.markCache(creature, shared.get());
+                prepareCache(level, creature, shared.get(), container);
+                CreatureCacheGuardService.ensureGuardPresence(
+                        creature, shared.get());
+                return shared;
+            }
+        }
+
+        Optional<Blueprint> blueprint = CreatureSettlementBlueprints.INSTANCE
+                .byId(outpost.blueprintId());
+        if (blueprint.isEmpty()) {
+            return Optional.empty();
+        }
+        Optional<BlockPos> base = findStructurePlacement(
+                level, creature, outpost, blueprint.get());
+        if (base.isEmpty()) {
+            return Optional.empty();
+        }
+        place(level, base.get(), blueprint.get());
+        BlockPos cache = base.get().offset(blueprint.get().cacheOffset());
+        Container container = containerAt(level, cache);
+        BlockEntity blockEntity = level.getBlockEntity(cache);
+        if (container == null || blockEntity == null) {
+            return Optional.empty();
+        }
+        CompoundTag persistent = blockEntity.getPersistentData();
+        persistent.putString(CACHE_BLUEPRINT, blueprint.get().id().toString());
+        persistent.putLong(CACHE_STRUCTURE_ANCHOR, outpost.anchor().asLong());
+        persistent.putString(CACHE_STRUCTURE_ID, outpost.structureId().toString());
+        blockEntity.setChanged();
+        CreatureCommunityData.markCache(creature, cache);
+        prepareCache(level, creature, cache, container);
+        CreatureCacheGuardService.ensureGuardPresence(creature, cache);
+        level.sendParticles(
+                ParticleTypes.HAPPY_VILLAGER,
+                cache.getX() + 0.5D,
+                cache.getY() + 0.8D,
+                cache.getZ() + 0.5D,
+                8,
+                0.5D,
+                0.35D,
+                0.5D,
+                0.02D);
+        return Optional.of(cache);
+    }
+
+    private static Optional<BlockPos> findStructurePlacement(
+            ServerLevel level,
+            ChangedEntity creature,
+            StructureOutpost outpost,
+            Blueprint blueprint) {
+        BoundingBox bounds = outpost.bounds();
+        AABB occupied = new AABB(
+                bounds.minX() - 2.0D,
+                bounds.minY() - 2.0D,
+                bounds.minZ() - 2.0D,
+                bounds.maxX() + 3.0D,
+                bounds.maxY() + 3.0D,
+                bounds.maxZ() + 3.0D);
+        if (level.players().stream().anyMatch(player ->
+                !player.isSpectator() && occupied.contains(player.position()))) {
+            return Optional.empty();
+        }
+        if (!outpost.outside()) {
+            Optional<BlockPos> inside = findInsideStructurePlacement(
+                    level, creature, outpost.bounds(), blueprint);
+            if (inside.isPresent()) {
+                return inside;
+            }
+        }
+        return findBesideStructurePlacement(
+                level, creature, outpost.bounds(), blueprint,
+                outpost.outside() ? 3 : 1,
+                outpost.outside() ? 7 : 4);
+    }
+
+    private static Optional<BlockPos> findInsideStructurePlacement(
+            ServerLevel level,
+            ChangedEntity creature,
+            BoundingBox bounds,
+            Blueprint blueprint) {
+        BlockPos center = new BlockPos(
+                (bounds.minX() + bounds.maxX()) / 2,
+                (bounds.minY() + bounds.maxY()) / 2,
+                (bounds.minZ() + bounds.maxZ()) / 2);
+        BlockPos best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (int y = bounds.minY() + 1; y < bounds.maxY(); y++) {
+            for (int x = bounds.minX() + 2; x <= bounds.maxX() - 2; x++) {
+                for (int z = bounds.minZ() + 2; z <= bounds.maxZ() - 2; z++) {
+                    BlockPos base = new BlockPos(x, y, z);
+                    double distance = base.distSqr(center);
+                    if (distance >= bestDistance
+                            || playerIsUsingArea(level, base)
+                            || !canPlace(level, base, blueprint, false)) {
+                        continue;
+                    }
+                    best = base.immutable();
+                    bestDistance = distance;
+                }
+            }
+        }
+        return Optional.ofNullable(best);
+    }
+
+    private static Optional<BlockPos> findBesideStructurePlacement(
+            ServerLevel level,
+            ChangedEntity creature,
+            BoundingBox bounds,
+            Blueprint blueprint,
+            int minimumRadius,
+            int maximumRadius) {
+        int centerX = (bounds.minX() + bounds.maxX()) / 2;
+        int centerZ = (bounds.minZ() + bounds.maxZ()) / 2;
+        int halfWidth = Math.max(1, (bounds.maxX() - bounds.minX()) / 2);
+        int halfDepth = Math.max(1, (bounds.maxZ() - bounds.minZ()) / 2);
+        for (int radius = minimumRadius; radius <= maximumRadius; radius++) {
+            int edgeX = halfWidth + radius;
+            int edgeZ = halfDepth + radius;
+            for (int dx = -edgeX; dx <= edgeX; dx++) {
+                for (int dz = -edgeZ; dz <= edgeZ; dz++) {
+                    if (Math.abs(dx) != edgeX && Math.abs(dz) != edgeZ) {
+                        continue;
+                    }
+                    int x = centerX + dx;
+                    int z = centerZ + dz;
+                    BlockPos column = new BlockPos(x, bounds.minY(), z);
+                    if (!level.hasChunkAt(column)) {
+                        continue;
+                    }
+                    BlockPos base = new BlockPos(
+                            x,
+                            level.getHeight(
+                                    Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                                    x, z),
+                            z);
+                    if (!playerIsUsingArea(level, base)
+                            && canPlace(level, base, blueprint, false)) {
+                        return Optional.of(base.immutable());
+                    }
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static boolean playerIsUsingArea(
+            ServerLevel level,
+            BlockPos position) {
+        return level.players().stream().anyMatch(player ->
+                !player.isSpectator()
+                        && player.distanceToSqr(Vec3.atCenterOf(position))
+                                < 6.0D * 6.0D);
+    }
+
     private static Optional<BlockPos> findReusableCache(
             ServerLevel level,
             ChangedEntity creature,
@@ -2563,11 +3166,18 @@ public final class CreatureSettlementService {
         double radius = HunterArchetype.of(creature) == HunterArchetype.AQUATIC
                 ? AQUATIC_SHORE_SHARED_CACHE_RADIUS
                 : LAND_SHARED_CACHE_RADIUS;
+        radius = Math.max(radius, ChangedSynergyConfig.COMMON
+                .settlementMinimumSpacing.get());
         return CreatureCommunityData.nearbyCompatibleCaches(
                         creature, radius)
                 .stream()
-                .filter(position -> containerAt(level, position) != null)
-                .filter(position -> cacheMatchesHabitat(
+                // An unloaded recorded cache is still authoritative. Returning
+                // it makes ensureCachePosition wait for its chunk instead of
+                // building a duplicate. Loaded records with no container are
+                // stale and may be skipped.
+                .filter(position -> !level.hasChunkAt(position)
+                        || containerAt(level, position) != null)
+                .filter(position -> cacheMatchesProvisionMode(
                         level, creature, position, desiredBlueprint))
                 .findFirst();
     }
@@ -2660,31 +3270,49 @@ public final class CreatureSettlementService {
         }
     }
 
-    /** Shore and offshore populations remain separate supply networks even
-     * when their 80-block sharing radii overlap. */
-    private static boolean cacheMatchesHabitat(
+    /**
+     * Existing land caches are authoritative for their community branch: a
+     * different creature or a datapack-selected decorative layout must not
+     * cause another cache to be built beside them. Only the genuinely
+     * incompatible nearshore/offshore aquatic work modes stay separate.
+     */
+    private static boolean cacheMatchesProvisionMode(
             ServerLevel level,
             ChangedEntity creature,
             BlockPos position,
             Blueprint desiredBlueprint) {
+        BlockEntity claimedCache = level.hasChunkAt(position)
+                ? level.getBlockEntity(position) : null;
+        if (claimedCache != null
+                && claimedCache.getPersistentData().contains(
+                        CACHE_STRUCTURE_ID, Tag.TAG_STRING)) {
+            return true;
+        }
+        if (HunterArchetype.of(creature) != HunterArchetype.AQUATIC) {
+            if (!level.hasChunkAt(position)) {
+                return true;
+            }
+            return matchesSettlementHabitat(level, position, creature);
+        }
+        // Do not force-load a remote aquatic cache merely to inspect its mode.
+        // Treat the claim as authoritative until its chunk can be checked.
+        if (!level.hasChunkAt(position)) {
+            return true;
+        }
+        boolean desiredOffshore = AQUATIC_OFFSHORE_BLUEPRINT.equals(
+                desiredBlueprint.id());
         BlockEntity blockEntity = level.getBlockEntity(position);
         ResourceLocation stored = blockEntity == null ? null
                 : ResourceLocation.tryParse(blockEntity.getPersistentData()
                         .getString(CACHE_BLUEPRINT));
-        if (stored != null) {
-            return stored.equals(desiredBlueprint.id());
+        if (AQUATIC_OFFSHORE_BLUEPRINT.equals(stored)) {
+            return desiredOffshore;
         }
-        Optional<Blueprint> inferred = blueprintFor(creature, position);
-        if (inferred.isPresent()) {
-            return inferred.get().id().equals(desiredBlueprint.id());
-        }
-        if (HunterArchetype.of(creature) != HunterArchetype.AQUATIC) {
-            return true;
+        if (AQUATIC_SHORE_BLUEPRINT.equals(stored)) {
+            return !desiredOffshore;
         }
         boolean existingOffshore = level.getFluidState(position)
                 .is(FluidTags.WATER);
-        boolean desiredOffshore = AQUATIC_OFFSHORE_BLUEPRINT.equals(
-                desiredBlueprint.id());
         return existingOffshore == desiredOffshore;
     }
 
@@ -2731,7 +3359,13 @@ public final class CreatureSettlementService {
                                         AQUATIC_OFFSHORE_BLUEPRINT.equals(blueprint.id()))
                                 .orElse(false));
             }
+            recordContainerTradeStock(creature, container);
             persistent.putBoolean(CACHE_INITIALIZED, true);
+            persistent.putInt(CACHE_TRADE_STOCK_VERSION, TRADE_STOCK_VERSION);
+        } else if (persistent.getInt(CACHE_TRADE_STOCK_VERSION)
+                < TRADE_STOCK_VERSION) {
+            recordContainerTradeStock(creature, container);
+            persistent.putInt(CACHE_TRADE_STOCK_VERSION, TRADE_STOCK_VERSION);
         }
         if (selected.isPresent()
                 && persistent.getInt(CACHE_DECORATED) < CACHE_DECORATION_VERSION) {
@@ -2838,6 +3472,18 @@ public final class CreatureSettlementService {
         }
     }
 
+    private static void recordContainerTradeStock(
+            ChangedEntity creature,
+            Container container) {
+        for (int slot = 0; slot < container.getContainerSize(); slot++) {
+            ItemStack stack = container.getItem(slot);
+            if (!stack.isEmpty()) {
+                CreatureCommunityData.recordTradeDeposit(
+                        creature, stack, stack.getCount());
+            }
+        }
+    }
+
     private static void addInitial(
             Container container,
             @Nullable Item item,
@@ -2889,12 +3535,12 @@ public final class CreatureSettlementService {
             }
             ItemFrame frame = new ItemFrame(level, position, display.facing());
             frame.setInvisible(true);
-            frame.setInvulnerable(true);
+            frame.setInvulnerable(false);
             frame.setItem(new ItemStack(item), false);
             frame.setRotation(display.rotation());
             CompoundTag frameTag = new CompoundTag();
             frame.saveWithoutId(frameTag);
-            frameTag.putBoolean("Fixed", true);
+            frameTag.remove("Fixed");
             frame.load(frameTag);
             frame.getPersistentData().putBoolean(CACHE_DECORATION_ENTITY, true);
             if (frame.survives()) {
@@ -2937,9 +3583,14 @@ public final class CreatureSettlementService {
             ServerLevel level,
             BlockPos cache,
             Blueprint blueprint) {
-        // The dark cache deliberately carries a small communal orange pile as
-        // part of its layout. Light caches still mirror local orange ecology.
+        // Claimed structures keep a tangible communal food pile. Outdoor
+        // light caches still mirror whether oranges grow in the local biome.
         return DARK_CACHE_BLUEPRINT.equals(blueprint.id())
+                || RUIN_CACHE_BLUEPRINT.equals(blueprint.id())
+                || DARK_RUIN_CACHE_BLUEPRINT.equals(blueprint.id())
+                || WHITE_RUIN_CACHE_BLUEPRINT.equals(blueprint.id())
+                || AQUATIC_RUIN_CACHE_BLUEPRINT.equals(blueprint.id())
+                || BEE_HIVE_CACHE_BLUEPRINT.equals(blueprint.id())
                 || LIGHT_CACHE_BLUEPRINT.equals(blueprint.id())
                         && level.getBiome(cache).is(HAS_ORANGE_TREE);
     }
@@ -3035,7 +3686,7 @@ public final class CreatureSettlementService {
                 && id.getPath().endsWith("_pillow");
     }
 
-    private static BlockState localLeaves(
+    public static BlockState localLeaves(
             ServerLevel level,
             BlockPos position) {
         Block nearestLeaves = null;
@@ -3235,14 +3886,16 @@ public final class CreatureSettlementService {
                     }
                     for (int dy = 0; dy <= CACHE_VERTICAL_SEARCH; dy++) {
                         BlockPos below = center.offset(dx, -dy, dz);
-                        if (canPlace(level, below, blueprint, requireShore)
+                        if (matchesSettlementHabitat(level, below, creature)
+                                && canPlace(level, below, blueprint, requireShore)
                                 && (!requireOwnTerritory
                                         || isOwnTerritory(level, below, creature))) {
                             return Optional.of(below);
                         }
                         if (dy > 0) {
                             BlockPos above = center.offset(dx, dy, dz);
-                            if (canPlace(level, above, blueprint, requireShore)
+                            if (matchesSettlementHabitat(level, above, creature)
+                                    && canPlace(level, above, blueprint, requireShore)
                                     && (!requireOwnTerritory
                                             || isOwnTerritory(level, above, creature))) {
                                 return Optional.of(above);
@@ -3253,6 +3906,26 @@ public final class CreatureSettlementService {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * The relaxed second placement pass may cross a regional territory edge,
+     * but it must never move an underground community's outpost onto the
+     * surface (or bury a surface community underground).
+     */
+    private static boolean matchesSettlementHabitat(
+            ServerLevel level,
+            BlockPos position,
+            ChangedEntity creature) {
+        if (HunterFaction.of(creature) != HunterFaction.LIGHT) {
+            return true;
+        }
+        String group = LightFactionGroup.of(creature);
+        if (LightFactionGroup.GENERAL.equals(group)) {
+            return true;
+        }
+        return LightFactionGroup.CAVE.equals(group)
+                == LightFactionGroup.isCaveHabitat(level, position);
     }
 
     private static boolean isOwnTerritory(
@@ -3314,16 +3987,17 @@ public final class CreatureSettlementService {
     private static boolean isSettlementAreaOccupied(
             ServerLevel level,
             BlockPos candidateCache) {
+        int minimumSpacing = ChangedSynergyConfig.COMMON
+                .settlementMinimumSpacing.get();
         if (CreatureCommunityData.isCacheAreaClaimed(
-                level, candidateCache, SETTLEMENT_MIN_SPACING)) {
+                level, candidateCache, minimumSpacing)) {
             return true;
         }
 
-        int chunkRadius = (SETTLEMENT_MIN_SPACING >> 4) + 1;
+        int chunkRadius = (minimumSpacing >> 4) + 1;
         int centerChunkX = candidateCache.getX() >> 4;
         int centerChunkZ = candidateCache.getZ() >> 4;
-        double radiusSqr = (double) SETTLEMENT_MIN_SPACING
-                * SETTLEMENT_MIN_SPACING;
+        double radiusSqr = (double) minimumSpacing * minimumSpacing;
         for (int dx = -chunkRadius; dx <= chunkRadius; dx++) {
             for (int dz = -chunkRadius; dz <= chunkRadius; dz++) {
                 LevelChunk chunk = level.getChunkSource().getChunkNow(
@@ -3334,7 +4008,8 @@ public final class CreatureSettlementService {
                 for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
                     CompoundTag persistent = blockEntity.getPersistentData();
                     if (persistent.contains(CACHE_BLUEPRINT, Tag.TAG_STRING)
-                            && blockEntity.getBlockPos().distSqr(candidateCache)
+                            && horizontalDistanceSqr(
+                                    blockEntity.getBlockPos(), candidateCache)
                                     <= radiusSqr) {
                         return true;
                     }
@@ -3342,6 +4017,14 @@ public final class CreatureSettlementService {
             }
         }
         return false;
+    }
+
+    private static double horizontalDistanceSqr(
+            BlockPos first,
+            BlockPos second) {
+        double dx = first.getX() - second.getX();
+        double dz = first.getZ() - second.getZ();
+        return dx * dx + dz * dz;
     }
 
     private static boolean isDryStand(ServerLevel level, BlockPos stand) {

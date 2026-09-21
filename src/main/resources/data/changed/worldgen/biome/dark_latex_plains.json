@@ -10,7 +10,9 @@
     "water_fog_color": 329011
   },
   "features": [
-    [],
+    [
+      "changed_synergy:dark_latex_lake"
+    ],
     [],
     [],
     [],

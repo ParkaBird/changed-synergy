@@ -15,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.parkabird.changedsynergy.network.FriendlySocialHugState;
+import java.util.UUID;
 
 /** Animated presentation for the hostile player-side grab escape QTE. */
 public final class GrabQteOverlayRenderer {
@@ -41,7 +42,115 @@ public final class GrabQteOverlayRenderer {
     private static float exitStrength;
     private static int exitTheme = 0xF0F0F0;
 
+    private static UUID takeoverSession;
+    private static long takeoverStartedAt;
+    private static long takeoverKeyStartedAt;
+    private static long takeoverLastFrameAt;
+    private static KeyReference takeoverKey;
+    private static KeyReference takeoverPreviousKey;
+    private static float takeoverDisplayedStrength = 1.0F;
+    private static float takeoverTrailingStrength = 1.0F;
+
     private GrabQteOverlayRenderer() {
+    }
+
+    /** Reuses Changed's grab-escape presentation for takeover's server-owned sequence. */
+    public static void renderTakeover(GuiGraphics graphics, int screenWidth, int screenHeight,
+            UUID sessionId, int expectedKey, int completed, int length, int carrierId) {
+        Minecraft minecraft = Minecraft.getInstance();
+        long now = QteAnimationUtil.now();
+        int color = 0xF0F0F0;
+        if (minecraft.level != null && minecraft.level.getEntity(carrierId) instanceof LivingEntity carrier)
+            color = resolveTheme(carrier);
+        int barX = screenWidth / 2 - 100;
+        int barY = screenHeight / 2 + 35;
+        float targetRemaining = length <= 0 ? 1.0F
+                : 1.0F - Mth.clamp(completed / (float)length, 0.0F, 1.0F);
+        KeyReference key = switch (expectedKey) {
+            case 0 -> KeyReference.MOVE_FORWARD;
+            case 1 -> KeyReference.MOVE_BACKWARD;
+            case 2 -> KeyReference.MOVE_LEFT;
+            case 3 -> KeyReference.MOVE_RIGHT;
+            default -> null;
+        };
+        if (!sessionId.equals(takeoverSession)) {
+            takeoverSession = sessionId;
+            takeoverStartedAt = takeoverKeyStartedAt = takeoverLastFrameAt = now;
+            takeoverKey = key;
+            takeoverPreviousKey = null;
+            takeoverDisplayedStrength = targetRemaining;
+            takeoverTrailingStrength = targetRemaining;
+        } else {
+            if (takeoverKey != key) {
+                takeoverPreviousKey = takeoverKey;
+                takeoverKey = key;
+                takeoverKeyStartedAt = now;
+            }
+            float delta = Mth.clamp((now - takeoverLastFrameAt) / 100.0F, 0.0F, 1.0F);
+            takeoverDisplayedStrength = Mth.lerp(
+                    1.0F - (float)Math.pow(0.18F, delta),
+                    takeoverDisplayedStrength, targetRemaining);
+            takeoverTrailingStrength = Mth.lerp(
+                    1.0F - (float)Math.pow(0.52F, delta),
+                    takeoverTrailingStrength, targetRemaining);
+            takeoverLastFrameAt = now;
+        }
+        float entry = QteAnimationUtil.reducedMotion() ? 1.0F
+                : QteAnimationUtil.smooth(
+                        QteAnimationUtil.progress(takeoverStartedAt, ENTRY_MILLIS));
+        float remaining = takeoverDisplayedStrength;
+        Color3 foreground = Color3.fromInt(color);
+        Color3 background = Color3.fromInt(QteAnimationUtil.scaleRgb(color, 0.26F));
+        int centerX = screenWidth / 2;
+        int halfReveal = Math.max(1, Math.round(100.0F * entry));
+        graphics.enableScissor(centerX - halfReveal, barY, centerX + halfReveal, barY + 32);
+        GrabOverlay.renderBackground(graphics, PROGRESS_BAR, barX, barY, 200, 32, background);
+        GrabOverlay.renderForeground(graphics, PROGRESS_BAR, barX, barY, 200, 32,
+                remaining, foreground);
+        GrabOverlay.renderSuit(graphics, PROGRESS_BAR, barX, barY, 200, 32,
+                1.0F, foreground);
+        graphics.disableScissor();
+        int trailX = barX + 2 + Math.round(196.0F * takeoverTrailingStrength);
+        graphics.fill(trailX - 1, barY + 29, trailX + 1, barY + 32,
+                QteAnimationUtil.withAlpha(
+                        QteAnimationUtil.brightenRgb(color, 0.65F), 0.58F * entry));
+        renderTensionBrackets(graphics, barX, barY, entry, remaining, color, 1.0F);
+        int x = screenWidth / 2 - 8;
+        int y = screenHeight / 2 - 5;
+        float keyRaw = QteAnimationUtil.progress(takeoverKeyStartedAt, KEY_ENTRY_MILLIS);
+        if (takeoverPreviousKey != null && keyRaw < 1.0F) {
+            float eased = QteAnimationUtil.easeOutCubic(keyRaw);
+            int travel = QteAnimationUtil.reducedMotion() ? 0 : Math.round(18.0F * eased);
+            renderKeyScaled(minecraft.gui, graphics,
+                    x + QteAnimationUtil.directionX(takeoverPreviousKey) * travel,
+                    y + QteAnimationUtil.directionY(takeoverPreviousKey) * travel,
+                    takeoverPreviousKey, 0.9F + 0.2F * eased,
+                    (1.0F - QteAnimationUtil.smooth(keyRaw)) * entry);
+            int ripple = 11 + Math.round(13.0F * eased);
+            drawFrame(graphics, screenWidth / 2 - ripple, y + 8 - ripple,
+                    screenWidth / 2 + ripple, y + 8 + ripple, 1,
+                    QteAnimationUtil.withAlpha(color,
+                            (1.0F - QteAnimationUtil.smooth(keyRaw)) * 0.45F * entry));
+        }
+        if (key != null) {
+            float keyEntry = QteAnimationUtil.easeOutBack(keyRaw);
+            float pulse = QteAnimationUtil.reducedMotion() ? 1.0F
+                    : 1.0F + Mth.sin(now * 0.0052F) * 0.025F;
+            float pressure = Mth.clamp(remaining, 0.0F, 1.0F);
+            int halo = 3 + Math.round(2.0F * pressure);
+            drawFrame(graphics, x - halo, y - halo, x + 16 + halo, y + 16 + halo, 1,
+                    QteAnimationUtil.withAlpha(color,
+                            (0.30F + pressure * 0.30F) * entry));
+            renderKeyScaled(minecraft.gui, graphics, x, y, key,
+                    (0.78F + 0.22F * keyEntry) * pulse,
+                    entry * QteAnimationUtil.clamp(keyEntry));
+        }
+    }
+
+    public static void endTakeover() {
+        takeoverSession = null;
+        takeoverKey = null;
+        takeoverPreviousKey = null;
     }
 
     /** Called once from Changed's root grab overlay before it draws either side. */
@@ -327,9 +436,10 @@ public final class GrabQteOverlayRenderer {
             return null;
         }
         LivingEntity grabber = extension.getGrabbedBy();
-        if (grabber == null
-                || FriendlySocialHugState.isActive(
-                        grabber.getId(), minecraft.player.getId())) {
+        if (grabber == null) {
+            return null;
+        }
+        if (FriendlySocialHugState.isLocked(grabber.getId(), minecraft.player.getId())) {
             return null;
         }
         GrabEntityAbilityInstance ability = AbstractAbility.getAbilityInstance(

@@ -36,7 +36,17 @@ public final class PlayerRelationshipClientEvents {
         Minecraft minecraft = Minecraft.getInstance();
         if (event.getAction() != InputConstants.PRESS
                 || minecraft.screen != null
-                || minecraft.player == null
+                || minecraft.player == null) {
+            return;
+        }
+        // Body control is a peer of Changed's ability wheel and Synergy's
+        // relationship wheel. The shared wheel key routes here only for an
+        // ordinary latex takeover; forced exoskeleton control has no wheel.
+        if (TakeoverClientState.tryOpenSharedWheel(
+                event.getKey(), event.getScanCode(), -1)) {
+            return;
+        }
+        if (TakeoverClientState.active()
                 || minecraft.player.isSpectator()
                 || ProcessTransfur.getPlayerTransfurVariant(minecraft.player) != null
                 || !ChangedKeyMappings.SELECT_ABILITY.isActiveAndMatches(

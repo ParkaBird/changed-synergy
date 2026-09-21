@@ -16,6 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.event.LatexSocialEvents;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 
@@ -39,26 +40,24 @@ public final class VoluntaryBondTransfurService {
     public static boolean canOffer(
             ChangedEntity creature,
             ServerPlayer player) {
-        return ChangedSynergyGameRules.enabled(
-                        player.level(), ChangedSynergyGameRules.BOND_SYSTEM)
-                && creature.isAlive()
+        return creature.isAlive()
                 && !creature.isRemoved()
                 && creature.level() == player.level()
                 && player.distanceToSqr(creature) <= 64.0D
                 && LatexSocialMemory.isSocialLatex(creature)
                 && CreatureSocialProfile.allowsSocialWheel(creature)
                 && CreaturePersonality.hasTrustedRelationship(creature, player)
+                && CreaturePersonality.relationshipTier(creature, player)
+                        == CreaturePersonality.RelationshipTier.CLOSE
                 && !LatexSocialMemory.isProvoked(creature, player)
                 && !LatexSocialMemory.hasBetrayedPatTruce(creature, player)
                 && !ProcessTransfur.isPlayerTransfurred(player)
-                && creature.getSelfVariant() != null
-                && !LatexSocialMemory.hasActiveBond(creature)
-                && LatexSocialMemory.bondedCreatureUuids(player).isEmpty();
+                && creature.getSelfVariant() != null;
     }
 
     /**
      * The first selection arms a short confirmation window. Selecting the same
-     * creature again performs the transfur and creates the only Synergy bond.
+     * creature again performs the transfur and may establish a bond.
      */
     public static boolean select(
             ChangedEntity creature,
@@ -141,7 +140,14 @@ public final class VoluntaryBondTransfurService {
             instance.transfurProgression = progress;
             instance.setTemporaryForSuit(false);
             InvoluntaryTransfurNegotiation.abandonForVoluntaryBond(player);
-            LatexSocialMemory.addBond(creature, player);
+            boolean createBond = ChangedSynergyGameRules.enabled(
+                        player.level(), ChangedSynergyGameRules.BOND_SYSTEM)
+                    && !LatexSocialMemory.hasActiveBond(creature)
+                    && (ChangedSynergyConfig.COMMON.allowMultipleBonds.get()
+                            || LatexSocialMemory.bondedCreatureUuids(player).isEmpty());
+            if (createBond) {
+                LatexSocialMemory.addBond(creature, player);
+            }
             LatexSocialEvents.calmTowards(creature, player);
             creature.getNavigation().stop();
             creature.getLookControl().setLookAt(player, 30.0F, 30.0F);
@@ -161,8 +167,12 @@ public final class VoluntaryBondTransfurService {
                         creature.getZ(),
                         7, 0.3D, 0.28D, 0.3D, 0.02D);
             }
-            NpcDialogue.trigger(
-                    creature, player, Cue.VOLUNTARY_BOND_COMPLETE);
+            if (createBond) {
+                NpcDialogue.trigger(creature, player, Cue.VOLUNTARY_BOND_COMPLETE);
+            } else {
+                player.displayClientMessage(Component.translatable(
+                        "message.changed_synergy.social.voluntary_transfur_no_bond"), true);
+            }
             player.closeContainer();
             return true;
         } finally {
@@ -176,10 +186,9 @@ public final class VoluntaryBondTransfurService {
         String key;
         if (ProcessTransfur.isPlayerTransfurred(player)) {
             key = "message.changed_synergy.social.voluntary_transfur_human_only";
-        } else if (!LatexSocialMemory.bondedCreatureUuids(player).isEmpty()) {
-            key = "message.changed_synergy.social.voluntary_transfur_already_bonded";
-        } else if (LatexSocialMemory.hasActiveBond(creature)) {
-            key = "message.changed_synergy.social.voluntary_transfur_creature_bonded";
+        } else if (CreaturePersonality.relationshipTier(creature, player)
+                != CreaturePersonality.RelationshipTier.CLOSE) {
+            key = "message.changed_synergy.social.voluntary_transfur_requires_close";
         } else {
             key = "message.changed_synergy.social.voluntary_transfur_unavailable";
         }

@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "values": [
+    "changed:aquatic1",
+    "changed:aquatic2",
+    "changed:human_research_lab1",
+    "changed:laser_lab1",
+    "changed:office_area1",
+    "changed:office_area2",
+    "changed:research_tower1",
+    "changed:research_tower2",
+    "changed:research_tower3",
+    "changed:research_tower4",
+    "changed:treatment_1",
+    "changed:treatment_2",
+    "changed:treatment_3",
+    "changed:white_latex_lab1",
+    "changed:white_latex_lab2"
+  ]
+}

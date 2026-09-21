@@ -32,7 +32,17 @@ public final class FriendlySuitClientState {
     private FriendlySuitClientState() {
     }
 
+    public static void forgetForTakeover(int ownerId, int grabberId) {
+        ACTIVE_SUITS.values().removeIf(state -> state.ownerId == ownerId || state.grabberId == grabberId);
+    }
+
     public static void receive(int grabberId, int ownerId, boolean active) {
+        var level = Minecraft.getInstance().level;
+        Entity owner = level == null ? null : level.getEntity(ownerId);
+        if (owner != null && owner.getPersistentData().getBoolean(TakeoverClientState.CLIENT_ACTIVE)) {
+            forgetForTakeover(ownerId, grabberId);
+            return;
+        }
         if (active) {
             SuitState state = new SuitState(grabberId, ownerId, clientGameTime());
             ACTIVE_SUITS.put(grabberId, state);
@@ -98,6 +108,11 @@ public final class FriendlySuitClientState {
             return false;
         }
         Entity sourceEntity = level.getEntity(state.grabberId);
+        // A delayed friendly-suit packet must not hand control back or hide the
+        // native carrier while an authoritative takeover owns either participant.
+        if (owner.getPersistentData().getBoolean(TakeoverClientState.CLIENT_ACTIVE)
+                || sourceEntity != null && sourceEntity.getPersistentData()
+                        .getBoolean(TakeoverClientState.CLIENT_ACTIVE)) return true;
         if (!active && !(sourceEntity instanceof ChangedEntity)) {
             clearGrabbedReference(owner, state.grabberId);
             return true;

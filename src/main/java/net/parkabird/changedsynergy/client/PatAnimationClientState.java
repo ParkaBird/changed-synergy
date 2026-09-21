@@ -26,23 +26,41 @@ public final class PatAnimationClientState {
             int actorId,
             boolean active,
             int durationTicks,
-            int cycleTicks) {
+            float cycleTicks) {
         Minecraft minecraft = Minecraft.getInstance();
         if (!active || minecraft.level == null) {
             ACTIVE.remove(actorId);
             return;
         }
         long now = minecraft.level.getGameTime();
-        int safeCycle = Math.max(2, cycleTicks);
+        float safeCycle = Math.max(2.0F, cycleTicks);
         State current = ACTIVE.get(actorId);
-        long startedAt = current != null
-                && now < current.expiresAt
-                && current.cycleTicks == safeCycle
-                        ? current.startedAt : now;
+        float phaseOffset = current != null && now < current.expiresAt
+                ? current.phase(now) : 0.0F;
         ACTIVE.put(actorId, new State(
-                startedAt,
+                now,
                 now + Math.max(1, durationTicks),
-                safeCycle));
+                safeCycle,
+                phaseOffset));
+    }
+
+    public static boolean isActive(int actorId) {
+        Minecraft minecraft = Minecraft.getInstance();
+        State state = ACTIVE.get(actorId);
+        if (minecraft.level == null || state == null
+                || minecraft.level.getGameTime() >= state.expiresAt) {
+            ACTIVE.remove(actorId);
+            return false;
+        }
+        return true;
+    }
+
+    public static float phase(int actorId, float partialTick) {
+        if (!isActive(actorId)) {
+            return -1.0F;
+        }
+        Minecraft minecraft = Minecraft.getInstance();
+        return ACTIVE.get(actorId).phase(minecraft.level.getGameTime() + partialTick);
     }
 
     @SubscribeEvent
@@ -59,8 +77,7 @@ public final class PatAnimationClientState {
             ACTIVE.remove(minecraft.player.getId());
             return;
         }
-        float elapsed = (now - state.startedAt) + event.getPartialTick();
-        float phase = (elapsed % state.cycleTicks) / state.cycleTicks;
+        float phase = state.phase(now + event.getPartialTick());
         float sweep = (float)Math.sin(phase * Math.PI * 2.0D);
         float lift = 0.5F - 0.5F
                 * (float)Math.cos(phase * Math.PI * 2.0D);
@@ -73,6 +90,15 @@ public final class PatAnimationClientState {
         event.getPoseStack().mulPose(Axis.ZP.rotationDegrees(6.0F * sweep));
     }
 
-    private record State(long startedAt, long expiresAt, int cycleTicks) {
+    private record State(
+            long phaseStartedAt,
+            long expiresAt,
+            float cycleTicks,
+            float phaseOffset) {
+        private float phase(double now) {
+            double phase = phaseOffset
+                    + (now - phaseStartedAt) / cycleTicks;
+            return (float)(phase - Math.floor(phase));
+        }
     }
 }

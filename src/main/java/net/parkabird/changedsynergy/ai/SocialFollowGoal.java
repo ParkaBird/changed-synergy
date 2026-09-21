@@ -14,8 +14,10 @@ public final class SocialFollowGoal extends Goal {
     public static final int PRIORITY = -1;
     private static final double FOLLOW_SPEED = 0.35D;
     private static final double TELEPORT_DISTANCE = 28.0D;
+    private static final double STUCK_TELEPORT_DISTANCE = 10.0D;
 
     private final ChangedEntity mob;
+    private final CompanionFollowNavigation followNavigation;
     private ServerPlayer player;
     private int repathTicks;
     private int teleportRetryTicks;
@@ -23,6 +25,7 @@ public final class SocialFollowGoal extends Goal {
 
     public SocialFollowGoal(ChangedEntity mob) {
         this.mob = mob;
+        this.followNavigation = new CompanionFollowNavigation(mob);
         setFlags(EnumSet.of(Flag.MOVE));
     }
 
@@ -66,6 +69,7 @@ public final class SocialFollowGoal extends Goal {
         oldWaterCost = mob.getPathfindingMalus(BlockPathTypes.WATER);
         mob.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
         mob.getNavigation().stop();
+        followNavigation.reset();
     }
 
     @Override
@@ -81,6 +85,8 @@ public final class SocialFollowGoal extends Goal {
                 .friendStopDistance(player);
         double startDistance = PlayerRelationshipSettings
                 .friendStartDistance(player);
+        followNavigation.tickProgress(
+                distanceSqr > stopDistance * stopDistance);
         if (distanceSqr <= stopDistance * stopDistance) {
             mob.getNavigation().stop();
             repathTicks = 0;
@@ -88,23 +94,30 @@ public final class SocialFollowGoal extends Goal {
         }
         if (distanceSqr <= startDistance * startDistance
                 && mob.getNavigation().isDone()) {
+            followNavigation.resetProgress();
             return;
         }
         mob.getLookControl().setLookAt(player, 30.0F, 30.0F);
         if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
             repathTicks = 5;
             Level level = mob.level();
-            if (distanceSqr >= TELEPORT_DISTANCE * TELEPORT_DISTANCE
+            boolean farAway = distanceSqr
+                    >= TELEPORT_DISTANCE * TELEPORT_DISTANCE;
+            boolean stuckAway = followNavigation.isStalled()
+                    && distanceSqr >= STUCK_TELEPORT_DISTANCE
+                            * STUCK_TELEPORT_DISTANCE;
+            if ((farAway || stuckAway)
                     && teleportRetryTicks <= 0
                     && !mob.isPassenger()
                     && !mob.isLeashed()
                     && level instanceof ServerLevel serverLevel) {
                 if (BondedTeleportSafety.teleportNearOwner(serverLevel, mob, player)) {
+                    followNavigation.reset();
                     return;
                 }
                 teleportRetryTicks = 60;
             }
-            mob.getNavigation().moveTo(player, FOLLOW_SPEED);
+            followNavigation.moveToward(player, FOLLOW_SPEED);
         }
     }
 
@@ -113,6 +126,7 @@ public final class SocialFollowGoal extends Goal {
         player = null;
         mob.getNavigation().stop();
         mob.setPathfindingMalus(BlockPathTypes.WATER, oldWaterCost);
+        followNavigation.reset();
     }
 
     @Override

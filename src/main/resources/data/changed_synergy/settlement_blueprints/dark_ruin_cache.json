@@ -1,0 +1,17 @@
+{
+  "factions": [],
+  "requires_dry": true,
+  "cache": {"x": 0, "y": 0, "z": 0},
+  "rest_points": [
+    {"x": 0, "y": 0, "z": 2},
+    {"x": 2, "y": 0, "z": 0}
+  ],
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "block": "minecraft:barrel"},
+    {"x": -1, "y": 0, "z": 0, "block": "changed:dark_latex_block"},
+    {"x": 1, "y": 0, "z": 0, "block": "changed:lab_table", "properties": {"state": "0"}}
+  ],
+  "displays": [
+    {"x": 1, "y": 1, "z": 0, "item": "minecraft:sweet_berries", "facing": "up", "rotation": 5}
+  ]
+}

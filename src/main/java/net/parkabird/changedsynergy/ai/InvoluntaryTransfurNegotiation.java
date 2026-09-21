@@ -38,6 +38,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.network.PacketDistributor;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
+import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.CreaturePersonality.Trait;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
@@ -243,6 +245,21 @@ public final class InvoluntaryTransfurNegotiation {
                 return Optional.empty();
             }
             List<Approach> sequence = preferredSequence(reason);
+            Approach preferred = sequence.stream()
+                    .filter(candidate -> !used(candidate))
+                    .findFirst().orElse(null);
+            if (preferred == null) {
+                return Optional.empty();
+            }
+            // Advice is an interpretation, not an oracle. Food lets the player
+            // read the creature's response much more accurately.
+            int seed = reason.ordinal() * 37 + progress * 13
+                    + required * 7 + usedApproaches * 19 + attempts * 23;
+            int accuracy = used(Approach.FOOD_BRIBE) ? 92 : 72;
+            if (Math.floorMod(seed, 100) >= accuracy) {
+                return sequence.stream().filter(candidate -> !used(candidate)
+                        && candidate != preferred).findFirst().or(() -> Optional.of(preferred));
+            }
             for (int index = step; index < sequence.size(); index++) {
                 Approach candidate = sequence.get(index);
                 if (!used(candidate)) {
@@ -263,22 +280,55 @@ public final class InvoluntaryTransfurNegotiation {
         }
 
         LatexAssimilationDecision<?> decision = event.getDecision();
+        if (TakeoverService.active(player) || TakeoverService.carrying(source)) return;
         if (decision == null) {
             return;
         }
         if (VoluntaryBondTransfurService.isCompleting(source, player)) {
+            TakeoverService.revokeOrdinaryAuthorization(source, player);
             return;
         }
-        event.appendTransfurListener(ignored -> FactionHostilityGrace.begin(
-                source, currentPlayerEntity(player)));
         ResourceLocation originalType = ForgeRegistries.ENTITY_TYPES
                 .getKey(source.getType());
+        Mode originalMode = decision.method() == LatexAssimilationDecision.Method.ABSORPTION
+                ? Mode.ABSORPTION : Mode.ASSIMILATION;
+        boolean specialCompletion = isIncompleteSpecial(originalType);
+        Reason reason = classifyReason(source, player, originalMode, specialCompletion);
+
+        // "What happened" remains the source of truth for the reason, but the
+        // final native method is authoritative. Takeover may consume only a real
+        // absorption; it must never rewrite assimilation or fusion into one.
+        boolean takeover = decision.method() == LatexAssimilationDecision.Method.ABSORPTION
+                && eligibleSource(source, player)
+                && TakeoverService.canAuthorizeOrdinary(source, player, reason);
+        ChangedSynergyMod.LOGGER.debug(
+                "Final absorption route for {} -> {}: method={}, reason={}, eligible={}, takeover={}",
+                source.getUUID(), player.getGameProfile().getName(), decision.method(), reason,
+                eligibleSource(source, player), takeover);
         Mode mode = decision.method() == LatexAssimilationDecision.Method.ABSORPTION
                 ? Mode.ABSORPTION : Mode.ASSIMILATION;
+        boolean punitiveCapture = !isVoluntaryCompanion(source, player)
+                && (reason == Reason.SELF_DEFENSE
+                        || reason == Reason.FACTION_RETALIATION
+                        || reason == Reason.CACHE_DEFENSE);
+        event.appendTransfurListener(ignored -> {
+            if (punitiveCapture) FactionHostilityGrace.beginSecondary(source, currentPlayerEntity(player));
+            FactionHostilityGrace.beginGlobal(currentPlayerEntity(player));
+        });
+        // Keep negotiation staged until native absorption actually becomes a
+        // takeover. beginOrdinary() abandons it only after suitEntity() succeeds,
+        // leaving a reliable negotiation fallback on interruption.
+        if (takeover) TakeoverService.authorizeOrdinary(source, player, reason);
+        else TakeoverService.revokeOrdinaryAuthorization(source, player);
+
         boolean whiteKnightSplit = mode == Mode.ABSORPTION
                 && isChangedType(originalType, "white_latex_knight")
                 && isOrdinaryWhiteLatexWolf(player);
         if (ProcessTransfur.isPlayerTransfurred(player) && !whiteKnightSplit) {
+            if (!isVoluntaryCompanion(source, player)) {
+                event.appendTransfurListener(ignored -> FactionHostilityGrace.beginSecondary(
+                        source, currentPlayerEntity(player)));
+            }
             event.appendTransfurListener(
                     ignored -> abandonForSecondaryTransfur(player));
             return;
@@ -290,10 +340,8 @@ public final class InvoluntaryTransfurNegotiation {
             return;
         }
         ResourceLocation originalPlayerForm = currentForm(player);
-        boolean specialCompletion = isIncompleteSpecial(originalType);
         boolean darkYufengSplit = mode == Mode.ABSORPTION
                 && isChangedType(originalType, "dark_latex_yufeng");
-        Reason reason = classifyReason(source, player, mode, specialCompletion);
         boolean sourceWasRelated = hasPriorRelationship(source, player);
 
         // Changed kills an absorbed player before invoking postTransfurListener.
@@ -385,12 +433,13 @@ public final class InvoluntaryTransfurNegotiation {
                 whiteKnightSplit,
                 isChangedType(originalType, "dark_latex_yufeng"),
                 sourceWasRelated);
-        FactionHostilityGrace.begin(source, currentPlayerEntity(player));
+        FactionHostilityGrace.beginGlobal(currentPlayerEntity(player));
     }
 
     public static boolean canNegotiate(
             ServerPlayer player,
             ChangedEntity source) {
+        if (!ordinaryReversalEnabled() || TakeoverService.active(player)) return false;
         CompoundTag data = existingPlayerData(player);
         refreshFailureCooldown(player, data);
         if (data == null
@@ -409,6 +458,7 @@ public final class InvoluntaryTransfurNegotiation {
     }
 
     public static boolean canNegotiateAbsorption(ServerPlayer player) {
+        if (!ordinaryReversalEnabled() || TakeoverService.active(player)) return false;
         CompoundTag data = existingPlayerData(player);
         refreshFailureCooldown(player, data);
         return player.isAlive()
@@ -495,6 +545,7 @@ public final class InvoluntaryTransfurNegotiation {
     }
 
     public static Optional<View> view(ServerPlayer player) {
+        if (TakeoverService.active(player)) return Optional.empty();
         CompoundTag data = existingPlayerData(player);
         if (data == null
                 || data.getBoolean(CAPTURE_PENDING)
@@ -863,7 +914,8 @@ public final class InvoluntaryTransfurNegotiation {
     public static boolean canBondedReversal(
             ChangedEntity source,
             ServerPlayer player) {
-        return source.isAlive()
+        return ordinaryReversalEnabled()
+                && source.isAlive()
                 && !source.isRemoved()
                 && player.isAlive()
                 && !player.isSpectator()
@@ -895,7 +947,8 @@ public final class InvoluntaryTransfurNegotiation {
         if (release.getBoolean(RELEASE_REVERSED)) {
             return true;
         }
-        return !player.isSpectator()
+        return ordinaryReversalEnabled()
+                && !player.isSpectator()
                 && player.distanceToSqr(source) <= 64.0D
                 && !hasAbsorptionClaim(player)
                 && ProcessTransfur.isPlayerTransfurred(player)
@@ -1135,6 +1188,7 @@ public final class InvoluntaryTransfurNegotiation {
     }
 
     public static void onPlayerReady(ServerPlayer player) {
+        if (TakeoverService.active(player)) return;
         CompoundTag data = existingPlayerData(player);
         if (data != null && data.getBoolean(CAPTURE_PENDING)) {
             // Only the Changed post-transfur listener may confirm a staged
@@ -1235,6 +1289,7 @@ public final class InvoluntaryTransfurNegotiation {
 
     /** Completes a non-negotiated separation after Changed has removed the form. */
     public static void tickPlayer(ServerPlayer player) {
+        if (TakeoverService.active(player)) return;
         CompoundTag data = existingPlayerData(player);
         if (data == null || !player.isAlive()) {
             return;
@@ -1311,7 +1366,8 @@ public final class InvoluntaryTransfurNegotiation {
     }
 
     public static boolean hasAbsorptionClaim(ServerPlayer player) {
-        return isAbsorptionClaim(existingPlayerData(player));
+        CompoundTag data = existingPlayerData(player);
+        return !TakeoverService.active(player) && isAbsorptionClaim(data);
     }
 
     private static void completeCapture(
@@ -1328,6 +1384,9 @@ public final class InvoluntaryTransfurNegotiation {
             boolean darkYufengSplit,
             boolean sourceWasRelated) {
         ServerPlayer recipient = currentPlayerEntity(player);
+        // A previously appended completion callback must not resurrect the
+        // snapshot/respawn negotiation after a live native-wrap takeover wins.
+        if (TakeoverService.active(recipient)) return;
         ChangedEntity source = originalSource;
         if (mode != Mode.ABSORPTION
                 && (!source.isAlive() || source.isRemoved())) {
@@ -1600,6 +1659,9 @@ public final class InvoluntaryTransfurNegotiation {
                     claim.getCompound(SOURCE_APPEARANCE));
         }
 
+        // Loading appearance/alpha scale can change dimensions after construction.
+        // Validate the restored body's real bounds, not its constructor-sized box.
+        released.refreshDimensions();
         Optional<Vec3> safe = BondedTeleportSafety.findSafeLanding(
                 player.serverLevel(), released, player);
         if (safe.isEmpty()) {
@@ -1756,17 +1818,26 @@ public final class InvoluntaryTransfurNegotiation {
     private static void applyPlayerReversal(
             ServerPlayer player,
             boolean whiteKnightSplit) {
-        ProcessTransfur.getPlayerTransfurVariantSafe(player).ifPresent(instance -> {
-            if (player.level() instanceof ServerLevel level) {
-                ChangedEntity appearance = instance.getChangedEntity();
-                level.sendParticles(
-                        ChangedParticles.drippingLatex(
-                                appearance.getTransfurColor(
-                                        TransfurCause.DEFAULT)),
-                        player.getX(), player.getY() + 1.0D, player.getZ(),
-                        40, 0.2D, 0.5D, 0.2D, 0.0D);
-            }
-        });
+        applyPlayerReversal(player, whiteKnightSplit, true);
+    }
+
+    private static void applyPlayerReversal(
+            ServerPlayer player,
+            boolean whiteKnightSplit,
+            boolean showLatexParticles) {
+        if (showLatexParticles) {
+            ProcessTransfur.getPlayerTransfurVariantSafe(player).ifPresent(instance -> {
+                if (player.level() instanceof ServerLevel level) {
+                    ChangedEntity appearance = instance.getChangedEntity();
+                    level.sendParticles(
+                            ChangedParticles.drippingLatex(
+                                    appearance.getTransfurColor(
+                                            TransfurCause.DEFAULT)),
+                            player.getX(), player.getY() + 1.0D, player.getZ(),
+                            40, 0.2D, 0.5D, 0.2D, 0.0D);
+                }
+            });
+        }
         if (whiteKnightSplit) {
             restoreOriginalPlayerForm(player);
         } else if (ProcessTransfur.isPlayerTransfurred(player)) {
@@ -1801,6 +1872,29 @@ public final class InvoluntaryTransfurNegotiation {
                 .map(instance -> LatexSocialMemory.isOrganic(
                         instance.getChangedEntity()))
                 .orElse(false);
+    }
+
+    /** Organic assimilation cannot be negotiated, but a completed night's sleep can undo it. */
+    public static boolean releaseOrganicAfterSleep(ServerPlayer player) {
+        if (!ordinaryReversalEnabled()) return false;
+        var instance = ProcessTransfur.getPlayerTransfurVariantSafe(player)
+                .filter(value -> LatexSocialMemory.isOrganic(value.getChangedEntity()))
+                .orElse(null);
+        if (instance == null) return false;
+        ChangedEntity form = instance.getChangedEntity();
+        var color = form.getTransfurColor(TransfurCause.DEFAULT);
+        ((ServerLevel)player.level()).sendParticles(
+                ChangedParticles.gas(color),
+                player.getX(), player.getY() + 1.0D, player.getZ(),
+                40, 0.2D, 0.5D, 0.2D, 0.0D);
+        abandonClaim(player);
+        applyPlayerReversal(player, false, false);
+        return true;
+    }
+
+    /** Gameplay reversals can be disabled without removing administrative recovery. */
+    public static boolean ordinaryReversalEnabled() {
+        return ChangedSynergyConfig.COMMON.ordinaryTransfurReversal.get();
     }
 
     private static Cue releaseHoldCue(View view) {
@@ -2080,7 +2174,13 @@ public final class InvoluntaryTransfurNegotiation {
         if (CreatureCacheGuardService.isDefendingAgainst(source, player)) {
             return Reason.CACHE_DEFENSE;
         }
-        if (LatexSocialMemory.isProvoked(source, player)) {
+        if (FactionPursuitService.isPursuer(source)) return Reason.FACTION_RETALIATION;
+        if (HumanBoundaryService.isChallenged(source, player)) {
+            return Reason.HOST_SEEKING;
+        }
+        if (TakeoverConflictMemory.initiated(source, player)
+                || FactionHostilityGrace.wasAggressor(source, player)
+                || LatexSocialMemory.isProvoked(source, player)) {
             return Reason.SELF_DEFENSE;
         }
         if (FactionReputation.isHostile(source, player)) {
@@ -2088,6 +2188,16 @@ public final class InvoluntaryTransfurNegotiation {
         }
         return mode == Mode.ABSORPTION
                 ? Reason.HOST_SEEKING : Reason.COMPANION_SEEKING;
+    }
+
+    /** Reuses the negotiation panel's "what happened" classification. */
+    public static Reason reasonForFinalAbsorption(
+            ChangedEntity source,
+            ServerPlayer player) {
+        ResourceLocation sourceType = ForgeRegistries.ENTITY_TYPES
+                .getKey(source.getType());
+        return classifyReason(source, player, Mode.ABSORPTION,
+                isIncompleteSpecial(sourceType));
     }
 
     private static boolean isVoluntaryCompanion(
@@ -2274,6 +2384,10 @@ public final class InvoluntaryTransfurNegotiation {
         if (previous != null && player.getUUID().equals(sourceClaimant(previous))) {
             previous.getPersistentData().remove(SOURCE_ROOT);
         }
+    }
+
+    public static void abandonForTakeover(ServerPlayer player) {
+        abandonClaim(player);
     }
 
     private static void abandonClaim(ServerPlayer player) {

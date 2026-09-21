@@ -3,6 +3,7 @@ package net.parkabird.changedsynergy.ai;
 import java.util.EnumSet;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.Emote;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
@@ -10,18 +11,21 @@ import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 /** A bonded creature reaches its reverted owner to shelter either partner. */
 public final class BondedEmergencySuitGoal extends Goal {
     private static final double SUIT_REACH_SQR = 2.5 * 2.5;
-    private static final double RESCUE_SPEED = 1.0;
+    private static final double NORMAL_RUN_SPEED = 0.35D;
+    private static final double URGENT_RESCUE_SPEED = 1.0D;
     private static final float SELF_RECOVERY_TRIGGER_HEALTH =
             LatexCreatureCombatRules.BONDED_SAFETY_HEALTH_RATIO;
     private static final float SELF_RECOVERY_STOP_HEALTH = 0.55F;
 
     private final ChangedEntity pet;
+    private final CompanionFollowNavigation followNavigation;
     private ServerPlayer owner;
     private boolean selfRecovery;
     private int repathTicks;
 
     public BondedEmergencySuitGoal(ChangedEntity pet) {
         this.pet = pet;
+        this.followNavigation = new CompanionFollowNavigation(pet);
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.TARGET));
     }
 
@@ -59,6 +63,7 @@ public final class BondedEmergencySuitGoal extends Goal {
         LatexSocialMemory.clearPetDefense(pet, null);
         HuntMemory.clear(pet);
         NpcDialogue.emoteOnly(pet, Emote.NERVOUS);
+        followNavigation.reset();
     }
 
     @Override
@@ -69,6 +74,10 @@ public final class BondedEmergencySuitGoal extends Goal {
         pet.setTarget(null);
         pet.getLookControl().setLookAt(owner, 30.0F, 30.0F);
         boolean drowningRescue = BondedSuitService.needsDrowningRescue(pet, owner);
+        boolean outOfReach = !pet.getBoundingBox().inflate(0.75)
+                .intersects(owner.getBoundingBox())
+                && pet.distanceToSqr(owner) > SUIT_REACH_SQR;
+        followNavigation.tickProgress(outOfReach);
         if (pet.getBoundingBox().inflate(0.75).intersects(owner.getBoundingBox())
                 || pet.distanceToSqr(owner) <= SUIT_REACH_SQR) {
             pet.getNavigation().stop();
@@ -88,9 +97,22 @@ public final class BondedEmergencySuitGoal extends Goal {
                     reason);
             return;
         }
+        if (followNavigation.isStalled()
+                && pet.level() instanceof ServerLevel level) {
+            boolean recovered = BondedTeleportSafety.teleportNearOwner(
+                    level, pet, owner);
+            followNavigation.resetProgress();
+            if (recovered) {
+                return;
+            }
+        }
         if (--repathTicks <= 0 || pet.getNavigation().isDone()) {
             repathTicks = 5;
-            pet.getNavigation().moveTo(owner, RESCUE_SPEED);
+            double speed = BondedSuitService.isTransfurRescueRequested(
+                    pet, owner)
+                    ? NORMAL_RUN_SPEED
+                    : URGENT_RESCUE_SPEED;
+            followNavigation.moveToward(owner, speed);
         }
     }
 
@@ -99,6 +121,7 @@ public final class BondedEmergencySuitGoal extends Goal {
         owner = null;
         selfRecovery = false;
         pet.getNavigation().stop();
+        followNavigation.reset();
     }
 
     @Override

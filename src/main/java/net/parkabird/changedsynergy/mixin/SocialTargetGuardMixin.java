@@ -6,6 +6,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.parkabird.changedsynergy.ai.LatexCreatureCombatRules;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.ai.BondedPetSettings;
+import net.parkabird.changedsynergy.ai.TakeoverService;
 import net.parkabird.changedsynergy.event.NpcDispositionEvents;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,7 +30,22 @@ public abstract class SocialTargetGuardMixin {
             LivingEntity target,
             CallbackInfo callback) {
         ChangedEntity mob = (ChangedEntity)(Object)this;
-        if (mob.level().isClientSide || !LatexSocialMemory.isSocialLatex(mob)) {
+        if (mob.level().isClientSide) {
+            return;
+        }
+        if (target != null
+                && LatexCreatureCombatRules.mustRejectVillageTarget(mob, target)) {
+            LatexCreatureCombatRules.disengage(mob, target);
+            callback.cancel();
+            return;
+        }
+        if (!LatexSocialMemory.isSocialLatex(mob)) {
+            return;
+        }
+        if (target instanceof ServerPlayer contained
+                && TakeoverService.contains(mob, contained)) {
+            LatexSocialMemory.clearRevengeMemoryToward(mob, contained);
+            callback.cancel();
             return;
         }
         if (LatexSocialMemory.rejectsFollowingCombatTarget(mob, target)) {

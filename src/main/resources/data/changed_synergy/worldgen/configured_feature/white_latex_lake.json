@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:lake",
+  "config": {
+    "barrier": {
+      "type": "minecraft:simple_state_provider",
+      "state": { "Name": "minecraft:air" }
+    },
+    "fluid": {
+      "type": "minecraft:simple_state_provider",
+      "state": {
+        "Name": "changed:white_latex_fluid",
+        "Properties": { "level": "0" }
+      }
+    }
+  }
+}

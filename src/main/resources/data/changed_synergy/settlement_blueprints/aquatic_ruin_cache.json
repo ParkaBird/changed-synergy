@@ -1,0 +1,17 @@
+{
+  "factions": [],
+  "requires_dry": false,
+  "cache": {"x": 0, "y": 0, "z": 0},
+  "rest_points": [
+    {"x": 0, "y": 0, "z": 2},
+    {"x": 2, "y": 0, "z": 0}
+  ],
+  "blocks": [
+    {"x": 0, "y": 0, "z": 0, "block": "minecraft:chest", "properties": {"facing": "north", "type": "single", "waterlogged": "true"}},
+    {"x": -1, "y": 0, "z": 0, "block": "minecraft:prismarine_bricks"},
+    {"x": 1, "y": 0, "z": 0, "block": "minecraft:sea_lantern"}
+  ],
+  "displays": [
+    {"x": -1, "y": 1, "z": 0, "item": "minecraft:cod", "facing": "up", "rotation": 2}
+  ]
+}

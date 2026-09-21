@@ -29,7 +29,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.network.NetworkHooks;
 import net.parkabird.changedsynergy.ai.BondedOwnerDefenseGoal;
+import net.parkabird.changedsynergy.ai.BondReleaseService;
 import net.parkabird.changedsynergy.ai.CreaturePersonality;
+import net.parkabird.changedsynergy.ai.CreatureRelationshipForgetData;
 import net.parkabird.changedsynergy.ai.FactionReputation;
 import net.parkabird.changedsynergy.ai.InvoluntaryTransfurNegotiation;
 import net.parkabird.changedsynergy.ai.LatexCreatureCombatRules;
@@ -49,6 +51,8 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
             "container.changed_synergy.relationship_manager");
     private static final String NEXT_ACTIVITY =
             "ChangedSynergyNextRelationshipGroupActivity";
+    private static final String CANCEL_CONFIRMATION =
+            "ChangedSynergyRelationshipCancelConfirmation";
     private final Player player;
     private final List<Contact> contacts;
     private Formation formation;
@@ -185,6 +189,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
         switch (command) {
             case "toggle_contact_follow" ->
                     toggleContactFollow(origin, payload);
+            case "cancel_relationship" -> cancelRelationship(origin, payload);
             case "toggle_group_follow" -> toggleGroupFollow(origin);
             case "cycle_formation" -> {
                 formation = PlayerRelationshipSettings.cycleFormation(origin);
@@ -207,9 +212,54 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                 return;
             }
         }
-        if (!"open_ability_wheel".equals(command)) {
+        if (origin.containerMenu == this && !"open_ability_wheel".equals(command)) {
             synchronize(origin);
         }
+    }
+
+    private void cancelRelationship(ServerPlayer origin, CompoundTag payload) {
+        if (!payload.hasUUID("contact")) {
+            return;
+        }
+        UUID uuid = payload.getUUID("contact");
+        Contact selected = contacts.stream().filter(contact -> contact.uuid().equals(uuid))
+                .findFirst().orElse(null);
+        if (selected == null) {
+            return;
+        }
+        long now = origin.level().getGameTime();
+        CompoundTag pending = origin.getPersistentData().getCompound(CANCEL_CONFIRMATION);
+        if (!pending.hasUUID("Target") || !uuid.equals(pending.getUUID("Target"))
+                || pending.getLong("Expires") < now) {
+            CompoundTag next = new CompoundTag();
+            next.putUUID("Target", uuid);
+            next.putLong("Expires", now + 200L);
+            origin.getPersistentData().put(CANCEL_CONFIRMATION, next);
+            origin.displayClientMessage(Component.translatable(
+                    "message.changed_synergy.relationship.cancel_confirm", selected.name()), true);
+            return;
+        }
+        origin.getPersistentData().remove(CANCEL_CONFIRMATION);
+        if (LatexSocialMemory.bondedCreatureUuids(origin).contains(uuid)) {
+            BondReleaseService.release(origin, uuid);
+        }
+        ChangedEntity creature = PlayerRelationshipSettings.findLoaded(origin, uuid);
+        if (creature != null) {
+            if (selected.bonded() && LatexSocialMemory.isPetOwner(creature, origin)) {
+                LatexSocialMemory.unregisterBond(creature, origin);
+            }
+            CreaturePersonality.forgetRelationship(creature, origin);
+        } else {
+            if (selected.bonded()) {
+                LatexSocialMemory.queueManualRelease(origin, uuid);
+            }
+            CreatureRelationshipForgetData.get(origin.server)
+                    .queue(origin.getUUID(), uuid);
+        }
+        PlayerRelationshipSettings.forgetContact(origin, uuid);
+        origin.closeContainer();
+        origin.displayClientMessage(Component.translatable(
+                "message.changed_synergy.relationship.cancelled", selected.name()), true);
     }
 
     private void toggleContactFollow(
@@ -449,9 +499,15 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
             tag.putBoolean("following", contact.following());
             tag.putBoolean("loaded", contact.loaded());
             tag.putBoolean("sameDimension", contact.sameDimension());
+            tag.putString("dimension", contact.dimension());
+            tag.putBoolean("hasLastLocation", contact.hasLastLocation());
+            tag.putInt("lastX", contact.lastX());
+            tag.putInt("lastY", contact.lastY());
+            tag.putInt("lastZ", contact.lastZ());
             tag.putFloat("health", contact.health());
             tag.putFloat("maxHealth", contact.maxHealth());
             tag.putInt("familiarity", contact.familiarity());
+            tag.putBoolean("pureWhiteAdapted", contact.pureWhiteAdapted());
             list.add(tag);
         }
         payload.put("contacts", list);
@@ -478,9 +534,13 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                 }
                 contacts.set(contactIndex, new Contact(
                         old.uuid(), old.entityId(), old.name(), old.typeId(),
-                        old.dimension(), old.bonded(), update.getBoolean("loaded"),
+                        update.getString("dimension"),
+                        update.getBoolean("hasLastLocation"),
+                        update.getInt("lastX"), update.getInt("lastY"),
+                        update.getInt("lastZ"), old.bonded(), update.getBoolean("loaded"),
                         update.getBoolean("sameDimension"),
                         update.getBoolean("following"),
+                        update.getBoolean("pureWhiteAdapted"),
                         update.getInt("familiarity"),
                         update.getFloat("health"),
                         update.getFloat("maxHealth")));
@@ -531,10 +591,15 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
         buffer.writeUtf(contact.name(), 96);
         buffer.writeUtf(contact.typeId(), 128);
         buffer.writeUtf(contact.dimension(), 128);
+        buffer.writeBoolean(contact.hasLastLocation());
+        buffer.writeInt(contact.lastX());
+        buffer.writeInt(contact.lastY());
+        buffer.writeInt(contact.lastZ());
         buffer.writeBoolean(contact.bonded());
         buffer.writeBoolean(contact.loaded());
         buffer.writeBoolean(contact.sameDimension());
         buffer.writeBoolean(contact.following());
+        buffer.writeBoolean(contact.pureWhiteAdapted());
         buffer.writeInt(contact.familiarity());
         buffer.writeFloat(contact.health());
         buffer.writeFloat(contact.maxHealth());
@@ -547,6 +612,11 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                 buffer.readUtf(96),
                 buffer.readUtf(128),
                 buffer.readUtf(128),
+                buffer.readBoolean(),
+                buffer.readInt(),
+                buffer.readInt(),
+                buffer.readInt(),
+                buffer.readBoolean(),
                 buffer.readBoolean(),
                 buffer.readBoolean(),
                 buffer.readBoolean(),

@@ -9,6 +9,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 
 /**
  * Persistent first-contact state for individuals whose human-facing intent is
@@ -88,6 +90,7 @@ public final class PoliteHumanInteraction {
             ChangedEntity mob,
             ServerPlayer player) {
         if (!shouldWithholdHostility(mob, player)
+                || HumanBoundaryService.isBackingOff(mob, player)
                 || isAcquainted(mob, player)
                 || mob.getTarget() != null) {
             return false;
@@ -288,7 +291,10 @@ public final class PoliteHumanInteraction {
             ServerPlayer player) {
         return isPoliteHumanPair(mob, player)
                 && ChangedSynergyConfig.COMMON.politeHumanInteraction.get()
+                && SynergyPerformanceTracker.featureEnabled(Feature.SOCIAL)
                 && player.level().getGameRules().getBoolean(ChangedSynergyGameRules.NPC_AI)
+                && ChangedSynergyGameRules.enabled(
+                        player.level(), ChangedSynergyGameRules.FRIENDSHIP_SYSTEM)
                 && player.isAlive()
                 && !player.isCreative()
                 && !player.isSpectator()

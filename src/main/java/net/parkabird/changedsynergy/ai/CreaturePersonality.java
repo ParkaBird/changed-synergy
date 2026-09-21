@@ -1,8 +1,10 @@
 package net.parkabird.changedsynergy.ai;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.nbt.CompoundTag;
@@ -42,9 +44,14 @@ public final class CreaturePersonality {
     private static final String SOCIAL_PARTNER = "SocialPartner";
     private static final String LAST_COUNTED_ENCOUNTER = "LastCountedEncounter";
     private static final String LAST_INTERACTION = "LastInteraction";
+    private static final String RESCUE_CONCERN = "RescueConcern";
+    private static final String LAST_RESCUE_CONCERN = "LastRescueConcern";
+    private static final String RESCUE_CONCERN_UPDATED = "RescueConcernUpdated";
     private static final int CURRENT_VERSION = 5;
     private static final int MAX_PLAYER_MEMORIES = 64;
     private static final long ENCOUNTER_INTERVAL = 1200L;
+    private static final long RESCUE_CONCERN_INTERVAL = 1200L;
+    private static final long RESCUE_CONCERN_DECAY_INTERVAL = 72000L;
 
     private CreaturePersonality() {
     }
@@ -130,6 +137,19 @@ public final class CreaturePersonality {
         }
         ensure(mob);
         return Trait.values()[data(mob).getInt(DOMINANT_TRAIT)];
+    }
+
+    /** Selects a visible dominant trait while retaining the generated secondary traits. */
+    public static void setDominantTrait(ChangedEntity mob, Trait trait) {
+        ensure(mob);
+        CompoundTag personality = data(mob);
+        int mask = personality.getInt(TRAIT_MASK) | 1 << trait.ordinal();
+        if (Integer.bitCount(mask) > 3) {
+            mask &= ~(1 << personality.getInt(DOMINANT_TRAIT));
+        }
+        personality.putInt(TRAIT_MASK, mask);
+        personality.putInt(DOMINANT_TRAIT, trait.ordinal());
+        personality.putInt(DATA_VERSION, CURRENT_VERSION);
     }
 
     /** Alters detection persistence without changing the entity's native melee speed. */
@@ -350,10 +370,73 @@ public final class CreaturePersonality {
         touchMemory(mob, player, memory, mob.level().getGameTime());
     }
 
-    public static int recordWitnessedKinKill(
+    /**
+     * Remembers repeated danger rescues without letting one prolonged incident
+     * or rapid suit cycling inflate concern. One point fades after three
+     * Minecraft days without another recorded rescue.
+     */
+    public static int rememberDangerRescue(
             ChangedEntity mob,
             ServerPlayer player) {
         if (!friendshipEnabled(mob)) {
+            return 0;
+        }
+        CompoundTag memory = memory(mob, player, true);
+        long now = mob.level().getGameTime();
+        int concern = decayedRescueConcern(memory, now);
+        long last = memory.getLong(LAST_RESCUE_CONCERN);
+        if (!memory.contains(LAST_RESCUE_CONCERN, Tag.TAG_LONG)
+                || now < last
+                || now - last >= RESCUE_CONCERN_INTERVAL) {
+            concern = Math.min(6, concern + 1);
+            memory.putInt(RESCUE_CONCERN, concern);
+            memory.putLong(LAST_RESCUE_CONCERN, now);
+            memory.putLong(RESCUE_CONCERN_UPDATED, now);
+        }
+        touchMemory(mob, player, memory, now);
+        return concern;
+    }
+
+    public static int rescueConcern(
+            ChangedEntity mob,
+            ServerPlayer player) {
+        if (!friendshipEnabled(mob)) {
+            return 0;
+        }
+        CompoundTag memory = memory(mob, player, false);
+        return memory == null ? 0
+                : decayedRescueConcern(memory, mob.level().getGameTime());
+    }
+
+    private static int decayedRescueConcern(CompoundTag memory, long now) {
+        int concern = Mth.clamp(memory.getInt(RESCUE_CONCERN), 0, 6);
+        if (!memory.contains(RESCUE_CONCERN_UPDATED, Tag.TAG_LONG)) {
+            if (memory.contains(LAST_RESCUE_CONCERN, Tag.TAG_LONG)) {
+                memory.putLong(RESCUE_CONCERN_UPDATED,
+                        memory.getLong(LAST_RESCUE_CONCERN));
+            }
+            return concern;
+        }
+        long last = memory.getLong(RESCUE_CONCERN_UPDATED);
+        if (now < last) {
+            memory.putLong(RESCUE_CONCERN_UPDATED, now);
+            return concern;
+        }
+        long intervals = (now - last) / RESCUE_CONCERN_DECAY_INTERVAL;
+        if (intervals <= 0L) {
+            return concern;
+        }
+        concern = Math.max(0, concern - (int)Math.min(6L, intervals));
+        memory.putInt(RESCUE_CONCERN, concern);
+        memory.putLong(RESCUE_CONCERN_UPDATED,
+                last + intervals * RESCUE_CONCERN_DECAY_INTERVAL);
+        return concern;
+    }
+
+    public static int recordWitnessedKinKill(
+            ChangedEntity mob,
+            ServerPlayer player) {
+        if (!friendshipEnabled(mob) && !LatexSocialMemory.isBonded(mob, player)) {
             return 0;
         }
         CompoundTag memory = memory(mob, player, true);
@@ -518,11 +601,25 @@ public final class CreaturePersonality {
                 || LatexSocialMemory.isPetOwner(mob, player)) {
             return false;
         }
-        CompoundTag memories = memories(mob);
-        boolean existed = memories.contains(player.getStringUUID(), Tag.TAG_COMPOUND);
-        memories.remove(player.getStringUUID());
-        setSocialFollowing(mob, player, false);
+        boolean existed = forgetRelationship(mob, player.getUUID());
         PlayerRelationshipSettings.forgetContact(player, mob.getUUID());
+        return existed;
+    }
+
+    /** Clears creature-side memory when a roster entry is removed while its chunk is unloaded. */
+    public static boolean forgetRelationship(ChangedEntity mob, UUID playerId) {
+        if (LatexSocialMemory.bondedPlayerUuids(mob).contains(playerId)
+                || LatexSocialMemory.petOwnerUuid(mob).filter(playerId::equals).isPresent()) {
+            return false;
+        }
+        CompoundTag memories = memories(mob);
+        boolean existed = memories.contains(playerId.toString(), Tag.TAG_COMPOUND);
+        memories.remove(playerId.toString());
+        CompoundTag personality = data(mob);
+        if (personality.hasUUID(SOCIAL_PARTNER)
+                && playerId.equals(personality.getUUID(SOCIAL_PARTNER))) {
+            personality.remove(SOCIAL_PARTNER);
+        }
         return existed;
     }
 
@@ -644,6 +741,25 @@ public final class CreaturePersonality {
             }
         }
         return false;
+    }
+
+    /** Player ids whose durable relationship cards may reference this creature. */
+    public static Set<UUID> establishedRelationshipPlayerUuids(
+            ChangedEntity mob) {
+        Set<UUID> players = new LinkedHashSet<>();
+        CompoundTag memories = memories(mob);
+        for (String key : memories.getAllKeys()) {
+            if (!memories.contains(key, Tag.TAG_COMPOUND)
+                    || !memories.getCompound(key).getBoolean(RELATIONSHIP)) {
+                continue;
+            }
+            try {
+                players.add(UUID.fromString(key));
+            } catch (IllegalArgumentException ignored) {
+                // Malformed legacy keys cannot identify a relationship owner.
+            }
+        }
+        return players;
     }
 
     /** A relationship remains remembered while its present trust may sour. */

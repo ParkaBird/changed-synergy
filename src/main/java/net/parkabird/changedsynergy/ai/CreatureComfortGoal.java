@@ -27,18 +27,26 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.pathfinder.Path;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 
 /**
  * Infrequent ambient interactions with Changed's physical comfort props.
  * Combat, following, social interaction and community work all outrank it.
  */
+@Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID)
 public final class CreatureComfortGoal extends Goal {
     public static final int PRIORITY = 5;
     private static final String NEXT_ACTION =
             "ChangedSynergyNextComfortAction";
+    private static final String REST_UNTIL = "ChangedSynergyComfortRestUntil";
     private static final int SEARCH_RADIUS = 12;
     private static final int VERTICAL_RADIUS = 4;
     private static final double MOVE_SPEED = 0.25D;
@@ -63,6 +71,7 @@ public final class CreatureComfortGoal extends Goal {
     @Override
     public boolean canUse() {
         if (!(mob.level() instanceof ServerLevel level)
+                || !SynergyPerformanceTracker.featureEnabled(Feature.COMMUNITY)
                 || !CreatureLifeMemory.enabled(mob)
                 || !idleAvailable(false)) {
             return false;
@@ -74,6 +83,11 @@ public final class CreatureComfortGoal extends Goal {
             return false;
         }
         if (next > now) {
+            return false;
+        }
+        if (!SynergyPerformanceTracker.allowBackground(
+                mob, Feature.COMMUNITY,
+                SynergyPerformanceTracker.configuredBackgroundInterval())) {
             return false;
         }
 
@@ -128,7 +142,9 @@ public final class CreatureComfortGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        if (mode == Mode.NONE || actionTicks <= 0 || !idleAvailable(seatedByGoal)) {
+        if (mode == Mode.NONE || actionTicks <= 0
+                || !SynergyPerformanceTracker.featureEnabled(Feature.COMMUNITY)
+                || !idleAvailable(seatedByGoal)) {
             return false;
         }
         if (seatedByGoal) {
@@ -196,6 +212,7 @@ public final class CreatureComfortGoal extends Goal {
         if (seatedByGoal && mob.getVehicle() instanceof SeatEntity) {
             mob.stopRiding();
         }
+        mob.getPersistentData().remove(REST_UNTIL);
         if (mob.level() instanceof ServerLevel level) {
             scheduleNext(level.getGameTime(), 600, 801);
         }
@@ -286,6 +303,8 @@ public final class CreatureComfortGoal extends Goal {
         }
         seatedByGoal = true;
         restTicks = 140 + mob.getRandom().nextInt(181);
+        mob.getPersistentData().putLong(REST_UNTIL,
+                mob.level().getGameTime() + restTicks);
         actionTicks = Math.max(actionTicks, restTicks + 1);
         NpcDialogue.emoteOnly(mob, Emote.SLEEPY);
     }
@@ -300,6 +319,8 @@ public final class CreatureComfortGoal extends Goal {
         }
         seatedByGoal = true;
         restTicks = 120 + mob.getRandom().nextInt(181);
+        mob.getPersistentData().putLong(REST_UNTIL,
+                mob.level().getGameTime() + restTicks);
         actionTicks = Math.max(actionTicks, restTicks + 1);
         NpcDialogue.emoteOnly(
                 mob,
@@ -475,6 +496,20 @@ public final class CreatureComfortGoal extends Goal {
         target = null;
         path = null;
         repathTicks = 0;
+    }
+
+    @SubscribeEvent
+    public static void onCreatureTick(LivingEvent.LivingTickEvent event) {
+        if (!(event.getEntity() instanceof ChangedEntity creature)
+                || creature.level().isClientSide || creature.tickCount % 20 != 0
+                || !creature.getPersistentData().contains(REST_UNTIL)) return;
+        if (!(creature.getVehicle() instanceof SeatEntity)) {
+            creature.getPersistentData().remove(REST_UNTIL);
+        } else if (creature.level().getGameTime()
+                >= creature.getPersistentData().getLong(REST_UNTIL)) {
+            creature.stopRiding();
+            creature.getPersistentData().remove(REST_UNTIL);
+        }
     }
 
     private enum Mode {

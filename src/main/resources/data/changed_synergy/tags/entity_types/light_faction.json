@@ -13,6 +13,58 @@
     {
       "id": "changed_addon:mirror_white_tiger",
       "required": false
+    },
+    {
+      "id": "changedvanilla:latex_cat",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_chicken",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_cow",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_creeper",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_fox",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_fox_partial",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_ocelot",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_pig",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_sheep",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_skeleton",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_slime",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_spider",
+      "required": false
+    },
+    {
+      "id": "changedvanilla:latex_zombie",
+      "required": false
     }
   ]
 }

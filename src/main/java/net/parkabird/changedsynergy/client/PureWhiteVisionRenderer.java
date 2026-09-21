@@ -12,6 +12,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.parkabird.changedsynergy.ChangedSynergyClientConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 
 /** Runs Synergy's independent pure-white colour and consensus post-process. */
@@ -51,6 +52,11 @@ public final class PureWhiteVisionRenderer {
     }
 
     public static void render(float partialTick) {
+        if (ChangedSynergyClientConfig.CLIENT
+                .disablePureWhiteVisionOverlays.get()) {
+            closeChain();
+            return;
+        }
         if (!PureWhiteVisionClientState.active()) {
             historyReady = false;
             return;

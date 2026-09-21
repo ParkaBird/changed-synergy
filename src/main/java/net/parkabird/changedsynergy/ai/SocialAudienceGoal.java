@@ -28,11 +28,13 @@ public final class SocialAudienceGoal extends Goal {
             new WeakHashMap<>();
 
     private final ChangedEntity mob;
+    private final CompanionFollowNavigation followNavigation;
     private ServerPlayer player;
     private int repathTicks;
 
     public SocialAudienceGoal(ChangedEntity mob) {
         this.mob = mob;
+        this.followNavigation = new CompanionFollowNavigation(mob);
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
@@ -92,6 +94,7 @@ public final class SocialAudienceGoal extends Goal {
         player = level.getServer().getPlayerList().getPlayer(audience.playerUuid());
         return player != null
                 && player.isAlive()
+                && !TakeoverService.active(player)
                 && !player.isSpectator()
                 && player.level() == mob.level();
     }
@@ -100,6 +103,7 @@ public final class SocialAudienceGoal extends Goal {
     public boolean canContinueToUse() {
         return player != null
                 && player.isAlive()
+                && !TakeoverService.active(player)
                 && !player.isSpectator()
                 && player.level() == mob.level()
                 && validAudience(mob) != null
@@ -111,6 +115,7 @@ public final class SocialAudienceGoal extends Goal {
     public void start() {
         repathTicks = 0;
         mob.getNavigation().stop();
+        followNavigation.reset();
         NpcDialogue.emoteOnly(mob, Emote.CASUAL);
     }
 
@@ -136,8 +141,7 @@ public final class SocialAudienceGoal extends Goal {
         }
         if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
             repathTicks = 8;
-            mob.getNavigation().moveTo(
-                    standAt.x, standAt.y, standAt.z, WALK_SPEED);
+            followNavigation.moveTowardPosition(player, standAt, WALK_SPEED);
         }
     }
 
@@ -145,6 +149,7 @@ public final class SocialAudienceGoal extends Goal {
     public void stop() {
         player = null;
         mob.getNavigation().stop();
+        followNavigation.reset();
     }
 
     @Override

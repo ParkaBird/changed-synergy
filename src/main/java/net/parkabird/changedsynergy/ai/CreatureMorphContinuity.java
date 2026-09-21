@@ -32,6 +32,8 @@ public final class CreatureMorphContinuity {
             "ChangedSynergyFacilityOrangeRoom";
     private static final String FACILITY_STORAGE_POS =
             "ChangedSynergyFacilityStoragePos";
+    private static final String BONDED_INVENTORY =
+            "ChangedSynergyBondedInventory";
 
     private CreatureMorphContinuity() {
     }
@@ -92,6 +94,8 @@ public final class CreatureMorphContinuity {
         copyTag(source, target, FACILITY_WORK_SECTION);
         copyTag(source, target, FACILITY_ORANGE_ROOM);
         copyTag(source, target, FACILITY_STORAGE_POS);
+        copyCompound(source, target, BONDED_INVENTORY);
+        ProvisionerTradeService.copyProfile(previous, replacement);
         InvoluntaryTransfurNegotiation.copySourceMarker(previous, replacement);
         if (source.hasUUID(COMMUNITY)) {
             target.putUUID(COMMUNITY, source.getUUID(COMMUNITY));

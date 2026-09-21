@@ -16,6 +16,8 @@ import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.network.ScoutTargetPacket;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
+import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 
 /** Small, observable abilities attached to stable community roles. */
 public final class CreatureRoleService {
@@ -27,12 +29,18 @@ public final class CreatureRoleService {
 
     public static void tick(ChangedEntity creature) {
         if (!(creature.level() instanceof ServerLevel level)
+                || !SynergyPerformanceTracker.featureEnabled(Feature.COMMUNITY)
                 || !CreatureLifeMemory.enabled(creature)) {
             return;
         }
         GroupRole role = CreatureLifeMemory.role(creature);
         if (role == GroupRole.YOUNGSTER) {
-            tickYoungster(creature, level);
+            // Nearby-peer lookup is spatial and must not run for every juvenile
+            // on every tick in dense colonies.
+            if (creature.tickCount % 20 == Math.floorMod(
+                    creature.getId(), 20)) {
+                tickYoungster(creature, level);
+            }
             return;
         }
         if (creature.tickCount % 20 != Math.floorMod(

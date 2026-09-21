@@ -145,6 +145,10 @@ dependencies {
     if (!project.hasProperty('withoutAddon')) {
         runtimeOnly fg.deobf("curse.maven:changed-addon-plus-711303:${changed_addon_curseforge_file}")
     }
+    if (project.hasProperty('withDomesticationInnovation')) {
+        runtimeOnly fg.deobf("curse.maven:citadel-331936:4848887")
+        runtimeOnly fg.deobf("curse.maven:domestication-innovation-591149:4911955")
+    }
 
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

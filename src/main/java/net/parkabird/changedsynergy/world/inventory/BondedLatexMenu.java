@@ -33,6 +33,7 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
     @Nullable
     private final ChangedEntity pet;
     private boolean following;
+    private boolean shoreWaiting;
     private int targetType;
     private int attackType;
     private int attackCondition;
@@ -47,6 +48,7 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
         this.player = inventory.player;
         this.pet = pet;
         this.following = LatexSocialMemory.isFollowingOwner(pet);
+        this.shoreWaiting = LatexSocialMemory.isWaitingOnShore(pet);
         int[] state = stateFor(pet);
         this.targetType = state[0];
         this.attackType = state[1];
@@ -66,6 +68,7 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
         Entity entity = inventory.player.level().getEntity(extraData.readVarInt());
         this.pet = entity instanceof ChangedEntity changed ? changed : null;
         this.following = extraData.readBoolean();
+        this.shoreWaiting = extraData.readBoolean();
         this.targetType = extraData.readVarInt();
         this.attackType = extraData.readVarInt();
         this.attackCondition = extraData.readVarInt();
@@ -82,6 +85,14 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
 
     public boolean isFollowing() {
         return following;
+    }
+
+    public boolean isAquaticPet() {
+        return pet instanceof net.ltxprogrammer.changed.entity.beast.AbstractAquaticEntity;
+    }
+
+    public boolean isShoreWaiting() {
+        return shoreWaiting;
     }
 
     public int getTargetType() {
@@ -142,7 +153,14 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
 
     public void applyLocalCommand(String command) {
         switch (command) {
-            case "cycle_follow" -> following = !following;
+            case "cycle_follow" -> {
+                following = !following;
+                shoreWaiting = false;
+            }
+            case "wait_on_shore" -> {
+                following = false;
+                shoreWaiting = true;
+            }
             case "cycle_target_type" -> targetType = (targetType + 1) % 3;
             case "cycle_attack_type" ->
                     attackType = isOrganicPet()
@@ -198,13 +216,19 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
             case "cycle_follow" -> {
                 following = !LatexSocialMemory.isFollowingOwner(pet);
                 LatexSocialMemory.setFollowingOwner(pet, following);
+                shoreWaiting = false;
                 pet.getNavigation().stop();
+            }
+            case "wait_on_shore" -> {
+                LatexSocialMemory.setWaitingOnShore(pet, origin);
+                following = false;
+                shoreWaiting = LatexSocialMemory.isWaitingOnShore(pet);
             }
             case "suit_owner" -> BondedSuitService.suitOwner(
                     pet, origin, BondedSuitService.SuitReason.MANUAL);
             case "reassimilate_owner" -> BondedSuitService.reassimilateOwner(pet, origin);
-            case "release_owner" -> BondedSuitService.releaseOwner(
-                    pet, origin, BondedSuitService.ReleaseReason.MANUAL);
+            case "release_owner" -> BondedSuitService.requestOwnerRelease(
+                    pet, origin);
             case "reverse_owner" ->
                     InvoluntaryTransfurNegotiation.beginBondedReversal(
                             pet, origin);

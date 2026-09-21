@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import net.parkabird.changedsynergy.entity.CreatureFishingHookVisual;
+import net.parkabird.changedsynergy.compat.ChangedVanillaCompat;
 import net.parkabird.changedsynergy.init.ChangedSynergyEntities;
 
 /** Player-style float, fishing line, water wake and reel-in presentation. */
@@ -123,6 +124,9 @@ public final class FishingVisualEffects {
     public static void setRodCastModel(
             ChangedEntity fisher,
             boolean cast) {
+        if (ChangedVanillaCompat.equipmentChangeRebuildsGoals(fisher)) {
+            return;
+        }
         ItemStack equipped = fisher.getMainHandItem();
         if (!equipped.is(Items.FISHING_ROD)) {
             return;
