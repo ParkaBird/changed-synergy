@@ -5,6 +5,7 @@ import net.ltxprogrammer.changed.ability.GrabEntityAbilityInstance;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.parkabird.changedsynergy.ai.LatexCreatureCombatRules;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
+import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import net.parkabird.changedsynergy.ai.HypnosisProfile;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -56,6 +57,7 @@ public final class SocialGrabDamageGoal extends Goal {
         if (held instanceof ServerPlayer player) {
             return mob.level().getGameTime() >= firstPlayerPulseAt
                     && !LatexSocialMemory.isOrganic(mob)
+                    && !LatexFusionIntent.nativeFusionAvailable(mob, player)
                     && !LatexSocialMemory.isFriendlyArmHoldTarget(mob, player)
                     && LatexSocialMemory.mayInitiateHostileGrab(mob, player)
                     && !LatexSocialMemory.isSecondaryGrabActive(mob, player);

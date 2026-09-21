@@ -21,6 +21,7 @@ import net.ltxprogrammer.changed.network.packet.SyncTransfurPacket;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.ai.LatexSocialRelation;
+import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import net.parkabird.changedsynergy.ai.InvoluntaryTransfurNegotiation;
 import net.parkabird.changedsynergy.ai.CreaturePersonality;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
@@ -158,7 +159,8 @@ public final class HostileTransfurredGrabGoal extends Goal {
         completed = false;
 
         if (!wasCompleted && previousTarget != null
-                && isHostileTransfurredTarget(previousTarget)) {
+                && (LatexFusionIntent.nativeFusionAvailable(mob, previousTarget)
+                        || isHostileTransfurredTarget(previousTarget))) {
             mob.setTarget(previousTarget);
         }
     }
@@ -181,6 +183,7 @@ public final class HostileTransfurredGrabGoal extends Goal {
     private boolean isHostileTransfurredTarget(ServerPlayer player) {
         if (!ProcessTransfur.isPlayerTransfurred(player)
                 || InvoluntaryTransfurNegotiation.hasAbsorptionClaim(player)
+                || LatexFusionIntent.nativeFusionAvailable(mob, player)
                 || !LatexSocialMemory.mayInitiateHostileGrab(mob, player)) {
             return false;
         }

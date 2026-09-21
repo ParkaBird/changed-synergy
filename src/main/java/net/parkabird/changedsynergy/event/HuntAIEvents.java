@@ -172,7 +172,20 @@ public final class HuntAIEvents {
                 HuntMemory.clear(mob);
             } else if (HuntMemory.getState(mob) == HuntState.CHASING
                     && HuntMemory.getPosition(mob).isPresent()) {
-                beginSearch(mob, rememberedPlayer(mob), true);
+                ServerPlayer remembered = rememberedPlayer(mob);
+                if (remembered != null
+                        && LatexFusionIntent.mayInitiate(mob, remembered)
+                        && canReacquire(mob, remembered, true)
+                        && mob.hasLineOfSight(remembered)) {
+                    // Native melee/fusion code can briefly clear the target
+                    // while changing goals. Keep the same fusion approach
+                    // instead of treating that one-tick gap as a lost chase;
+                    // otherwise the approach dialogue and movement restart.
+                    mob.setTarget(remembered);
+                    HuntMemory.seeTarget(mob, remembered);
+                } else {
+                    beginSearch(mob, remembered, true);
+                }
             }
         }
     }

@@ -1594,6 +1594,7 @@ public final class LatexSocialMemory {
             ChangedEntity mob,
             ServerPlayer player) {
         return !CreatureSocialProfile.isGrabMechanicExcluded(mob)
+                && !LatexFusionIntent.nativeFusionAvailable(mob, player)
                 && player.isAlive()
                 && !player.isCreative()
                 && !player.isSpectator()

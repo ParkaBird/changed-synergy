@@ -22,6 +22,7 @@ import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.parkabird.changedsynergy.ai.HunterArchetype;
 import net.parkabird.changedsynergy.ai.HypnosisProfile;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
+import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import net.parkabird.changedsynergy.ai.InvoluntaryTransfurNegotiation;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
@@ -191,6 +192,11 @@ public final class OrganicAssimilationGrabGoal extends Goal {
         holdTicks = 0;
         targetStartedTransfurred = false;
         completed = false;
+
+        if (!wasCompleted && previousTarget != null
+                && LatexFusionIntent.nativeFusionAvailable(mob, previousTarget)) {
+            mob.setTarget(previousTarget);
+        }
     }
 
     @Override
@@ -210,6 +216,7 @@ public final class OrganicAssimilationGrabGoal extends Goal {
 
     private boolean isEligibleTarget(ServerPlayer player) {
         return !InvoluntaryTransfurNegotiation.hasAbsorptionClaim(player)
+                && !LatexFusionIntent.nativeFusionAvailable(mob, player)
                 && LatexSocialMemory.mayInitiateHostileGrab(mob, player);
     }
 

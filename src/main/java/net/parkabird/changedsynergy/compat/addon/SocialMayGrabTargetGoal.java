@@ -52,7 +52,7 @@ public final class SocialMayGrabTargetGoal extends MayGrabTargetGoal {
             // grab gate clear the target merely because the player is otherwise neutral.
             return false;
         }
-        if (LatexFusionIntent.mayInitiate(mob, player)) {
+        if (LatexFusionIntent.nativeFusionAvailable(mob, player)) {
             // Native Changed fusion uses the ordinary melee goal.  This goal
             // must neither start Addon's grab animation nor clear its target;
             // doing either made a friendly knight raise/lower its arms forever.
