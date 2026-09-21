@@ -87,6 +87,9 @@ public final class PatAnimationClientState {
             int actorId,
             float partialTick,
             ModelPart arm) {
+        if (arm == null) {
+            return false;
+        }
         Pose pose = pose(actorId, partialTick);
         if (pose == null) {
             return false;
