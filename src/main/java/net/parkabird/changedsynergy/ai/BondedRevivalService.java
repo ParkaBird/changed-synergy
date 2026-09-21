@@ -24,6 +24,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
+import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
 import net.parkabird.changedsynergy.init.ChangedSynergyItems;
 
 /** Death-to-mask-to-body reconstruction for bonded dark latex creatures. */
@@ -411,11 +412,18 @@ public final class BondedRevivalService {
         owner.sendSystemMessage(Component.translatable(
                 "message.changed_synergy.revival.complete",
                 record.getString("BondName")));
+        SynergyAdvancements.grant(owner, SynergyAdvancements.BONDED_REVIVAL);
     }
 
     public static void applyCompletedReferences(ServerPlayer player) {
         BondedRevivalData data = BondedRevivalData.get(player.server);
         for (CompoundTag record : data.records()) {
+            if (STATE_COMPLETE.equals(record.getString("State"))
+                    && record.hasUUID("Owner")
+                    && player.getUUID().equals(record.getUUID("Owner"))) {
+                SynergyAdvancements.grant(
+                        player, SynergyAdvancements.BONDED_REVIVAL);
+            }
             if (!STATE_COMPLETE.equals(record.getString("State"))
                     || !record.hasUUID("OldEntity")
                     || !record.hasUUID("NewEntity")

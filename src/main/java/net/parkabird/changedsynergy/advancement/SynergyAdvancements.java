@@ -43,6 +43,7 @@ public final class SynergyAdvancements {
     public static final String NEGOTIATED_RELEASE = "negotiated_release";
     public static final String FOOD_BRIBE = "food_bribe";
     public static final String FUSION_SEPARATION = "fusion_separation";
+    public static final String BONDED_REVIVAL = "bonded_revival";
     public static final String BOX_SURPRISE = "box_surprise";
 
     private SynergyAdvancements() {

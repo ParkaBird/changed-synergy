@@ -1,0 +1,23 @@
+{
+  "parent": "changed_synergy:bonded_companion",
+  "display": {
+    "icon": {
+      "item": "changed_synergy:broken_dark_latex_mask"
+    },
+    "title": {
+      "translate": "advancement.changed_synergy.bonded_revival.title"
+    },
+    "description": {
+      "translate": "advancement.changed_synergy.bonded_revival.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "complete": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

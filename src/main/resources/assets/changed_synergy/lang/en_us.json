@@ -3639,6 +3639,8 @@
   "advancement.changed_synergy.food_bribe.description": "Offer a favorite food to improve your chances in a negotiation.",
   "advancement.changed_synergy.fusion_separation.title": "Room for Two",
   "advancement.changed_synergy.fusion_separation.description": "Negotiate your way back into separate bodies after a fusion.",
+  "advancement.changed_synergy.bonded_revival.title": "I'll Be Back",
+  "advancement.changed_synergy.bonded_revival.description": "Bring a fallen bonded companion back by reconstructing their body.",
   "advancement.changed_synergy.box_surprise.title": "Something in the Box",
   "advancement.changed_synergy.box_surprise.description": "Open a tall cardboard box and find a latex creature resting inside.",
   "hint.changed_synergy.pat.title": "A gentler greeting",
