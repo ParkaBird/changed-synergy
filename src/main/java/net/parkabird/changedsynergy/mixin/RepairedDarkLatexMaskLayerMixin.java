@@ -15,8 +15,25 @@ public abstract class RepairedDarkLatexMaskLayerMixin {
             method = "render",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z"))
-    private boolean changedSynergy$renderRepairedMask(ItemStack stack, Item originalMask) {
+                    target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z",
+                    remap = false),
+            require = 0)
+    private boolean changedSynergy$renderRepairedMaskDev(ItemStack stack, Item originalMask) {
+        return changedSynergy$isSupportedMask(stack, originalMask);
+    }
+
+    @Redirect(
+            method = "render",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/item/ItemStack;m_150930_(Lnet/minecraft/world/item/Item;)Z",
+                    remap = false),
+            require = 0)
+    private boolean changedSynergy$renderRepairedMaskProduction(ItemStack stack, Item originalMask) {
+        return changedSynergy$isSupportedMask(stack, originalMask);
+    }
+
+    private static boolean changedSynergy$isSupportedMask(ItemStack stack, Item originalMask) {
         return stack.is(originalMask)
                 || stack.is(ChangedSynergyItems.REPAIRED_DARK_LATEX_MASK.get());
     }

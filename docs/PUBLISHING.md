@@ -37,13 +37,13 @@ Forge itself and Minecraft should use the supported ranges in `mods.toml`.
 
 Use this text where a platform requests an AI disclosure:
 
-> Generative AI assisted parts of the code and bilingual text. ParkaBird reviewed, edited, integrated and tested the resulting work. Artwork, textures, models, screenshots and promotional images are not AI-generated.
+> Generative AI was used as an assistive tool during development of parts of the English and Chinese text and code. ParkaBird reviewed, edited, integrated and tested the resulting work. Artwork, textures, models, screenshots and promotional images are not AI-generated.
 
-## First file
+## Current release
 
-- Version: `0.1.0-beta.1`
-- Release type: Beta
-- Display title: `Changed: Synergy 0.1.0 Beta 1 for Forge 1.20.1`
+- Version: `0.1.2`
+- Release type: Release
+- Display title: `Changed: Synergy 0.1.2 for Forge 1.20.1`
 - Upload only the release JAR, not the sources JAR, as the main downloadable mod.
 - Attach the sources JAR to the GitHub release if desired.
 - Copy the relevant section of `CHANGELOG.md` into the file changelog.
@@ -52,7 +52,7 @@ Use this text where a platform requests an AI disclosure:
 
 Use player-made screenshots and cover art. Add alt text that states what each image shows. Do not upload debug screenshots containing personal paths, unrelated usernames, coordinates that should remain private, or a visible access token.
 
-The README can be used as the long description. Remove GitHub-only contribution details if a platform page becomes too long, but keep installation, dependencies, beta status, AI disclosure and credits.
+The README can be used as the long description. Remove GitHub-only contribution details if a platform page becomes too long, but keep installation, dependencies, release status, AI disclosure and credits.
 
 ## Release order
 

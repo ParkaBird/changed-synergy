@@ -1,6 +1,6 @@
-# Changed: Synergy 0.1.2-beta.1
+# Changed: Synergy 0.1.2
 
-Thank you to everyone who tested the builds after 0.1.1, reported problems, shared ideas, and helped shape this update! This is a test release for the Discord community.
+Thank you to everyone who tested the builds after 0.1.1, reported problems, shared ideas, and helped shape this update!
 
 Special thanks to Nic for rewriting the personality dialogue and to Crossader for special-mechanics dialogue rewriting! We also appreciate their localization contributions; contributed German and Spanish lines are included in this build. These are the player-facing changes since 0.1.1.
 
@@ -46,4 +46,8 @@ Special thanks to Nic for rewriting the personality dialogue and to Crossader fo
 - Operators can use `/changedsynergy spawn <creature_id> <personality>` to generate a creature with a chosen dominant personality.
 - Added an optional Independent Faction Reputation setting that removes rival-faction reputation penalties and allows simultaneous alliances with every faction.
 
-Thank you again to everyone who tested, translated, reported bugs, or shared feedback. Please back up important worlds before trying this beta and include your mod list and `latest.log` when reporting a reproducible problem.
+## Stability
+
+- Fixed packaged-client startup failures in repaired-mask rendering and the Rest Together camera behavior.
+
+Thank you again to everyone who tested, translated, reported bugs, or shared feedback. Please back up important worlds before updating and include your mod list and `latest.log` when reporting a reproducible problem.

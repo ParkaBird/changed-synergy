@@ -177,7 +177,7 @@ When reporting a reproducible problem, include:
 * A list of relevant optional integration mods
 * The steps needed to reproduce the problem
 
-Bugs can also be reported on the [Changed: Synergy project homepage](https://www.curseforge.com/minecraft/mc-mods/changed-synergy).
+Report reproducible bugs through the [GitHub issue tracker](https://github.com/ParkaBird/changed-synergy/issues). The [Changed: Synergy project homepage](https://www.curseforge.com/minecraft/mc-mods/changed-synergy) remains the official download page.
 
 ## Content statement
 
@@ -191,6 +191,6 @@ Changed: Synergy does not take a position on controversies surrounding Changed o
 
 Changed: Synergy is developed by ParkaBird. It is an unofficial addon and is not affiliated with the creators of Changed or Mojang Studios.
 
-Generative AI assisted with parts of the code and bilingual text. ParkaBird reviewed, edited, integrated, and tested the resulting work. No generative AI was used for artwork, textures, models, screenshots, or promotional images.
+Generative AI was used as an assistive tool during development of parts of the English and Chinese text and code. ParkaBird reviewed, edited, integrated, and tested the resulting work. No generative AI was used for artwork, textures, models, screenshots, or promotional images.
 
 Changed: Synergy is licensed under GPL-3.0-or-later.

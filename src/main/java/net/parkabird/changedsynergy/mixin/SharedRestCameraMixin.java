@@ -15,10 +15,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Let the carried player look around while the companion chooses the path. */
 @Mixin(value = Camera.class, priority = 900)
 public abstract class SharedRestCameraMixin {
-    @Shadow
+    @Shadow(aliases = "m_90572_")
     protected abstract void setRotation(float yaw, float pitch);
 
-    @Inject(method = "setup", at = @At("TAIL"))
+    @Inject(method = {"setup", "m_90575_"}, at = @At("TAIL"), remap = false)
     private void changedSynergy$restCarryLook(BlockGetter level, Entity entity,
             boolean thirdPerson, boolean mirrored, float partialTick, CallbackInfo callback) {
         var player = Minecraft.getInstance().player;

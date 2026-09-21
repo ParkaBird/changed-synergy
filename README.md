@@ -103,7 +103,7 @@ On Windows, use `gradlew.bat build`. Release and source JARs are written to `bui
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains the main systems and dependency boundaries.
 - [docs/GAMERULES.md](docs/GAMERULES.md) documents the server-side feature switches.
 - [docs/PERFORMANCE.md](docs/PERFORMANCE.md) explains the live diagnostics and AI scheduling controls.
-- [KNOWN_ISSUES.md](KNOWN_ISSUES.md) lists current beta limitations.
+- [KNOWN_ISSUES.md](KNOWN_ISSUES.md) lists current known limitations.
 - [CHANGELOG.md](CHANGELOG.md) records user-facing changes.
 - [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) identifies upstream projects and reused material.
 
@@ -126,6 +126,6 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a patch. The project d
 
 Changed: Synergy is developed by ParkaBird. It is an unofficial addon and is not affiliated with the creators of Changed or Mojang Studios.
 
-Generative AI assisted parts of the bilingual text and code. ParkaBird reviewed, edited, integrated and tested the resulting work. Artwork, textures, models, screenshots and promotional images are not AI-generated. Details are in [AI_DISCLOSURE.md](AI_DISCLOSURE.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Generative AI was used as an assistive tool during development of parts of the English and Chinese text and code. ParkaBird reviewed, edited, integrated and tested the resulting work. Artwork, textures, models, screenshots and promotional images are not AI-generated. Details are in [AI_DISCLOSURE.md](AI_DISCLOSURE.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 Changed: Synergy is licensed under [GPL-3.0-or-later](LICENSE.txt).

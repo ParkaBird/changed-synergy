@@ -10,7 +10,7 @@ authors="${mod_authors}"
 logoFile="changed_synergy.png"
 logoBlur=false
 displayURL="https://www.curseforge.com/minecraft/mc-mods/changed-synergy"
-issueTrackerURL="https://www.curseforge.com/minecraft/mc-mods/changed-synergy"
+issueTrackerURL="https://github.com/ParkaBird/changed-synergy/issues"
 description='''${mod_description}'''
 
 [[dependencies.${mod_id}]]

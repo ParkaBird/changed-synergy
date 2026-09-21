@@ -1,4 +1,4 @@
-# Changed: Synergy 0.1.2-beta.1
+# Changed: Synergy 0.1.2
 
 Thank you to every tester who ran development builds, shared screenshots and
 logs, reported bugs, and suggested improvements. This release exists because
