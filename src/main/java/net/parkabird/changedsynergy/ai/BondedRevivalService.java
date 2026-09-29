@@ -25,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
+import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.init.ChangedSynergyItems;
 
 /** Death-to-mask-to-body reconstruction for bonded dark latex creatures. */
@@ -333,6 +334,9 @@ public final class BondedRevivalService {
         data.putUuid(token, "NewEntity", newEntityId);
         record.putUUID("NewEntity", newEntityId);
         CompoundTag snapshot = record.getCompound("Snapshot").copy();
+        // Older revival records may still contain the inventory that was
+        // already dropped on death. Never recreate those items on the new body.
+        sanitizeSnapshot(snapshot);
         snapshot.putUUID("UUID", newEntityId);
         Entity created = EntityType.create(snapshot, player.serverLevel()).orElse(null);
         if (!(created instanceof ChangedEntity revived)) {
@@ -482,9 +486,7 @@ public final class BondedRevivalService {
                 player.drop(returned, false);
             }
         }
-        if (ProcessTransfur.getPlayerTransfurVariant(player) != null) {
-            ProcessTransfur.removePlayerTransfurVariant(player);
-        }
+        TrueTransfurCompat.removeOrKeepForm(player);
         player.sendSystemMessage(Component.translatable(
                 "message.changed_synergy.revival.failed"));
         ChangedSynergyMod.LOGGER.warn(
@@ -593,8 +595,15 @@ public final class BondedRevivalService {
                 "ActiveEffects", "Brain"}) {
             snapshot.remove(key);
         }
+        // Changed and Changed Addon load other pet settings from the same
+        // branch as Inventory. Keep an empty list so that branch still runs.
+        for (String key : new String[]{"Inventory", "Items"}) {
+            if (snapshot.contains(key, Tag.TAG_LIST)) snapshot.put(key, new ListTag());
+            else snapshot.remove(key);
+        }
         if (snapshot.contains("ForgeData", Tag.TAG_COMPOUND)) {
             snapshot.getCompound("ForgeData").remove("ChangedSynergyCarriedResource");
+            snapshot.getCompound("ForgeData").remove("ChangedSynergyBondedInventory");
         }
     }
 

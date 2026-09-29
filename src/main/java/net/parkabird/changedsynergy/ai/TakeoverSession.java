@@ -14,11 +14,11 @@ import java.util.ArrayList;
 public final class TakeoverSession {
     public enum Kind { ORDINARY, EXOSKELETON }
     public enum Phase { CONTROLLED, BORROWED, STRUGGLE, SLEEPING, RELEASING, FINISHED }
-    public enum SleepOutcome { RELEASE, TRANSFUR }
+    public enum SleepOutcome { RELEASE, RELEASE_ON_TIMEOUT, TRANSFUR }
     public enum Blocker { NONE, COMBAT, AIRBORNE, UNSAFE_WATER, CRITICAL_WORK }
     public enum Result { ACCEPTED, DISABLED, WRONG_KIND, WRONG_PHASE, TOO_EARLY, COOLDOWN,
         BLOCKED, USED, BAD_SEQUENCE, BAD_INDEX, TOO_FAST, WRONG_KEY, INSUFFICIENT_TIME }
-    public enum ReleaseReason { NONE, BREAKOUT, SLEEP, TRANSFUR, EMERGENCY, INTERRUPTED }
+    public enum ReleaseReason { NONE, BREAKOUT, SLEEP, TRANSFUR, EMERGENCY, INTERRUPTED, NEGOTIATED, TIMEOUT }
 
     public static final long PREPARE_TICKS = 0, CHALLENGE_TICKS = 200,
         SLEEP_TICKS = 200, EYE_CLOSE_TICKS = 40, EYE_OPEN_TICKS = 40,
@@ -47,7 +47,8 @@ public final class TakeoverSession {
     }
 
     private final Kind kind;
-    private final long startedAt, deadline, hardDeadline;
+    private final long startedAt;
+    private long deadline, hardDeadline;
     private final boolean strictBorrow, initiallyEligible;
     private final SleepOutcome sleepOutcome;
     private boolean compensationCancelled, borrowedBefore, struggleUsed, breakoutSucceeded,
@@ -159,8 +160,12 @@ public final class TakeoverSession {
                 || ((releaseReason == ReleaseReason.SLEEP || releaseReason == ReleaseReason.TRANSFUR) && !slept)
                 || (releaseReason == ReleaseReason.TRANSFUR && sleepOutcome != SleepOutcome.TRANSFUR)
                 || (achievementClaimed && (phase != Phase.FINISHED || !breakoutSucceeded))
+                || (releaseReason == ReleaseReason.TIMEOUT
+                    && (sleepOutcome != SleepOutcome.RELEASE_ON_TIMEOUT || slept))
                 || (orangesClaimed && (phase != Phase.FINISHED || !initiallyEligible
-                    || compensationCancelled || !slept || releaseReason != ReleaseReason.SLEEP)))
+                    || compensationCancelled || releaseReason != ReleaseReason.SLEEP
+                    && releaseReason != ReleaseReason.TIMEOUT
+                    && releaseReason != ReleaseReason.NEGOTIATED)))
             throw new IllegalArgumentException("inconsistent snapshot");
     }
 
@@ -192,7 +197,8 @@ public final class TakeoverSession {
         if (phase == Phase.STRUGGLE && challengeUntil <= deadline && now >= challengeUntil)
             sleep(challengeUntil);
         if (phase != Phase.SLEEPING && now >= deadline) {
-            if (kind == Kind.EXOSKELETON) sleep(deadline);
+            if (kind == Kind.ORDINARY && sleepOutcome == SleepOutcome.RELEASE_ON_TIMEOUT)
+                release(deadline, ReleaseReason.TIMEOUT);
             else sleep(deadline);
         }
         if (phase == Phase.SLEEPING && now >= phaseUntil) {
@@ -323,6 +329,43 @@ public final class TakeoverSession {
         return true;
     }
 
+    /** Server-only outcome of the single takeover negotiation attempt. */
+    public boolean negotiateRelease(long now) {
+        tick(now);
+        if (kind != Kind.ORDINARY || phase != Phase.CONTROLLED && phase != Phase.BORROWED) return false;
+        release(now, ReleaseReason.NEGOTIATED);
+        return true;
+    }
+
+    /** One failed confinement appeal adds time without changing other takeover outcomes. */
+    public boolean extendConfinement(long now, long extraTicks) {
+        tick(now);
+        if (kind != Kind.ORDINARY || phase != Phase.CONTROLLED && phase != Phase.BORROWED
+                || extraTicks <= 0 || deadline - startedAt >= MAX_ORDINARY_TICKS) return false;
+        long added = Math.min(extraTicks, MAX_ORDINARY_TICKS - (deadline - startedAt));
+        deadline += added;
+        hardDeadline += added;
+        return true;
+    }
+
+    /** A failed punitive appeal advances the sleep deadline without modifying saved session bounds. */
+    public boolean failPunitiveNegotiation(long now) {
+        tick(now);
+        if (kind != Kind.ORDINARY || phase != Phase.CONTROLLED && phase != Phase.BORROWED
+                && phase != Phase.STRUGGLE) return false;
+        sleep(now);
+        return true;
+    }
+
+    /** The fatal outcome completes while the sleep vignette is fully closed. */
+    public boolean completeFatalSleep(long now) {
+        observe(now);
+        if (kind != Kind.ORDINARY || phase != Phase.SLEEPING
+                || now < phaseUntil - SLEEP_TICKS + EYE_CLOSE_TICKS) return false;
+        release(now, ReleaseReason.SLEEP);
+        return true;
+    }
+
     private void release(long at, ReleaseReason reason) {
         phase = Phase.RELEASING;
         phaseUntil = -1;
@@ -380,8 +423,10 @@ public final class TakeoverSession {
     /** Host checks shared player cooldown and persists this claim in its reward transaction. */
     public boolean claimOranges(boolean playerCooldownReady) {
         if (!playerCooldownReady || phase != Phase.FINISHED || kind != Kind.ORDINARY
-                || !initiallyEligible || compensationCancelled || !slept
-                || releaseReason != ReleaseReason.SLEEP || orangesClaimed) return false;
+                || !initiallyEligible || compensationCancelled || orangesClaimed
+                || releaseReason != ReleaseReason.SLEEP
+                    && releaseReason != ReleaseReason.TIMEOUT
+                    && releaseReason != ReleaseReason.NEGOTIATED) return false;
         orangesClaimed = true;
         return true;
     }

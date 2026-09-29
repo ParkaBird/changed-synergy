@@ -1,9 +1,14 @@
 package net.parkabird.changedsynergy.dialogue;
 
+import com.google.gson.JsonParser;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.Emote;
 import net.ltxprogrammer.changed.entity.TamableLatexEntity;
@@ -19,6 +24,7 @@ import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import net.parkabird.changedsynergy.ai.TelepathyService;
 import net.parkabird.changedsynergy.ai.TakeoverService;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
+import net.parkabird.changedsynergy.compat.addon.AddonAnimalCalls;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
@@ -51,6 +57,7 @@ public final class NpcDialogue {
     private static final String DIALOGUE_SUPPRESSED_UNTIL =
             "ChangedSynergyDialogueSuppressedUntil";
     private static final Map<UUID, Long> LISTENER_COOLDOWNS = new ConcurrentHashMap<>();
+    private static final Set<String> AVAILABLE_LINES = loadAvailableLines();
     private static final TagKey<EntityType<?>> SILENT_HUNTERS = tag("silent_hunters");
     private static final TagKey<EntityType<?>> EMOTELESS_HUNTERS = tag("emoteless_hunters");
 
@@ -66,14 +73,16 @@ public final class NpcDialogue {
                 || !speaker.level().getGameRules().getBoolean(ChangedSynergyGameRules.NPC_DIALOGUE)) return;
         long now = speaker.level().getGameTime();
         if (speaker.getPersistentData().getLong("SynergyContextLineAt") > now) return;
+        DialogueVoice voice = DialogueVoice.of(speaker, HunterFaction.of(speaker));
+        String key = canUnderstand(speaker, listener)
+                ? "dialogue.changed_synergy.context." + suffix
+                : vocalizationKey(speaker, listener, null,
+                        speaker.getRandom().nextInt(LINES_PER_CUE));
+        if (!hasText(key)) return;
         speaker.getPersistentData().putLong("SynergyContextLineAt", now + 20L);
         speaker.getPersistentData().putLong(NEXT_PRIORITY_DIALOGUE, now + 60L);
         speaker.getPersistentData().putLong(NEXT_DIALOGUE, now + 60L);
-        DialogueVoice voice = DialogueVoice.of(speaker, HunterFaction.of(speaker));
-        Component line = Component.translatable(canUnderstand(speaker, listener)
-                ? "dialogue.changed_synergy.context." + suffix
-                : vocalizationKey(speaker, listener, null,
-                        speaker.getRandom().nextInt(LINES_PER_CUE)));
+        Component line = Component.translatable(key);
         Component message = Component.translatable("message.changed_synergy.npc_dialogue",
                 speaker.getDisplayName(), line).withStyle(ChatFormatting.ITALIC);
         if (usesRelationshipChat(speaker, listener)) listener.sendSystemMessage(message);
@@ -187,6 +196,18 @@ public final class NpcDialogue {
             }
             lineIdentity = lineIdentity(lineKey, personalityKey);
         }
+        if (!hasText(personalityKey)) personalityKey = null;
+        if (!hasText(lineKey)) {
+            for (int candidate = 0; candidate < cue.lineCount; candidate++) {
+                String alternative = lineKey(speaker, voice, cue, focus, territory, candidate);
+                if (hasText(alternative)) {
+                    lineKey = alternative;
+                    break;
+                }
+            }
+        }
+        if (personalityKey == null && !hasText(lineKey)) return false;
+        lineIdentity = lineIdentity(lineKey, personalityKey);
 
         double range = ChangedSynergyConfig.COMMON.npcDialogueRange.get();
         double rangeSqr = range * range;
@@ -204,12 +225,14 @@ public final class NpcDialogue {
                 continue;
             }
 
-            boolean understands = (isTakeoverCue(cue) && listener == focus)
+            boolean understands = ((isTakeoverCue(cue)
+                    || cue == Cue.BOND_REVERSE_UNSAFE) && listener == focus)
                     || canUnderstand(speaker, listener);
             String visibleKey = understands
                     ? personalityKey != null ? personalityKey : lineKey
                     : vocalizationKey(speaker, listener, cue,
                             speaker.getRandom().nextInt(LINES_PER_CUE));
+            if (!hasText(visibleKey)) continue;
             MutableComponent visibleLine = Component.translatable(
                     visibleKey, visibleArguments);
             Component message = Component.translatable(
@@ -234,6 +257,10 @@ public final class NpcDialogue {
         }
 
         if (delivered) {
+            if (ChangedSynergyConfig.COMMON.addonAnimalCalls.get()
+                    && ChangedAddonCompat.isLoaded()) {
+                AddonAnimalCalls.play(speaker, vocalMood(speaker, focus, cue));
+            }
             speaker.getPersistentData().putLong(speakerCooldown,
                     now + (cue.important ? 80L : cooldownTicks()));
             if (cue.important) {
@@ -285,6 +312,7 @@ public final class NpcDialogue {
             lineIndex = (lineIndex + 1) % cue.lineCount;
             lineKey = lineKey(speaker, voice, cue, focus, null, lineIndex);
         }
+        if (!hasText(lineKey)) return false;
 
         MutableComponent visibleLine = Component.translatable(lineKey);
         Component message = Component.translatable(
@@ -451,6 +479,11 @@ public final class NpcDialogue {
                     + species + "." + cueName + "_" + relationship
                     + "." + index;
         }
+        if (cue == Cue.PAT_PART_HEAD || cue == Cue.PAT_PART_TORSO
+                || cue == Cue.PAT_PART_ARM) {
+            return "dialogue.changed_synergy.pat_part."
+                    + cueName.substring("pat_part_".length()) + "." + index;
+        }
         if (CreatureSocialProfile.isJuvenile(speaker)) {
             return "dialogue.changed_synergy.juvenile_voice."
                     + juvenileVoice(speaker) + "." + juvenileMood(cue)
@@ -562,6 +595,15 @@ public final class NpcDialogue {
         return switch (cue) {
             case TAKEOVER_PROACTIVE_START, TAKEOVER_REACTIVE_START,
                     TAKEOVER_PROACTIVE_AMBIENT, TAKEOVER_REACTIVE_AMBIENT,
+                    TAKEOVER_PROACTIVE_TIMEOUT, TAKEOVER_REACTIVE_TIMEOUT,
+                    TAKEOVER_DIRECT_START, TAKEOVER_PUNITIVE_FATAL_START,
+                    TAKEOVER_DIRECT_AMBIENT, TAKEOVER_PUNITIVE_FATAL_AMBIENT,
+                    TAKEOVER_PUNITIVE_BORROW_GRANTED, TAKEOVER_PUNITIVE_BORROW_EARLY,
+                    TAKEOVER_PUNITIVE_BORROW_COOLDOWN, TAKEOVER_PUNITIVE_CONTROL_RETURNED,
+                    TAKEOVER_DIRECT_ESCAPE_CONFIRM,
+                    TAKEOVER_PUNITIVE_FATAL_ESCAPE_CONFIRM,
+                    TAKEOVER_DIRECT_STRUGGLE, TAKEOVER_PUNITIVE_FATAL_STRUGGLE,
+                    TAKEOVER_PUNITIVE_BED_SLEEP,
                     TAKEOVER_BYSTANDER,
                     TAKEOVER_BORROW_GRANTED_PROACTIVE, TAKEOVER_BORROW_GRANTED_REACTIVE,
                     TAKEOVER_BORROW_EARLY_PROACTIVE, TAKEOVER_BORROW_EARLY_REACTIVE,
@@ -570,6 +612,15 @@ public final class NpcDialogue {
                     TAKEOVER_BORROW_BUSY,
                     TAKEOVER_CONTROL_RETURNED_PROACTIVE, TAKEOVER_CONTROL_RETURNED_REACTIVE,
                     TAKEOVER_ESCAPE_CONFIRM_PROACTIVE, TAKEOVER_ESCAPE_CONFIRM_REACTIVE,
+                    TAKEOVER_NEGOTIATION_SUCCESS, TAKEOVER_NEGOTIATION_FAILED,
+                    TAKEOVER_NEGOTIATION_FAILED_REACTIVE,
+                    TAKEOVER_NEGOTIATION_FAILED_DIRECT,
+                    TAKEOVER_NEGOTIATION_FAILED_PUNITIVE_FATAL,
+                    TAKEOVER_FATAL_SLEEP,
+                    TAKEOVER_PUNITIVE_FATAL_SLEEP_FAILED,
+                    TAKEOVER_PUNITIVE_FATAL_SLEEP_EXPIRED,
+                    TAKEOVER_DIRECT_SLEEP_FAILED,
+                    TAKEOVER_DIRECT_SLEEP_EXPIRED,
                     TAKEOVER_STRUGGLE_PROACTIVE, TAKEOVER_STRUGGLE_REACTIVE,
                     TAKEOVER_SLEEP_PROACTIVE, TAKEOVER_SLEEP_REACTIVE,
                     TAKEOVER_BED_SLEEP_PROACTIVE, TAKEOVER_BED_SLEEP_REACTIVE,
@@ -611,9 +662,7 @@ public final class NpcDialogue {
         return switch (cue) {
             case CENTAUR_TACK_OPEN, CENTAUR_SADDLE_EQUIP,
                     CENTAUR_PACK_EQUIP, CENTAUR_PACK_OPEN,
-                    CENTAUR_RIDE_START, CENTAUR_RIDE_END,
-                    BOND_FISHING_START, BOND_FISHING_SUCCESS,
-                    BOND_MINING_START, BOND_MINING_SUCCESS -> true;
+                    CENTAUR_RIDE_START, CENTAUR_RIDE_END -> true;
             default -> false;
         };
     }
@@ -860,6 +909,37 @@ public final class NpcDialogue {
 
     private static String lineIdentity(String lineKey, String personalityKey) {
         return personalityKey == null ? lineKey : personalityKey;
+    }
+
+    private static boolean hasText(String key) {
+        return key != null && AVAILABLE_LINES.contains(key);
+    }
+
+    public static boolean hasTranslatedLine(String key) {
+        return hasText(key);
+    }
+
+    private static Set<String> loadAvailableLines() {
+        try (var stream = NpcDialogue.class.getResourceAsStream(
+                "/assets/changed_synergy/lang/en_us.json")) {
+            if (stream == null) return Set.of();
+            var entries = JsonParser.parseReader(new InputStreamReader(
+                    stream, StandardCharsets.UTF_8)).getAsJsonObject();
+            return entries.entrySet().stream()
+                    .filter(entry -> entry.getKey().startsWith("dialogue.changed_synergy."))
+                    .filter(entry -> entry.getValue().isJsonPrimitive())
+                    .filter(entry -> {
+                        String value = entry.getValue().getAsString().strip();
+                        return !value.isEmpty()
+                                && !value.startsWith("dialogue.changed_synergy.");
+                    })
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toUnmodifiableSet());
+        } catch (Exception exception) {
+            net.parkabird.changedsynergy.ChangedSynergyMod.LOGGER.error(
+                    "Could not validate NPC dialogue translations", exception);
+            return Set.of();
+        }
     }
 
     private static Emote personalityEmote(
@@ -1300,6 +1380,21 @@ public final class NpcDialogue {
         TAKEOVER_REACTIVE_START(Emote.DENY, 1.0, true, 3, true),
         TAKEOVER_PROACTIVE_AMBIENT(Emote.CASUAL, 1.0, true, 3, true),
         TAKEOVER_REACTIVE_AMBIENT(Emote.PAUSE, 1.0, true, 3, true),
+        TAKEOVER_PROACTIVE_TIMEOUT(Emote.CASUAL, 1.0, true, 2, true),
+        TAKEOVER_REACTIVE_TIMEOUT(Emote.PAUSE, 1.0, true, 2, true),
+        TAKEOVER_DIRECT_START(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_PUNITIVE_FATAL_START(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_DIRECT_AMBIENT(Emote.PAUSE, 1.0, true, 2, true),
+        TAKEOVER_PUNITIVE_FATAL_AMBIENT(Emote.PAUSE, 1.0, true, 2, true),
+        TAKEOVER_PUNITIVE_BORROW_GRANTED(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_PUNITIVE_BORROW_EARLY(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_PUNITIVE_BORROW_COOLDOWN(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_PUNITIVE_CONTROL_RETURNED(Emote.PAUSE, 1.0, true, 2, true),
+        TAKEOVER_DIRECT_ESCAPE_CONFIRM(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_PUNITIVE_FATAL_ESCAPE_CONFIRM(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_DIRECT_STRUGGLE(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_PUNITIVE_FATAL_STRUGGLE(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_PUNITIVE_BED_SLEEP(Emote.PAUSE, 1.0, true, 2, true),
         TAKEOVER_BYSTANDER(Emote.CONFUSED, 1.0, true, 3, true),
         TAKEOVER_BORROW_GRANTED_PROACTIVE(Emote.HEART, 1.0, true, 3, true),
         TAKEOVER_BORROW_GRANTED_REACTIVE(Emote.CASUAL, 1.0, true, 3, true),
@@ -1314,6 +1409,16 @@ public final class NpcDialogue {
         TAKEOVER_CONTROL_RETURNED_REACTIVE(Emote.PAUSE, 1.0, true, 2, true),
         TAKEOVER_ESCAPE_CONFIRM_PROACTIVE(Emote.IDEA, 1.0, true, 2, true),
         TAKEOVER_ESCAPE_CONFIRM_REACTIVE(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_NEGOTIATION_SUCCESS(Emote.PAUSE, 1.0, true, 2, true),
+        TAKEOVER_NEGOTIATION_FAILED(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_NEGOTIATION_FAILED_REACTIVE(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_NEGOTIATION_FAILED_DIRECT(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_NEGOTIATION_FAILED_PUNITIVE_FATAL(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_FATAL_SLEEP(Emote.PAUSE, 1.0, true, 2, true),
+        TAKEOVER_PUNITIVE_FATAL_SLEEP_FAILED(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_PUNITIVE_FATAL_SLEEP_EXPIRED(Emote.PAUSE, 1.0, true, 2, true),
+        TAKEOVER_DIRECT_SLEEP_FAILED(Emote.DENY, 1.0, true, 2, true),
+        TAKEOVER_DIRECT_SLEEP_EXPIRED(Emote.PAUSE, 1.0, true, 2, true),
         TAKEOVER_STRUGGLE_PROACTIVE(Emote.STARTLED, 1.0, true, 2, true),
         TAKEOVER_STRUGGLE_REACTIVE(Emote.DENY, 1.0, true, 2, true),
         TAKEOVER_SLEEP_PROACTIVE(Emote.CASUAL, 1.0, true, 2, true),
@@ -1431,6 +1536,9 @@ public final class NpcDialogue {
         FRIEND_KIN_KILL_BETRAYAL(Emote.ANGRY, 1.0, true, 2, true),
         FRIEND_BETRAYAL_PAT_REFUSED(Emote.DENY, 1.0, true, 2, true),
         PAT_BONDED(Emote.HEART, 1.0, true, 2),
+        PAT_PART_HEAD(Emote.HEART, 1.0, true, 2),
+        PAT_PART_TORSO(Emote.CASUAL, 1.0, true, 2),
+        PAT_PART_ARM(Emote.CONFUSED, 1.0, true, 2),
         PAT_KIN(Emote.HEART, 1.0, true, 2),
         PAT_CATEGORY(Emote.CASUAL, 1.0, true, 2),
         PAT_FRIEND(Emote.CASUAL, 1.0, true, 2),
@@ -1488,6 +1596,7 @@ public final class NpcDialogue {
         // Each faction voice currently defines one exact reversal line.  A
         // line count of two made index 1 render as a raw translation key.
         BOND_REVERSE_HOLD(Emote.CASUAL, 1.0, true, 1, true),
+        BOND_REVERSE_UNSAFE(Emote.NERVOUS, 1.0, true, 1, true),
         BOND_REVERSE_COMPLETE(Emote.HEART, 1.0, true, 1, true),
         BOND_RIVAL_ABSORPTION(Emote.IDEA, 1.0, true, 2, true),
         BOND_JEALOUS_NEW_FORM(Emote.DENY, 1.0, true, 2, true),

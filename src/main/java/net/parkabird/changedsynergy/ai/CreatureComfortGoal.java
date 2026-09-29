@@ -1,6 +1,10 @@
 package net.parkabird.changedsynergy.ai;
 
 import java.util.EnumSet;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.block.DroppedOrange;
@@ -28,6 +32,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
@@ -53,6 +58,8 @@ public final class CreatureComfortGoal extends Goal {
     private static final double ARRIVAL_SQR = 2.4D * 2.4D;
     private static final int FULL_HEALTH_ORANGE_CHANCE = 12;
     private static final int RESERVED_ORANGES = 1;
+    private static final Set<ChangedEntity> ACTIVE_RESTS =
+            Collections.newSetFromMap(new WeakHashMap<>());
 
     private final ChangedEntity mob;
     private Mode mode = Mode.NONE;
@@ -100,7 +107,8 @@ public final class CreatureComfortGoal extends Goal {
                         CreatureComfortGoal::hasConsumableOrange)) {
             return true;
         }
-        if (CreatureLifeMemory.role(mob) == GroupRole.PROVISIONER
+        if (!PlayerOutpostService.assigned(mob)
+                && CreatureLifeMemory.role(mob) == GroupRole.PROVISIONER
                 && CreatureSettlementService.recentProvisionSource(mob)
                         == CreatureSettlementService.ProvisionSource.ORANGE
                 && mob.getRandom().nextInt(3) == 0
@@ -209,10 +217,7 @@ public final class CreatureComfortGoal extends Goal {
     @Override
     public void stop() {
         mob.getNavigation().stop();
-        if (seatedByGoal && mob.getVehicle() instanceof SeatEntity) {
-            mob.stopRiding();
-        }
-        mob.getPersistentData().remove(REST_UNTIL);
+        if (seatedByGoal) endSeatedActivity(mob);
         if (mob.level() instanceof ServerLevel level) {
             scheduleNext(level.getGameTime(), 600, 801);
         }
@@ -305,6 +310,7 @@ public final class CreatureComfortGoal extends Goal {
         restTicks = 140 + mob.getRandom().nextInt(181);
         mob.getPersistentData().putLong(REST_UNTIL,
                 mob.level().getGameTime() + restTicks);
+        ACTIVE_RESTS.add(mob);
         actionTicks = Math.max(actionTicks, restTicks + 1);
         NpcDialogue.emoteOnly(mob, Emote.SLEEPY);
     }
@@ -321,6 +327,7 @@ public final class CreatureComfortGoal extends Goal {
         restTicks = 120 + mob.getRandom().nextInt(181);
         mob.getPersistentData().putLong(REST_UNTIL,
                 mob.level().getGameTime() + restTicks);
+        ACTIVE_RESTS.add(mob);
         actionTicks = Math.max(actionTicks, restTicks + 1);
         NpcDialogue.emoteOnly(
                 mob,
@@ -501,15 +508,44 @@ public final class CreatureComfortGoal extends Goal {
     @SubscribeEvent
     public static void onCreatureTick(LivingEvent.LivingTickEvent event) {
         if (!(event.getEntity() instanceof ChangedEntity creature)
-                || creature.level().isClientSide || creature.tickCount % 20 != 0
-                || !creature.getPersistentData().contains(REST_UNTIL)) return;
-        if (!(creature.getVehicle() instanceof SeatEntity)) {
-            creature.getPersistentData().remove(REST_UNTIL);
-        } else if (creature.level().getGameTime()
-                >= creature.getPersistentData().getLong(REST_UNTIL)) {
-            creature.stopRiding();
-            creature.getPersistentData().remove(REST_UNTIL);
+                || creature.level().isClientSide) return;
+        SharedRestGoal.cancelStale(creature);
+        if (!creature.getPersistentData().contains(REST_UNTIL)) return;
+        if (creature.tickCount % 20 != 0 && ACTIVE_RESTS.contains(creature)) return;
+        if (!ACTIVE_RESTS.contains(creature)
+                || !(creature.getVehicle() instanceof SeatEntity)
+                || creature.level().getGameTime()
+                        >= creature.getPersistentData().getLong(REST_UNTIL)) {
+            endSeatedActivity(creature);
         }
+    }
+
+    /** A seated creature must be detached before a grab or suit changes its position. */
+    public static void endSeatedActivity(ChangedEntity creature) {
+        creature.getPersistentData().remove(REST_UNTIL);
+        ACTIVE_RESTS.remove(creature);
+        if (creature.getVehicle() instanceof SeatEntity seat) {
+            creature.stopRiding();
+            BlockPos pos = seat.getAttachedBlockPos();
+            if (creature.level().hasChunkAt(pos)
+                    && creature.level().getBlockEntity(pos)
+                            instanceof CardboardBoxTallBlockEntity box
+                    && box.getEntityHolder() == seat) {
+                box.setEntityHolder(null);
+            }
+            seat.discard();
+        }
+    }
+
+    @SubscribeEvent
+    public static void onServerStopping(ServerStoppingEvent event) {
+        for (ChangedEntity creature : List.copyOf(ACTIVE_RESTS)) {
+            if (creature.level().getServer() == event.getServer()) {
+                endSeatedActivity(creature);
+            }
+        }
+        SharedRestGoal.cancelAllForServer(event.getServer());
+        PlayerOutpostRestGoal.cleanupAllForServer(event.getServer());
     }
 
     private enum Mode {

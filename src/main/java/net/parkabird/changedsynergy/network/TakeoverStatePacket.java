@@ -10,7 +10,8 @@ import net.parkabird.changedsynergy.client.TakeoverClientState;
 
 public record TakeoverStatePacket(UUID sessionId, int kind, int phase, int carrierId, int playerId,
         int releaseRemainingTicks, int releaseTotalTicks,
-        int borrowCooldownTicks, boolean escapeUsed, int expectedKey,
+        int borrowCooldownTicks, boolean escapeUsed, boolean negotiationUsed,
+        boolean negotiationEnabled, int outcome, int expectedKey,
         int sequence, int progress, int qteLength, float fade, String carrierName) {
     public static final int NORMAL = 0, EXOSKELETON = 1;
     public static final int CONTROLLED = 0, BORROWED = 1, STRUGGLE = 2,
@@ -26,6 +27,9 @@ public record TakeoverStatePacket(UUID sessionId, int kind, int phase, int carri
         b.writeVarInt(p.releaseTotalTicks);
         b.writeVarInt(p.borrowCooldownTicks);
         b.writeBoolean(p.escapeUsed);
+        b.writeBoolean(p.negotiationUsed);
+        b.writeBoolean(p.negotiationEnabled);
+        b.writeVarInt(p.outcome);
         b.writeVarInt(p.expectedKey);
         b.writeVarInt(p.sequence);
         b.writeVarInt(p.progress);
@@ -37,7 +41,7 @@ public record TakeoverStatePacket(UUID sessionId, int kind, int phase, int carri
     public static TakeoverStatePacket decode(FriendlyByteBuf b) {
         return new TakeoverStatePacket(b.readUUID(), b.readVarInt(), b.readVarInt(),
                 b.readVarInt(), b.readVarInt(), b.readVarInt(), b.readVarInt(),
-                b.readVarInt(), b.readBoolean(),
+                b.readVarInt(), b.readBoolean(), b.readBoolean(), b.readBoolean(), b.readVarInt(),
                 b.readVarInt(), b.readVarInt(), b.readVarInt(), b.readVarInt(), b.readFloat(), b.readUtf(256));
     }
 

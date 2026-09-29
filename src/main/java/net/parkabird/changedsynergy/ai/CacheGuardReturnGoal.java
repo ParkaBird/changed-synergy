@@ -27,6 +27,7 @@ public final class CacheGuardReturnGoal extends Goal {
     @Override
     public boolean canUse() {
         if (!(guard.level() instanceof ServerLevel)
+                || PlayerOutpostService.assigned(guard)
                 || guard.isNoAi()
                 || CreatureLifeMemory.role(guard)
                         != CreatureLifeMemory.GroupRole.GUARD) {
@@ -41,6 +42,7 @@ public final class CacheGuardReturnGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return guard.isAlive()
+                && !PlayerOutpostService.assigned(guard)
                 && !guard.isNoAi()
                 && CreatureCacheGuardService.assignment(guard)
                         .filter(Assignment::defenseCompleted)

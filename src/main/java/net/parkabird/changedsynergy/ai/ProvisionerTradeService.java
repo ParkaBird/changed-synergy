@@ -152,6 +152,8 @@ public final class ProvisionerTradeService {
                         "menu.changed_synergy.trade.title",
                         provider.getDisplayName()),
                 0);
+        if (player.containerMenu instanceof net.parkabird.changedsynergy.api.SynergyMerchantMenuMarker menu)
+            menu.changedSynergy$skipTradeSound();
     }
 
     public static void recordDelivery(

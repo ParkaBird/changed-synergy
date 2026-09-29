@@ -5,6 +5,7 @@ import net.parkabird.changedsynergy.world.inventory.BondedCreatureInventoryMenu;
 import net.parkabird.changedsynergy.world.inventory.BondedLatexMenu;
 import net.parkabird.changedsynergy.world.inventory.CentaurMountConfigMenu;
 import net.parkabird.changedsynergy.world.inventory.PlayerRelationshipMenu;
+import net.parkabird.changedsynergy.world.inventory.PlayerOutpostMenu;
 import net.parkabird.changedsynergy.world.inventory.ProvisionerTradeMenu;
 import net.parkabird.changedsynergy.world.inventory.SocialInteractionMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -40,6 +41,10 @@ public final class ChangedSynergyMenus {
             REGISTRY.register(
                     "player_relationships",
                     () -> IForgeMenuType.create(PlayerRelationshipMenu::new));
+
+    public static final RegistryObject<MenuType<PlayerOutpostMenu>> PLAYER_OUTPOST =
+            REGISTRY.register("player_outpost",
+                    () -> IForgeMenuType.create(PlayerOutpostMenu::new));
 
     public static final RegistryObject<MenuType<CentaurMountConfigMenu>> CENTAUR_MOUNT_CONFIG =
             REGISTRY.register(

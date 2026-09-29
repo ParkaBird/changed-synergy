@@ -90,6 +90,7 @@ public final class CreatureCommunityData extends SavedData {
 
     public static Optional<Snapshot> bind(ChangedEntity creature) {
         if (!(creature.level() instanceof ServerLevel level)
+                || PlayerOutpostService.assigned(creature)
                 || !LatexSocialMemory.isSocialLatex(creature)
                 || !ChangedSynergyGameRules.enabled(
                         level, ChangedSynergyGameRules.CREATURE_LIFE)) {
@@ -450,6 +451,24 @@ public final class CreatureCommunityData extends SavedData {
         UUID storedId = readCommunityId(creature);
         UUID resolvedId = resolveAlias(storedId);
         Community existing = resolvedId == null ? null : communities.get(resolvedId);
+        // A provisioner can travel across biomes and facility sections while
+        // gathering. Its claimed outpost remains home until the cache is
+        // actually destroyed in a loaded chunk.
+        if (existing != null && existing.cache != null
+                && existing.faction == faction
+                && existing.dimension.equals(dimension)) {
+            if (!level.hasChunkAt(existing.cache)
+                    || level.getBlockEntity(existing.cache) instanceof Container) {
+                if (!existing.id.equals(storedId)) {
+                    creature.getPersistentData().putUUID(COMMUNITY_ID, existing.id);
+                }
+                touch(existing, level.getGameTime());
+                if (existing.members.add(creature.getUUID())) setDirty();
+                return existing;
+            }
+            existing.cache = null;
+            setDirty();
+        }
         if (existing != null
                 && compatible(existing, faction, dimension, group)
                 && (faction != HunterFaction.WHITE

@@ -19,6 +19,7 @@ import net.minecraft.world.item.TridentItem;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.parkabird.changedsynergy.event.NpcDispositionEvents;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
+import net.parkabird.changedsynergy.world.inventory.BondedCreatureInventory;
 
 /** Shared checks and direct interactions for creature equipment. */
 public final class CreatureArmorService {
@@ -70,6 +71,21 @@ public final class CreatureArmorService {
                 .get(Attributes.ATTACK_DAMAGE)
                 .stream()
                 .anyMatch(modifier -> modifier.getAmount() > 0.0D);
+    }
+
+    /** Changed can remove a bonded body before its ordinary equipment-drop pass. */
+    public static void dropBondedEquipment(ChangedEntity creature) {
+        if (creature.level().isClientSide) return;
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            ItemStack equipped = creature.getItemBySlot(slot);
+            if (equipped.isEmpty()) continue;
+            if (creature.spawnAtLocation(equipped.copy()) != null) {
+                creature.setItemSlot(slot, ItemStack.EMPTY);
+            }
+        }
+        if (creature.getPersistentData().contains("ChangedSynergyBondedInventory")) {
+            new BondedCreatureInventory(creature).dropStorage();
+        }
     }
 
     /** Consumes shift+equipment interactions, including refusals, before native handlers. */

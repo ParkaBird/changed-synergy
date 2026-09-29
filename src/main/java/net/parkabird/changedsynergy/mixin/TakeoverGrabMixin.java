@@ -111,7 +111,11 @@ public abstract class TakeoverGrabMixin {
 
     @Inject(method = "releaseEntity(Z)V", at = @At("HEAD"), cancellable = true, require = 1)
     private void changedSynergy$blockExternalRelease(boolean applyDebuffs, CallbackInfo callback) {
-        if (changedSynergy$takeoverLocked() && !changedSynergy$serverRestoring()) {
+        GrabEntityAbilityInstance grab = (GrabEntityAbilityInstance)(Object)this;
+        // A previous grabber must process its RELEASE packet even after the
+        // player's takeover marker arrives. Only the current carrier is locked.
+        if (changedSynergy$takeoverParticipant(grab.entity.getEntity())
+                && !changedSynergy$serverRestoring()) {
             callback.cancel();
         }
     }

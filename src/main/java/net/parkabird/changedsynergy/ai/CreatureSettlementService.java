@@ -438,6 +438,13 @@ public final class CreatureSettlementService {
         creature.spawnAtLocation(carried);
     }
 
+    /** Moves a just-harvested wild-work stack into a player outpost's cargo. */
+    public static ItemStack takeCargo(ChangedEntity creature) {
+        ItemStack carried = cargo(creature);
+        clearCargo(creature);
+        return carried;
+    }
+
     public static ItemStack cargo(ChangedEntity creature) {
         CompoundTag persistent = creature.getPersistentData();
         if (!persistent.contains(CARGO, Tag.TAG_COMPOUND)) {
@@ -550,7 +557,7 @@ public final class CreatureSettlementService {
     }
 
     public static boolean isFacilityCommunity(ChangedEntity creature) {
-        return facilityFor(creature) != null;
+        return !PlayerOutpostService.assigned(creature) && facilityFor(creature) != null;
     }
 
     /** Maintenance has no harvestable facility supply room. */
@@ -1412,7 +1419,7 @@ public final class CreatureSettlementService {
         }
 
         FacilitySnapshot facility = facilityFor(creature);
-        if (facility != null) {
+        if (facility != null && !PlayerOutpostService.assigned(creature)) {
             FacilityWorkArea area = facilityWorkArea(creature);
             if (area == null || area.orangeRoom() == null) {
                 return Optional.empty();
@@ -1569,8 +1576,7 @@ public final class CreatureSettlementService {
             ChangedEntity creature,
             int horizontalRadius,
             int verticalRadius) {
-        if (!(creature.level() instanceof ServerLevel level)
-                || !isTaigaCommunity(creature)) {
+        if (!(creature.level() instanceof ServerLevel level)) {
             return Optional.empty();
         }
         BlockPos origin = creature.blockPosition();
@@ -2036,6 +2042,13 @@ public final class CreatureSettlementService {
         if (!(creature.level() instanceof ServerLevel level)) {
             return Optional.empty();
         }
+        Optional<BlockPos> stored = CreatureCommunityData.snapshot(creature)
+                .flatMap(CreatureCommunityData.Snapshot::cache);
+        if (stored.isPresent()) {
+            if (!level.hasChunkAt(stored.get())) return stored;
+            if (containerAt(level, stored.get()) != null) return stored;
+            CreatureCommunityData.clearCache(creature);
+        }
         FacilitySnapshot facility = facilityFor(creature);
         if (facility != null) {
             FacilityWorkArea area = facilityWorkArea(creature);
@@ -2059,19 +2072,7 @@ public final class CreatureSettlementService {
             return Optional.of(position);
         }
 
-        Optional<BlockPos> stored = CreatureCommunityData.snapshot(creature)
-                .flatMap(CreatureCommunityData.Snapshot::cache);
-        if (stored.isEmpty()) {
-            return Optional.empty();
-        }
-        if (!level.hasChunkAt(stored.get())) {
-            return stored;
-        }
-        if (containerAt(level, stored.get()) == null) {
-            CreatureCommunityData.clearCache(creature);
-            return Optional.empty();
-        }
-        return stored;
+        return Optional.empty();
     }
 
     /**
@@ -2674,6 +2675,19 @@ public final class CreatureSettlementService {
             return Optional.empty();
         }
 
+        Optional<BlockPos> boundOutpost = CreatureCommunityData.snapshot(creature)
+                .flatMap(CreatureCommunityData.Snapshot::cache);
+        if (boundOutpost.isPresent()) {
+            BlockPos position = boundOutpost.get();
+            if (!level.hasChunkAt(position)) return boundOutpost;
+            Container container = containerAt(level, position);
+            if (container != null) {
+                prepareCache(level, creature, position, container);
+                return boundOutpost;
+            }
+            CreatureCommunityData.clearCache(creature);
+        }
+
         // Facilities already contain real Changed storage. Their workers must
         // neither seed nor decorate those inventories and must never build a
         // second Synergy cache merely because the rooms happen to be below
@@ -2695,38 +2709,8 @@ public final class CreatureSettlementService {
             return storage;
         }
 
-        Optional<BlockPos> recordedCache = cachePosition(creature);
-        if (recordedCache.isPresent()) {
-            BlockPos position = recordedCache.get();
-            if (!level.hasChunkAt(position)) {
-                return recordedCache;
-            }
-            BlockEntity blockEntity = level.getBlockEntity(position);
-            if (blockEntity instanceof Container container
-                    && blockEntity.getPersistentData().contains(
-                            CACHE_STRUCTURE_ID, Tag.TAG_STRING)) {
-                prepareCache(level, creature, position, container);
-                return recordedCache;
-            }
-        }
-        if (HunterFaction.of(creature) == HunterFaction.WHITE
-                && recordedCache.isPresent()) {
-            BlockPos position = recordedCache.get();
-            if (!level.hasChunkAt(position)) {
-                return recordedCache;
-            }
-            Container container = containerAt(level, position);
-            if (container != null) {
-                prepareCache(level, creature, position, container);
-                return recordedCache;
-            }
-            CreatureCommunityData.clearCache(creature);
-            recordedCache = Optional.empty();
-        }
-
-        if (recordedCache.isEmpty()
-                && CreatureLifeMemory.role(creature)
-                        == CreatureLifeMemory.GroupRole.PROVISIONER) {
+        if (CreatureLifeMemory.role(creature)
+                == CreatureLifeMemory.GroupRole.PROVISIONER) {
             Optional<BlockPos> claimed = tryClaimChangedStructure(creature, level);
             if (claimed.isPresent()) {
                 return claimed;
@@ -2771,9 +2755,7 @@ public final class CreatureSettlementService {
             boolean structureMismatch = offshoreAnchor != null
                     && !cacheBelongsToStructure(
                             level, existing.get(), offshoreAnchor);
-            boolean habitatMismatch = !cacheMatchesProvisionMode(
-                    level, creature, existing.get(), blueprint.get());
-            if (structureMismatch || habitatMismatch) {
+            if (structureMismatch) {
                 CreatureCommunityData.clearCache(creature);
             } else {
                 Container container = containerAt(level, existing.get());
@@ -3990,7 +3972,9 @@ public final class CreatureSettlementService {
         int minimumSpacing = ChangedSynergyConfig.COMMON
                 .settlementMinimumSpacing.get();
         if (CreatureCommunityData.isCacheAreaClaimed(
-                level, candidateCache, minimumSpacing)) {
+                level, candidateCache, minimumSpacing)
+                || PlayerOutpostData.isAreaClaimed(
+                        level, candidateCache, PlayerOutpostData.RADIUS + 16)) {
             return true;
         }
 

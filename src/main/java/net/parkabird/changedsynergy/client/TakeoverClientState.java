@@ -57,6 +57,7 @@ public final class TakeoverClientState {
     private static ExoskeletonMotionPacket exoskeletonMotion;
     private static int exoskeletonMotionAge;
     private static int wakeFadeTicks;
+    private static int wakeTint;
 
     private TakeoverClientState() {}
 
@@ -90,6 +91,7 @@ public final class TakeoverClientState {
             return Math.max(0, Math.min(1, current.fade()));
         return wakeFadeTicks / (float)TakeoverSession.EYE_OPEN_TICKS;
     }
+    public static int wakeTint() { return wakeTint; }
     public static float fade(float partial) {
         float value = fade();
         if (active() && current.phase() == TakeoverStatePacket.SLEEPING) {
@@ -131,6 +133,8 @@ public final class TakeoverClientState {
         if (packet.phase() == TakeoverStatePacket.FINISHED) {
             // A late finish for an old carrier must not clear a newer session.
             if (current != null && current.sessionId().equals(packet.sessionId())) {
+                if (packet.outcome() != 1) wakeTint = 0;
+                else if (wakeTint == 0) wakeTint = TakeoverScreen.backgroundColor(packet);
                 clearLocal();
                 if (packet.fade() > 0.5F)
                     wakeFadeTicks = (int)TakeoverSession.EYE_OPEN_TICKS;
@@ -142,8 +146,11 @@ public final class TakeoverClientState {
             age = 0;
             sequenceSent = false;
             wakeFadeTicks = 0;
+            wakeTint = 0;
         }
         current = packet;
+        if (packet.outcome() == 1 && wakeTint == 0)
+            wakeTint = TakeoverScreen.backgroundColor(packet);
         // Every authoritative struggle update acknowledges the last QTE input,
         // including a wrong key.  Keeping this latch set after a wrong key left
         // all later movement presses permanently blocked on the client.
@@ -201,6 +208,7 @@ public final class TakeoverClientState {
         trackedLevel = null;
         clearLocal();
         wakeFadeTicks = 0;
+        wakeTint = 0;
     }
 
     @SubscribeEvent
@@ -344,6 +352,7 @@ public final class TakeoverClientState {
         if (action != TakeoverActionPacket.REQUEST_CONTROL
                 && action != TakeoverActionPacket.START_STRUGGLE
                 && action != TakeoverActionPacket.CONFIRM_STRUGGLE
+                && action != TakeoverActionPacket.NEGOTIATE
                 && action != TakeoverActionPacket.RETURN_CONTROL) return false;
         // Do not duplicate phase, cooldown, safety or one-use checks on the
         // client. A packet can arrive between drawing and clicking the wheel;

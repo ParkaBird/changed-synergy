@@ -81,6 +81,7 @@ public final class CreatureRoutineGoal extends Goal {
     @Override
     public boolean canUse() {
         if (!(mob.level() instanceof ServerLevel)
+                || PlayerOutpostService.assigned(mob)
                 || !SynergyPerformanceTracker.featureEnabled(Feature.COMMUNITY)
                 || !CreatureLifeMemory.enabled(mob)
                 || !movementAvailable()
@@ -128,6 +129,7 @@ public final class CreatureRoutineGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return remainingTicks > 0
+                && !PlayerOutpostService.assigned(mob)
                 && SynergyPerformanceTracker.featureEnabled(Feature.COMMUNITY)
                 && CreatureLifeMemory.enabled(mob)
                 && movementAvailable()

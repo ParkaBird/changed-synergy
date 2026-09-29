@@ -34,6 +34,7 @@ Creatures have persistent names, individual personalities, memories and social b
 - Context-aware dialogue in English and Simplified Chinese
 - Grapple QTEs, gaze-based hypnosis resistance, and improved movement, swimming and combat behavior
 - Creature gathering, fishing, hunting, mining, outposts and environmental interactions
+- Player-built bell outposts with trusted residents, guards, a following crew and real chest supplies
 - Optional integration with Changed Addon Plus, Changed Additions, Changed Vanilla,
   Changed Extras and Domestication Innovation
 - Forge configuration screens and gamerules for the main systems
@@ -71,6 +72,8 @@ Do not install multiple Synergy JARs at the same time.
 ## Configuration
 
 To equip a friend or bonded creature, hold armor or a melee weapon and **sneak-right-click** them. The matching armor slot or main hand must be empty, and armor must fit their body shape. Swords, axes, tridents, and modded items with positive main-hand attack damage are accepted; ranged weapons and shields are not. This gesture does not mount a taur or open its configuration. Creatures already wearing armor will not replace or expand it through absorption; you can still equip their other empty slots yourself.
+
+To build a player outpost, place a bell and look at it while using `/changedsynergy outpost claim`. Within 32 blocks, look at a chest or bed (Changed pillows also work as rest places) and use `/changedsynergy outpost storage` or `/changedsynergy outpost bed`. Look at a trusted adult creature and use `/changedsynergy outpost invite`. Aim at your claimed bell to see the sneak-right-click shortcut, or choose Manage outpost on the relationship wheel; `/changedsynergy outpost` opens the same page. Assigning Supply makes a member gather resources suited to its species and faction within the outpost and carry them to the linked chest; the roster shows its harvest type. Latex bees can use yellow hive pillows at night. `/changedsynergy outpost status` provides a clickable chat roster, and `/changedsynergy outpost help` lists commands. Outpost records and unloaded members persist, but the outpost does not force chunks to stay loaded. Server owners can change the resident and active-crew caps under `COMMUNITIES` or with `/changedsynergy config`.
 
 Open Synergy's configuration screen from the Forge Mods list or through a compatible configuration-menu mod. Client settings control local presentation. Multiplayer gameplay and AI use the server's common configuration and gamerules.
 
@@ -130,6 +133,8 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a patch. The project d
 ## Credits, AI assistance and license
 
 Changed: Synergy is developed by ParkaBird. It is an unofficial addon and is not affiliated with the creators of Changed or Mojang Studios.
+
+Dialogue contributions: Nic, Crossader, and Sword.
 
 Generative AI was used as an assistive tool during development of parts of the English and Chinese text and code. ParkaBird reviewed, edited, integrated and tested the resulting work. Artwork, textures, models, screenshots and promotional images are not AI-generated. Details are in [AI_DISCLOSURE.md](AI_DISCLOSURE.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 

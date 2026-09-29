@@ -74,7 +74,8 @@ public final class TakeoverOverlay {
                 HypnosisQteOverlay.renderTakeoverVision(g, partial, w, h, 0.72F);
                 RenderSystem.setShaderColor(1, 1, 1, 1);
             }
-            if (wakeFade > 0.0F) blackout(g, w, h, wakeFade);
+            if (wakeFade > 0.0F) blackout(g, w, h, wakeFade,
+                    TakeoverClientState.wakeTint());
             return;
         }
         RenderSystem.enableBlend();
@@ -83,7 +84,13 @@ public final class TakeoverOverlay {
         if (!TakeoverClientState.normal()
                 && ChangedSynergyClientConfig.CLIENT.exoskeletonHypnosisVisual.get())
             rings(g, partial, w, h, 1 - fade);
-        if (fade > 0) blackout(g, w, h, fade);
+        if (fade > 0) {
+            boolean mergedSleep = TakeoverClientState.normal() && s.outcome() == 1
+                    && (s.phase() == TakeoverStatePacket.SLEEPING
+                            || s.phase() == TakeoverStatePacket.RELEASING);
+            blackout(g, w, h, fade,
+                    mergedSleep ? TakeoverClientState.wakeTint() : 0);
+        }
         RenderSystem.setShaderColor(1, 1, 1, 1);
         if (Minecraft.getInstance().options.hideGui) return;
         var font = Minecraft.getInstance().font;
@@ -98,7 +105,7 @@ public final class TakeoverOverlay {
             exoskeletonLog(g, w, h, s);
         }
         // A recovery hint is useful only after the blackout, not throughout falling asleep.
-        if (s.phase() == TakeoverStatePacket.RELEASING) {
+        if (s.phase() == TakeoverStatePacket.RELEASING && s.outcome() != 2) {
             g.drawCenteredString(font, TakeoverClientState.text("recovering"), w / 2, 38, 0xFFFFFF);
         }
         if (TakeoverClientState.normal() && s.phase() == TakeoverStatePacket.STRUGGLE) {
@@ -129,7 +136,9 @@ public final class TakeoverOverlay {
                     top + 4, 0xFF000000 | color);
         }
         int seconds = (remaining + 19) / 20;
-        Component label = TakeoverClientState.text("release_countdown",
+        Component label = TakeoverClientState.text(state.outcome() == 2
+                        ? "fatal_countdown" : state.outcome() == 1
+                                ? "transfur_countdown" : "release_countdown",
                 seconds / 60, String.format(java.util.Locale.ROOT, "%02d", seconds % 60));
         graphics.drawCenteredString(Minecraft.getInstance().font, label,
                 screenWidth / 2, 6, 0xFFFFFF);
@@ -173,10 +182,14 @@ public final class TakeoverOverlay {
         }
     }
 
-    private static void blackout(GuiGraphics g, int w, int h, float progress) {
+    private static void blackout(GuiGraphics g, int w, int h, float progress, int primaryColor) {
         float p = Mth.clamp(progress, 0, 1);
+        // Keep the screen dark while retaining the carrier species' main hue.
+        int red = Math.round(((primaryColor >>> 16) & 0xFF) * 0.42F);
+        int green = Math.round(((primaryColor >>> 8) & 0xFF) * 0.42F);
+        int blue = Math.round((primaryColor & 0xFF) * 0.42F);
         if (p >= 1) {
-            g.fill(0, 0, w, h, 0xFF000000);
+            g.fill(0, 0, w, h, 0xFF000000 | red << 16 | green << 8 | blue);
             return;
         }
         // Normalized elliptical radius: corners are sqrt(2), center is zero.
@@ -203,10 +216,10 @@ public final class TakeoverOverlay {
                 double angle1 = (segment + 1) * Math.PI * 2 / 96;
                 float x0 = (float) Math.cos(angle0) * w / 2, y0 = (float) Math.sin(angle0) * h / 2;
                 float x1 = (float) Math.cos(angle1) * w / 2, y1 = (float) Math.sin(angle1) * h / 2;
-                b.vertex(matrix, w / 2F + x0 * r0, h / 2F + y0 * r0, 0).color(0, 0, 0, a0).endVertex();
-                b.vertex(matrix, w / 2F + x0 * r1, h / 2F + y0 * r1, 0).color(0, 0, 0, a1).endVertex();
-                b.vertex(matrix, w / 2F + x1 * r1, h / 2F + y1 * r1, 0).color(0, 0, 0, a1).endVertex();
-                b.vertex(matrix, w / 2F + x1 * r0, h / 2F + y1 * r0, 0).color(0, 0, 0, a0).endVertex();
+                b.vertex(matrix, w / 2F + x0 * r0, h / 2F + y0 * r0, 0).color(red, green, blue, a0).endVertex();
+                b.vertex(matrix, w / 2F + x0 * r1, h / 2F + y0 * r1, 0).color(red, green, blue, a1).endVertex();
+                b.vertex(matrix, w / 2F + x1 * r1, h / 2F + y1 * r1, 0).color(red, green, blue, a1).endVertex();
+                b.vertex(matrix, w / 2F + x1 * r0, h / 2F + y1 * r0, 0).color(red, green, blue, a0).endVertex();
             }
         }
         BufferUploader.drawWithShader(b.end());

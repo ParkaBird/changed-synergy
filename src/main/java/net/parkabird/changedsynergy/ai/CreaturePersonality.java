@@ -446,15 +446,8 @@ public final class CreaturePersonality {
         return count;
     }
 
-    public static int witnessedKinKillLimit(ChangedEntity mob) {
-        int limit = 3;
-        if (has(mob, Trait.PROTECTIVE) || has(mob, Trait.SENSITIVE)) {
-            limit--;
-        }
-        if (has(mob, Trait.CALM) || has(mob, Trait.POLITE)) {
-            limit++;
-        }
-        return Mth.clamp(limit, 2, 4);
+    public static int witnessedKinKillLimit(ChangedEntity mob, ServerPlayer player) {
+        return 3 + Math.max(0, familiarity(mob, player) - 40) / 10;
     }
 
     /** Positive values represent remembered trust; damage can push the score below zero. */
@@ -890,6 +883,22 @@ public final class CreaturePersonality {
                 && player.getUUID().equals(personality.getUUID(SOCIAL_PARTNER))) {
             personality.remove(SOCIAL_PARTNER);
         }
+    }
+
+    /** Clears an old invitation even when its player is offline. */
+    public static void clearSocialFollowing(ChangedEntity mob, UUID playerId) {
+        CompoundTag personality = data(mob);
+        if (personality.hasUUID(SOCIAL_PARTNER)
+                && playerId.equals(personality.getUUID(SOCIAL_PARTNER))) {
+            personality.remove(SOCIAL_PARTNER);
+        }
+    }
+
+    public static java.util.Optional<UUID> socialPartnerUuid(ChangedEntity mob) {
+        CompoundTag personality = data(mob);
+        return personality.hasUUID(SOCIAL_PARTNER)
+                ? java.util.Optional.of(personality.getUUID(SOCIAL_PARTNER))
+                : java.util.Optional.empty();
     }
 
     public static boolean isSocialFollowing(

@@ -181,6 +181,17 @@ public final class BondedCreatureInventory implements Container {
                 ? storage.get(index) : ItemStack.EMPTY;
     }
 
+    /** Drops only Synergy's storage slots; armor and hands use entity equipment. */
+    public void dropStorage() {
+        for (int index = 0; index < STORAGE_SIZE; index++) {
+            ItemStack stack = storage.get(index);
+            if (!stack.isEmpty() && pet.spawnAtLocation(stack.copy()) != null) {
+                storage.set(index, ItemStack.EMPTY);
+            }
+        }
+        saveStorage();
+    }
+
     public int findItem(Item item) {
         for (int index = 0; index < STORAGE_SIZE; index++) {
             if (storage.get(index).is(item)) {

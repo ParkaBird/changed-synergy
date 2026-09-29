@@ -37,6 +37,8 @@ import net.parkabird.changedsynergy.ai.InvoluntaryTransfurNegotiation;
 import net.parkabird.changedsynergy.ai.LatexCreatureCombatRules;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings;
+import net.parkabird.changedsynergy.ai.PlayerOutpostData;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings.Contact;
 import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings.Formation;
 import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings.DamageFilter;
@@ -208,12 +210,25 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                         Component.translatable(damageFilter.translationKey())), true);
             }
             case "open_ability_wheel" -> openAbilityWheel(origin);
+            case "open_outpost" -> openOutpost(origin);
             default -> {
                 return;
             }
         }
         if (origin.containerMenu == this && !"open_ability_wheel".equals(command)) {
             synchronize(origin);
+        }
+    }
+
+    private void openOutpost(ServerPlayer origin) {
+        if (!ChangedSynergyConfig.COMMON.playerOutposts.get()) {
+            origin.displayClientMessage(Component.translatable(
+                    "command.changed_synergy.outpost.error.disabled"), true);
+        } else if (PlayerOutpostData.get(origin.server).byOwner(origin.getUUID()).isEmpty()) {
+            origin.displayClientMessage(Component.translatable(
+                    "command.changed_synergy.outpost.error.missing"), true);
+        } else {
+            PlayerOutpostMenu.open(origin, 0);
         }
     }
 

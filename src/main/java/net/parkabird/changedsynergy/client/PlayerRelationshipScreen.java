@@ -34,7 +34,9 @@ public final class PlayerRelationshipScreen
     private static final Color3 INVENTORY_SHADOW = Color3.fromInt(0x8B8B8B);
     private static final Color3 INVENTORY_FACE = Color3.fromInt(0xC6C6C6);
     private static final List<Action> ACTIONS = List.of(
-            emote("contacts", "heart"),
+            new Action("outpost", ResourceLocation.fromNamespaceAndPath(
+                    ChangedSynergyMod.MOD_ID,
+                    "textures/gui/radial/icons/bell_gray.png"), 16),
             changedIcon("formation",
                     "textures/gui/tamed_dl_interactions/cycle_follow.png", 16),
             changedIcon("group_follow",
@@ -48,6 +50,9 @@ public final class PlayerRelationshipScreen
     private static final Action ABSORPTION_NEGOTIATION =
             emote("absorption_negotiation", "confused");
     private int selectedContact;
+    private int contactHeaderX = -1;
+    private int contactHeaderY;
+    private int contactHeaderWidth;
 
     public PlayerRelationshipScreen(
             PlayerRelationshipMenu menu,
@@ -111,11 +116,7 @@ public final class PlayerRelationshipScreen
         List<Component> tooltip = new ArrayList<>();
         tooltip.add(Component.translatable(key));
         tooltip.add(Component.translatable(key + ".hint"));
-        if (section == 0 && currentContact() != null) {
-            tooltip.add(Component.translatable(
-                    "menu.changed_synergy.relationship.action.contacts.current",
-                    currentContact().name()));
-        } else if (section == 1) {
+        if (section == 1) {
             tooltip.add(Component.translatable(menu.getFormation().translationKey()));
         } else if (section == 7) {
             tooltip.add(Component.translatable(menu.getDamageFilter().translationKey()));
@@ -130,7 +131,7 @@ public final class PlayerRelationshipScreen
             int mouseY,
             float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
-        renderManagerCards(graphics);
+        renderManagerCards(graphics, mouseX, mouseY);
         if (menu.isTransfurred()) {
             renderSwitchHint(graphics, Component.translatable(
                     "menu.changed_synergy.relationship.switch_to_abilities"));
@@ -210,7 +211,9 @@ public final class PlayerRelationshipScreen
             return false;
         }
         if (section == 0) {
-            cycleContact(1);
+            CompoundTag payload = new CompoundTag();
+            payload.putString("command", "open_outpost");
+            menu.setDirty(payload);
             return false;
         }
         CompoundTag payload = new CompoundTag();
@@ -239,24 +242,24 @@ public final class PlayerRelationshipScreen
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 2) {
-            Optional<Integer> section = getSectionAt((int)mouseX, (int)mouseY);
-            Contact contact = currentContact();
-            if (section.isPresent() && section.get() == 0 && contact != null) {
-                playClick();
-                CompoundTag payload = new CompoundTag();
-                payload.putString("command", "cancel_relationship");
-                payload.putUUID("contact", contact.uuid());
-                menu.setDirty(payload);
-                return true;
-            }
-        }
-        if (button == 1) {
-            Optional<Integer> section = getSectionAt((int)mouseX, (int)mouseY);
-            if (section.isPresent() && section.get() == 0) {
-                if (!menu.getContacts().isEmpty()) {
+        if (button == 0 && contactHeaderX >= 0
+                && mouseY >= contactHeaderY + 3 && mouseY < contactHeaderY + 18) {
+            int offset = (int)mouseX - (contactHeaderX + contactHeaderWidth - 56);
+            if (offset >= 0 && offset < 52 && offset % 18 < 16) {
+                Contact contact = currentContact();
+                if (contact != null) {
                     playClick();
-                    cycleContact(-1);
+                    switch (offset / 18) {
+                        case 0 -> cycleContact(-1);
+                        case 1 -> cycleContact(1);
+                        case 2 -> {
+                            CompoundTag payload = new CompoundTag();
+                            payload.putString("command", "cancel_relationship");
+                            payload.putUUID("contact", contact.uuid());
+                            menu.setDirty(payload);
+                        }
+                        default -> { }
+                    }
                 }
                 return true;
             }
@@ -283,7 +286,8 @@ public final class PlayerRelationshipScreen
         return contacts.get(selectedContact);
     }
 
-    private void renderManagerCards(GuiGraphics graphics) {
+    private void renderManagerCards(GuiGraphics graphics, int mouseX, int mouseY) {
+        contactHeaderX = -1;
         float wheelOffset = RadialWheelAnimations.horizontalOffset(this);
         float socialOffset = socialWheelOffset();
         float panelProgress = socialOffset <= 0.0F
@@ -409,9 +413,46 @@ public final class PlayerRelationshipScreen
                 + gap * (prepared.size() - 1);
         int y = Math.max(10, (height - totalHeight) / 2);
         int accent = panelAccent();
-        for (PreparedCard card : prepared) {
-            renderInfoCard(graphics, card, x, y, cardWidth, accent, alpha);
+        for (int index = 0; index < prepared.size(); index++) {
+            PreparedCard card = prepared.get(index);
+            renderInfoCard(graphics, card, x, y, cardWidth, accent, alpha,
+                    index == 1);
+            if (index == 1) {
+                contactHeaderX = x;
+                contactHeaderY = y;
+                contactHeaderWidth = cardWidth;
+                renderContactControls(graphics, x, y, cardWidth, alpha, mouseX, mouseY);
+            }
             y += card.height() + gap;
+        }
+        if (contactHeaderX >= 0 && mouseY >= contactHeaderY + 3
+                && mouseY < contactHeaderY + 18) {
+            int offset = mouseX - (contactHeaderX + contactHeaderWidth - 56);
+            if (offset >= 0 && offset < 52 && offset % 18 < 16) {
+                String action = switch (offset / 18) {
+                    case 0 -> "previous";
+                    case 1 -> "next";
+                    default -> "remove";
+                };
+                graphics.renderTooltip(font, Component.translatable(
+                        "menu.changed_synergy.relationship.info.contacts." + action),
+                        mouseX, mouseY);
+            }
+        }
+    }
+
+    private void renderContactControls(GuiGraphics graphics, int x, int y,
+                                       int cardWidth, float alpha, int mouseX, int mouseY) {
+        int start = x + cardWidth - 56;
+        boolean enabled = currentContact() != null;
+        String[] labels = {"<", ">", "x"};
+        for (int index = 0; index < labels.length; index++) {
+            int buttonX = start + index * 18;
+            boolean hovered = mouseX >= buttonX && mouseX < buttonX + 16
+                    && mouseY >= y + 3 && mouseY < y + 18;
+            graphics.drawString(font, labels[index], buttonX + 5, y + 6,
+                    withAlpha(!enabled ? 0x888888 : hovered ? 0xFFF2A0 : 0xFFFFFF,
+                            Math.round(0xF0 * alpha)), false);
         }
     }
 
@@ -481,14 +522,18 @@ public final class PlayerRelationshipScreen
             int y,
             int cardWidth,
             int accent,
-            float alpha) {
+            float alpha,
+            boolean contactControls) {
         graphics.fill(x, y, x + cardWidth, y + card.height(),
                 withAlpha(0x373737, Math.round(0xD0 * alpha)));
         graphics.fill(x, y, x + 3, y + card.height(),
                 withAlpha(accent, Math.round(0xF0 * alpha)));
         graphics.fill(x + 3, y, x + cardWidth, y + 1,
                 withAlpha(0xFFFFFF, Math.round(0x88 * alpha)));
-        graphics.drawString(font, card.title(), x + 9, y + 7,
+        graphics.drawString(font, font.plainSubstrByWidth(
+                        card.title().getString(),
+                        Math.max(20, cardWidth - (contactControls ? 70 : 18))),
+                x + 9, y + 7,
                 withAlpha(accent, Math.round(0xFF * alpha)), true);
         graphics.fill(x + 9, y + 19, x + cardWidth - 8, y + 20,
                 withAlpha(0x8B8B8B, Math.round(0xA0 * alpha)));

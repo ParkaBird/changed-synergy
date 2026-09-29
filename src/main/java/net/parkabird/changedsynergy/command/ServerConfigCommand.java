@@ -5,7 +5,9 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import net.minecraft.ChatFormatting;
@@ -44,6 +46,15 @@ final class ServerConfigCommand {
                                 .suggests((context, builder) -> SharedSuggestionProvider.suggest(
                                         OPTIONS.keySet(), builder))
                                 .then(Commands.argument("value", StringArgumentType.word())
+                                        .suggests((context, builder) -> {
+                                            var option = OPTIONS.get(StringArgumentType.getString(context, "key"));
+                                            if (option != null && option.getDefault() instanceof Enum<?> sample) {
+                                                return SharedSuggestionProvider.suggest(Arrays.stream(
+                                                        sample.getDeclaringClass().getEnumConstants())
+                                                        .map(Enum::name).toList(), builder);
+                                            }
+                                            return builder.buildFuture();
+                                        })
                                         .executes(context -> set(context.getSource(),
                                                 StringArgumentType.getString(context, "key"),
                                                 StringArgumentType.getString(context, "value"))))))
@@ -149,6 +160,11 @@ final class ServerConfigCommand {
             if (defaultValue instanceof Double) {
                 double value = Double.parseDouble(text);
                 return Double.isFinite(value) ? value : null;
+            }
+            if (defaultValue instanceof Enum<?> sample) {
+                for (Enum<?> value : sample.getDeclaringClass().getEnumConstants()) {
+                    if (value.name().equals(text.toUpperCase(Locale.ROOT))) return value;
+                }
             }
         } catch (NumberFormatException ignored) {
             // A malformed or out-of-range value is reported without changing the config.

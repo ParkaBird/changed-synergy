@@ -72,7 +72,8 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (mob.level().isClientSide
+        if (!net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.bondedEmergencyRescue.get()
+                || mob.level().isClientSide
                 || !LatexSocialMemory.isOrganic(mob)
                 || HypnosisProfile.isHypnoticCreature(mob)
                 || mob.getPersistentData().getLong(NEXT_RESCUE)
@@ -110,7 +111,8 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        if (finished
+        if (!net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.bondedEmergencyRescue.get()
+                || finished
                 || owner == null
                 || !owner.isAlive()
                 || owner.level() != mob.level()

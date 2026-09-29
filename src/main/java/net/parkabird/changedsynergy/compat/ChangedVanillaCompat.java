@@ -10,9 +10,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ai.FactionReputation;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 
@@ -61,10 +63,18 @@ public final class ChangedVanillaCompat {
                 || animal == null
                 || source.level() != animal.level()
                 || !(source.level() instanceof ServerLevel level)
-                || !LatexSocialMemory.isSocialLatex(source)
-                || !CONVERTIBLE_ANIMALS.contains(animal.getType())) {
+                || !LatexSocialMemory.isSocialLatex(source)) {
             return false;
         }
+        ResourceLocation sourceId = ForgeRegistries.ENTITY_TYPES.getKey(source.getType());
+        if (ChangedSynergyConfig.COMMON.changedVanillaRelationshipAnimalProtection.get()
+                && sourceId != null && MOD_ID.equals(sourceId.getNamespace())
+                && animal instanceof Animal
+                && net.parkabird.changedsynergy.ai.CreaturePersonality
+                        .hasAnyEstablishedRelationship(source)) {
+            return true;
+        }
+        if (!CONVERTIBLE_ANIMALS.contains(animal.getType())) return false;
         return level.getEntitiesOfClass(
                         ServerPlayer.class,
                         animal.getBoundingBox().inflate(

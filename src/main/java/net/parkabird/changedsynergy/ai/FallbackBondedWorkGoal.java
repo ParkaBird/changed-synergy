@@ -74,6 +74,7 @@ public final class FallbackBondedWorkGoal extends Goal {
     @Override
     public boolean canUse() {
         if (!SynergyPerformanceTracker.featureEnabled(Feature.COMPANION_WORK)
+                || PlayerOutpostService.assigned(pet)
                 || !(pet.level() instanceof ServerLevel level)
                 || !BondedPetSettings.usesFallbackBackend(pet)
                 || !LatexSocialMemory.hasActiveBond(pet)
@@ -130,6 +131,7 @@ public final class FallbackBondedWorkGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return SynergyPerformanceTracker.featureEnabled(Feature.COMPANION_WORK)
+                && !PlayerOutpostService.assigned(pet)
                 && work != Work.NONE && destination != null
                 && !CreatureSettlementService.hasCargo(pet)
                 && movementAvailable()

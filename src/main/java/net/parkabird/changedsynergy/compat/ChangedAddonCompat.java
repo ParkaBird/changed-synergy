@@ -3,6 +3,9 @@ package net.parkabird.changedsynergy.compat;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
+import net.ltxprogrammer.changed.ability.GrabEntityAbilityInstance;
+import net.ltxprogrammer.changed.data.AccessorySlots;
+import net.ltxprogrammer.changed.init.ChangedAccessorySlots;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -21,6 +24,7 @@ public final class ChangedAddonCompat {
     private static Class<?> optionalEventsClass;
     public static final String MOD_ID = "changed_addon";
     public static final ResourceLocation PACIFIED = id("pacified");
+    public static final ResourceLocation HAZARD_BODY_SUIT = id("hazard_body_suit");
     public static final ResourceLocation TRANSFUR_TOTEM = id("transfur_totem");
     public static final ResourceLocation TRANSLATOR = id("translator");
     public static final ResourceLocation DARK_LATEX_COAT = id("dark_latex_coat");
@@ -36,6 +40,12 @@ public final class ChangedAddonCompat {
 
     public static boolean isLoaded() {
         return ModList.get().isLoaded(MOD_ID);
+    }
+
+    public static double alphaRenderScale(ChangedEntity creature) {
+        Object scale = invokeOptional(
+                "alphaRenderScale", new Class<?>[]{ChangedEntity.class}, creature);
+        return scale instanceof Number number ? number.doubleValue() : 1.0D;
     }
 
     /** Loads event signatures containing Addon classes only when Addon is present. */
@@ -67,6 +77,14 @@ public final class ChangedAddonCompat {
 
     public static boolean is(ItemStack stack, ResourceLocation id) {
         return !stack.isEmpty() && id.equals(ForgeRegistries.ITEMS.getKey(stack.getItem()));
+    }
+
+    /** Addon's hazard suit occupies Changed's full-body accessory slot. */
+    public static boolean wearsHazardBodySuit(LivingEntity entity) {
+        return isLoaded() && AccessorySlots.getForEntity(entity)
+                .flatMap(slots -> slots.getItem(ChangedAccessorySlots.FULL_BODY.get()))
+                .filter(stack -> is(stack, HAZARD_BODY_SUIT))
+                .isPresent();
     }
 
     /** target type, attack type, attack condition and favor ordinals. */
@@ -233,6 +251,12 @@ public final class ChangedAddonCompat {
                 "syncFriendlySuitControl",
                 new Class<?>[]{ChangedEntity.class, ServerPlayer.class, boolean.class},
                 pet, owner, ownerHasControl);
+    }
+
+    /** Addon grabbers may store their live ability outside Changed's ability registry. */
+    public static GrabEntityAbilityInstance grabAbility(ChangedEntity creature) {
+        Object value = invokeOptional("grabAbility", new Class<?>[]{ChangedEntity.class}, creature);
+        return value instanceof GrabEntityAbilityInstance ability ? ability : null;
     }
 
     private static Object invokeOptional(String method, Class<?>[] parameters, Object... arguments) {

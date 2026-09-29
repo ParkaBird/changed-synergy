@@ -1,6 +1,10 @@
 package net.parkabird.changedsynergy.ai;
 
 import java.util.EnumSet;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.SeatEntity;
 import net.ltxprogrammer.changed.Changed;
@@ -11,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.BedBlock;
@@ -27,6 +32,8 @@ public final class SharedRestGoal extends Goal {
     private static final String UNTIL = "ChangedSynergyRestUntil";
     private static final String BED = "ChangedSynergyRestBed";
     private static final String SLEEPING = "ChangedSynergyRestSleeping";
+    private static final Set<ChangedEntity> ACTIVE_RESTS =
+            Collections.newSetFromMap(new WeakHashMap<>());
     private final ChangedEntity creature;
     private SeatEntity groundSeat;
     private int repath;
@@ -38,6 +45,8 @@ public final class SharedRestGoal extends Goal {
 
     public static void begin(ChangedEntity creature, ServerPlayer owner) {
         if (CreatureSocialProfile.isJuvenile(creature)) return;
+        cancel(creature);
+        CreatureComfortGoal.endSeatedActivity(creature);
         CompoundTag data = creature.getPersistentData();
         BlockPos bed = nearestBed(creature, owner);
         data.putUUID(OWNER, owner.getUUID());
@@ -45,13 +54,20 @@ public final class SharedRestGoal extends Goal {
         data.remove(SLEEPING);
         if (bed == null) data.remove(BED);
         else data.putLong(BED, bed.asLong());
+        ACTIVE_RESTS.add(creature);
     }
 
     public static boolean isCarryTarget(ChangedEntity creature, LivingEntity target) {
         CompoundTag data = creature.getPersistentData();
-        return data.hasUUID(OWNER) && data.contains(BED)
+        return ACTIVE_RESTS.contains(creature)
+                && data.hasUUID(OWNER) && data.contains(BED)
                 && target.getUUID().equals(data.getUUID(OWNER))
                 && data.getLong(UNTIL) > creature.level().getGameTime();
+    }
+
+    public static void cancelStale(ChangedEntity creature) {
+        if (creature.getPersistentData().hasUUID(OWNER)
+                && !ACTIVE_RESTS.contains(creature)) cancel(creature);
     }
 
     @Override public boolean canUse() { return valid(); }
@@ -59,6 +75,10 @@ public final class SharedRestGoal extends Goal {
 
     private boolean valid() {
         CompoundTag data = creature.getPersistentData();
+        if (data.hasUUID(OWNER) && !ACTIVE_RESTS.contains(creature)) {
+            cancelStale(creature);
+            return false;
+        }
         if (!(creature.level() instanceof ServerLevel level)
                 || !data.hasUUID(OWNER)
                 || !data.getBoolean(SLEEPING)
@@ -85,14 +105,17 @@ public final class SharedRestGoal extends Goal {
     }
 
     private void makeGroundSeat() {
-        if (!creature.isPassenger()) {
+        if (!creature.isPassenger() && creature.onGround()) {
             BlockPos floor = creature.blockPosition().below();
             BlockState floorState = creature.level().getBlockState(floor);
             if (!floorState.isSolidRender(creature.level(), floor)) return;
             groundSeat = SeatEntity.createFor(creature.level(),
                     floorState, floor, false, false, true);
             if (groundSeat != null) {
-                groundSeat.setPos(creature.getX(), creature.getY(), creature.getZ());
+                double scale = ChangedAddonCompat.alphaRenderScale(creature);
+                groundSeat.setPos(creature.getX(),
+                        creature.getY() - 0.4D * Math.max(0.0D, scale - 1.0D),
+                        creature.getZ());
                 if (!creature.startRiding(groundSeat, true)) {
                     groundSeat.discard();
                     groundSeat = null;
@@ -151,6 +174,7 @@ public final class SharedRestGoal extends Goal {
         }
         if (!data.contains(BED)) {
             creature.getNavigation().stop();
+            if (groundSeat == null && !creature.isPassenger()) makeGroundSeat();
             return;
         }
         BlockPos bed = BlockPos.of(data.getLong(BED));
@@ -192,35 +216,49 @@ public final class SharedRestGoal extends Goal {
 
     @Override public void stop() {
         creature.getNavigation().stop();
-        if (creature.getPersistentData().contains(BED)
-                && creature.getPersistentData().hasUUID(OWNER)
-                && creature.level() instanceof ServerLevel level) {
-            ServerPlayer owner = level.getServer().getPlayerList().getPlayer(
-                    creature.getPersistentData().getUUID(OWNER));
-            if (owner != null) finishCarry(owner);
-            else {
-                GrabEntityAbilityInstance ability = BondedSuitService.ability(creature);
-                if (ability != null && ability.grabbedEntity != null && !ability.suited) {
-                    LivingEntity held = ability.grabbedEntity;
-                    ability.releaseEntity(false);
-                    Changed.PACKET_HANDLER.send(
-                            PacketDistributor.TRACKING_ENTITY.with(() -> creature),
-                            new GrabEntityPacket(creature, held, GrabType.RELEASE));
-                    ChangedAddonCompat.configureFriendlyGrab(ability, false);
-                }
-            }
-        }
-        if (creature.getPersistentData().getBoolean(SLEEPING)) creature.stopSleeping();
+        cancel(creature);
         if (groundSeat != null) {
-            if (creature.getVehicle() == groundSeat) creature.stopRiding();
             groundSeat.discard();
             groundSeat = null;
         }
+    }
+
+    /** Rest requests are session-only; persisted remnants must not resume on reload. */
+    public static void cancel(ChangedEntity creature) {
         CompoundTag data = creature.getPersistentData();
+        if (data.hasUUID(OWNER) && data.contains(BED)) {
+            GrabEntityAbilityInstance ability = BondedSuitService.ability(creature);
+            if (ability != null && ability.grabbedEntity != null && !ability.suited
+                    && ability.grabbedEntity.getUUID().equals(data.getUUID(OWNER))) {
+                LivingEntity held = ability.grabbedEntity;
+                ability.releaseEntity(false);
+                Changed.PACKET_HANDLER.send(
+                        PacketDistributor.TRACKING_ENTITY.with(() -> creature),
+                        new GrabEntityPacket(creature, held, GrabType.RELEASE));
+                if (held instanceof ServerPlayer owner) {
+                    ChangedSynergyNetwork.CHANNEL.send(
+                            PacketDistributor.PLAYER.with(() -> owner),
+                            new FriendlySocialHugSyncPacket(creature.getId(), owner.getId(), false, 0));
+                }
+                ChangedAddonCompat.configureFriendlyGrab(ability, false);
+            }
+        }
+        if (data.getBoolean(SLEEPING)) creature.stopSleeping();
+        if (creature.getVehicle() instanceof SeatEntity seat) {
+            creature.stopRiding();
+            seat.discard();
+        }
         data.remove(OWNER);
         data.remove(UNTIL);
         data.remove(BED);
         data.remove(SLEEPING);
+        ACTIVE_RESTS.remove(creature);
+    }
+
+    public static void cancelAllForServer(MinecraftServer server) {
+        for (ChangedEntity creature : List.copyOf(ACTIVE_RESTS)) {
+            if (creature.level().getServer() == server) cancel(creature);
+        }
     }
 
     private static BlockPos nearestBed(ChangedEntity creature, ServerPlayer owner) {

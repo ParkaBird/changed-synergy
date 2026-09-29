@@ -21,6 +21,7 @@ public final class ProvisionerFishingFocus {
 
     public static boolean isFocusedFishing(ChangedEntity creature) {
         return CreatureLifeMemory.enabled(creature)
+                && !PlayerOutpostService.assigned(creature)
                 && CreatureLifeMemory.role(creature) == GroupRole.PROVISIONER
                 && CreatureLifeMemory.routine(creature) == RoutineState.FISHING;
     }

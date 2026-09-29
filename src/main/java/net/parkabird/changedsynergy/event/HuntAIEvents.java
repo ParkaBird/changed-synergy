@@ -371,23 +371,27 @@ public final class HuntAIEvents {
 
     @SubscribeEvent
     public static void onHunterDeath(LivingDeathEvent event) {
-        if (!(event.getEntity() instanceof ChangedEntity fallen)
+        if (event.getSource().is(net.ltxprogrammer.changed.init.ChangedDamageSources.GRAB_ESCAPE.key())
+                || !(event.getEntity() instanceof ChangedEntity fallen)
                 || !(event.getSource().getEntity() instanceof ServerPlayer player)
                 || !(fallen.level() instanceof ServerLevel level)
-                || !isHunterKind(fallen)) {
+                || !LatexSocialMemory.isSocialLatex(fallen)
+                || isOwnedBy(fallen, player)) {
             return;
         }
 
         List<ChangedEntity> nearbyKin = level.getEntitiesOfClass(
                         ChangedEntity.class,
-                        fallen.getBoundingBox().inflate(18.0),
+                        fallen.getBoundingBox().inflate(32.0),
                         ally -> ally.isAlive()
                                 && LatexSocialMemory.isSocialLatex(ally))
                 .stream()
                 .filter(ally -> ally != fallen
-                        && LatexCreatureCombatRules.areCompatriots(fallen, ally)
-                        && (ally.hasLineOfSight(fallen)
-                                || ally.hasLineOfSight(player)))
+                                && (LatexCreatureCombatRules.areCompatriots(fallen, ally)
+                                        || HunterFaction.of(fallen) == HunterFaction.of(ally))
+                                && (ally.hasLineOfSight(fallen)
+                                        || ally.hasLineOfSight(player)
+                                        || LatexSocialMemory.isBonded(ally, player)))
                 .sorted(Comparator.comparingDouble(ally -> ally.distanceToSqr(fallen)))
                 .toList();
         if (nearbyKin.isEmpty()) {
@@ -395,11 +399,14 @@ public final class HuntAIEvents {
         }
 
         for (ChangedEntity bond : nearbyKin) {
-            if (!LatexSocialMemory.isBonded(bond, player)
+            if (!ChangedSynergyConfig.COMMON.bondedKinConfinement.get()
+                    || !LatexSocialMemory.isBonded(bond, player)
                     || LatexSocialMemory.isOrganic(bond)
-                    || !LatexSocialRelation.sameSpecies(fallen, bond)) continue;
+                    || HunterFaction.of(fallen) != HunterFaction.of(bond)) continue;
+            int limit = ChangedSynergyConfig.COMMON.bondedKinKillBaseLimit.get()
+                    + Math.max(0, CreaturePersonality.familiarity(bond, player) - 40) / 10;
             int kills = CreaturePersonality.recordWitnessedKinKill(bond, player);
-            if (kills < CreaturePersonality.witnessedKinKillLimit(bond)) {
+            if (kills < limit) {
                 player.sendSystemMessage(Component.translatable(
                         "message.changed_synergy.bond_kin_kill_warning",
                         bond.getDisplayName(), kills));
@@ -424,8 +431,9 @@ public final class HuntAIEvents {
         List<ChangedEntity> betrayedFriends = new ArrayList<>();
         List<ChangedEntity> warnedFriends = new ArrayList<>();
         for (ChangedEntity friend : friendWitnesses) {
+            int limit = CreaturePersonality.witnessedKinKillLimit(friend, player);
             int kills = CreaturePersonality.recordWitnessedKinKill(friend, player);
-            if (kills >= CreaturePersonality.witnessedKinKillLimit(friend)) {
+            if (kills >= limit) {
                 LatexSocialMemory.markRelationshipBetrayal(friend, player);
                 HuntMemory.seeTarget(friend, player);
                 friend.setTarget(player);
@@ -480,6 +488,11 @@ public final class HuntAIEvents {
         if (bond.tickCount % 5 != 0
                 || !bond.getPersistentData().hasUUID(BOND_CONFINEMENT_OWNER)
                 || !(bond.level() instanceof ServerLevel level)) return;
+        if (!ChangedSynergyConfig.COMMON.bondedKinConfinement.get()) {
+            bond.getPersistentData().remove(BOND_CONFINEMENT_OWNER);
+            bond.getPersistentData().remove(BOND_CONFINEMENT_UNTIL);
+            return;
+        }
         long until = bond.getPersistentData().getLong(BOND_CONFINEMENT_UNTIL);
         UUID ownerId = bond.getPersistentData().getUUID(BOND_CONFINEMENT_OWNER);
         ServerPlayer owner = level.getServer().getPlayerList().getPlayer(ownerId);

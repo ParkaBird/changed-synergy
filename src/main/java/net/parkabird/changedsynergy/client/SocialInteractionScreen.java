@@ -618,9 +618,10 @@ public final class SocialInteractionScreen
                 .filter(index -> index == section)
                 .isPresent();
         String style = menu.isOrganic() ? "organic" : "goo";
+        // Changed provides eight radial backgrounds; later scrolling entries reuse them.
         ResourceLocation texture = Changed.modResource(
                 "textures/gui/radial/" + style
-                        + (selected ? "_selected/" : "/") + section + ".png");
+                        + (selected ? "_selected/" : "/") + (section % 8) + ".png");
         boolean used = isUsedNegotiationSection(section);
         graphics.setColor(red, green, blue,
                 RadialWheelAnimations.layerAlpha(this)

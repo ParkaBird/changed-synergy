@@ -17,6 +17,8 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.entity.monster.Enemy;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.event.NpcDispositionEvents;
@@ -255,6 +257,10 @@ public final class SocialFriendDefenseGoal extends TargetGoal {
     }
 
     private LivingEntity findThreat(ServerPlayer supportedPlayer) {
+        LivingEntity attacked = supportedPlayer.getLastHurtMob();
+        if (supportedPlayer.tickCount - supportedPlayer.getLastHurtMobTimestamp()
+                        <= RECENT_HIT_TICKS
+                && canDefendAgainst(attacked, supportedPlayer)) return attacked;
         LivingEntity recent = supportedPlayer.getLastHurtByMob();
         if (supportedPlayer.tickCount - supportedPlayer.getLastHurtByMobTimestamp()
                         <= RECENT_HIT_TICKS
@@ -300,6 +306,14 @@ public final class SocialFriendDefenseGoal extends TargetGoal {
     private boolean canDefendAgainst(
             LivingEntity candidate,
             ServerPlayer supportedPlayer) {
+        if (ChangedSynergyConfig.COMMON.companionMonsterAssistOnly.get()
+                && (!(candidate instanceof Enemy)
+                        || !(candidate == supportedPlayer.getLastHurtMob()
+                                && supportedPlayer.tickCount - supportedPlayer.getLastHurtMobTimestamp()
+                                        <= RECENT_HIT_TICKS
+                            || candidate == supportedPlayer.getLastHurtByMob()
+                                && supportedPlayer.tickCount - supportedPlayer.getLastHurtByMobTimestamp()
+                                        <= RECENT_HIT_TICKS))) return false;
         if (!(candidate instanceof Mob)
                 || candidate == friend
                 || !candidate.isAlive()

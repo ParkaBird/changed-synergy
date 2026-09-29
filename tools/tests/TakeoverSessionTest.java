@@ -289,6 +289,23 @@ public final class TakeoverSessionTest {
     }
 
     private static void sleepOutcomes() {
+        var temporary = TakeoverSession.ordinary(0, 600, true, false,
+                SleepOutcome.RELEASE_ON_TIMEOUT);
+        temporary.tick(600);
+        check(temporary.getPhase() == Phase.RELEASING && !temporary.hasSlept()
+                && temporary.getReleaseReason() == ReleaseReason.TIMEOUT,
+                "temporary takeover releases directly at its deadline");
+        check(temporary.completeRelease(600) && temporary.claimOranges(true),
+                "friendly timeout receives orange compensation once");
+        var failedTemporary = TakeoverSession.ordinary(0, 600, true, false,
+                SleepOutcome.RELEASE_ON_TIMEOUT);
+        failedTemporary.startStruggle(0, List.of(0));
+        failedTemporary.tick(200);
+        check(failedTemporary.getPhase() == Phase.SLEEPING,
+                "failed temporary escape sleeps even though timeout would release");
+        failedTemporary.tick(400);
+        check(failedTemporary.getReleaseReason() == ReleaseReason.SLEEP,
+                "failed temporary escape wakes through sleep release");
         var timed = TakeoverSession.ordinary(0, 600, true, false, SleepOutcome.TRANSFUR);
         check(timed.getHardDeadline() == 1200, "transfur adds no second control timer");
         timed.tick(600);
@@ -299,6 +316,21 @@ public final class TakeoverSessionTest {
             "configured sleep resolves to permanent transfur");
         check(timed.completeRelease(800) && !timed.claimOranges(true),
             "permanent transfur never grants sleep compensation");
+
+        var punitiveTransfur = TakeoverSession.ordinary(0, 3600, false, true, SleepOutcome.TRANSFUR);
+        check(punitiveTransfur.failPunitiveNegotiation(900)
+                && punitiveTransfur.getPhase() == Phase.SLEEPING,
+            "shortened punitive countdown begins sleep at its effective deadline");
+        punitiveTransfur.tick(1100);
+        check(punitiveTransfur.getReleaseReason() == ReleaseReason.TRANSFUR,
+            "punitive permanent outcome survives the shortened countdown");
+
+        var punitiveFatal = TakeoverSession.ordinary(0, 3600, false, true, SleepOutcome.RELEASE);
+        check(punitiveFatal.failPunitiveNegotiation(900),
+            "shortened fatal countdown begins sleep");
+        punitiveFatal.tick(1100);
+        check(punitiveFatal.getReleaseReason() == ReleaseReason.SLEEP,
+            "fatal outcome retains its sleep marker for the server death path");
 
         var failed = TakeoverSession.ordinary(0, 3600, true, false, SleepOutcome.TRANSFUR);
         failed.startStruggle(0, List.of(0));

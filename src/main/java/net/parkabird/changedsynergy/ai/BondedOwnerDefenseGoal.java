@@ -10,6 +10,8 @@ import net.minecraft.world.entity.ai.goal.Goal.Flag;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.entity.monster.Enemy;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.minecraft.world.entity.player.Player;
 
 /** Generic owner-defense behavior for bonded latexes without a native pet implementation. */
@@ -87,6 +89,9 @@ public final class BondedOwnerDefenseGoal extends TargetGoal {
             ChangedEntity pet,
             ServerPlayer owner,
             LivingEntity candidate) {
+        if (ChangedSynergyConfig.COMMON.companionMonsterAssistOnly.get()
+                && (!(candidate instanceof Enemy)
+                        || !hasRecentConflict(pet, owner, candidate))) return false;
         if (LatexSocialMemory.isPetDefenseForced(pet, candidate)) {
             return true;
         }

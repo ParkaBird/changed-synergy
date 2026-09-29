@@ -15,6 +15,7 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -36,7 +37,7 @@ public final class FactionPursuitService {
     private static final String SQUAD = "SynergyPursuitSquad";
     private static final long COOLDOWN = 12000L;
     private static final long LIFETIME = 3600L;
-    private static final double PURSUIT_SPEED = 0.72D;
+    private static final double PURSUIT_SPEED = 0.45D;
     private FactionPursuitService() {}
 
     public static boolean isPursuer(ChangedEntity mob) { return mob.getPersistentData().contains(SQUAD); }
@@ -68,6 +69,8 @@ public final class FactionPursuitService {
 
     private static boolean available(ServerPlayer player) {
         return ChangedSynergyConfig.COMMON.factionPursuit.get() && player.isAlive()
+                && (!ChangedSynergyConfig.COMMON.factionPursuitOverworldOnly.get()
+                        || player.level().dimension() == Level.OVERWORLD)
                 && !player.isCreative() && !player.isSpectator() && !player.isSleeping()
                 && !player.isPassenger() && !player.isChangingDimension()
                 && player.level().getDifficulty() != Difficulty.PEACEFUL

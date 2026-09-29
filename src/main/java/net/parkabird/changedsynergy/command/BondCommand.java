@@ -53,6 +53,7 @@ public final class BondCommand {
                 .then(relationshipCommand())
                 .then(reputationCommand())
                 .then(routineCommand())
+                .then(PlayerOutpostCommand.create())
                 .then(ServerConfigCommand.create())
                 .then(PersonalitySpawnCommand.create());
         event.getDispatcher().register(root);
@@ -236,6 +237,8 @@ public final class BondCommand {
                 "/changedsynergy reputation");
         sendHelpLine(source, "command.changed_synergy.help.relationship",
                 "/changedsynergy relationship");
+        sendHelpLine(source, "command.changed_synergy.help.outpost",
+                "/changedsynergy outpost");
         sendHelpLine(source, "command.changed_synergy.help.inspect",
                 "/changedsynergy relationship inspect ");
         if (source.getEntity() instanceof ServerPlayer) {

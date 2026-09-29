@@ -6,6 +6,10 @@ import org.apache.commons.lang3.tuple.Pair;
 
 /** Server-side settings for social AI and companion behaviour. */
 public final class ChangedSynergyConfig {
+    public enum CreatureTransfurMethod {
+        NATIVE, RANDOM, ASSIMILATION, ABSORPTION, TAKEOVER
+    }
+
     public static final Common COMMON;
     public static final ForgeConfigSpec SPEC;
 
@@ -44,12 +48,26 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.BooleanValue patPacification;
         public final ForgeConfigSpec.BooleanValue ordinaryTransfurReversal;
         public final ForgeConfigSpec.BooleanValue bondProtectiveReleaseRequests;
+        public final ForgeConfigSpec.BooleanValue bondedEmergencyRescue;
+        public final ForgeConfigSpec.BooleanValue aquaticFriendDrowningRescue;
+        public final ForgeConfigSpec.BooleanValue bondedKinConfinement;
+        public final ForgeConfigSpec.IntValue bondedKinKillBaseLimit;
+        public final ForgeConfigSpec.BooleanValue changedVanillaRelationshipAnimalProtection;
+        public final ForgeConfigSpec.BooleanValue companionMonsterAssistOnly;
         public final ForgeConfigSpec.BooleanValue allowMultipleBonds;
         public final ForgeConfigSpec.BooleanValue peacefulVillageRelations;
         public final ForgeConfigSpec.BooleanValue factionPursuit;
+        public final ForgeConfigSpec.BooleanValue factionPursuitOverworldOnly;
         public final ForgeConfigSpec.BooleanValue independentFactionReputation;
         public final ForgeConfigSpec.IntValue postTransfurTruceSeconds;
         public final ForgeConfigSpec.IntValue settlementMinimumSpacing;
+        public final ForgeConfigSpec.BooleanValue playerOutposts;
+        public final ForgeConfigSpec.IntValue playerOutpostResidents;
+        public final ForgeConfigSpec.IntValue playerOutpostCrew;
+        public final ForgeConfigSpec.BooleanValue playerOutpostSupplyWork;
+        public final ForgeConfigSpec.BooleanValue playerOutpostHarvesting;
+        public final ForgeConfigSpec.BooleanValue playerOutpostRest;
+        public final ForgeConfigSpec.BooleanValue playerOutpostGuardPvp;
         public final ForgeConfigSpec.BooleanValue useChangedStructureOutposts;
         public final ForgeConfigSpec.BooleanValue latexBeeHiveOutposts;
         public final ForgeConfigSpec.IntValue structureOutpostSearchRadiusChunks;
@@ -62,11 +80,13 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.BooleanValue exoskeletonSleep;
         public final ForgeConfigSpec.BooleanValue takeoverBorrow;
         public final ForgeConfigSpec.BooleanValue takeoverEscape;
+        public final ForgeConfigSpec.BooleanValue takeoverWakeProne;
+        public final ForgeConfigSpec.BooleanValue takeoverNegotiation;
+        public final ForgeConfigSpec.BooleanValue takeoverHostileFinale;
         public final ForgeConfigSpec.BooleanValue takeoverOranges;
         public final ForgeConfigSpec.IntValue takeoverSeconds;
         public final ForgeConfigSpec.IntValue takeoverPunitiveSeconds;
         public final ForgeConfigSpec.IntValue takeoverExoskeletonSeconds;
-        public final ForgeConfigSpec.BooleanValue takeoverTransfurAfterSleep;
         public final ForgeConfigSpec.BooleanValue politeHumanInteraction;
         public final ForgeConfigSpec.DoubleValue politeApproachRange;
         public final ForgeConfigSpec.DoubleValue politeApproachSpeed;
@@ -84,7 +104,8 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.DoubleValue hostileGrabAttemptChance;
         public final ForgeConfigSpec.DoubleValue organicHostileGrabAttemptChance;
         public final ForgeConfigSpec.BooleanValue allowMindlessMobTransfur;
-        public final ForgeConfigSpec.BooleanValue randomizeCreatureTransfurMethod;
+        public final ForgeConfigSpec.BooleanValue allowSecondaryTransfur;
+        public final ForgeConfigSpec.EnumValue<CreatureTransfurMethod> creatureTransfurMethod;
         public final ForgeConfigSpec.IntValue behaviourConfigRevision;
 
         public final ForgeConfigSpec.BooleanValue performanceDiagnostics;
@@ -106,6 +127,7 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.DoubleValue npcDialogueChance;
         public final ForgeConfigSpec.DoubleValue personalityDialogueChance;
         public final ForgeConfigSpec.BooleanValue npcDialogueUsesTranslator;
+        public final ForgeConfigSpec.BooleanValue addonAnimalCalls;
         public final ForgeConfigSpec.IntValue telepathyUnlockTransfurs;
 
         private Common(ForgeConfigSpec.Builder builder) {
@@ -126,20 +148,26 @@ public final class ChangedSynergyConfig {
                     .define("AllowBorrowedControl", true);
             takeoverEscape = builder.comment("One ordinary absorption escape attempt. Exoskeleton takeover NEVER allows struggle.")
                     .define("AllowEscapeAttempt", true);
+            takeoverWakeProne = builder.comment("Keep the player prone briefly after waking from a failed takeover escape.")
+                    .define("ProneAfterFailedEscape", true);
+            takeoverNegotiation = builder.comment("Allow one negotiation attempt during an ordinary takeover.",
+                            "A failed punitive negotiation shortens the remaining timer.")
+                    .define("AllowNegotiation", true);
+            takeoverHostileFinale = builder.comment("Use direct permanent takeover at Distrusted standing and fatal takeover at Hostile standing after aggression.",
+                            "When disabled, both standings use nonfatal confinement instead. Applies to new takeovers.")
+                    .define("HostileFinale", true);
             takeoverOranges = builder.comment("One compensation after non-hostile ordinary takeover sleep, with a 20-minute cooldown.")
                     .define("NonHostileOrangeCompensation", true);
             takeoverSeconds = builder.defineInRange("OrdinarySeconds", 180, 30, 300);
             takeoverPunitiveSeconds = builder.defineInRange("PunitiveSeconds", 240, 30, 300);
             takeoverExoskeletonSeconds = builder.comment("Awake time before automatic sleep, NOT a voluntary release timer.")
                     .defineInRange("ExoskeletonAwakeSeconds", 30, 5, 60);
-            takeoverTransfurAfterSleep = builder
-                    .comment("After an ordinary takeover sleep, permanently transfur the player into the carrier's form.",
-                            "The carrier's eye colors and style are inherited. Disabled by default: sleep restores and releases the player.")
-                    .define("TransfurAfterSleep", false);
             builder.pop();
             builder.comment("Relationship and companion settings").push("RELATIONSHIPS");
             factionPursuit = builder.comment("At minimum faction reputation, allow warned, limited pursuit squads.")
                     .define("FactionPursuit", true);
+            factionPursuitOverworldOnly = builder.comment("Limit pursuit squad spawning to the Overworld. Disabled by default: squads can spawn in any dimension.")
+                    .define("FactionPursuitOverworldOnly", false);
             independentFactionReputation = builder
                     .comment("Let every faction reputation change independently and allow all rival factions to be allied at once.",
                             "Disabled by default: rival alliances can reduce each other's reputation.",
@@ -174,6 +202,26 @@ public final class ChangedSynergyConfig {
                     .comment("Let cautious, protective, and sensitive companions require repeated release requests",
                             "after repeatedly rescuing their owner from danger. The request count survives closing the radial menu.")
                     .define("ProtectiveReleaseRequests", true);
+            bondedEmergencyRescue = builder
+                    .comment("Allow bonded latex companions to wrap endangered owners, organic companions to evacuate them,",
+                            "and aquatic friends to rescue drowning players when their separate option is enabled.",
+                            "Disabling this keeps manual wrapping and ordinary companion defense available.")
+                    .define("BondedEmergencyRescue", true);
+            aquaticFriendDrowningRescue = builder
+                    .comment("Let aquatic friends wrap a player after actual drowning damage.",
+                            "BondedEmergencyRescue must also be enabled.")
+                    .define("AquaticFriendDrowningRescue", true);
+            bondedKinConfinement = builder.comment("Let bonded companions confine owners after repeated witnessed same-faction kills.")
+                    .define("BondedKinConfinement", true);
+            bondedKinKillBaseLimit = builder.comment("Base number of witnessed same-faction kills before bonded confinement; affection adds tolerance.")
+                    .defineInRange("BondedKinKillBaseLimit", 3, 1, 20);
+            changedVanillaRelationshipAnimalProtection = builder
+                    .comment("Prevent Changed Vanilla creatures with established relationships from infecting animals.",
+                            "The separate respected-human farm protection remains active when this is disabled.")
+                    .define("ChangedVanillaRelationshipAnimalProtection", true);
+            companionMonsterAssistOnly = builder
+                    .comment("Restrict companion and friend combat assistance to hostile monsters that the player hits or is hit by.")
+                    .define("CompanionMonsterAssistOnly", false);
             allowMultipleBonds = builder
                     .comment("Allow one player to form bonds with several creatures.",
                             "When disabled, voluntary transfur remains available but creates no new bond if the player already has one.")
@@ -204,6 +252,21 @@ public final class ChangedSynergyConfig {
                     .comment("Minimum horizontal distance in blocks between independently claimed outposts.",
                             "Nearby compatible creatures still reuse an existing community outpost.")
                     .defineInRange("MinimumOutpostSpacing", 48, 16, 256);
+            playerOutposts = builder.comment("Allow players to claim a bell as a home outpost.")
+                    .define("PlayerOutposts", true);
+            playerOutpostResidents = builder.comment("Maximum recruited residents per player outpost.")
+                    .defineInRange("PlayerOutpostResidents", 6, 1, 32);
+            playerOutpostCrew = builder.comment("Maximum residents assigned to follow as a crew.")
+                    .defineInRange("PlayerOutpostCrew", 3, 1, 16);
+            playerOutpostSupplyWork = builder.comment("Let assigned suppliers collect dropped supplies and harvest nearby resources for a linked chest.")
+                    .define("PlayerOutpostSupplyWork", true);
+            playerOutpostHarvesting = builder.comment("Let player-outpost suppliers actively harvest resources.",
+                            "When disabled, they can still collect dropped items if supply work is enabled.")
+                    .define("PlayerOutpostHarvesting", true);
+            playerOutpostRest = builder.comment("Let player-outpost residents use linked beds or suitable hive pillows at night.")
+                    .define("PlayerOutpostRest", true);
+            playerOutpostGuardPvp = builder.comment("Allow outpost guards to defend against hostile players. Off by default.")
+                    .define("PlayerOutpostGuardPvp", false);
             useChangedStructureOutposts = builder
                     .comment("Let provisioners without an outpost claim generated Changed ruins.",
                             "The facility is never claimed, and only empty space is changed.")
@@ -268,10 +331,15 @@ public final class ChangedSynergyConfig {
                             "Disabled by default: they are absorbed instead to avoid creating extra persistent entities.",
                             "Dedicated conversion forms supplied by supported addons are preserved.")
                     .define("AllowMindlessMobTransfur", false);
-            randomizeCreatureTransfurMethod = builder
-                    .comment("Randomly choose replication or absorption for hostile latex-creature transfurs.",
-                            "Only entity attacks and grabs are affected. Organic and single-method creatures keep their native behavior.")
-                    .define("RandomizeCreatureTransfurMethod", false);
+            allowSecondaryTransfur = builder
+                    .comment("Allow hostile latex creatures to grab and transfur players who are already transfurred.",
+                            "When disabled, those creatures keep fighting the player with ordinary attacks instead.")
+                    .define("AllowSecondaryTransfur", true);
+            creatureTransfurMethod = builder
+                    .comment("Method for hostile latex-creature attacks and grabs: NATIVE, RANDOM, ASSIMILATION, ABSORPTION, or TAKEOVER.",
+                            "TAKEOVER uses absorption and the usual faction-standing outcomes; other takeover settings still apply.",
+                            "Organic, protected, fusion, and single-method encounters keep their native behavior.")
+                    .defineEnum("CreatureTransfurMethod", CreatureTransfurMethod.NATIVE);
             behaviourConfigRevision = builder
                     .comment("Internal migration marker for perception and alert defaults.")
                     .defineInRange("BehaviourConfigRevision", 0, 0, 1);
@@ -350,6 +418,9 @@ public final class ChangedSynergyConfig {
             npcDialogueUsesTranslator = builder
                     .comment("Let an enabled Changed Addon Translator bypass the permanent telepathy unlock.")
                     .define("UsesTranslator", true);
+            addonAnimalCalls = builder
+                    .comment("Play Changed Addon's species-appropriate animal calls for some creature reactions when that addon is installed.")
+                    .define("AddonAnimalCalls", true);
             telepathyUnlockTransfurs = builder
                     .comment("Completed non-suit transformations needed to permanently understand telepathic speech.",
                             "Set to 0 to prevent transformations from unlocking telepathy.")

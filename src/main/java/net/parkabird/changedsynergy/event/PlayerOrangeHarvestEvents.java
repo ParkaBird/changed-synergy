@@ -6,6 +6,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
@@ -63,6 +65,8 @@ public final class PlayerOrangeHarvestEvents {
                 return;
             }
             OrangeLeafRegrowthData.schedule(level, pos, state, replacement);
+            level.playSound(null, pos, SoundEvents.SHEEP_SHEAR,
+                    SoundSource.BLOCKS, 1.0F, 1.0F);
             held.hurtAndBreak(1, player,
                     owner -> owner.broadcastBreakEvent(InteractionHand.MAIN_HAND));
         } else {
@@ -76,8 +80,11 @@ public final class PlayerOrangeHarvestEvents {
         ItemStack fruit = new ItemStack(orange);
         if (harvestLeaves) {
             Block.popResource(level, pos, fruit);
-        } else if (!player.addItem(fruit)) {
-            player.drop(fruit, false);
+        } else {
+            if (player.addItem(fruit)) {
+                level.playSound(null, player.blockPosition(), SoundEvents.ITEM_PICKUP,
+                        SoundSource.PLAYERS, 0.2F, 1.0F);
+            } else player.drop(fruit, false);
         }
     }
 }

@@ -19,7 +19,8 @@ public final class TakeoverConflictMemory {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void beforeAttack(LivingAttackEvent event) {
-        if (!(event.getEntity() instanceof ChangedEntity creature)
+        if (event.getSource().is(net.ltxprogrammer.changed.init.ChangedDamageSources.GRAB_ESCAPE.key())
+                || !(event.getEntity() instanceof ChangedEntity creature)
                 || !(event.getSource().getEntity() instanceof ServerPlayer player)) return;
         CompoundTag pending = new CompoundTag();
         pending.putUUID("Player", player.getUUID());

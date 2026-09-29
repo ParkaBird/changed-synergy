@@ -79,7 +79,8 @@ public final class FactionReputationEvents {
     /** Any deliberate hit immediately ends that faction's post-transfur truce. */
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onPlayerReopensHostilities(LivingAttackEvent event) {
-        if (!event.getEntity().level().isClientSide
+        if (!event.getSource().is(ChangedDamageSources.GRAB_ESCAPE.key())
+                && !event.getEntity().level().isClientSide
                 && event.getEntity() instanceof ChangedEntity creature
                 && event.getSource().getEntity() instanceof ServerPlayer player) {
             if (FactionHostilityGrace.damageLocked(creature, player)) {
@@ -173,6 +174,7 @@ public final class FactionReputationEvents {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onCreatureKilled(LivingDeathEvent event) {
+        if (event.getSource().is(ChangedDamageSources.GRAB_ESCAPE.key())) return;
         if (event.getEntity() instanceof ChangedEntity creature
                 && event.getSource().getEntity() instanceof ServerPlayer player
                 && LatexSocialMemory.isSocialLatex(creature)) {
@@ -192,6 +194,7 @@ public final class FactionReputationEvents {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onCreatureHurt(LivingHurtEvent event) {
         if (event.isCanceled()
+                || event.getSource().is(ChangedDamageSources.GRAB_ESCAPE.key())
                 || event.getAmount() <= 0.0F
                 || !(event.getEntity() instanceof ChangedEntity creature)
                 || !(event.getSource().getEntity() instanceof ServerPlayer player)

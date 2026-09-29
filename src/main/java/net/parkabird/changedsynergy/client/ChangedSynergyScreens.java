@@ -67,6 +67,9 @@ public final class ChangedSynergyScreens {
                     ChangedSynergyMenus.PLAYER_RELATIONSHIPS.get(),
                     PlayerRelationshipScreen::new);
             MenuScreens.register(
+                    ChangedSynergyMenus.PLAYER_OUTPOST.get(),
+                    PlayerOutpostScreen::new);
+            MenuScreens.register(
                     ChangedSynergyMenus.CENTAUR_MOUNT_CONFIG.get(),
                     CentaurMountConfigScreen::new);
         });

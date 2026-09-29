@@ -3,11 +3,18 @@ package net.parkabird.changedsynergy.client;
 import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.FactionReputation;
 import net.parkabird.changedsynergy.ai.HunterFaction;
 import net.parkabird.changedsynergy.network.TerritorySyncPacket;
 
 /** Current facility HUD data and the animated territory subtitle. */
+@Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID,
+        bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public final class TerritoryClientState {
     private static final long SUBTITLE_MILLIS = 4_000L;
     private static final long SUBTITLE_COOLDOWN_MILLIS = 6_000L;
@@ -37,6 +44,15 @@ public final class TerritoryClientState {
     private TerritoryClientState() {
     }
 
+    @SubscribeEvent
+    public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        current = null;
+        pendingSubtitle = null;
+        lastDisplayedSubtitle = null;
+        nextSubtitleAllowed = 0L;
+        clearPresentation();
+    }
+
     public static void receive(TerritorySyncPacket packet) {
         long now = Util.getMillis();
         updateContentTransition(now);
@@ -46,7 +62,14 @@ public final class TerritoryClientState {
 
         TerritorySyncPacket previous = current;
         current = packet;
-        if (previous != null && sameArea(previous, packet)) {
+        if (!packet.displayEnabled()) {
+            pendingSubtitle = null;
+            lastDisplayedSubtitle = null;
+            clearPresentation();
+            return;
+        }
+        if (previous != null && previous.displayEnabled()
+                && sameArea(previous, packet)) {
             updateMatchingPackets(packet);
             return;
         }

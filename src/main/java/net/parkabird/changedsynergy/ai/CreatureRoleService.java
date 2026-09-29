@@ -29,6 +29,7 @@ public final class CreatureRoleService {
 
     public static void tick(ChangedEntity creature) {
         if (!(creature.level() instanceof ServerLevel level)
+                || PlayerOutpostService.assigned(creature)
                 || !SynergyPerformanceTracker.featureEnabled(Feature.COMMUNITY)
                 || !CreatureLifeMemory.enabled(creature)) {
             return;

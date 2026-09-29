@@ -5,6 +5,7 @@ import java.util.UUID;
 import net.ltxprogrammer.changed.Changed;
 import net.ltxprogrammer.changed.client.gui.AbstractRadialScreen;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
+import net.ltxprogrammer.changed.entity.variant.TransfurVariant;
 import net.ltxprogrammer.changed.util.Color3;
 import net.ltxprogrammer.changed.util.SingleRunnable;
 import net.minecraft.client.Minecraft;
@@ -24,6 +25,7 @@ import net.parkabird.changedsynergy.network.TakeoverStatePacket;
 public final class TakeoverScreen extends AbstractRadialScreen<TakeoverScreen.TakeoverMenu> {
     private static final Action BORROW = icon(TakeoverActionPacket.REQUEST_CONTROL, "idea");
     private static final Action ESCAPE = icon(TakeoverActionPacket.START_STRUGGLE, "deny");
+    private static final Action NEGOTIATE = icon(TakeoverActionPacket.NEGOTIATE, "idea");
     private static final Action RETURN = icon(TakeoverActionPacket.RETURN_CONTROL, "pause");
     private final UUID session;
     private final List<Action> actions;
@@ -38,8 +40,10 @@ public final class TakeoverScreen extends AbstractRadialScreen<TakeoverScreen.Ta
         super(menu, inventory, TakeoverClientState.text("title"),
                 colors(state).background(), colors(state).foreground(), center(state, inventory.player));
         session = state == null ? null : state.sessionId();
+        boolean negotiationEnabled = state != null && state.negotiationEnabled();
         actions = state != null && state.phase() == TakeoverStatePacket.BORROWED
-                ? List.of(RETURN) : List.of(BORROW, ESCAPE);
+                ? negotiationEnabled ? List.of(RETURN, NEGOTIATE) : List.of(RETURN)
+                : negotiationEnabled ? List.of(BORROW, ESCAPE, NEGOTIATE) : List.of(BORROW, ESCAPE);
     }
 
     private static Action icon(int action, String emote) {
@@ -68,6 +72,16 @@ public final class TakeoverScreen extends AbstractRadialScreen<TakeoverScreen.Ta
         return colors(state).foreground().toInt() & 0xFFFFFF;
     }
 
+    static int backgroundColor(TakeoverStatePacket state) {
+        var player = Minecraft.getInstance().player;
+        if (state == null || player == null || player.level() == null
+                || !(player.level().getEntity(state.carrierId()) instanceof ChangedEntity carrier))
+            return 0;
+        var variant = carrier.getSelfVariant();
+        if (variant == null) variant = TransfurVariant.findEntityTransfurVariant(carrier);
+        return variant == null ? 0 : variant.getColors().getFirst().toInt() & 0xFFFFFF;
+    }
+
     private boolean valid() {
         return TakeoverClientState.canOpen() && session != null
                 && session.equals(TakeoverClientState.current().sessionId());
@@ -88,11 +102,20 @@ public final class TakeoverScreen extends AbstractRadialScreen<TakeoverScreen.Ta
                             : TakeoverClientState.text("borrow_hint"));
         }
         if (action == TakeoverActionPacket.START_STRUGGLE) {
+            String warning = TakeoverClientState.current().outcome() == 2
+                    ? "warning_punitive_fatal"
+                    : TakeoverClientState.current().outcome() == 1
+                            ? "warning_punitive_permanent" : "warning";
             return List.of(TakeoverClientState.text(
                             escapeConfirmationPending ? "confirm" : "escape"),
                     TakeoverClientState.text(TakeoverClientState.current().escapeUsed()
                             ? "used" : escapeConfirmationPending
-                                    ? "confirm_warning" : "warning"));
+                                    ? "confirm_warning" : warning));
+        }
+        if (action == TakeoverActionPacket.NEGOTIATE) {
+            return List.of(TakeoverClientState.text("negotiate"),
+                    TakeoverClientState.text(TakeoverClientState.current().negotiationUsed()
+                            ? "negotiation_used" : "negotiation_hint"));
         }
         return List.of(TakeoverClientState.text("return"));
     }
@@ -126,6 +149,8 @@ public final class TakeoverScreen extends AbstractRadialScreen<TakeoverScreen.Ta
     public boolean handleClicked(int section, SingleRunnable close) {
         if (!valid() || section < 0 || section >= actions.size()) return false;
         int action = actions.get(section).id();
+        if (action == TakeoverActionPacket.NEGOTIATE
+                && TakeoverClientState.current().negotiationUsed()) return false;
         if (action == TakeoverActionPacket.START_STRUGGLE
                 && !TakeoverClientState.current().escapeUsed()
                 && !escapeConfirmationPending) {

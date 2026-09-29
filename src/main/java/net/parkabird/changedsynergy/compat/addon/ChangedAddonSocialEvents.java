@@ -15,6 +15,7 @@ import net.foxyas.changedaddon.entity.ai.LatexFavor;
 import net.foxyas.changedaddon.entity.ai.LatexFishingGoal;
 import net.foxyas.changedaddon.entity.ai.LatexSuitOwnerGoal;
 import net.foxyas.changedaddon.entity.api.IGrabberEntity;
+import net.foxyas.changedaddon.entity.api.IAlphaAbleEntity;
 import net.foxyas.changedaddon.entity.api.TamableLatexEntityFavors;
 import net.foxyas.changedaddon.entity.defaults.AbstractLuminarcticLeopard;
 import net.foxyas.changedaddon.entity.ai.goals.abilities.MayDropGrabbedEntityGoal;
@@ -26,10 +27,8 @@ import net.ltxprogrammer.changed.Changed;
 import net.ltxprogrammer.changed.ability.GrabEntityAbility;
 import net.ltxprogrammer.changed.ability.GrabEntityAbilityInstance;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
-import net.ltxprogrammer.changed.entity.variant.TransfurVariantInstance;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket.GrabType;
-import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.ltxprogrammer.changed.init.ChangedSounds;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
@@ -47,6 +46,7 @@ import net.parkabird.changedsynergy.event.LatexSocialEvents;
 import net.parkabird.changedsynergy.ai.PatAnimationService;
 import net.parkabird.changedsynergy.ai.SafeEntityMutationQueue;
 import net.parkabird.changedsynergy.ai.TakeoverService;
+import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.network.FriendlySocialHugSyncPacket;
 import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
@@ -83,6 +83,11 @@ public final class ChangedAddonSocialEvents {
             "ChangedSynergyAnnouncedCombatGrabTarget";
 
     private ChangedAddonSocialEvents() {
+    }
+
+    public static float alphaRenderScale(ChangedEntity creature) {
+        return creature instanceof IAlphaAbleEntity alpha && alpha.isAlpha()
+                ? alpha.alphaScaleForRender() : 1.0F;
     }
 
     /** Luminarctic Leopard Male uses one entity type for both its normal and boss forms. */
@@ -260,10 +265,7 @@ public final class ChangedAddonSocialEvents {
                         PacketDistributor.TRACKING_ENTITY.with(grabber::asMob),
                         new GrabEntityPacket(mob, grabbed, GrabType.RELEASE));
                 if (grabbed instanceof ServerPlayer player) {
-                    TransfurVariantInstance<?> variant = ProcessTransfur.getPlayerTransfurVariant(player);
-                    if (variant != null && variant.isTemporaryFromSuit()) {
-                        ProcessTransfur.removePlayerTransfurVariant(player);
-                    }
+                    TrueTransfurCompat.clearTemporarySuit(player);
                     BondedSuitService.syncOwnerSuitState(mob, player, false);
                 }
                 if (ability instanceof GrabEntityAbilityExtensor extensor) {
@@ -1147,6 +1149,10 @@ public final class ChangedAddonSocialEvents {
         mob.setAggressive(false);
         LatexSocialEvents.calmTowards(mob, player);
         return true;
+    }
+
+    public static GrabEntityAbilityInstance grabAbility(ChangedEntity mob) {
+        return mob instanceof IGrabberEntity grabber ? grabber.getGrabAbilityInstance() : null;
     }
 
     private static void ensureGrabAbility(ChangedEntity mob, IGrabberEntity grabber) {

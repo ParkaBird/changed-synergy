@@ -45,7 +45,7 @@ public final class TerritoryHudOverlay {
             return;
         }
         TerritorySyncPacket state = TerritoryClientState.current();
-        if (state == null) {
+        if (state == null || !state.displayEnabled()) {
             return;
         }
         if (state.facility()) {

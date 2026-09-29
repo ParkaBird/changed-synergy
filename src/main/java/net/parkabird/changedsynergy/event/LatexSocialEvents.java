@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.Emote;
@@ -94,6 +95,7 @@ import net.parkabird.changedsynergy.world.inventory.BondedLatexMenu;
 import net.parkabird.changedsynergy.world.inventory.CentaurMountService;
 import net.parkabird.changedsynergy.world.inventory.SocialInteractionMenu;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
@@ -106,6 +108,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
@@ -129,6 +132,7 @@ import net.minecraftforge.network.NetworkHooks;
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class LatexSocialEvents {
     private static final String NEXT_PAT_PLAYER = "ChangedSynergyNextPatPlayer";
+    private static final String NEXT_PART_PAT = "ChangedSynergyNextBodyPartPat";
     private static final String NEXT_RECEIVE_PAT = "ChangedSynergyNextReceivePat";
     private static final long BASE_PAT_TRUCE = 160L;
     private static final long ACTIVE_PAT_MIN_COOLDOWN = 900L;
@@ -164,7 +168,9 @@ public final class LatexSocialEvents {
         CreaturePersonality.ensure(mob);
         CreatureIdentity.ensure(mob);
         CreatureLifeMemory.ensure(mob);
-        CreatureCommunityData.bind(mob);
+        if (!net.parkabird.changedsynergy.ai.PlayerOutpostService.assigned(mob)) {
+            CreatureCommunityData.bind(mob);
+        }
         NpcEmoteState.reset(mob);
         PoliteHumanInteraction.resetTransientState(mob);
         LatexSocialMemory.applyPendingManualReleases(mob);
@@ -174,6 +180,9 @@ public final class LatexSocialEvents {
         }
         boolean personalSocial =
                 CreatureSocialProfile.allowsPersonalRelationship(mob);
+        if (net.parkabird.changedsynergy.ai.PlayerOutpostService.assigned(mob)) {
+            net.parkabird.changedsynergy.ai.PlayerOutpostService.ensureGoal(mob);
+        }
         if (mob instanceof net.ltxprogrammer.changed.entity.beast.AbstractAquaticEntity
                 && mob.goalSelector.getAvailableGoals().stream()
                         .noneMatch(wrapped -> wrapped.getGoal()
@@ -453,6 +462,15 @@ public final class LatexSocialEvents {
                     key -> key.mobUuid().equals(mob.getUUID()));
             PENDING_DAMAGE_REACTIONS.keySet().removeIf(
                     key -> key.mobUuid().equals(mob.getUUID()));
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerDrowningDamage(LivingDamageEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player
+                && event.getAmount() > 0.0F
+                && event.getSource().is(DamageTypes.DROWN)) {
+            BondedSuitService.markDrowningDamage(player);
         }
     }
 
@@ -1206,7 +1224,8 @@ public final class LatexSocialEvents {
     /** Friendly visitors receive two escalating warnings before becoming a personal enemy. */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onCreatureHurt(LivingDamageEvent event) {
-        if (!(event.getEntity() instanceof ChangedEntity mob)
+        if (event.getSource().is(net.ltxprogrammer.changed.init.ChangedDamageSources.GRAB_ESCAPE.key())
+                || !(event.getEntity() instanceof ChangedEntity mob)
                 || !(event.getSource().getEntity() instanceof ServerPlayer player)
                 || mob.level().isClientSide
                 || event.getAmount() <= 0.0F
@@ -1812,7 +1831,38 @@ public final class LatexSocialEvents {
             case FORMER_RESPECTED -> Cue.PAT_FORMER_RESPECT;
             case FRIEND_RESPECTED -> Cue.PAT_FRIEND_RESPECT;
         };
+        if (cue == Cue.PAT_BONDED || cue == Cue.PAT_KIN
+                || cue == Cue.PAT_CATEGORY || cue == Cue.PAT_FRIEND
+                || cue == Cue.PAT_OUTSIDER || cue == Cue.PAT_HUMAN) {
+            long now = mob.level().getGameTime();
+            if (mob.getPersistentData().getLong(NEXT_PART_PAT) <= now) {
+                Cue partCue = patPartCue(mob, player);
+                if (NpcDialogue.trigger(mob, player, partCue)) {
+                    mob.getPersistentData().putLong(NEXT_PART_PAT, now + 160L);
+                    return;
+                }
+            }
+        }
         NpcDialogue.trigger(mob, player, cue);
+    }
+
+    private static Cue patPartCue(ChangedEntity mob, ServerPlayer player) {
+        Vec3 eye = player.getEyePosition();
+        Optional<Vec3> hit = mob.getBoundingBox().inflate(0.05D)
+                .clip(eye, eye.add(player.getViewVector(1.0F).scale(6.0D)));
+        if (hit.isEmpty()) return Cue.PAT_PART_TORSO;
+        double height = (hit.get().y - mob.getBoundingBox().minY)
+                / Math.max(0.01D, mob.getBbHeight());
+        if (height >= 0.77D) return Cue.PAT_PART_HEAD;
+        double yaw = Math.toRadians(mob.getYRot());
+        double side = Math.abs((hit.get().x - mob.getX()) * Math.cos(yaw)
+                + (hit.get().z - mob.getZ()) * Math.sin(yaw));
+        if (height >= 0.35D && height <= 0.75D
+                && mob.getBbHeight() > mob.getBbWidth() * 1.15D
+                && side > mob.getBbWidth() * 0.28D) {
+            return Cue.PAT_PART_ARM;
+        }
+        return Cue.PAT_PART_TORSO;
     }
 
     private static void rewardCalmingPat(
@@ -2004,6 +2054,8 @@ public final class LatexSocialEvents {
         if (bondedPlayers.isEmpty()) {
             return;
         }
+
+        CreatureArmorService.dropBondedEquipment(pet);
 
         UUID recentWrappedOwner = RECENT_WRAPPED_OWNER_DEATHS.remove(pet.getUUID());
         UUID ownerUuid = recentWrappedOwner != null && bondedPlayers.contains(recentWrappedOwner)

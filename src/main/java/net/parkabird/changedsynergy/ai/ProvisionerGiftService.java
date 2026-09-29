@@ -63,6 +63,7 @@ public final class ProvisionerGiftService {
                 || provider.tickCount % CHECK_INTERVAL_TICKS
                         != Math.floorMod(provider.getId(), CHECK_INTERVAL_TICKS)
                 || !CreatureLifeMemory.enabled(provider)
+                || PlayerOutpostService.assigned(provider)
                 || CreatureLifeMemory.role(provider) != GroupRole.PROVISIONER
                 || CreatureSettlementService.hasCargo(provider)
                 || provider.getTarget() != null

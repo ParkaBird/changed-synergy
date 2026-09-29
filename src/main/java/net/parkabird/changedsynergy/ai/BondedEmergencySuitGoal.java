@@ -10,6 +10,7 @@ import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 
 /** A bonded creature reaches its reverted owner to shelter either partner. */
 public final class BondedEmergencySuitGoal extends Goal {
+    private static final String SELF_RECOVERY_SUPPRESSED = "SynergySelfRecoverySuppressed";
     private static final double SUIT_REACH_SQR = 2.5 * 2.5;
     private static final double NORMAL_RUN_SPEED = 0.35D;
     private static final double URGENT_RESCUE_SPEED = 1.0D;
@@ -32,13 +33,24 @@ public final class BondedEmergencySuitGoal extends Goal {
     @Override
     public boolean canUse() {
         owner = LatexSocialMemory.getPetOwner(pet);
+        if (owner == null && HunterFaction.isAquatic(pet)
+                && LatexSocialMemory.petOwnerUuid(pet).isEmpty()
+                && pet.level() instanceof ServerLevel level) {
+            owner = level.players().stream()
+                    .filter(player -> pet.distanceToSqr(player) <= 20.0D * 20.0D)
+                    .filter(player -> BondedSuitService.canStartFriendDrowningSuit(pet, player))
+                    .min(java.util.Comparator.comparingDouble(pet::distanceToSqr))
+                    .orElse(null);
+        }
         boolean ownerEmergency = owner != null
                 && BondedSuitService.needsEmergencyRescue(pet, owner);
-        selfRecovery = !ownerEmergency
+        selfRecovery = owner != null && LatexSocialMemory.isPetOwner(pet, owner)
+                && !ownerEmergency
                 && needsSelfRecovery(SELF_RECOVERY_TRIGGER_HEALTH);
         return owner != null
                 && (ownerEmergency || selfRecovery)
-                && BondedSuitService.canStartSuit(pet, owner)
+                && (BondedSuitService.canStartSuit(pet, owner)
+                        || BondedSuitService.canStartFriendDrowningSuit(pet, owner))
                 && BondedSuitService.ability(pet) != null
                 && LatexSocialMemory.canStartEmergencyRescue(pet)
                 && !BondedSuitService.isSuitingOwner(pet, owner);
@@ -47,11 +59,13 @@ public final class BondedEmergencySuitGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return owner != null
-                && BondedSuitService.canStartSuit(pet, owner)
+                && (BondedSuitService.canStartSuit(pet, owner)
+                        || BondedSuitService.canStartFriendDrowningSuit(pet, owner))
                 && (BondedSuitService.needsEmergencyRescue(pet, owner)
                         || selfRecovery
                                 && needsSelfRecovery(SELF_RECOVERY_STOP_HEALTH))
-                && LatexSocialMemory.isPetOwner(pet, owner)
+                && (LatexSocialMemory.isPetOwner(pet, owner)
+                        || BondedSuitService.canStartFriendDrowningSuit(pet, owner))
                 && !BondedSuitService.isSuitingOwner(pet, owner);
     }
 
@@ -97,7 +111,8 @@ public final class BondedEmergencySuitGoal extends Goal {
                     reason);
             return;
         }
-        if (followNavigation.isStalled()
+        if (LatexSocialMemory.isPetOwner(pet, owner)
+                && followNavigation.isStalled()
                 && pet.level() instanceof ServerLevel level) {
             boolean recovered = BondedTeleportSafety.teleportNearOwner(
                     level, pet, owner);
@@ -130,6 +145,15 @@ public final class BondedEmergencySuitGoal extends Goal {
     }
 
     private boolean needsSelfRecovery(float healthThreshold) {
+        if (!net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.bondedEmergencyRescue.get())
+            return false;
+        if (pet.getHealth() > pet.getMaxHealth() * SELF_RECOVERY_STOP_HEALTH)
+            pet.getPersistentData().remove(SELF_RECOVERY_SUPPRESSED);
+        if (pet.getPersistentData().getBoolean(SELF_RECOVERY_SUPPRESSED)) return false;
         return pet.getHealth() <= pet.getMaxHealth() * healthThreshold;
+    }
+
+    public static void suppressSelfRecovery(ChangedEntity pet) {
+        pet.getPersistentData().putBoolean(SELF_RECOVERY_SUPPRESSED, true);
     }
 }

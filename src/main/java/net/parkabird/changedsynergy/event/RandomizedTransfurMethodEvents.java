@@ -5,13 +5,20 @@ import net.ltxprogrammer.changed.entity.TransfurCause;
 import net.ltxprogrammer.changed.entity.ai.LatexAssimilationDecision;
 import net.ltxprogrammer.changed.process.TransfurEvents;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
+import net.parkabird.changedsynergy.ChangedSynergyConfig.CreatureTransfurMethod;
+import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.CreatureSocialProfile;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.ai.TakeoverService;
 import net.parkabird.changedsynergy.ai.VoluntaryBondTransfurService;
+import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 
-/** Makes a supported hostile encounter keep one random transfur method until it ends. */
+/** Applies the configured method to eligible hostile creature encounters. */
+@Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class RandomizedTransfurMethodEvents {
     private static final String TARGET = "ChangedSynergyRandomTransfurTarget";
     private static final String METHOD = "ChangedSynergyRandomTransfurMethod";
@@ -23,22 +30,33 @@ public final class RandomizedTransfurMethodEvents {
 
     public static void randomize(
             TransfurEvents.LatexAssimilationDecisionEvent event) {
-        if (!ChangedSynergyConfig.COMMON.randomizeCreatureTransfurMethod.get()
+        CreatureTransfurMethod mode = ChangedSynergyConfig.COMMON.creatureTransfurMethod.get();
+        if (mode == CreatureTransfurMethod.NATIVE
+                || mode == CreatureTransfurMethod.TAKEOVER
+                        && !ChangedSynergyConfig.COMMON.takeoverEnabled.get()
                 || event.isCanceled()
                 || !(event.getEntity() instanceof ServerPlayer player)
                 || !(event.getSourceEntity() instanceof ChangedEntity source)
                 || event.getDecision() == null
                 || source.level().isClientSide
+                || ChangedAddonCompat.wearsHazardBodySuit(player)
                 || LatexSocialMemory.isOrganic(source)
                 || !CreatureSocialProfile.allowsSynergySystems(source)
                 || TakeoverService.active(player)
                 || TakeoverService.carrying(source)
+                || mode == CreatureTransfurMethod.TAKEOVER
+                        && !TakeoverService.supportsConfiguredTakeover(source, player)
                 || VoluntaryBondTransfurService.isCompleting(source, player)
                 || !isCreatureAttack(event.getTransfurCause())) {
             return;
         }
 
-        LatexAssimilationDecision.Method chosen = choice(source, player);
+        LatexAssimilationDecision.Method chosen = switch (mode) {
+            case RANDOM -> choice(source, player);
+            case ASSIMILATION -> LatexAssimilationDecision.Method.REPLICATION;
+            case ABSORPTION, TAKEOVER -> LatexAssimilationDecision.Method.ABSORPTION;
+            case NATIVE -> event.getDecision().method();
+        };
         LatexAssimilationDecision<?> current = event.getDecision();
         if (chosen == current.method()) {
             return;
@@ -51,6 +69,26 @@ public final class RandomizedTransfurMethodEvents {
                 && alternate.transfurVariant() != null) {
             event.setDecision(alternate.withTransfurProgress(
                     current.transfurProgress()));
+        }
+    }
+
+    /** Synergy must not turn a protected player into a replica after Addon has checked the suit. */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void preserveHazardSuitProtection(
+            TransfurEvents.LatexAssimilationDecisionEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)
+                || !ChangedAddonCompat.wearsHazardBodySuit(player)
+                || event.getDecision() == null
+                || event.getDecision().method() != LatexAssimilationDecision.Method.REPLICATION) {
+            return;
+        }
+        LatexAssimilationDecision<?> original = event.getOriginalDecision();
+        if (original != null
+                && original.method() == LatexAssimilationDecision.Method.ABSORPTION) {
+            event.setDecision(original.withTransfurProgress(
+                    event.getDecision().transfurProgress()));
+        } else {
+            event.setCanceled(true);
         }
     }
 

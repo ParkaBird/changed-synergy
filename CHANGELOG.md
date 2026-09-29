@@ -2,6 +2,41 @@
 
 This project follows semantic versioning while it is practical. Beta releases may still change saved-data details or interaction balance.
 
+## 1.1.3
+
+Thank you to everyone who tested the mod, reported problems, and shared ideas for this update. Special thanks to Nic, Crossader, and Sword for their dialogue contributions!
+
+### Player outposts
+
+- Players can establish an outpost around a bell, link storage and beds, invite trusted adult creatures, and assign residents, guards, suppliers, and a following crew.
+- Suppliers gather resources suited to their species and faction and deliver them to the outpost. Residents can use linked beds, including hive pillows for latex bees.
+
+### Takeover and combat
+
+- Takeovers offer one chance to negotiate release. Friendly and confinement takeovers eventually release the player; aggression at Distrusted standing can end in a permanent merge, while Hostile punitive takeover can end in death.
+- Ordinary confinement has its own dialogue, and a refused release request extends its timer. A configurable prone period follows waking from a failed escape.
+- Escaping a grab no longer counts as an unprovoked attack or costs faction reputation. If another creature takes over a grabbed player, the earlier grab and its escape prompt end.
+- Pursuit squads move at a normal pace. They can appear in any dimension by default; a setting can restrict them to the Overworld. Another option limits companion combat assistance to hostile monsters involved in the player's fight.
+- Creature transfur method can be set to native, random, assimilation, absorption, or eligible takeover behavior.
+
+### Companions and interactions
+
+- Bonded rescue wrapping and organic emergency evacuation can be disabled. Aquatic friends can shelter players after drowning damage.
+- Bonded companions' tolerance for same-faction kills depends on affection; their form-reversal option appears only for forms of the same faction.
+- Patting different body areas can prompt different reactions, with an eight-second cooldown between body-part lines. Alpha creatures stop leaping after a grab and can settle onto the ground when resting together.
+- Bonded companions drop equipped armor and weapons on death. Revived companions no longer regain items dropped on death; species using Synergy's fallback inventory now drop its stored items too.
+
+### Trading, dialogue, and compatibility
+
+- Exhausted trades can no longer be refreshed through Shift-click trading and reopening the screen.
+- Bonded Changed Vanilla creatures no longer try to infect animals. Suppressed TaCZ and Superb Warfare shots no longer prompt gunshot dialogue.
+- Updated Light- and Dark-faction dialogue and improved missing-line handling so untranslated keys do not appear as speech. Newer takeover and patting lines have also been rewritten in English and Chinese.
+- Changed Addon's hazard suit again blocks assimilation while still allowing absorption.
+- Fixed a game freeze when Exp009's thunder dash or an Alpha's leap is used during voluntary suiting.
+- With TrueTransfur 1.0.1 installed, temporary companion wraps end without making the player permanently transfurred. Companions still refuse unsafe reversal of a genuinely permanent form with dedicated dialogue.
+
+Thank you again to every tester, writer, translator, and player who sent feedback! Please include your mod list and latest.log when reporting a reproducible problem.
+
 ## 0.1.2
 
 Thank you to everyone who tested the builds after 0.1.1, reported problems, shared ideas, and helped shape this update!

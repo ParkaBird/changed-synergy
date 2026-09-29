@@ -15,6 +15,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import net.parkabird.changedsynergy.ChangedSynergyClientConfig;
 import net.parkabird.changedsynergy.ChangedSynergyClientConfig.DialogueDisplayMode;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
+import net.parkabird.changedsynergy.ChangedSynergyConfig.CreatureTransfurMethod;
 
 /** Native Forge config screen used by Forge's mod list and menu integrations. */
 public final class ChangedSynergyConfigScreen extends Screen {
@@ -142,7 +143,7 @@ public final class ChangedSynergyConfigScreen extends Screen {
             return;
         }
 
-        if (entry instanceof DisplayModeEntry modeEntry) {
+        if (entry instanceof EnumEntry<?> modeEntry) {
             Button mode = addRenderableWidget(Button.builder(
                             modeEntry.message(), button -> {
                                 modeEntry.next();
@@ -355,9 +356,17 @@ public final class ChangedSynergyConfigScreen extends Screen {
                         bool("pat_pacification", config.patPacification, true),
                         bool("ordinary_transfur_reversal", config.ordinaryTransfurReversal, true),
                         bool("bond_protective_release_requests", config.bondProtectiveReleaseRequests, true),
+                        bool("bonded_emergency_rescue", config.bondedEmergencyRescue, true),
+                        bool("aquatic_friend_drowning_rescue", config.aquaticFriendDrowningRescue, true),
+                        bool("bonded_kin_confinement", config.bondedKinConfinement, true),
+                        integer("bonded_kin_kill_base_limit", config.bondedKinKillBaseLimit, 3, 1, 20),
+                        bool("changed_vanilla_relationship_animal_protection",
+                                config.changedVanillaRelationshipAnimalProtection, true),
+                        bool("companion_monster_assist_only", config.companionMonsterAssistOnly, false),
                         bool("allow_multiple_bonds", config.allowMultipleBonds, false),
                         bool("peaceful_village_relations", config.peacefulVillageRelations, true),
                         bool("faction_pursuit", config.factionPursuit, true),
+                        bool("faction_pursuit_overworld_only", config.factionPursuitOverworldOnly, false),
                         bool("independent_faction_reputation", config.independentFactionReputation, false),
                         integer("post_transfur_truce", config.postTransfurTruceSeconds, 90, 0, 600),
                         bool("polite_interaction", config.politeHumanInteraction, true),
@@ -367,6 +376,13 @@ public final class ChangedSynergyConfigScreen extends Screen {
                         integer("polite_attempts", config.politeUnansweredLimit, 2, 1, 6)),
                 category("communities",
                         integer("outpost_spacing", config.settlementMinimumSpacing, 48, 16, 256),
+                        bool("player_outposts", config.playerOutposts, true),
+                        integer("player_outpost_residents", config.playerOutpostResidents, 6, 1, 32),
+                        integer("player_outpost_crew", config.playerOutpostCrew, 3, 1, 16),
+                        bool("player_outpost_supply_work", config.playerOutpostSupplyWork, true),
+                        bool("player_outpost_harvesting", config.playerOutpostHarvesting, true),
+                        bool("player_outpost_rest", config.playerOutpostRest, true),
+                        bool("player_outpost_guard_pvp", config.playerOutpostGuardPvp, false),
                         bool("changed_structure_outposts", config.useChangedStructureOutposts, true),
                         bool("latex_bee_hive_outposts", config.latexBeeHiveOutposts, true),
                         integer("structure_outpost_search_radius",
@@ -389,8 +405,11 @@ public final class ChangedSynergyConfigScreen extends Screen {
                         decimal("grab_chance", config.hostileGrabAttemptChance, 0.65, 0.0, 1.0, 0.05),
                         decimal("organic_grab_chance", config.organicHostileGrabAttemptChance, 0.85, 0.0, 1.0, 0.05),
                         bool("mindless_mob_transfur", config.allowMindlessMobTransfur, false),
-                        bool("randomize_creature_transfur_method",
-                                config.randomizeCreatureTransfurMethod, false)),
+                        bool("secondary_transfur", config.allowSecondaryTransfur, true),
+                        enumMode("creature_transfur_method",
+                                config.creatureTransfurMethod,
+                                CreatureTransfurMethod.NATIVE,
+                                "config.changed_synergy.transfur_method.")),
                 category("takeover",
                         bool("takeover_enabled", config.takeoverEnabled, true),
                         bool("takeover_punitive", config.takeoverPunitive, true),
@@ -399,17 +418,20 @@ public final class ChangedSynergyConfigScreen extends Screen {
                         bool("exoskeleton_sleep", config.exoskeletonSleep, true),
                         bool("takeover_borrow", config.takeoverBorrow, true),
                         bool("takeover_escape", config.takeoverEscape, true),
+                        bool("takeover_wake_prone", config.takeoverWakeProne, true),
+                        bool("takeover_negotiation", config.takeoverNegotiation, true),
+                        bool("takeover_hostile_finale", config.takeoverHostileFinale, true),
                         bool("takeover_oranges", config.takeoverOranges, true),
                         integer("takeover_seconds", config.takeoverSeconds, 180, 30, 300),
                         integer("takeover_punitive_seconds", config.takeoverPunitiveSeconds, 240, 30, 300),
-                        integer("takeover_exoskeleton_seconds", config.takeoverExoskeletonSeconds, 30, 5, 60),
-                        bool("takeover_transfur_after_sleep", config.takeoverTransfurAfterSleep, false)),
+                        integer("takeover_exoskeleton_seconds", config.takeoverExoskeletonSeconds, 30, 5, 60)),
                 category("dialogue",
                         decimal("dialogue_range", config.npcDialogueRange, 32.0, 4.0, 96.0, 1.0),
                         integer("dialogue_cooldown", config.npcDialogueCooldownSeconds, 12, 2, 120),
                         decimal("dialogue_chance", config.npcDialogueChance, 0.72, 0.0, 1.0, 0.05),
                         decimal("personality_chance", config.personalityDialogueChance, 0.68, 0.0, 1.0, 0.05),
                         bool("translator", config.npcDialogueUsesTranslator, true),
+                        bool("addon_animal_calls", config.addonAnimalCalls, true),
                         integer("telepathy_unlock", config.telepathyUnlockTransfurs, 3, 0, 20))));
         if (ModList.get().isLoaded("changed_addon")) {
             categories.add(category("changed_addon",
@@ -482,11 +504,18 @@ public final class ChangedSynergyConfigScreen extends Screen {
         return new IntegerEntry(key, value, defaultValue, min, max);
     }
 
-    private static DisplayModeEntry displayMode(
+    private static EnumEntry<DialogueDisplayMode> displayMode(
             String key,
             ForgeConfigSpec.EnumValue<DialogueDisplayMode> value,
             DialogueDisplayMode defaultValue) {
-        return new DisplayModeEntry(key, value, defaultValue);
+        return enumMode(key, value, defaultValue,
+                "config.changed_synergy.dialogue_display.");
+    }
+
+    private static <E extends Enum<E>> EnumEntry<E> enumMode(
+            String key, ForgeConfigSpec.EnumValue<E> value,
+            E defaultValue, String translationPrefix) {
+        return new EnumEntry<>(key, value, defaultValue, translationPrefix);
     }
 
     private static DoubleEntry decimal(String key,
@@ -566,30 +595,31 @@ public final class ChangedSynergyConfigScreen extends Screen {
         }
     }
 
-    private static final class DisplayModeEntry extends ConfigEntry {
-        private final ForgeConfigSpec.EnumValue<DialogueDisplayMode> config;
-        private final DialogueDisplayMode defaultValue;
-        private DialogueDisplayMode value;
+    private static final class EnumEntry<E extends Enum<E>> extends ConfigEntry {
+        private final ForgeConfigSpec.EnumValue<E> config;
+        private final E defaultValue;
+        private final String translationPrefix;
+        private E value;
 
-        private DisplayModeEntry(
+        private EnumEntry(
                 String key,
-                ForgeConfigSpec.EnumValue<DialogueDisplayMode> config,
-                DialogueDisplayMode defaultValue) {
+                ForgeConfigSpec.EnumValue<E> config,
+                E defaultValue, String translationPrefix) {
             super(key);
             this.config = config;
             this.defaultValue = defaultValue;
+            this.translationPrefix = translationPrefix;
             this.value = config.get();
         }
 
         private void next() {
-            DialogueDisplayMode[] values = DialogueDisplayMode.values();
+            E[] values = value.getDeclaringClass().getEnumConstants();
             value = values[(value.ordinal() + 1) % values.length];
         }
 
         private Component message() {
             return Component.translatable(
-                    "config.changed_synergy.dialogue_display."
-                            + value.name().toLowerCase(Locale.ROOT));
+                    translationPrefix + value.name().toLowerCase(Locale.ROOT));
         }
 
         @Override

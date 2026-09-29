@@ -18,6 +18,7 @@ import net.ltxprogrammer.changed.entity.TransfurContext;
 import net.ltxprogrammer.changed.entity.variant.TransfurVariant;
 import net.ltxprogrammer.changed.entity.LivingEntityDataExtension;
 import net.ltxprogrammer.changed.init.ChangedItems;
+import net.ltxprogrammer.changed.init.ChangedDamageSources;
 import net.ltxprogrammer.changed.init.ChangedSounds;
 import net.ltxprogrammer.changed.init.ChangedRegistry;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket;
@@ -50,11 +51,13 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
+import net.parkabird.changedsynergy.ChangedSynergyConfig.CreatureTransfurMethod;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
@@ -65,7 +68,7 @@ import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.network.TakeoverActionPacket;
 import net.parkabird.changedsynergy.network.TakeoverStatePacket;
 
-/** Server authority for temporary body-control sessions. Players are never killed or cloned. */
+/** Server authority for body-control sessions and their terminal outcomes. */
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID)
 public final class TakeoverService {
     private static final String SAVE = "SynergyTakeover";
@@ -97,6 +100,10 @@ public final class TakeoverService {
         final String carrierName;
         boolean transfurApplied;
         boolean confinement;
+        boolean directOutcome;
+        boolean hostileFatalOutcome;
+        boolean negotiationUsed;
+        long failedNegotiationAt = -1;
         long lastSync = Long.MIN_VALUE;
         boolean recoveryPermit;
         long nextReleaseAttempt;
@@ -114,8 +121,10 @@ public final class TakeoverService {
             this.originDimension = player.level().dimension().location().toString();
             this.origin = player.position();
             this.exoskeleton = exoskeleton.copy();
-            this.targetForm = carrier != null && carrier.getSelfVariant() != null
-                    ? carrier.getSelfVariant().getFormId().toString() : "";
+            TransfurVariant<?> form = carrier == null ? null : carrier.getSelfVariant();
+            if (form == null && carrier != null)
+                form = TransfurVariant.findEntityTransfurVariant(carrier);
+            this.targetForm = form == null ? "" : form.getFormId().toString();
             this.inheritedEyes = carrier == null
                     ? new CompoundTag() : InheritedEyeAppearance.capture(carrier);
             this.carrierName = carrier == null
@@ -135,6 +144,13 @@ public final class TakeoverService {
             this.inheritedEyes = saved.getCompound("InheritedEyes").copy();
             this.carrierName = saved.getString("CarrierName");
             this.transfurApplied = saved.getBoolean("TransfurApplied");
+            this.directOutcome = saved.contains("DirectOutcome")
+                    ? saved.getBoolean("DirectOutcome")
+                    : saved.getBoolean("HostilePermanentOutcome");
+            this.hostileFatalOutcome = saved.getBoolean("HostileFatalOutcome");
+            this.negotiationUsed = saved.getBoolean("NegotiationUsed");
+            this.failedNegotiationAt = saved.contains("FailedNegotiationAt")
+                    ? saved.getLong("FailedNegotiationAt") : -1;
             this.originalForm = saved.getString("OriginalForm");
             this.originDimension = saved.getString("OriginDimension");
             Vec3 point = new Vec3(saved.getDouble("OriginX"), saved.getDouble("OriginY"), saved.getDouble("OriginZ"));
@@ -182,7 +198,9 @@ public final class TakeoverService {
                     "message.changed_synergy.bond_kin_confinement_sleep",
                     carrier.getDisplayName()));
             else NpcDialogue.trigger(carrier, player, e.session.isStrictBorrow()
-                    ? Cue.TAKEOVER_BED_SLEEP_REACTIVE
+                    ? e.hostileFatalOutcome || e.directOutcome
+                            ? Cue.TAKEOVER_PUNITIVE_BED_SLEEP
+                            : Cue.TAKEOVER_BED_SLEEP_REACTIVE
                     : Cue.TAKEOVER_BED_SLEEP_PROACTIVE);
         }
     }
@@ -227,8 +245,9 @@ public final class TakeoverService {
      * the intent makes the routing table easy to extend without recreating a
      * second, subtly different set of hostility checks at absorption time.
      */
-    private record Intent(InvoluntaryTransfurNegotiation.Reason reason) {
-        boolean punitive() {
+    private record Intent(InvoluntaryTransfurNegotiation.Reason reason,
+            FactionReputation.Standing standing) {
+        boolean aggression() {
             return switch (reason) {
                 case SELF_DEFENSE, FACTION_RETALIATION, CACHE_DEFENSE -> true;
                 default -> false;
@@ -252,6 +271,7 @@ public final class TakeoverService {
         intent.putUUID("Player", player.getUUID());
         intent.putLong("Until", carrier.level().getGameTime() + INTENT_TICKS);
         intent.putString("Reason", reason.name());
+        intent.putString("Standing", FactionReputation.standing(carrier, player).name());
         carrier.getPersistentData().put(INTENT, intent);
         PENDING_INTENTS.put(carrier.getUUID(), new PendingIntent(player.getUUID(), intent.getLong("Until")));
         ChangedSynergyMod.LOGGER.debug("Authorized takeover for {} -> {} (reason={}, until={})",
@@ -271,7 +291,9 @@ public final class TakeoverService {
         }
         try {
             return new Intent(InvoluntaryTransfurNegotiation.Reason.valueOf(
-                    data.getString("Reason")));
+                    data.getString("Reason")), data.contains("Standing")
+                    ? FactionReputation.Standing.valueOf(data.getString("Standing"))
+                    : FactionReputation.standing(carrier, player));
         } catch (IllegalArgumentException ignored) {
             carrier.getPersistentData().remove(INTENT);
             PENDING_INTENTS.remove(carrier.getUUID());
@@ -304,20 +326,38 @@ public final class TakeoverService {
         return true;
     }
 
+    /** Forced takeover is only a testing choice for creatures with a real grab path. */
+    public static boolean supportsConfiguredTakeover(ChangedEntity carrier, ServerPlayer player) {
+        return baseOrdinaryEligibility(carrier, player)
+                && !LatexSocialMemory.isBonded(carrier, player)
+                && !LatexSocialMemory.isPetOwner(carrier, player);
+    }
+
     /** Routes the already-classified negotiation cause into takeover. */
     public static boolean canAuthorizeOrdinary(ChangedEntity carrier, ServerPlayer player,
             InvoluntaryTransfurNegotiation.Reason reason) {
         if (reason == null || !baseOrdinaryEligibility(carrier, player)) return false;
-        boolean punitive = switch (reason) {
+        if (ChangedSynergyConfig.COMMON.creatureTransfurMethod.get()
+                == CreatureTransfurMethod.TAKEOVER
+                && supportsConfiguredTakeover(carrier, player)
+                && switch (reason) {
+                    case COMPANION_SEEKING, HOST_SEEKING, SELF_DEFENSE,
+                            FACTION_RETALIATION, CACHE_DEFENSE -> true;
+                    default -> false;
+                }) return true;
+        boolean aggression = switch (reason) {
             case SELF_DEFENSE, FACTION_RETALIATION, CACHE_DEFENSE ->
                     ChangedSynergyConfig.COMMON.takeoverPunitive.get();
             default -> false;
         };
+        if (reason == InvoluntaryTransfurNegotiation.Reason.SELF_DEFENSE
+                || reason == InvoluntaryTransfurNegotiation.Reason.FACTION_RETALIATION
+                || reason == InvoluntaryTransfurNegotiation.Reason.CACHE_DEFENSE)
+            return aggression;
         boolean competitive = ChangedSynergyConfig.COMMON.takeoverCompetitive.get()
                 && (CreaturePersonality.has(carrier, CreaturePersonality.Trait.COMPETITIVE)
                     || CreaturePersonality.has(carrier, CreaturePersonality.Trait.SHOW_OFF));
-        if (!punitive && !competitive) return false;
-        return punitive || !(LatexSocialMemory.isBonded(carrier, player)
+        return competitive && !(LatexSocialMemory.isBonded(carrier, player)
                 || LatexSocialMemory.isPetOwner(carrier, player));
     }
 
@@ -368,7 +408,8 @@ public final class TakeoverService {
 
     /** A bonded creature can intervene after repeated witnessed kin kills. */
     public static boolean beginBondedConfinement(ChangedEntity carrier, ServerPlayer player) {
-        if (!baseOrdinaryEligibility(carrier, player)
+        if (!ChangedSynergyConfig.COMMON.bondedKinConfinement.get()
+                || !baseOrdinaryEligibility(carrier, player)
                 || !LatexSocialMemory.isBonded(carrier, player)
                 || LatexSocialMemory.isOrganic(carrier)
                 || carrier.distanceToSqr(player) > 9.0D) return false;
@@ -386,12 +427,21 @@ public final class TakeoverService {
         }
         Intent authorized = intent(carrier, player);
         if (!confinement && authorized == null) return false;
-        boolean punitive = !confinement && authorized.punitive();
-        boolean hostile = !confinement && (punitive || !HumanBoundaryService.isChallenged(carrier, player)
-                && LatexSocialMemory.isProvoked(carrier, player)
-                || FactionReputation.isHostile(carrier, player)
-                || CreatureCacheGuardService.isDefendingAgainst(carrier, player)
-                || FactionPursuitService.isPursuer(carrier));
+        FactionReputation.Standing standing = confinement
+                ? FactionReputation.Standing.NEUTRAL : authorized.standing();
+        boolean forcedHostility = !confinement
+                && ChangedSynergyConfig.COMMON.creatureTransfurMethod.get()
+                        == CreatureTransfurMethod.TAKEOVER
+                && (standing == FactionReputation.Standing.DISTRUSTED
+                        || standing == FactionReputation.Standing.HOSTILE);
+        boolean aggression = !confinement
+                && ChangedSynergyConfig.COMMON.takeoverPunitive.get()
+                && (authorized.aggression() || forcedHostility);
+        boolean direct = aggression && ChangedSynergyConfig.COMMON.takeoverHostileFinale.get()
+                && standing == FactionReputation.Standing.DISTRUSTED;
+        boolean fatal = aggression && ChangedSynergyConfig.COMMON.takeoverHostileFinale.get()
+                && standing == FactionReputation.Standing.HOSTILE;
+        boolean friendly = !confinement && !aggression;
         String form = currentForm(player);
         // Absorption normally completes from a plain grab. Promote the existing
         // reference through Changed's own suit path so temporary-form bookkeeping
@@ -399,10 +449,10 @@ public final class TakeoverService {
         // End a prior creature's hold before Changed checks whether this grab can
         // be stolen. Keeping both references alive lets the old holder reclaim the
         // player as soon as the newer takeover ends.
-        releasePreviousGrabbers(player, carrier);
         STARTING_PLAYERS.add(player.getUUID());
         boolean suited;
         try {
+            releasePreviousGrabbers(player, carrier);
             suited = ability.suitEntity(player);
         } finally {
             STARTING_PLAYERS.remove(player.getUUID());
@@ -414,17 +464,19 @@ public final class TakeoverService {
             return false;
         }
         clearIntent(carrier);
-        long ticks = confinement ? 1200L : 20L * (punitive
+        long ticks = confinement ? 1200L : 20L * (aggression
                 ? ChangedSynergyConfig.COMMON.takeoverPunitiveSeconds.get()
                 : ChangedSynergyConfig.COMMON.takeoverSeconds.get());
         TakeoverSession session = TakeoverSession.ordinary(now(player.server), ticks,
-                !confinement && !hostile && ChangedSynergyConfig.COMMON.takeoverOranges.get(),
-                punitive || confinement,
-                !confinement && ChangedSynergyConfig.COMMON.takeoverTransfurAfterSleep.get()
-                        ? TakeoverSession.SleepOutcome.TRANSFUR
-                        : TakeoverSession.SleepOutcome.RELEASE);
+                friendly && ChangedSynergyConfig.COMMON.takeoverOranges.get(),
+                aggression || confinement,
+                direct ? TakeoverSession.SleepOutcome.TRANSFUR
+                        : fatal ? TakeoverSession.SleepOutcome.RELEASE
+                                : TakeoverSession.SleepOutcome.RELEASE_ON_TIMEOUT);
         Entry entry = new Entry(player, carrier, session, form, new CompoundTag());
         entry.confinement = confinement;
+        entry.directOutcome = direct;
+        entry.hostileFatalOutcome = fatal;
         ACTIVE.put(player.getUUID(), entry);
         InvoluntaryTransfurNegotiation.abandonForTakeover(player);
         ability.suited = true;
@@ -461,11 +513,14 @@ public final class TakeoverService {
                     carrier.getDisplayName()));
         } else {
             NpcDialogue.trigger(carrier, player,
-                    punitive ? Cue.TAKEOVER_REACTIVE_START : Cue.TAKEOVER_PROACTIVE_START);
+                    entry.hostileFatalOutcome ? Cue.TAKEOVER_PUNITIVE_FATAL_START
+                    : entry.directOutcome ? Cue.TAKEOVER_DIRECT_START
+                    : aggression ? Cue.TAKEOVER_REACTIVE_START : Cue.TAKEOVER_PROACTIVE_START);
         }
         save(entry, player);
         ChangedSynergyMod.LOGGER.info("Started {} takeover for {} by {} (reason={})",
-                confinement ? "bonded confinement" : punitive ? "punitive" : "competitive",
+                confinement ? "bonded confinement" : fatal ? "punitive"
+                        : direct ? "direct" : aggression ? "confinement" : "friendly",
                 player.getGameProfile().getName(), carrier.getUUID(),
                 confinement ? "witnessed kin kills" : authorized.reason());
         return true;
@@ -515,7 +570,11 @@ public final class TakeoverService {
                 if (carrier != null && e.session.getKind() == TakeoverSession.Kind.ORDINARY
                         && e.session.hasStruggleOpportunity()) {
                     NpcDialogue.trigger(carrier, player, e.session.isStrictBorrow()
-                            ? Cue.TAKEOVER_ESCAPE_CONFIRM_REACTIVE
+                            ? e.hostileFatalOutcome
+                                    ? Cue.TAKEOVER_PUNITIVE_FATAL_ESCAPE_CONFIRM
+                                    : e.directOutcome
+                                            ? Cue.TAKEOVER_DIRECT_ESCAPE_CONFIRM
+                                            : Cue.TAKEOVER_ESCAPE_CONFIRM_REACTIVE
                             : Cue.TAKEOVER_ESCAPE_CONFIRM_PROACTIVE);
                 }
                 return;
@@ -523,6 +582,54 @@ public final class TakeoverService {
             case TakeoverActionPacket.QTE_INPUT -> result = e.session.submitQte(tick, sequence, key);
             case TakeoverActionPacket.RETURN_CONTROL -> {
                 if (e.session.returnControl(tick)) result = TakeoverSession.Result.ACCEPTED;
+            }
+            case TakeoverActionPacket.NEGOTIATE -> {
+                if (!ChangedSynergyConfig.COMMON.takeoverNegotiation.get()
+                        || e.session.getKind() != TakeoverSession.Kind.ORDINARY
+                        || e.negotiationUsed
+                        || e.session.getPhase() != TakeoverSession.Phase.CONTROLLED
+                                && e.session.getPhase() != TakeoverSession.Phase.BORROWED) return;
+                e.negotiationUsed = true;
+                boolean strict = e.session.isStrictBorrow();
+                int reputation = carrier == null ? 0 : FactionReputation.score(carrier, player);
+                double chance = strict ? 0.18D : 0.52D;
+                chance += Math.max(-0.12D, Math.min(0.22D, reputation / 300.0D));
+                if (carrier != null && LatexSocialMemory.isBonded(carrier, player)) chance += 0.18D;
+                if (player.getRandom().nextDouble() < chance) {
+                    e.session.negotiateRelease(tick);
+                    if (carrier != null) NpcDialogue.trigger(carrier, player,
+                            Cue.TAKEOVER_NEGOTIATION_SUCCESS);
+                    Component notice = Component.translatable(
+                            "takeover.changed_synergy.notice.negotiation_success");
+                    player.sendSystemMessage(notice);
+                    player.displayClientMessage(notice, true);
+                } else {
+                    if (e.confinement || strict && !e.directOutcome && !e.hostileFatalOutcome) {
+                        e.session.extendConfinement(tick, 200L);
+                    } else if (e.hostileFatalOutcome) {
+                        e.failedNegotiationAt = tick + Math.max(60L,
+                                (e.session.getDeadline() - tick) / 4L);
+                    }
+                    if (carrier != null && e.confinement) {
+                        player.sendSystemMessage(Component.translatable(
+                                "message.changed_synergy.bond_kin_confinement_negotiation_failed",
+                                carrier.getDisplayName()));
+                    } else if (carrier != null) NpcDialogue.trigger(carrier, player, strict
+                            ? e.hostileFatalOutcome
+                                    ? Cue.TAKEOVER_NEGOTIATION_FAILED_PUNITIVE_FATAL
+                                    : e.directOutcome
+                                            ? Cue.TAKEOVER_NEGOTIATION_FAILED_DIRECT
+                                            : Cue.TAKEOVER_NEGOTIATION_FAILED_REACTIVE
+                            : Cue.TAKEOVER_NEGOTIATION_FAILED);
+                    Component notice = Component.translatable(e.hostileFatalOutcome
+                            ? "takeover.changed_synergy.notice.negotiation_failed_punitive"
+                            : e.confinement || strict && !e.directOutcome
+                                    ? "takeover.changed_synergy.notice.negotiation_failed_confinement"
+                                    : "takeover.changed_synergy.notice.negotiation_failed");
+                    player.sendSystemMessage(notice);
+                    player.displayClientMessage(notice, true);
+                }
+                result = TakeoverSession.Result.ACCEPTED;
             }
             default -> { return; }
         }
@@ -597,6 +704,10 @@ public final class TakeoverService {
                 e.session.emergencyRelease(tick);
             } else {
                 e.session.tick(tick);
+                if (e.failedNegotiationAt > 0 && tick >= e.failedNegotiationAt)
+                    e.session.failPunitiveNegotiation(tick);
+                if (e.hostileFatalOutcome)
+                    e.session.completeFatalSleep(tick);
             }
             announceTransition(e, player, before);
             tickDialogue(e, player, carrier, tick);
@@ -606,6 +717,9 @@ public final class TakeoverService {
                         == ExoskeletonTakeoverAdapter.Motion.NEEDS_RECOVERY)
                 e.session.emergencyRelease(tick);
             updateControl(e, player, carrier);
+            if (e.hostileFatalOutcome && before == TakeoverSession.Phase.SLEEPING
+                    && e.session.getPhase() == TakeoverSession.Phase.RELEASING)
+                sync(e, player, carrier, true);
             if (e.session.getPhase() == TakeoverSession.Phase.RELEASING) tryRelease(e, player, carrier);
             if (ACTIVE.get(e.playerId) == e) {
                 if (tick - e.lastSync >= 5) sync(e, player, carrier, false);
@@ -629,7 +743,10 @@ public final class TakeoverService {
                 case BORROWED -> "borrow";
                 case STRUGGLE -> "struggle";
                 case SLEEPING -> "sleep";
-                default -> before == TakeoverSession.Phase.BORROWED ? "returned" : null;
+                case CONTROLLED -> before == TakeoverSession.Phase.BORROWED ? "returned" : null;
+                case RELEASING -> e.session.getReleaseReason() == TakeoverSession.ReleaseReason.TIMEOUT
+                        ? "timeout" : null;
+                default -> null;
             };
             if (line != null) player.sendSystemMessage(Component.translatable(
                     "message.changed_synergy.bond_kin_confinement_" + line,
@@ -637,11 +754,25 @@ public final class TakeoverService {
         } else if (carrier != null && e.session.getKind() == TakeoverSession.Kind.ORDINARY) {
             boolean reactive = e.session.isStrictBorrow();
             Cue cue = switch (phase) {
-                case BORROWED -> reactive ? Cue.TAKEOVER_BORROW_GRANTED_REACTIVE
+                case BORROWED -> e.hostileFatalOutcome || e.directOutcome
+                        ? Cue.TAKEOVER_PUNITIVE_BORROW_GRANTED
+                        : reactive ? Cue.TAKEOVER_BORROW_GRANTED_REACTIVE
                         : Cue.TAKEOVER_BORROW_GRANTED_PROACTIVE;
-                case STRUGGLE -> reactive ? Cue.TAKEOVER_STRUGGLE_REACTIVE
+                case STRUGGLE -> e.hostileFatalOutcome
+                        ? Cue.TAKEOVER_PUNITIVE_FATAL_STRUGGLE
+                        : e.directOutcome
+                                ? Cue.TAKEOVER_DIRECT_STRUGGLE
+                                : reactive ? Cue.TAKEOVER_STRUGGLE_REACTIVE
                         : Cue.TAKEOVER_STRUGGLE_PROACTIVE;
-                case SLEEPING -> e.session.getSleepOutcome() == TakeoverSession.SleepOutcome.TRANSFUR
+                case SLEEPING -> e.hostileFatalOutcome
+                        ? e.session.isStruggleUsed()
+                                ? Cue.TAKEOVER_PUNITIVE_FATAL_SLEEP_FAILED
+                                : Cue.TAKEOVER_PUNITIVE_FATAL_SLEEP_EXPIRED
+                        : e.directOutcome
+                                ? e.session.isStruggleUsed()
+                                        ? Cue.TAKEOVER_DIRECT_SLEEP_FAILED
+                                        : Cue.TAKEOVER_DIRECT_SLEEP_EXPIRED
+                        : e.session.getSleepOutcome() == TakeoverSession.SleepOutcome.TRANSFUR
                         ? e.session.isStruggleUsed()
                                 ? reactive ? Cue.TAKEOVER_TRANSFUR_SLEEP_FAILED_REACTIVE
                                         : Cue.TAKEOVER_TRANSFUR_SLEEP_FAILED_PROACTIVE
@@ -649,10 +780,16 @@ public final class TakeoverService {
                                         : Cue.TAKEOVER_TRANSFUR_SLEEP_EXPIRED_PROACTIVE
                         : reactive ? Cue.TAKEOVER_SLEEP_REACTIVE
                                 : Cue.TAKEOVER_SLEEP_PROACTIVE;
-                default -> before == TakeoverSession.Phase.BORROWED
-                        ? reactive ? Cue.TAKEOVER_CONTROL_RETURNED_REACTIVE
+                case CONTROLLED -> before == TakeoverSession.Phase.BORROWED
+                        ? e.hostileFatalOutcome || e.directOutcome
+                                ? Cue.TAKEOVER_PUNITIVE_CONTROL_RETURNED
+                                : reactive ? Cue.TAKEOVER_CONTROL_RETURNED_REACTIVE
                             : Cue.TAKEOVER_CONTROL_RETURNED_PROACTIVE
                         : null;
+                case RELEASING -> e.session.getReleaseReason() == TakeoverSession.ReleaseReason.TIMEOUT
+                        ? reactive ? Cue.TAKEOVER_REACTIVE_TIMEOUT : Cue.TAKEOVER_PROACTIVE_TIMEOUT
+                        : null;
+                default -> null;
             };
             if (cue != null) NpcDialogue.trigger(carrier, player, cue);
         }
@@ -677,15 +814,21 @@ public final class TakeoverService {
         }
         boolean reactive = e.session.isStrictBorrow();
         Cue cue = switch (result) {
-            case TOO_EARLY -> reactive ? Cue.TAKEOVER_BORROW_EARLY_REACTIVE
+            case TOO_EARLY -> e.hostileFatalOutcome || e.directOutcome
+                    ? Cue.TAKEOVER_PUNITIVE_BORROW_EARLY
+                    : reactive ? Cue.TAKEOVER_BORROW_EARLY_REACTIVE
                     : Cue.TAKEOVER_BORROW_EARLY_PROACTIVE;
-            case COOLDOWN -> reactive ? Cue.TAKEOVER_BORROW_COOLDOWN_REACTIVE
+            case COOLDOWN -> e.hostileFatalOutcome || e.directOutcome
+                    ? Cue.TAKEOVER_PUNITIVE_BORROW_COOLDOWN
+                    : reactive ? Cue.TAKEOVER_BORROW_COOLDOWN_REACTIVE
                     : Cue.TAKEOVER_BORROW_COOLDOWN_PROACTIVE;
             case BLOCKED -> switch (blocker) {
                 case AIRBORNE, UNSAFE_WATER -> Cue.TAKEOVER_BORROW_AIRBORNE;
                 case COMBAT -> Cue.TAKEOVER_BORROW_DANGER;
                 case CRITICAL_WORK -> Cue.TAKEOVER_BORROW_BUSY;
-                default -> reactive ? Cue.TAKEOVER_BORROW_EARLY_REACTIVE
+                default -> e.hostileFatalOutcome || e.directOutcome
+                        ? Cue.TAKEOVER_PUNITIVE_BORROW_EARLY
+                        : reactive ? Cue.TAKEOVER_BORROW_EARLY_REACTIVE
                         : Cue.TAKEOVER_BORROW_EARLY_PROACTIVE;
             };
             default -> null;
@@ -711,7 +854,11 @@ public final class TakeoverService {
             return;
         }
         if (tick >= e.nextAmbientLine) {
-            NpcDialogue.trigger(carrier, player, e.session.isStrictBorrow()
+            NpcDialogue.trigger(carrier, player, e.hostileFatalOutcome
+                    ? Cue.TAKEOVER_PUNITIVE_FATAL_AMBIENT
+                    : e.directOutcome
+                            ? Cue.TAKEOVER_DIRECT_AMBIENT
+                    : e.session.isStrictBorrow()
                     ? Cue.TAKEOVER_REACTIVE_AMBIENT : Cue.TAKEOVER_PROACTIVE_AMBIENT);
             e.nextAmbientLine = tick + 300L + carrier.getRandom().nextInt(301);
         }
@@ -765,20 +912,40 @@ public final class TakeoverService {
         for (ServerLevel level : player.server.getAllLevels()) {
             for (Entity entity : level.getAllEntities()) {
                 if (!(entity instanceof ChangedEntity other) || other == carrier) continue;
-                GrabEntityAbilityInstance old = BondedSuitService.ability(other);
-                if (old != null && old.grabbedEntity != null
-                        && player.getUUID().equals(old.grabbedEntity.getUUID())) {
-                    old.releaseEntity(false);
+                GrabEntityAbilityInstance nativeAbility = BondedSuitService.ability(other);
+                GrabEntityAbilityInstance addonAbility = ChangedAddonCompat.grabAbility(other);
+                boolean released = releaseHold(nativeAbility, player);
+                if (addonAbility != nativeAbility) released |= releaseHold(addonAbility, player);
+                if (released) {
+                    LatexSocialMemory.endSecondaryGrab(other, player);
+                    LatexSocialMemory.endFriendlySocialHug(other);
+                    LatexSocialMemory.endOrganicEvacuation(other);
+                    ChangedAddonCompat.syncFriendlySuitControl(other, player, false);
                     Changed.PACKET_HANDLER.send(PacketDistributor.TRACKING_ENTITY.with(() -> other),
+                            new GrabEntityPacket(other, player, GrabType.RELEASE));
+                    Changed.PACKET_HANDLER.send(PacketDistributor.PLAYER.with(() -> player),
                             new GrabEntityPacket(other, player, GrabType.RELEASE));
                     if (other.getTarget() != null
                             && player.getUUID().equals(other.getTarget().getUUID()))
                         other.setTarget(null);
                     HuntMemory.clear(other);
                     other.getNavigation().stop();
+                    GrabEscapeStunService.stun(other, player);
                 }
             }
         }
+        if (player instanceof LivingEntityDataExtension extension
+                && extension.getGrabbedBy() != carrier)
+            extension.setGrabbedBy(null);
+    }
+
+    private static boolean releaseHold(@Nullable GrabEntityAbilityInstance ability,
+            ServerPlayer player) {
+        if (ability == null || ability.grabbedEntity == null
+                || !player.getUUID().equals(ability.grabbedEntity.getUUID())) return false;
+        ability.releaseEntity(false);
+        ChangedAddonCompat.configureFriendlyGrab(ability, false);
+        return true;
     }
 
     private static void tryRelease(Entry e, ServerPlayer player, @Nullable ChangedEntity carrier) {
@@ -796,8 +963,13 @@ public final class TakeoverService {
         TransfurVariant<?> targetVariant = targetVariant(e);
         if (transfurOutcome && (carrier == null || targetVariant == null
                 || !InheritedEyeAppearance.isValid(e.inheritedEyes))) {
+            ChangedSynergyMod.LOGGER.warn(
+                    "Takeover transfur unavailable for {} (carrier={}, form={}, eyesValid={})",
+                    player.getGameProfile().getName(), e.carrierId, e.targetForm,
+                    InheritedEyeAppearance.isValid(e.inheritedEyes));
             e.session.fallbackTransfur(tick);
             transfurOutcome = false;
+            e.directOutcome = false;
             transfurFailed = true;
         }
         if (transfurOutcome) {
@@ -808,7 +980,10 @@ public final class TakeoverService {
         boolean emergency = e.session.getReleaseReason() == TakeoverSession.ReleaseReason.EMERGENCY
                 || e.session.getReleaseReason() == TakeoverSession.ReleaseReason.INTERRUPTED;
         boolean directRelease = e.session.getReleaseReason() == TakeoverSession.ReleaseReason.BREAKOUT
-                || e.session.getReleaseReason() == TakeoverSession.ReleaseReason.EMERGENCY;
+                || e.session.getReleaseReason() == TakeoverSession.ReleaseReason.NEGOTIATED
+                || e.session.getReleaseReason() == TakeoverSession.ReleaseReason.EMERGENCY
+                || e.hostileFatalOutcome && e.session.getReleaseReason() == TakeoverSession.ReleaseReason.SLEEP
+                || e.directOutcome && transfurOutcome;
         Optional<Vec3> safe = directRelease ? Optional.of(player.position())
                 : e.session.getKind() == TakeoverSession.Kind.EXOSKELETON
                         ? findRelease(e, player, localOrigin(e, player), carrier, 8, !emergency)
@@ -875,6 +1050,19 @@ public final class TakeoverService {
             // reroute the player through the normal safe-location search.
             if (directRelease) destination = player.position();
         }
+        if (e.session.getKind() == TakeoverSession.Kind.ORDINARY && carrier != null) {
+            STARTING_PLAYERS.add(player.getUUID());
+            try {
+                releasePreviousGrabbers(player, carrier);
+            } finally {
+                STARTING_PLAYERS.remove(player.getUUID());
+            }
+        }
+        if (e.hostileFatalOutcome && e.session.getReleaseReason() == TakeoverSession.ReleaseReason.SLEEP
+                && carrier != null) {
+            finishFatalTakeover(e, player, carrier, tick);
+            return;
+        }
         if (e.session.getKind() == TakeoverSession.Kind.ORDINARY
                 && transfurOutcome && !e.transfurApplied) {
             STARTING_PLAYERS.add(player.getUUID());
@@ -882,11 +1070,16 @@ public final class TakeoverService {
                 if (!applySleepTransfur(player, carrier, targetVariant, e)) {
                     e.session.fallbackTransfur(tick);
                     transfurOutcome = false;
+                    e.directOutcome = false;
                     transfurFailed = true;
                     restoreForm(player, e);
                 }
             } finally {
                 STARTING_PLAYERS.remove(player.getUUID());
+            }
+            if (e.hostileFatalOutcome && carrier != null) {
+                finishFatalTakeover(e, player, carrier, tick);
+                return;
             }
         } else if (!e.transfurApplied) {
             STARTING_PLAYERS.add(player.getUUID());
@@ -916,8 +1109,9 @@ public final class TakeoverService {
         // clears this ordinary grace through FactionReputationEvents.
         if (e.session.getKind() == TakeoverSession.Kind.ORDINARY)
             FactionHostilityGrace.beginGlobal(player);
-        if (e.session.getReleaseReason() == TakeoverSession.ReleaseReason.SLEEP
-                || e.session.getReleaseReason() == TakeoverSession.ReleaseReason.TRANSFUR)
+        if (ChangedSynergyConfig.COMMON.takeoverWakeProne.get()
+                && e.session.isStruggleUsed() && !e.hostileFatalOutcome
+                && e.session.getReleaseReason() == TakeoverSession.ReleaseReason.SLEEP)
             beginProneRelease(player, tick);
         e.session.finish(tick);
         if (e.session.claimAchievement()) SynergyAdvancements.grant(player, SynergyAdvancements.TAKEOVER_BREAKOUT);
@@ -936,13 +1130,18 @@ public final class TakeoverService {
         }
         if (e.transfurApplied) {
             player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
-                    "takeover.changed_synergy.notice.transfur_after_sleep_complete",
+                    e.directOutcome
+                            ? "takeover.changed_synergy.notice.direct_complete"
+                            : "takeover.changed_synergy.notice.transfur_after_sleep_complete",
                     mergedCarrierName(e, carrier)), false);
         } else if (transfurFailed) {
             player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
                     "takeover.changed_synergy.notice.transfur_after_sleep_failed"), false);
         }
-        if (e.confinement && carrier != null && carrier.isAlive()) {
+        if (e.confinement && !e.transfurApplied
+                && !(e.hostileFatalOutcome
+                        && e.session.getReleaseReason() == TakeoverSession.ReleaseReason.SLEEP)
+                && carrier != null && carrier.isAlive()) {
             player.sendSystemMessage(Component.translatable(
                     "message.changed_synergy.bond_kin_confinement_end",
                     carrier.getDisplayName()));
@@ -954,6 +1153,22 @@ public final class TakeoverService {
             PatAnimationService.stop(carrier);
             carrier.discard();
         }
+    }
+
+    private static void finishFatalTakeover(Entry e, ServerPlayer player,
+            ChangedEntity carrier, long tick) {
+        player.noPhysics = false;
+        if (player instanceof LivingEntityDataExtension extension) extension.setGrabbedBy(null);
+        e.session.finish(tick);
+        sync(e, player, carrier, true);
+        clear(e, player, carrier);
+        player.sendSystemMessage(Component.translatable(
+                "takeover.changed_synergy.notice.punitive_fatal_complete"));
+        // Changed's helper may leave health at zero without completing the
+        // server death transition, producing a death screen that cannot respawn.
+        // Commit the death explicitly using Changed's absorption damage source.
+        player.setHealth(0.0F);
+        player.die(ChangedDamageSources.entityAbsorb(player.level().registryAccess(), carrier));
     }
 
     private static Component mergedCarrierName(
@@ -1145,7 +1360,8 @@ public final class TakeoverService {
         while (iterator.hasNext()) {
             var pose = iterator.next();
             ServerPlayer player = server.getPlayerList().getPlayer(pose.getKey());
-            if (player == null || !player.isAlive() || tick >= pose.getValue()) {
+            if (player == null || !player.isAlive() || tick >= pose.getValue()
+                    || !ChangedSynergyConfig.COMMON.takeoverWakeProne.get()) {
                 if (player != null && player.getForcedPose() == Pose.SWIMMING) player.setForcedPose(null);
                 iterator.remove();
             } else {
@@ -1157,12 +1373,12 @@ public final class TakeoverService {
 
     private static void restoreForm(ServerPlayer player, Entry e) {
         if (e.session.getKind() == TakeoverSession.Kind.EXOSKELETON || e.originalForm.isEmpty()) {
-            ProcessTransfur.removePlayerTransfurVariant(player);
+            TrueTransfurCompat.removeOrKeepForm(player);
             return;
         }
         ResourceLocation id = ResourceLocation.tryParse(e.originalForm);
         var variant = id == null ? null : ChangedRegistry.TRANSFUR_VARIANT.get().getValue(id);
-        if (variant == null) ProcessTransfur.removePlayerTransfurVariant(player);
+        if (variant == null) TrueTransfurCompat.removeOrKeepForm(player);
         else ProcessTransfur.setPlayerTransfurVariant(player, variant);
     }
 
@@ -1187,6 +1403,10 @@ public final class TakeoverService {
         if (!e.inheritedEyes.isEmpty()) tag.put("InheritedEyes", e.inheritedEyes.copy());
         if (!e.carrierName.isEmpty()) tag.putString("CarrierName", e.carrierName);
         tag.putBoolean("TransfurApplied", e.transfurApplied);
+        tag.putBoolean("DirectOutcome", e.directOutcome);
+        tag.putBoolean("HostileFatalOutcome", e.hostileFatalOutcome);
+        tag.putBoolean("NegotiationUsed", e.negotiationUsed);
+        if (e.failedNegotiationAt > 0) tag.putLong("FailedNegotiationAt", e.failedNegotiationAt);
         tag.putString("OriginDimension", e.originDimension);
         tag.putDouble("OriginX", e.origin.x); tag.putDouble("OriginY", e.origin.y); tag.putDouble("OriginZ", e.origin.z);
         tag.putInt("ReleaseAttempts", e.releaseAttempts);
@@ -1213,14 +1433,17 @@ public final class TakeoverService {
         long tick = now(player.server);
         if (!force && tick == e.lastSync) return;
         e.lastSync = tick;
+        long effectiveDeadline = e.failedNegotiationAt > 0
+                ? Math.min(e.session.getDeadline(), e.failedNegotiationAt)
+                : e.session.getDeadline();
         long end = e.session.getPhase() == TakeoverSession.Phase.BORROWED
                 || e.session.getPhase() == TakeoverSession.Phase.SLEEPING
-                ? e.session.getPhaseUntil() : e.session.getDeadline();
+                ? e.session.getPhaseUntil() : effectiveDeadline;
         int remaining = (int)Math.max(0, Math.min(Integer.MAX_VALUE, end - tick));
         int releaseRemaining = (int)Math.max(0, Math.min(Integer.MAX_VALUE,
-                e.session.getDeadline() - tick));
+                effectiveDeadline - tick));
         int releaseTotal = (int)Math.max(1, Math.min(Integer.MAX_VALUE,
-                e.session.getDeadline() - e.session.getStartedAt()));
+                effectiveDeadline - e.session.getStartedAt()));
         int cooldown = (int)Math.max(0, Math.min(Integer.MAX_VALUE, e.session.getNextBorrowAt() - tick));
         float fade;
         if (e.session.getPhase() == TakeoverSession.Phase.SLEEPING) {
@@ -1231,7 +1454,9 @@ public final class TakeoverService {
                     || e.session.getPhase() == TakeoverSession.Phase.FINISHED)
                     && (e.session.getReleaseReason() == TakeoverSession.ReleaseReason.SLEEP
                         || e.session.getReleaseReason() == TakeoverSession.ReleaseReason.TRANSFUR);
-            fade = sleepingRelease ? 1.0F : 0.0F;
+            fade = sleepingRelease && !(e.hostileFatalOutcome
+                    && e.session.getPhase() == TakeoverSession.Phase.FINISHED)
+                    ? 1.0F : 0.0F;
         }
         int phase = switch (e.session.getPhase()) {
             case CONTROLLED -> TakeoverStatePacket.CONTROLLED;
@@ -1244,7 +1469,10 @@ public final class TakeoverService {
         var packet = new TakeoverStatePacket(e.id, e.session.getKind().ordinal(), phase,
                 carrier == null ? -1 : carrier.getId(), player.getId(),
                 releaseRemaining, releaseTotal, cooldown,
-                e.session.isStruggleUsed(), e.session.getExpectedKey(), e.session.getQteIndex(),
+                e.session.isStruggleUsed(), e.negotiationUsed,
+                ChangedSynergyConfig.COMMON.takeoverNegotiation.get(),
+                e.hostileFatalOutcome ? 2 : e.directOutcome ? 1 : 0,
+                e.session.getExpectedKey(), e.session.getQteIndex(),
                 e.session.getQteIndex(), e.session.getQteLength(), fade,
                 carrier == null ? "Exoskeleton" : carrier.getDisplayName().getString());
         ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player), packet);

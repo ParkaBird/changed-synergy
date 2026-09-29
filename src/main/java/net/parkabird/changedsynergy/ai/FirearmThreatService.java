@@ -94,11 +94,11 @@ public final class FirearmThreatService {
             }
         }
 
-        if (hostileSpeaker != null) {
+        if (!suppressed && hostileSpeaker != null) {
             markReacted(hostileSpeaker, now);
             NpcDialogue.trigger(hostileSpeaker, shooter, Cue.GUNSHOT_HOSTILE);
         }
-        if (friendlySpeaker != null) {
+        if (!suppressed && friendlySpeaker != null) {
             markReacted(friendlySpeaker, now);
             NpcDialogue.trigger(friendlySpeaker, shooter, Cue.GUNSHOT_FRIENDLY);
         }

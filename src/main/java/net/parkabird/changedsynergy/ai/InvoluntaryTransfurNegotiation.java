@@ -42,6 +42,7 @@ import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.CreaturePersonality.Trait;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
+import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.event.LatexSocialEvents;
@@ -443,7 +444,8 @@ public final class InvoluntaryTransfurNegotiation {
     public static boolean canNegotiate(
             ServerPlayer player,
             ChangedEntity source) {
-        if (!ordinaryReversalEnabled() || TakeoverService.active(player)) return false;
+        if (!ordinaryReversalEnabled() || TakeoverService.active(player)
+                || TrueTransfurCompat.blocksReversal(player)) return false;
         CompoundTag data = existingPlayerData(player);
         refreshFailureCooldown(player, data);
         if (data == null
@@ -462,7 +464,8 @@ public final class InvoluntaryTransfurNegotiation {
     }
 
     public static boolean canNegotiateAbsorption(ServerPlayer player) {
-        if (!ordinaryReversalEnabled() || TakeoverService.active(player)) return false;
+        if (!ordinaryReversalEnabled() || TakeoverService.active(player)
+                || TrueTransfurCompat.blocksReversal(player)) return false;
         CompoundTag data = existingPlayerData(player);
         refreshFailureCooldown(player, data);
         return player.isAlive()
@@ -932,7 +935,8 @@ public final class InvoluntaryTransfurNegotiation {
                 && ProcessTransfur.isPlayerTransfurred(player)
                 && !isOrganicPlayerForm(player)
                 && ProcessTransfur.getPlayerTransfurVariantSafe(player)
-                        .map(instance -> !instance.isTemporaryFromSuit())
+                        .map(instance -> !instance.isTemporaryFromSuit()
+                                && HunterFaction.of(source) == HunterFaction.of(instance.getChangedEntity()))
                         .orElse(false);
     }
 
@@ -952,13 +956,15 @@ public final class InvoluntaryTransfurNegotiation {
             return true;
         }
         return ordinaryReversalEnabled()
+                && !TrueTransfurCompat.blocksReversal(player)
                 && !player.isSpectator()
                 && player.distanceToSqr(source) <= 64.0D
                 && !hasAbsorptionClaim(player)
                 && ProcessTransfur.isPlayerTransfurred(player)
                 && !isOrganicPlayerForm(player)
                 && ProcessTransfur.getPlayerTransfurVariantSafe(player)
-                        .map(instance -> !instance.isTemporaryFromSuit())
+                        .map(instance -> !instance.isTemporaryFromSuit()
+                                && HunterFaction.of(source) == HunterFaction.of(instance.getChangedEntity()))
                         .orElse(false);
     }
 
@@ -968,6 +974,10 @@ public final class InvoluntaryTransfurNegotiation {
             ServerPlayer player) {
         if (hasReleaseHold(source)
                 || !canBondedReversal(source, player)) {
+            return false;
+        }
+        if (TrueTransfurCompat.blocksReversal(player)) {
+            NpcDialogue.trigger(source, player, Cue.BOND_REVERSE_UNSAFE);
             return false;
         }
         long now = source.level().getGameTime();
@@ -1543,6 +1553,7 @@ public final class InvoluntaryTransfurNegotiation {
             ServerPlayer player,
             CompoundTag claim,
             boolean notifyNoSpace) {
+        if (TrueTransfurCompat.blocksReversal(player)) return false;
         ReleaseBlockReason block = absorptionReleaseBlock(player);
         if (block != ReleaseBlockReason.NONE) {
             warnBlockedAbsorptionRelease(player, block);
@@ -1618,6 +1629,11 @@ public final class InvoluntaryTransfurNegotiation {
     private static void tickQueuedRelease(
             ServerPlayer player,
             CompoundTag data) {
+        if (TrueTransfurCompat.blocksReversal(player)) {
+            data.putBoolean(RELEASE_WHEN_SAFE, false);
+            syncAbsorptionState(player, false);
+            return;
+        }
         long now = player.level().getGameTime();
         if (data.getLong(NEXT_ATTEMPT) > now) {
             return;
@@ -1718,7 +1734,7 @@ public final class InvoluntaryTransfurNegotiation {
                 || claim.getBoolean(WHITE_KNIGHT_SPLIT)) {
             restoreOriginalPlayerForm(player, claim);
         } else if (ProcessTransfur.isPlayerTransfurred(player)) {
-            ProcessTransfur.removePlayerTransfurVariant(player);
+            TrueTransfurCompat.removeOrKeepForm(player);
         }
         ProcessTransfur.setPlayerTransfurProgress(player, 0.0F);
         playReverseTransfurSound(player);
@@ -1774,9 +1790,10 @@ public final class InvoluntaryTransfurNegotiation {
                 branch = "dark_yufeng_fusion";
             }
         }
-        Component line = Component.translatable(
-                "dialogue.changed_synergy.negotiation."
-                        + branch + "." + group + ".0");
+        String key = "dialogue.changed_synergy.negotiation."
+                + branch + "." + group + ".0";
+        if (!NpcDialogue.hasTranslatedLine(key)) return;
+        Component line = Component.translatable(key);
         player.sendSystemMessage(Component.translatable(
                 "message.changed_synergy.negotiation.inner_voice",
                 absorptionSourceName(player),
@@ -1788,7 +1805,7 @@ public final class InvoluntaryTransfurNegotiation {
             ChangedEntity source,
             View view,
             View before) {
-        if (hasReleaseHold(source)) {
+        if (hasReleaseHold(source) || TrueTransfurCompat.blocksReversal(player)) {
             return;
         }
 
@@ -1829,6 +1846,7 @@ public final class InvoluntaryTransfurNegotiation {
             ServerPlayer player,
             boolean whiteKnightSplit,
             boolean showLatexParticles) {
+        if (TrueTransfurCompat.blocksReversal(player)) return;
         if (showLatexParticles) {
             ProcessTransfur.getPlayerTransfurVariantSafe(player).ifPresent(instance -> {
                 if (player.level() instanceof ServerLevel level) {
@@ -1845,7 +1863,7 @@ public final class InvoluntaryTransfurNegotiation {
         if (whiteKnightSplit) {
             restoreOriginalPlayerForm(player);
         } else if (ProcessTransfur.isPlayerTransfurred(player)) {
-            ProcessTransfur.removePlayerTransfurVariant(player);
+            TrueTransfurCompat.removeOrKeepForm(player);
         }
         ProcessTransfur.setPlayerTransfurProgress(player, 0.0F);
         playReverseTransfurSound(player);
@@ -1880,7 +1898,7 @@ public final class InvoluntaryTransfurNegotiation {
 
     /** Organic assimilation cannot be negotiated, but a completed night's sleep can undo it. */
     public static boolean releaseOrganicAfterSleep(ServerPlayer player) {
-        if (!ordinaryReversalEnabled()) return false;
+        if (!ordinaryReversalEnabled() || TrueTransfurCompat.blocksReversal(player)) return false;
         var instance = ProcessTransfur.getPlayerTransfurVariantSafe(player)
                 .filter(value -> LatexSocialMemory.isOrganic(value.getChangedEntity()))
                 .orElse(null);
@@ -1917,7 +1935,7 @@ public final class InvoluntaryTransfurNegotiation {
         ResourceLocation formId = readLocation(claim, ORIGINAL_PLAYER_FORM);
         if (formId == null) {
             if (ProcessTransfur.isPlayerTransfurred(player)) {
-                ProcessTransfur.removePlayerTransfurVariant(player);
+                TrueTransfurCompat.removeOrKeepForm(player);
             }
             return;
         }
@@ -1927,7 +1945,7 @@ public final class InvoluntaryTransfurNegotiation {
                 .orElse(null);
         if (variant == null) {
             if (ProcessTransfur.isPlayerTransfurred(player)) {
-                ProcessTransfur.removePlayerTransfurVariant(player);
+                TrueTransfurCompat.removeOrKeepForm(player);
             }
             return;
         }
@@ -1938,7 +1956,7 @@ public final class InvoluntaryTransfurNegotiation {
         CompoundTag claim = existingPlayerData(player);
         if (claim == null) {
             if (ProcessTransfur.isPlayerTransfurred(player)) {
-                ProcessTransfur.removePlayerTransfurVariant(player);
+                TrueTransfurCompat.removeOrKeepForm(player);
             }
             return;
         }

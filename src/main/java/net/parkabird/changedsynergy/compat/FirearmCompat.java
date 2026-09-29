@@ -31,6 +31,8 @@ public final class FirearmCompat {
     private static Method taczCacheGetByName;
     private static Method fastutilPairLeft;
     private static Method fastutilPairRight;
+    private static Method superbGetData;
+    private static Method superbIsBarrelSilenced;
     private static Class<?> superbGunItem;
     private static boolean registered;
 
@@ -114,6 +116,16 @@ public final class FirearmCompat {
                 initializeTaczSoundAccess(loader);
             } else {
                 superbGunItem = firearmClass;
+                try {
+                    Class<?> gunData = Class.forName(
+                            "com.atsuishio.superbwarfare.data.gun.GunData", false, loader);
+                    superbGetData = eventClass.getMethod("getData");
+                    superbIsBarrelSilenced = Class.forName(
+                            "com.atsuishio.superbwarfare.data.gun.GunDataKt", false, loader)
+                            .getMethod("isBarrelSilenced", gunData);
+                } catch (ReflectiveOperationException | LinkageError ignored) {
+                    // Older Superb Warfare releases have no compatible accessor.
+                }
             }
             addControlListener(eventClass, shooterGetter);
             addShootListener(eventClass, shooterGetter, modId, gunStackGetter);
@@ -206,7 +218,7 @@ public final class FirearmCompat {
             if (player != null && !player.level().isClientSide()) {
                 TaczSoundProfile profile = TACZ.equals(modId)
                         ? readTaczSoundProfile(event, gunStackGetter, player)
-                        : null;
+                        : readSuperbSoundProfile(event);
                 if (profile != null) {
                     FirearmThreatService.onGunshot(
                             player, profile.radius(), profile.suppressed());
@@ -264,6 +276,18 @@ public final class FirearmCompat {
         } catch (ReflectiveOperationException | LinkageError | RuntimeException exception) {
             ChangedSynergyMod.LOGGER.debug(
                     "Could not read TACZ's attachment-adjusted gunshot range", exception);
+            return null;
+        }
+    }
+
+    private static TaczSoundProfile readSuperbSoundProfile(Event event) {
+        if (superbGetData == null || superbIsBarrelSilenced == null) return null;
+        try {
+            Object data = superbGetData.invoke(event);
+            return new TaczSoundProfile(Double.NaN,
+                    Boolean.TRUE.equals(superbIsBarrelSilenced.invoke(null, data)));
+        } catch (ReflectiveOperationException | LinkageError | RuntimeException exception) {
+            ChangedSynergyMod.LOGGER.debug("Could not read Superb Warfare's barrel attachment", exception);
             return null;
         }
     }

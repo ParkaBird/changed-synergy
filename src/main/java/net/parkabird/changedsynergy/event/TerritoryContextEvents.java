@@ -27,6 +27,8 @@ import net.minecraftforge.network.PacketDistributor;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.HunterFaction;
 import net.parkabird.changedsynergy.ai.FactionReputation;
+import net.parkabird.changedsynergy.ai.PlayerOutpostData;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.dialogue.LatexTerritory;
 import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.network.TerritorySyncPacket;
@@ -42,8 +44,6 @@ public final class TerritoryContextEvents {
             ResourceLocation.fromNamespaceAndPath(
                     ChangedSynergyMod.MOD_ID, "cave_region");
     private static final Map<UUID, Context> LAST_CONTEXT = new HashMap<>();
-    private static final Context EMPTY_CONTEXT = new Context(
-            false, "", "", "", "", -1, "", 0);
 
     private TerritoryContextEvents() {
     }
@@ -96,10 +96,9 @@ public final class TerritoryContextEvents {
         if (!player.isAlive() || !(player.level() instanceof ServerLevel level)) {
             return;
         }
-        Context context = ChangedSynergyGameRules.enabled(
-                        level, ChangedSynergyGameRules.TERRITORY_DISPLAY)
-                ? inspect(level, player)
-                : EMPTY_CONTEXT;
+        Context context = inspect(level, player,
+                ChangedSynergyGameRules.enabled(
+                        level, ChangedSynergyGameRules.TERRITORY_DISPLAY));
         Context previous = LAST_CONTEXT.put(player.getUUID(), context);
         if (context.equals(previous)) {
             return;
@@ -111,18 +110,26 @@ public final class TerritoryContextEvents {
 
     private static Context inspect(
             ServerLevel level,
-            ServerPlayer player) {
+            ServerPlayer player,
+            boolean displayEnabled) {
         BlockPos position = player.blockPosition();
         BiomeSample biome = displayedBiome(level, player);
         String biomeId = biome.displayId() == null
                 ? ""
                 : biome.displayId().toString();
+        BlockPos outpostMarker = ChangedSynergyConfig.COMMON.playerOutposts.get()
+                ? PlayerOutpostData.get(player.server).byOwner(player.getUUID())
+                        .filter(outpost -> outpost.active(level))
+                        .map(outpost -> outpost.marker)
+                        .orElse(null)
+                : null;
 
         FacilitySnapshot room = facilityAt(level, position);
         if (room != null) {
             HunterFaction faction =
                     LatexTerritory.dominantFaction(room.piece().zone());
             return new Context(
+                    displayEnabled,
                     true,
                     room.facilityCode(),
                     room.piece().zone().toString(),
@@ -131,11 +138,13 @@ public final class TerritoryContextEvents {
                     faction == null ? -1 : faction.ordinal(),
                     "",
                     FactionReputation.scoreAt(
-                            faction, player, level, position));
+                            faction, player, level, position),
+                    outpostMarker);
         }
 
         if (!Level.OVERWORLD.equals(level.dimension())) {
             return new Context(
+                    displayEnabled,
                     false,
                     "",
                     "",
@@ -143,7 +152,8 @@ public final class TerritoryContextEvents {
                     "",
                     -1,
                     "",
-                    0);
+                    0,
+                    outpostMarker);
         }
 
         LatexTerritory.BiomePopulation population =
@@ -155,6 +165,7 @@ public final class TerritoryContextEvents {
                 ? null
                 : population.faction();
         return new Context(
+                displayEnabled,
                 false,
                 "",
                 "",
@@ -165,7 +176,8 @@ public final class TerritoryContextEvents {
                         ? ""
                         : population.populationRegion(),
                 FactionReputation.scoreAt(
-                        faction, player, level, biome.samplePosition()));
+                        faction, player, level, biome.samplePosition()),
+                outpostMarker);
     }
 
     /**
@@ -347,6 +359,7 @@ public final class TerritoryContextEvents {
     }
 
     private record Context(
+            boolean displayEnabled,
             boolean facility,
             String facilityCode,
             String zoneId,
@@ -354,9 +367,11 @@ public final class TerritoryContextEvents {
             String biomeId,
             int factionOrdinal,
             String populationRegion,
-            int reputationScore) {
+            int reputationScore,
+            @Nullable BlockPos outpostMarker) {
         private TerritorySyncPacket packet() {
             return new TerritorySyncPacket(
+                    displayEnabled,
                     facility,
                     facilityCode,
                     zoneId,
@@ -364,7 +379,8 @@ public final class TerritoryContextEvents {
                     biomeId,
                     factionOrdinal,
                     populationRegion,
-                    reputationScore);
+                    reputationScore,
+                    outpostMarker);
         }
     }
 

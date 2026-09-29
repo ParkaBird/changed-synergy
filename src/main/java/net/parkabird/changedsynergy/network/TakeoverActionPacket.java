@@ -8,7 +8,7 @@ import net.parkabird.changedsynergy.ai.TakeoverService;
 
 public record TakeoverActionPacket(UUID sessionId, int action, int key, int sequence) {
     public static final int REQUEST_CONTROL = 0, START_STRUGGLE = 1, QTE_INPUT = 2,
-            RETURN_CONTROL = 3, CONFIRM_STRUGGLE = 4;
+            RETURN_CONTROL = 3, CONFIRM_STRUGGLE = 4, NEGOTIATE = 5;
 
     public static void encode(TakeoverActionPacket p, FriendlyByteBuf b) {
         b.writeUUID(p.sessionId);
