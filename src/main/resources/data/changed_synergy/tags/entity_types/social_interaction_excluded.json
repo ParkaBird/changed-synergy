@@ -19,7 +19,7 @@
       "required": false
     },
     {
-      "id": "changedextras:artist",
+      "id": "changedextras:latex_artist",
       "required": false
     }
   ]
