@@ -259,6 +259,18 @@ public final class TrueTransfurReleaseRegression {
                 check(visible instanceof ChangedEntity && TrueTransfurCompat.bodyOwner((ChangedEntity)visible) == nativePlayer,
                         "Visible Instinct body maps to the real player cycle " + cycle);
                 var body = (ChangedEntity)visible;
+                var hostilityProbe = net.ltxprogrammer.changed.init.ChangedEntities.GAS_WOLF_MALE.get().create(level);
+                try {
+                    hostilityProbe.setLastHurtByMob(body);
+                    hostilityProbe.setLastHurtMob(body);
+                    net.parkabird.changedsynergy.ai.HuntMemory.seeTarget(hostilityProbe, nativePlayer);
+                    check(net.parkabird.changedsynergy.ai.LatexSocialMemory.hasHostilityToward(hostilityProbe, nativePlayer),
+                            "Instinct-body revenge belongs to its real player cycle " + cycle);
+                    net.parkabird.changedsynergy.ai.LatexSocialMemory.clearOwnerHostility(hostilityProbe, nativePlayer);
+                    check(hostilityProbe.getLastHurtByMob() == null && hostilityProbe.getLastHurtMob() == null
+                                    && !net.parkabird.changedsynergy.ai.HuntMemory.targets(hostilityProbe, nativePlayer),
+                            "Peace clears real Instinct-body revenge and player pursuit together cycle " + cycle);
+                } finally { hostilityProbe.discard(); }
                 body.setCustomNameVisible(true);
                 nativePlayer.tickCount = 0;
                 PlayerSocialService.onPlayerTick(new net.minecraftforge.event.TickEvent.PlayerTickEvent(

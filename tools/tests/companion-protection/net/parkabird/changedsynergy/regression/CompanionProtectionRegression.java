@@ -39,6 +39,7 @@ public final class CompanionProtectionRegression {
     @SubscribeEvent public static void run(ServerStartedEvent event) {
         try {
             AuthorFeedbackChecks.run(event.getServer());
+            HostilityChecks.run(event.getServer());
             checkProtection(event.getServer());
             System.out.println("COMPANION_PROTECTION_REGRESSION_PASS: " + checks + " checks");
         } catch (Throwable failure) {

@@ -317,14 +317,14 @@ public final class CreatureCacheGuardService {
                 ? resolvePlayer(level, active)
                 : null;
         if (active.defenseCompleted) {
-            clearCombatState(guard, intruder);
+            clearAssignedCombatState(guard, active, intruder);
             return;
         }
         if (!isValidIntruder(guard, intruder)
                 || outsideDefenseRadius(intruder, active)) {
             active.markDefenseCompleted();
-            clearCombatState(guard, intruder);
-            guard.getNavigation().stop();
+            clearAssignedCombatState(guard, active, intruder);
+            if (guard.getTarget() == null) guard.getNavigation().stop();
             return;
         }
         if (guard.getTarget() != intruder) {
@@ -336,11 +336,18 @@ public final class CreatureCacheGuardService {
 
     public static void finish(ChangedEntity guard, boolean defendedCache) {
         Assignment removed = ASSIGNMENTS.remove(guard.getUUID());
-        clearCombatState(guard, resolveAssignedPlayer(guard, removed));
-        guard.getNavigation().stop();
+        if (removed == null) clearCombatState(guard, null);
+        else clearAssignedCombatState(guard, removed, resolveAssignedPlayer(guard, removed));
+        if (guard.getTarget() == null) guard.getNavigation().stop();
         if (removed != null && defendedCache) {
             CreatureLifeMemory.incrementRoleStat(guard, 1);
         }
+    }
+
+    /** Accepted peace ends this intrusion while preserving the guard's return post. */
+    public static void standDownTowards(ChangedEntity guard, ServerPlayer player) {
+        assignment(guard).filter(active -> active.player.equals(player.getUUID()))
+                .ifPresent(Assignment::markDefenseCompleted);
     }
 
     public static boolean outsideDefenseRadius(
@@ -368,19 +375,32 @@ public final class CreatureCacheGuardService {
                 .orElse(false);
     }
 
+    private static void clearAssignedCombatState(
+            ChangedEntity guard, Assignment assignment, @Nullable ServerPlayer intruder) {
+        // A disconnected intruder may still have a stale target reference.
+        // An absent connection does not authorize clearing a different player's fight.
+        if (intruder == null && guard.getTarget() instanceof ServerPlayer previous
+                && assignment.player.equals(previous.getUUID())) intruder = previous;
+        if (intruder != null || guard.getTarget() == null) clearCombatState(guard, intruder);
+    }
+
     public static void clearCombatState(
             ChangedEntity guard,
             @Nullable ServerPlayer intruder) {
         if (intruder == null || guard.getTarget() == intruder) {
             guard.setTarget(null);
         }
-        if (intruder == null || guard.getLastHurtByMob() == intruder) {
+        if (intruder == null) {
             guard.setLastHurtByMob(null);
             guard.setLastHurtByPlayer(null);
+            HuntMemory.clear(guard);
+        } else {
+            LatexSocialMemory.clearRevengeMemoryToward(guard, intruder);
         }
-        HuntMemory.clear(guard);
-        guard.setAggressive(false);
-        guard.setSprinting(false);
+        if (guard.getTarget() == null) {
+            guard.setAggressive(false);
+            guard.setSprinting(false);
+        }
     }
 
     @Nullable

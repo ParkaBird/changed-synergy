@@ -1122,9 +1122,23 @@ public final class LatexSocialMemory {
     }
 
     public static boolean hasHostilityToward(ChangedEntity mob, ServerPlayer player) {
-        return mob.getTarget() == player
-                || mob.getLastHurtByMob() == player
+        return representsPlayer(mob.getTarget(), player)
+                || representsPlayer(mob.getLastHurtByMob(), player)
+                || representsPlayer(mob.getKillCredit(), player)
+                || representsPlayer(mob.getLastHurtMob(), player)
+                || mob instanceof NeutralMob neutral
+                        && player.getUUID().equals(neutral.getPersistentAngerTarget())
                 || HuntMemory.targets(mob, player);
+    }
+
+    private static boolean representsPlayer(@Nullable Entity entity, ServerPlayer player) {
+        if (entity instanceof Player candidate) return player.getUUID().equals(candidate.getUUID());
+        if (entity instanceof ChangedEntity body
+                && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(body)) {
+            ServerPlayer owner = net.parkabird.changedsynergy.compat.TrueTransfurCompat.bodyOwner(body);
+            return owner != null && player.getUUID().equals(owner.getUUID());
+        }
+        return false;
     }
 
     public static void clearHostilityToward(ChangedEntity mob, ServerPlayer player) {
@@ -1143,27 +1157,37 @@ public final class LatexSocialMemory {
             ChangedEntity mob,
             ServerPlayer player,
             boolean stopNavigation) {
-        if (hasRelationshipBetrayal(mob, player)) {
+        if (hasRelationshipBetrayal(mob, player) && !shouldRemainNeutral(mob, player)) {
             return;
         }
-        if (mob.getTarget() == player) {
+        boolean wasHostile = hasHostilityToward(mob, player)
+                || CreatureCacheGuardService.isDefendingAgainst(mob, player);
+        CreatureCacheGuardService.standDownTowards(mob, player);
+        if (representsPlayer(mob.getTarget(), player)) {
             mob.setTarget(null);
         }
         clearRevengeMemoryToward(mob, player);
-        mob.setAggressive(false);
-        mob.setSprinting(false);
-        if (stopNavigation) {
-            mob.getNavigation().stop();
+        net.parkabird.changedsynergy.event.LatexSocialEvents.clearPendingCombatReactions(mob, player);
+        if (wasHostile && mob.getTarget() == null) {
+            mob.setAggressive(false);
+            mob.setSprinting(false);
+            if (stopNavigation) mob.getNavigation().stop();
         }
     }
 
     public static void clearRevengeMemoryToward(ChangedEntity mob, ServerPlayer player) {
-        if (mob.getLastHurtByMob() == player) {
+        if (representsPlayer(mob.getLastHurtByMob(), player)) {
             mob.setLastHurtByMob(null);
+        }
+        if (representsPlayer(mob.getKillCredit(), player)) {
             mob.setLastHurtByPlayer(null);
         }
-        if (mob.getLastHurtMob() == player) {
+        if (representsPlayer(mob.getLastHurtMob(), player)) {
             mob.setLastHurtMob(null);
+        }
+        if (mob instanceof NeutralMob neutral
+                && player.getUUID().equals(neutral.getPersistentAngerTarget())) {
+            neutral.stopBeingAngry();
         }
         if (HuntMemory.targets(mob, player)) {
             HuntMemory.clear(mob);
@@ -1413,22 +1437,7 @@ public final class LatexSocialMemory {
         clearTruce(mob, player);
         endSecondaryGrab(mob, player);
 
-        if (mob.getTarget() == player) {
-            mob.setTarget(null);
-        }
-        if (mob.getLastHurtByMob() == player) {
-            mob.setLastHurtByMob(null);
-            mob.setLastHurtByPlayer(null);
-        }
-        if (HuntMemory.targets(mob, player)) {
-            HuntMemory.clear(mob);
-        }
-        if (mob instanceof NeutralMob neutralMob) {
-            neutralMob.stopBeingAngry();
-        }
-        mob.setAggressive(false);
-        mob.setSprinting(false);
-        mob.getNavigation().stop();
+        clearHostilityToward(mob, player);
     }
 
     public static boolean isSettledAfterSecondaryTransfur(
@@ -1682,6 +1691,7 @@ public final class LatexSocialMemory {
         data.putUUID(TRUCE_PLAYER, player.getUUID());
         data.putLong(TRUCE_UNTIL, mob.level().getGameTime() + Math.max(1L, durationTicks));
         data.putBoolean(TRUCE_FROM_PAT, fromPat);
+        clearHostilityToward(mob, player);
     }
 
     public static boolean isPatTruced(ChangedEntity mob, ServerPlayer player) {
@@ -1827,10 +1837,10 @@ public final class LatexSocialMemory {
             return true;
         }
         if (isOrganic(mob)) {
-            // A nearby same-category companion still vouches for its reverted
-            // owner. Unprovoked human neutrality is handled by the dedicated
-            // organic-human gate; transformed outsiders remain combat targets.
-            return (relation == LatexSocialRelation.FORMER_RESPECTED
+            // Replicating a human makes them kin, not a new combat target.
+            // Genuine faction hostility, betrayal and provocation remain authoritative.
+            return (relation.isFriendlyTransformed()
+                    || relation == LatexSocialRelation.FORMER_RESPECTED
                     || relation == LatexSocialRelation.FRIEND_RESPECTED)
                     && !isProvoked(mob, player);
         }

@@ -685,7 +685,7 @@ public final class LatexSocialEvents {
                         event.getSource(), mob)
                 && OrganicCombatRules.shouldUseOnlyGrapple(mob, player);
         if (!protectedBySocialRules && !neutralOrganicHuman && !lowHealthOrganicSwipe) {
-            LatexSocialMemory.refreshProvocation(mob, player);
+            // Only a new action by the player may extend their provocation.
             return;
         }
         event.setCanceled(true);
