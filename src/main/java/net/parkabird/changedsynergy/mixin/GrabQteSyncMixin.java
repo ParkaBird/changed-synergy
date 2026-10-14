@@ -8,6 +8,8 @@ import net.ltxprogrammer.changed.ability.GrabEntityAbilityInstance;
 import net.ltxprogrammer.changed.ability.IAbstractChangedEntity;
 import net.ltxprogrammer.changed.entity.variant.TransfurVariantInstance;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
+import net.ltxprogrammer.changed.entity.ai.LatexAssimilationDecision;
+import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.parkabird.changedsynergy.ai.CreatureSocialProfile;
 import net.parkabird.changedsynergy.ai.BondedSuitService;
 import net.parkabird.changedsynergy.ai.ReleasePlacementService;
@@ -21,8 +23,10 @@ import net.parkabird.changedsynergy.network.FriendlySocialHugState;
 import net.parkabird.changedsynergy.network.GrabQteSyncPacket;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.PacketDistributor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -50,6 +54,10 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
     public KeyReference lastEscapeKey;
 
     @Shadow(remap = false)
+    @Nullable
+    public RandomSource escapeKeyRandom;
+
+    @Shadow(remap = false)
     public int ticksUnpressed;
 
     @Shadow(remap = false)
@@ -70,8 +78,60 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
     @Nullable
     private ReleasePlacementService.PendingRelease changedSynergy$pendingRelease;
 
+    @Unique
+    @Nullable
+    private ServerPlayer changedSynergy$releasedSuitOwner;
+
+    @Unique
+    @Nullable
+    private ChangedEntity changedSynergy$nextSuitCarrier;
+
+    @Unique
+    private boolean changedSynergy$friendlySuitReleased;
+
     protected GrabQteSyncMixin(AbstractAbility<?> ability, IAbstractChangedEntity entity) {
         super(ability, entity);
+    }
+
+    /** Native holds need the same safety rules even when Addon's safe-mode is absent. */
+    @Inject(method = "tickIdle", at = @At("HEAD"), remap = false)
+    private void changedSynergy$clearFriendlyHoldInputs(CallbackInfo callback) {
+        if (changedSynergy$isScriptedFriendlyHold()) {
+            var hold = (GrabEntityAbilityInstance)(Object)this;
+            hold.attackDown = hold.useDown = false;
+        }
+    }
+
+    @Inject(method = "makeAssimilationDecision", at = @At("HEAD"),
+            cancellable = true, remap = false)
+    private void changedSynergy$protectFriendlyHold(
+            CallbackInfoReturnable<LatexAssimilationDecision<?>> callback) {
+        if (changedSynergy$isScriptedFriendlyHold()) callback.setReturnValue(null);
+    }
+
+    @Inject(method = "isGrabbedInvalid", at = @At("HEAD"),
+            cancellable = true, remap = false)
+    private void changedSynergy$allowSafeTransformedPassenger(
+            CallbackInfoReturnable<Boolean> callback) {
+        // Only lift Changed's permanent-form restriction; death, removal,
+        // dimension changes and spectators must still end the hold.
+        if (grabbedEntity instanceof Player player && ProcessTransfur.isPlayerTransfurred(player)
+                && changedSynergy$isScriptedFriendlyHold()
+                && player.isAlive() && !player.isRemoved() && !player.isSpectator()
+                && entity.getEntity().isAlive() && !entity.getEntity().isRemoved()
+                && player.level() == entity.getLevel()) callback.setReturnValue(false);
+    }
+
+    @Unique
+    private boolean changedSynergy$isScriptedFriendlyHold() {
+        if (grabbedEntity == null || !(entity.getEntity() instanceof ChangedEntity mob)
+                || mob.getUnderlyingPlayer() != null) return false;
+        if (entity.getLevel().isClientSide()) {
+            return FriendlySocialHugState.isActive(mob.getId(), grabbedEntity.getId());
+        }
+        return LatexSocialMemory.isFriendlyArmHoldActive(mob, grabbedEntity)
+                || grabbedEntity instanceof ServerPlayer player
+                        && LatexSocialMemory.isFriendlySuitActive(mob, player);
     }
 
     @Redirect(method = "tickIdle", at = @At(value = "INVOKE",
@@ -112,6 +172,23 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
                         ordinal(currentEscapeKey),
                         ordinal(lastEscapeKey),
                         ticksUnpressed));
+    }
+
+    @Inject(method = "stealGrabFrom", at = @At("HEAD"), remap = false)
+    private void changedSynergy$transferEscapeGenerator(
+            GrabEntityAbilityInstance previous, CallbackInfo callback) {
+        // Changed transfers the keys and queued input, but omits their generator.
+        // Copy before releaseEntity clears it on the previous grabber.
+        if (previous != (Object)this) escapeKeyRandom = previous.escapeKeyRandom;
+    }
+
+    @Inject(method = "handleEscape", at = @At("HEAD"), remap = false)
+    private void changedSynergy$repairIncompleteEscapeState(CallbackInfo callback) {
+        if (currentEscapeKey != null && escapeKeyRandom == null) {
+            // The server reinitializes and announces the native seed; clients
+            // wait for it rather than advancing an uninitialized sequence.
+            currentEscapeKey = lastEscapeKey = null;
+        }
     }
 
     /** Scripted safety holds keep their lock; social play hugs allow QTE. */
@@ -181,12 +258,20 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
         // holds it; either case creates a cyclic grab state.
         if (target == null
                 || target == entity.getEntity()
-                || target == grabbedEntity
                 || target.getVehicle() == entity.getEntity()
                 || target instanceof ChangedEntity other
                         && BondedSuitService.ability(other) != null
                         && BondedSuitService.ability(other).grabbedEntity
                                 == entity.getEntity()) {
+            callback.setReturnValue(false);
+            return;
+        }
+        // Changed calls grabEntity on the current target to unwrap a suit into
+        // an arm hold. This is not a new grab or a cycle; its next ability hold
+        // releases the target. TakeoverGrabMixin still guards locked takeovers.
+        if (target == grabbedEntity) return;
+        if (target instanceof net.minecraft.world.entity.player.Player
+                && net.parkabird.changedsynergy.compat.FirearmCompat.ridingSuperbVehicle(target) != null) {
             callback.setReturnValue(false);
             return;
         }
@@ -234,6 +319,21 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
             CallbackInfo callback) {
         changedSynergy$lastSentCurrent = null;
         changedSynergy$lastSentPrevious = null;
+        ServerPlayer releasedOwner = changedSynergy$releasedSuitOwner;
+        changedSynergy$releasedSuitOwner = null;
+        ChangedEntity nextCarrier = changedSynergy$nextSuitCarrier;
+        changedSynergy$nextSuitCarrier = null;
+        boolean friendlySuit = changedSynergy$friendlySuitReleased;
+        changedSynergy$friendlySuitReleased = false;
+        if (releasedOwner != null && grabbedEntity == null
+                && entity.getEntity() instanceof ChangedEntity creature) {
+            var nextAbility = nextCarrier == null ? null : BondedSuitService.ability(nextCarrier);
+            if (nextAbility != null && nextAbility.grabbedEntity == releasedOwner
+                    && releasedOwner instanceof net.ltxprogrammer.changed.entity.LivingEntityDataExtension extension) {
+                extension.setGrabbedBy(nextCarrier);
+            }
+            if (friendlySuit) BondedSuitService.onNativeSuitReleased(creature, releasedOwner);
+        }
         ReleasePlacementService.PendingRelease release = changedSynergy$pendingRelease;
         changedSynergy$pendingRelease = null;
         if (release != null && grabbedEntity == null) {
@@ -245,6 +345,18 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
     private void changedSynergy$stunGrabberAfterEscape(
             boolean applyDebuffs,
             CallbackInfo callback) {
+        changedSynergy$releasedSuitOwner = !entity.getLevel().isClientSide()
+                && entity.getEntity() instanceof ChangedEntity
+                && grabbedEntity instanceof ServerPlayer owner
+                ? owner : null;
+        changedSynergy$friendlySuitReleased = changedSynergy$releasedSuitOwner != null
+                && entity.getEntity() instanceof ChangedEntity creature
+                && (LatexSocialMemory.isFriendlySuitActive(creature, changedSynergy$releasedSuitOwner)
+                        || BondedSuitService.isNativeOwnerSuit(creature, changedSynergy$releasedSuitOwner));
+        changedSynergy$nextSuitCarrier = changedSynergy$releasedSuitOwner
+                instanceof net.ltxprogrammer.changed.entity.LivingEntityDataExtension extension
+                && extension.getGrabbedBy() instanceof ChangedEntity carrier
+                && carrier != entity.getEntity() ? carrier : null;
         changedSynergy$pendingRelease = ReleasePlacementService.capture(entity.getEntity(), grabbedEntity);
         if (!entity.getLevel().isClientSide()
                 && entity.getEntity() instanceof ChangedEntity friendlyMob

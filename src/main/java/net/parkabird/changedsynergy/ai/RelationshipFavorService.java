@@ -51,13 +51,16 @@ public final class RelationshipFavorService {
         EXISTING,
         DIET_BUILDING,
         DIET_ESTABLISHED,
-        DIET_EXISTING;
+        DIET_EXISTING,
+        COOLDOWN,
+        NEEDS_FAMILIARITY,
+        TOKEN_ACCEPTED;
 
         public boolean isAccepted() {
             return switch (this) {
                 case BUILDING, ESTABLISHED, EXISTING,
                         DIET_BUILDING, DIET_ESTABLISHED,
-                        DIET_EXISTING -> true;
+                        DIET_EXISTING, TOKEN_ACCEPTED -> true;
                 default -> false;
             };
         }
@@ -114,13 +117,31 @@ public final class RelationshipFavorService {
         if (!orange && !dedicated) {
             return Result.NOT_APPLICABLE;
         }
-        if (isGiftRejected(creature, player)) {
-            showNegativeFeedback(creature, 3);
-            return Result.REJECTED;
-        }
         if (orange && isFeline(creature)) {
             showScentRejection(creature);
             return Result.CAT_ORANGE_REFUSED;
+        }
+        if (isGiftRejected(creature, player)) {
+            if (!canMakePeace(creature, player)) {
+                showNegativeFeedback(creature, 3);
+                return Result.REJECTED;
+            }
+            LatexSocialMemory.reconcileRelationship(creature, player);
+            net.parkabird.changedsynergy.event.LatexSocialEvents.clearPendingCombatReactions(creature, player);
+            TakeoverConflictMemory.clear(creature, player);
+        }
+
+        if (CreaturePersonality.balanced()) {
+            int gained = CreaturePersonality.rewardCare(creature, player, 2);
+            healFromFood(creature, stack, dedicated);
+            applyGoldenOrangeBenefits(creature, stack);
+            LatexSocialMemory.beginTruce(creature, player, dedicated || isGoldenOrange(stack) ? 1200L : 800L);
+            consumeOne(player, stack);
+            if (gained > 0) {
+                FactionReputation.adjustFromInteraction(creature, player, dedicated ? 2 : 1);
+                showPositiveFeedback(creature, 3);
+            }
+            return dedicated ? Result.DIET_EXISTING : Result.EXISTING;
         }
 
         int favor = isGoldenOrange(stack)
@@ -140,13 +161,20 @@ public final class RelationshipFavorService {
         if (stack.isEmpty()) {
             return Result.NO_ITEM;
         }
-        if (!CreaturePersonality.hasTrustedRelationship(creature, player)
-                && !LatexSocialMemory.isPetOwner(creature, player)) {
+        if (!canOpenBasicWheel(creature, player)) {
             return Result.REJECTED;
         }
         if (isGiftRejected(creature, player)) {
             showNegativeFeedback(creature, 3);
             return Result.REJECTED;
+        }
+        if (CreaturePersonality.giftCooldownRemaining(creature, player) > 0) return Result.COOLDOWN;
+        if (CreaturePersonality.balanced() && !CreaturePersonality.hasEstablishedRelationship(creature, player)
+                && CreaturePersonality.familiarity(creature, player) < CreaturePersonality.relationshipThreshold(creature))
+            return Result.NEEDS_FAMILIARITY;
+        if (net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.bondTokensRequired.get()
+                && stack.is(BondTokenService.required(creature).getItem())) {
+            return BondTokenService.offer(creature, player) ? Result.TOKEN_ACCEPTED : Result.REJECTED;
         }
         if (isOrange(stack) && isFeline(creature)) {
             showScentRejection(creature);
@@ -161,12 +189,27 @@ public final class RelationshipFavorService {
                 && !dedicated) {
             return Result.UNSUITABLE;
         }
-        int favor = isGoldenOrange(stack) ? 16
+        int favor = CreaturePersonality.balanced() ? isGoldenOrange(stack) ? 6 : dedicated ? 4 : 2
+                : isGoldenOrange(stack) ? 16
                 : dedicated ? 14
                 : orange ? 8
                 : stack.isEdible() ? 4 : 2;
         return acceptGift(
-                creature, player, stack, favor, false, dedicated);
+                creature, player, stack, favor, CreaturePersonality.balanced(), dedicated);
+    }
+
+    public static boolean canOpenBasicWheel(ChangedEntity creature, ServerPlayer player) {
+        return net.parkabird.changedsynergy.init.ChangedSynergyGameRules.enabled(creature.level(), net.parkabird.changedsynergy.init.ChangedSynergyGameRules.FRIENDSHIP_SYSTEM)
+                && CreatureSocialProfile.allowsPersonalRelationship(creature)
+                && !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
+                && !isGiftRejected(creature, player)
+                && (CreaturePersonality.hasTrustedRelationship(creature, player)
+                    || LatexSocialMemory.isPetOwner(creature, player)
+                    || CreaturePersonality.balanced() && (!FactionReputation.isHostile(creature, player)
+                            || LatexSocialMemory.isTruced(creature, player))
+                        && (LatexSocialMemory.isTruced(creature, player)
+                            || PoliteHumanInteraction.isAcquainted(creature, player)
+                            || creature.getTarget() != player && CreaturePersonality.familiarity(creature, player) > 0));
     }
 
     public static boolean isDedicatedDietFood(
@@ -182,6 +225,9 @@ public final class RelationshipFavorService {
                 || variant.is(NO_DIET)) {
             return false;
         }
+        // Base Changed cats must be feedable without Addon's optional diet tags.
+        if (isFeline(creature) && (stack.is(Items.COD) || stack.is(Items.SALMON)
+                || stack.is(Items.COOKED_COD) || stack.is(Items.COOKED_SALMON))) return true;
         for (Diet diet : Diet.values()) {
             if (diet.appliesTo(creature, variant)
                     && stack.is(diet.itemTag)) {
@@ -219,18 +265,21 @@ public final class RelationshipFavorService {
         }
 
         boolean goldenOrange = isGoldenOrange(stack);
-        CreaturePersonality.rememberGiftReceived(creature, player, favor);
+        boolean established = mayEstablish && CreaturePersonality.balanced()
+                && !CreaturePersonality.hasEstablishedRelationship(creature, player)
+                && CreaturePersonality.establishRelationship(creature, player);
+        int gained = CreaturePersonality.rememberGiftReceived(creature, player, favor);
         healFromFood(creature, stack, dedicated);
         applyGoldenOrangeBenefits(creature, stack);
         consumeOne(player, stack);
-        FactionReputation.adjustFromInteraction(
+        if (gained > 0) FactionReputation.adjustFromInteraction(
                 creature, player,
                 dedicated || goldenOrange ? 2 : 1);
         LatexSocialMemory.beginTruce(
                 creature, player,
                 dedicated || goldenOrange ? 1200L : 800L);
-        showPositiveFeedback(
-                creature, favor >= 12 ? 7 : favor >= 8 ? 5 : 3);
+        if (gained > 0) showPositiveFeedback(creature, 3);
+        if (established) return dedicated ? Result.DIET_ESTABLISHED : Result.ESTABLISHED;
 
         if (!mayEstablish) {
             return dedicated ? Result.DIET_EXISTING : Result.EXISTING;
@@ -264,7 +313,19 @@ public final class RelationshipFavorService {
             ChangedEntity creature,
             ServerPlayer player) {
         return LatexSocialMemory.isProvoked(creature, player)
-                || LatexSocialMemory.hasBetrayedPatTruce(creature, player);
+                || LatexSocialMemory.hasBetrayedPatTruce(creature, player)
+                || LatexSocialMemory.hasRelationshipBetrayal(creature, player);
+    }
+
+    /** A suitable peace offering is accepted after ten seconds without a new player attack. */
+    public static boolean canMakePeace(ChangedEntity creature, ServerPlayer player) {
+        var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player);
+        if (!creature.isAlive() || !body.isAlive() || body.isRemoved() || body.level() != creature.level()
+                || body == player && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
+                || net.parkabird.changedsynergy.compat.ChangedAddonCompat.isGrabberBusy(creature)
+                || TakeoverService.active(player)) return false;
+        return !(creature.getLastHurtByMob() == body && creature.tickCount - creature.getLastHurtByMobTimestamp() < 200
+                || body.getLastHurtMob() == creature && body.tickCount - body.getLastHurtMobTimestamp() < 200);
     }
 
     private static void showPositiveFeedback(ChangedEntity creature, int count) {

@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.parkabird.changedsynergy.ai.TakeoverAssimilationBehavior;
+import net.parkabird.changedsynergy.ai.TakeoverService;
 import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,14 +32,25 @@ public abstract class TakeoverPlayerAbsorptionMixin {
     private void changedSynergy$wrapNpcPlayerAbsorption(Player target,
             LatexAssimilationDecision<?> decision,
             CallbackInfoReturnable<AssimilationBehavior> callback) {
+        if (TakeoverService.hidesPlayer(target)) {
+            callback.setReturnValue(null);
+            return;
+        }
         if (!(target instanceof ServerPlayer player)
                 || decision == null
-                || decision.method() != LatexAssimilationDecision.Method.ABSORPTION
                 || callback.getReturnValue() == null
                 || decision.context().source() == null) return;
         LivingEntity source = decision.context().source().map(
                 IAbstractChangedEntity::getEntity, ILatexAssimilatedEntity::getEntity);
-        if (!(source instanceof ChangedEntity carrier)
+        if (!(source instanceof ChangedEntity carrier)) return;
+        if (net.parkabird.changedsynergy.ai.InstinctConfinementService.protectsHumanForm(carrier, player)) {
+            // TT's visible player body can use either replication or absorption.
+            // Both must retain normal progress and share the safe final suit path.
+            callback.setReturnValue(new TakeoverAssimilationBehavior(
+                    callback.getReturnValue(), carrier, player, IAbstractChangedEntity.forEntity(carrier)));
+            return;
+        }
+        if (decision.method() != LatexAssimilationDecision.Method.ABSORPTION
                 || carrier.getUnderlyingPlayer() != null
                 || LatexFusionIntent.nativeFusionAvailable(carrier, player)) return;
         callback.setReturnValue(new TakeoverAssimilationBehavior(

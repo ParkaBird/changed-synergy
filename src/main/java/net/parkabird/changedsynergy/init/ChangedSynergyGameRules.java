@@ -11,20 +11,22 @@ import net.minecraft.world.level.Level;
  * resume it later without losing relationships or reputation.
  */
 public final class ChangedSynergyGameRules {
+    private static final java.util.List<Setting<?>> SETTINGS = new java.util.ArrayList<>();
+    public static final GameRules.Key<GameRules.BooleanValue> NATIVE_ORIGINS =
+            enabledByDefault("changedSynergyNativeOrigins", GameRules.Category.PLAYER);
+    public static final GameRules.Key<GameRules.BooleanValue> NATIVE_PVP_REPUTATION =
+            enabledByDefault("changedSynergyNativePvPReputation", GameRules.Category.PLAYER);
     public static final GameRules.Key<GameRules.BooleanValue> NPC_AI =
-            GameRules.register("changedSynergyNpcAI", GameRules.Category.MOBS,
-                    GameRules.BooleanValue.create(true));
+            enabledByDefault("changedSynergyNpcAI", GameRules.Category.MOBS);
     public static final GameRules.Key<GameRules.BooleanValue> NPC_DIALOGUE =
-            GameRules.register("changedSynergyNpcDialogue", GameRules.Category.MOBS,
-                    GameRules.BooleanValue.create(true));
+            enabledByDefault("changedSynergyNpcDialogue", GameRules.Category.MOBS);
     public static final GameRules.Key<GameRules.BooleanValue> NPC_EMOTES =
-            GameRules.register("changedSynergyNpcEmotes", GameRules.Category.MOBS,
-                    GameRules.BooleanValue.create(true));
+            enabledByDefault("changedSynergyNpcEmotes", GameRules.Category.MOBS);
     public static final GameRules.Key<GameRules.BooleanValue> FACTION_REPUTATION =
             enabledByDefault("changedSynergyFactionReputation", GameRules.Category.PLAYER);
     public static final GameRules.Key<GameRules.IntegerValue> INITIAL_FACTION_REPUTATION =
-            GameRules.register("changedSynergyInitialFactionReputation",
-                    GameRules.Category.PLAYER, GameRules.IntegerValue.create(0));
+            register("changedSynergyInitialFactionReputation",
+                    GameRules.Category.PLAYER, GameRules.IntegerValue.create(0), 0);
     public static final GameRules.Key<GameRules.BooleanValue> BOND_SYSTEM =
             enabledByDefault("changedSynergyBondSystem", GameRules.Category.MOBS);
     public static final GameRules.Key<GameRules.BooleanValue> FRIENDSHIP_SYSTEM =
@@ -45,6 +47,20 @@ public final class ChangedSynergyGameRules {
 
     public static void bootstrap() {
         // Static initialization performs registration.
+    }
+
+    /** Shared by the world-rules page and the server snapshot. Not a second settings store. */
+    public record Setting<T extends GameRules.Value<T>>(String name, GameRules.Key<T> key, Object defaultValue) {
+        public String value(GameRules rules) { return rules.getRule(key).serialize(); }
+    }
+
+    public static java.util.List<Setting<?>> settings() { return java.util.List.copyOf(SETTINGS); }
+
+    private static <T extends GameRules.Value<T>> GameRules.Key<T> register(
+            String name, GameRules.Category category, GameRules.Type<T> type, Object defaultValue) {
+        GameRules.Key<T> key = GameRules.register(name, category, type);
+        SETTINGS.add(new Setting<>(name, key, defaultValue));
+        return key;
     }
 
     public static boolean enabled(
@@ -68,7 +84,6 @@ public final class ChangedSynergyGameRules {
     private static GameRules.Key<GameRules.BooleanValue> enabledByDefault(
             String name,
             GameRules.Category category) {
-        return GameRules.register(
-                name, category, GameRules.BooleanValue.create(true));
+        return register(name, category, GameRules.BooleanValue.create(true), true);
     }
 }

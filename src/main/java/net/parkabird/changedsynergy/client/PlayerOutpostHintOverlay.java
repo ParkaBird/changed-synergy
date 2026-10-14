@@ -3,6 +3,7 @@ package net.parkabird.changedsynergy.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.api.distmarker.Dist;
@@ -12,7 +13,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 
-/** Shortcut hint for the player's claimed bell, using the server-synced marker. */
+/** Shortcut hint for the player's claimed home marker, using its server-synced position. */
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID,
         bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class PlayerOutpostHintOverlay {
@@ -33,7 +34,8 @@ public final class PlayerOutpostHintOverlay {
                 || state == null || state.outpostMarker() == null
                 || !(minecraft.hitResult instanceof BlockHitResult hit)
                 || !state.outpostMarker().equals(hit.getBlockPos())
-                || !minecraft.level.getBlockState(hit.getBlockPos()).is(Blocks.BELL)) return;
+                || !(minecraft.level.getBlockState(hit.getBlockPos()).is(BlockTags.CAMPFIRES)
+                        || minecraft.level.getBlockState(hit.getBlockPos()).is(Blocks.BELL))) return;
 
         Component hint = Component.translatable("overlay.changed_synergy.player_outpost.hint",
                 minecraft.options.keyShift.getTranslatedKeyMessage(),

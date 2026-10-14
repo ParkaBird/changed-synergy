@@ -1,0 +1,14 @@
+// Run: gradlew -I tools/tests/dialogue-outpost.init.gradle runServer --offline --no-daemon
+// Accept the EULA in .codex-tmp/dialogue-outpost-server/eula.txt before running.
+gradle.beforeProject { project ->
+    project.layout.buildDirectory.set(project.file('.codex-tmp/dialogue-outpost-build'))
+    project.afterEvaluate {
+        project.sourceSets.main.java.srcDir(project.file('tools/tests/dialogue-outpost'))
+        def fixtureClasses = project.file('.codex-tmp/dialogue-outpost-build/classes/java/main')
+        project.sourceSets.main.java.destinationDirectory.set(fixtureClasses)
+        project.sourceSets.main.output.classesDirs = project.files(fixtureClasses)
+        project.tasks.named('compileJava').configure { destinationDirectory.set(fixtureClasses) }
+        project.minecraft.runs.server.workingDirectory project.file('.codex-tmp/dialogue-outpost-server')
+        project.minecraft.runs.server.property 'forge.logging.console.level', 'info'
+    }
+}

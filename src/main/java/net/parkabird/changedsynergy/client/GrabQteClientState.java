@@ -76,7 +76,13 @@ public final class GrabQteClientState {
         if (ability == null || ability.grabbedEntity != grabbed) {
             return false;
         }
-        ability.currentEscapeKey = decodeKey(packet.currentKey());
+        KeyReference current = decodeKey(packet.currentKey());
+        // Changed's seed packet must initialize its generator before a synced
+        // key lets native input handling advance that generator. Retry via PENDING.
+        if (current != null && ability.escapeKeyRandom == null) {
+            return false;
+        }
+        ability.currentEscapeKey = current;
         ability.lastEscapeKey = decodeKey(packet.lastKey());
         ability.ticksUnpressed = Math.max(0, packet.ticksUnpressed());
         return true;

@@ -1,0 +1,5 @@
+{
+  "replace": false,
+  "values": ["#changed:latexes"],
+  "remove": ["#changed_synergy:dark_territory_spawns"]
+}

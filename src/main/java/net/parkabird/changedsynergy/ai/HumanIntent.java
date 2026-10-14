@@ -53,7 +53,7 @@ public enum HumanIntent {
 
         int roll = (int)Long.remainderUnsigned(
                 mix64(seed(mob) ^ 0xE7037ED1A0B428DBL), 100L);
-        return switch (CreaturePersonality.dominantTrait(mob)) {
+        return switch (CreaturePersonality.has(mob, Trait.PLAYFUL) ? Trait.PLAYFUL : CreaturePersonality.dominantTrait(mob)) {
             case CALM -> roll < 62 ? GREET : roll < 78 ? SEEK_HOST : ASSIMILATE;
             case CAUTIOUS, SENSITIVE ->
                     roll < 52 ? GREET : roll < 68 ? SEEK_HOST : ASSIMILATE;

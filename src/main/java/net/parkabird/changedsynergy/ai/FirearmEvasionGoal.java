@@ -54,7 +54,8 @@ public final class FirearmEvasionGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return dodgeTicks > 0 && threat != null && threat.isAlive()
+        return ChangedSynergyConfig.COMMON.firearmEvasion.get()
+                && dodgeTicks > 0 && threat != null && threat.isAlive()
                 && HuntAIEvents.isHuntAIEnabled(mob)
                 && dodgePoint != null
                 && mob.distanceToSqr(dodgePoint) > 2.0D

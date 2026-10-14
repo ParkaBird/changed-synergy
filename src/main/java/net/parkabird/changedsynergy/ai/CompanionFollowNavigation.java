@@ -14,6 +14,7 @@ public final class CompanionFollowNavigation {
     private static final int SHORE_SEARCH_RADIUS = 8;
     private static final int SHORE_VERTICAL_RADIUS = 5;
     private static final int SHORE_CACHE_REQUESTS = 8;
+    private static final int MAX_SHORE_PATH_PROBES = 16;
     private static final double SHORE_EXIT_REACH_SQR = 3.0D * 3.0D;
     private static final double TARGET_MOVED_SQR = 3.0D * 3.0D;
     private static final int PROGRESS_SAMPLE_TICKS = 10;
@@ -29,6 +30,7 @@ public final class CompanionFollowNavigation {
     @Nullable
     private Vec3 lastProgressPosition;
     private int shoreCacheRequests;
+    private int shoreSearchStart;
     private int progressSampleTicks;
     private int stalledTicks;
 
@@ -130,6 +132,7 @@ public final class CompanionFollowNavigation {
             resetProgress();
             return;
         }
+        CompanionOpenDoorGoal.slidePastOpenTrapdoor(mob);
         if (++progressSampleTicks < PROGRESS_SAMPLE_TICKS) {
             return;
         }
@@ -152,6 +155,7 @@ public final class CompanionFollowNavigation {
     public void reset() {
         clearShoreCache();
         resetProgress();
+        shoreSearchStart = 0;
     }
 
     public void resetProgress() {
@@ -170,7 +174,12 @@ public final class CompanionFollowNavigation {
                 target,
                 SHORE_SEARCH_RADIUS,
                 SHORE_VERTICAL_RADIUS);
-        for (ShoreApproach candidate : candidates) {
+        if (candidates.isEmpty()) return false;
+        int start = Math.floorMod(shoreSearchStart, candidates.size());
+        int count = Math.min(MAX_SHORE_PATH_PROBES, candidates.size());
+        shoreSearchStart = (start + count) % candidates.size();
+        for (int offset = 0; offset < count; offset++) {
+            ShoreApproach candidate = candidates.get((start + offset) % candidates.size());
             if (mob.distanceToSqr(candidate.water()) <= SHORE_EXIT_REACH_SQR
                     || mob.getNavigation().moveTo(
                             candidate.water().x,
@@ -180,6 +189,7 @@ public final class CompanionFollowNavigation {
                 shoreApproach = candidate;
                 cachedTargetPosition = target.position();
                 shoreCacheRequests = SHORE_CACHE_REQUESTS;
+                shoreSearchStart = 0;
                 return true;
             }
         }

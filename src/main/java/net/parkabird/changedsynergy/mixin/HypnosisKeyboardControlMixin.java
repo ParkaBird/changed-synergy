@@ -25,6 +25,11 @@ public abstract class HypnosisKeyboardControlMixin {
             int modifiers,
             CallbackInfo callback) {
         if (Minecraft.getInstance().screen == null
+                && HypnosisQteClientState.handleContestKey(keyCode, scanCode, action)) {
+            callback.cancel();
+            return;
+        }
+        if (Minecraft.getInstance().screen == null
                 && HypnosisQteClientState.shouldBlockKeyInput(keyCode, scanCode)) {
             callback.cancel();
         }

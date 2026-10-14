@@ -13,7 +13,7 @@ public record TakeoverStatePacket(UUID sessionId, int kind, int phase, int carri
         int borrowCooldownTicks, boolean escapeUsed, boolean negotiationUsed,
         boolean negotiationEnabled, int outcome, int expectedKey,
         int sequence, int progress, int qteLength, float fade, String carrierName) {
-    public static final int NORMAL = 0, EXOSKELETON = 1;
+    public static final int NORMAL = 0, EXOSKELETON = 1, INSTINCT = 2;
     public static final int CONTROLLED = 0, BORROWED = 1, STRUGGLE = 2,
             SLEEPING = 3, RESERVED = 4, RELEASING = 5, FINISHED = 6;
 
@@ -35,14 +35,15 @@ public record TakeoverStatePacket(UUID sessionId, int kind, int phase, int carri
         b.writeVarInt(p.progress);
         b.writeVarInt(p.qteLength);
         b.writeFloat(p.fade);
-        b.writeUtf(p.carrierName, 256);
+        // Generated, localised names contain nested components rather than one literal string.
+        b.writeUtf(p.carrierName, 4096);
     }
 
     public static TakeoverStatePacket decode(FriendlyByteBuf b) {
         return new TakeoverStatePacket(b.readUUID(), b.readVarInt(), b.readVarInt(),
                 b.readVarInt(), b.readVarInt(), b.readVarInt(), b.readVarInt(),
                 b.readVarInt(), b.readBoolean(), b.readBoolean(), b.readBoolean(), b.readVarInt(),
-                b.readVarInt(), b.readVarInt(), b.readVarInt(), b.readVarInt(), b.readFloat(), b.readUtf(256));
+                b.readVarInt(), b.readVarInt(), b.readVarInt(), b.readVarInt(), b.readFloat(), b.readUtf(4096));
     }
 
     public static void handle(TakeoverStatePacket p, Supplier<NetworkEvent.Context> supplier) {

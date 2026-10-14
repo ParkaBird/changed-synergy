@@ -59,6 +59,7 @@ public final class InvoluntaryTransfurNegotiation {
     public static final String SOURCE_ROOT = "ChangedSynergyNegotiationSource";
     public static final String RELEASE_ROOT = "ChangedSynergyNegotiatedRelease";
     private static final String PLAYER_ROOT = "ChangedSynergyTransfurNegotiation";
+    private static final String CSP_EXPOSURE = "ChangedSynergyCspExposure";
     private static final String SOURCE_UUID = "SourceUuid";
     private static final String SOURCE_DIMENSION = "SourceDimension";
     private static final String SOURCE_TYPE = "SourceType";
@@ -81,6 +82,10 @@ public final class InvoluntaryTransfurNegotiation {
     private static final String OPENED = "Opened";
     private static final String RESPAWN_NOTICE = "RespawnNotice";
     private static final String CAPTURE_PENDING = "CapturePending";
+    private static final String CAPTURE_ID = "CaptureId";
+    private static final String CAPTURE_PENDING_AT = "CapturePendingAt";
+    private static final String EXPECTED_PLAYER_FORM = "ExpectedPlayerForm";
+    private static final long CAPTURE_TIMEOUT_TICKS = 200L;
     private static final String SPECIAL_COMPLETION = "SpecialCompletion";
     private static final String FUSION_SPLIT = "FusionSplit";
     private static final String WHITE_KNIGHT_SPLIT = "WhiteKnightSplit";
@@ -92,6 +97,7 @@ public final class InvoluntaryTransfurNegotiation {
     private static final String ABSORPTION_RELEASING = "AbsorptionReleasing";
     private static final String EXTERNAL_RELEASE_PENDING =
             "ExternalReleasePending";
+    private static final String EXTERNAL_FORM_REMOVED = "ExternalFormRemoved";
     private static final String EXTERNAL_RELEASE_CHECK_AT =
             "ExternalReleaseCheckAt";
     private static final String FORM_RESTORE_PENDING = "FormRestorePending";
@@ -334,13 +340,12 @@ public final class InvoluntaryTransfurNegotiation {
                 event.appendTransfurListener(ignored -> FactionHostilityGrace.beginSecondary(
                         source, currentPlayerEntity(player)));
             }
-            event.appendTransfurListener(
-                    ignored -> abandonForSecondaryTransfur(player));
+            appendClaimRetirement(event, player);
             return;
         }
         if (!eligibleSource(source, player)) {
             if (existingPlayerData(player) != null) {
-                event.appendTransfurListener(ignored -> abandonClaim(player));
+                appendClaimRetirement(event, player);
             }
             return;
         }
@@ -348,6 +353,17 @@ public final class InvoluntaryTransfurNegotiation {
         boolean darkYufengSplit = mode == Mode.ABSORPTION
                 && isChangedType(originalType, "dark_latex_yufeng");
         boolean sourceWasRelated = hasPriorRelationship(source, player);
+        UUID captureId = beginCapture(player, mode, decision.transfurVariant().getFormId());
+        if (net.minecraftforge.fml.ModList.get().isLoaded("changed_survive_protocol")
+                && !ProcessTransfur.isPlayerTransfurred(player)
+                && decision.transfurVariant() != null) {
+            CompoundTag exposure = new CompoundTag();
+            exposure.putUUID(SOURCE_UUID, source.getUUID());
+            exposure.putString(RESULT_PLAYER_FORM,
+                    decision.transfurVariant().getFormId().toString());
+            exposure.putString(REASON, reason.name());
+            player.getPersistentData().put(CSP_EXPOSURE, exposure);
+        }
 
         // Changed kills an absorbed player before invoking postTransfurListener.
         // Stage the claim now so PlayerEvent.Clone can carry it to the respawned
@@ -367,6 +383,7 @@ public final class InvoluntaryTransfurNegotiation {
 
         event.appendTransfurListener(result -> completeCapture(
                 player,
+                captureId,
                 source,
                 result,
                 mode,
@@ -424,9 +441,11 @@ public final class InvoluntaryTransfurNegotiation {
         // Fusion can arrive while an older absorption claim is still stored on
         // the player. Always retire that snapshot before recording this exact
         // knight, otherwise its name and appearance leak into the new claim.
-        abandonClaim(currentPlayerEntity(player));
+        UUID captureId = beginCapture(currentPlayerEntity(player), Mode.ABSORPTION,
+                result.getSelfVariant() == null ? null : result.getSelfVariant().getFormId());
         completeCapture(
                 player,
+                captureId,
                 source,
                 result,
                 Mode.ABSORPTION,
@@ -461,6 +480,42 @@ public final class InvoluntaryTransfurNegotiation {
 
         ChangedEntity resolved = resolveSource(player, data);
         return resolved == source;
+    }
+
+    /** CSP completes infection later, outside Changed's assimilation callback. */
+    public static void completeSurviveProtocolExposure(
+            ServerPlayer player, ChangedEntity source) {
+        CompoundTag previous = existingPlayerData(player);
+        if (!net.minecraftforge.fml.ModList.get().isLoaded("changed_survive_protocol")
+                || !player.getPersistentData().contains(CSP_EXPOSURE, Tag.TAG_COMPOUND)
+                || previous != null && !previous.getBoolean(CAPTURE_PENDING)
+                || !ProcessTransfur.isPlayerTransfurred(player)
+                || !eligibleSource(source, player)) {
+            return;
+        }
+        CompoundTag exposure = player.getPersistentData().getCompound(CSP_EXPOSURE);
+        TransfurVariant<?> form = ProcessTransfur.getPlayerTransfurVariantSafe(player)
+                .filter(instance -> !instance.isTemporaryFromSuit())
+                .map(instance -> instance.getParent()).orElse(null);
+        if (form == null || !exposure.hasUUID(SOURCE_UUID)
+                || !source.getUUID().equals(exposure.getUUID(SOURCE_UUID))
+                || !form.getFormId().toString().equals(
+                        exposure.getString(RESULT_PLAYER_FORM))) {
+            return;
+        }
+        Reason reason;
+        try {
+            reason = Reason.valueOf(exposure.getString(REASON));
+        } catch (IllegalArgumentException ignored) {
+            return;
+        }
+        player.getPersistentData().remove(CSP_EXPOSURE);
+        UUID captureId = beginCapture(player, Mode.ASSIMILATION, form.getFormId());
+        completeCapture(player, captureId, source, null,
+                Mode.ASSIMILATION, reason,
+                ForgeRegistries.ENTITY_TYPES.getKey(source.getType()),
+                null, false, false, false, false,
+                hasPriorRelationship(source, player));
     }
 
     public static boolean canNegotiateAbsorption(ServerPlayer player) {
@@ -866,7 +921,19 @@ public final class InvoluntaryTransfurNegotiation {
         CompoundTag release = source.getPersistentData()
                 .getCompound(RELEASE_ROOT);
         return release.hasUUID(RELEASE_PLAYER)
-                && target.getUUID().equals(release.getUUID(RELEASE_PLAYER));
+                && target.getUUID().equals(release.getUUID(RELEASE_PLAYER))
+                && (release.getBoolean(RELEASE_BONDED)
+                    || target instanceof ServerPlayer player
+                        && releaseMatchesClaim(source, player, release));
+    }
+
+    private static boolean releaseMatchesClaim(ChangedEntity source, ServerPlayer player,
+            CompoundTag release) {
+        CompoundTag data = existingPlayerData(player);
+        return data != null && !data.getBoolean(CAPTURE_PENDING)
+                && data.hasUUID(SOURCE_UUID) && source.getUUID().equals(data.getUUID(SOURCE_UUID))
+                && (release.hasUUID(CAPTURE_ID)
+                    ? matchesCapture(data, release.getUUID(CAPTURE_ID)) : !data.hasUUID(CAPTURE_ID));
     }
 
     public static boolean isReleaseHoldActive(
@@ -1072,9 +1139,8 @@ public final class InvoluntaryTransfurNegotiation {
         }
 
         CompoundTag data = existingPlayerData(player);
-        if (data == null) {
+        if (data == null || !releaseMatchesClaim(source, player, release)) {
             source.getPersistentData().remove(RELEASE_ROOT);
-            source.getPersistentData().remove(SOURCE_ROOT);
             return;
         }
         View view = readView(data);
@@ -1088,7 +1154,7 @@ public final class InvoluntaryTransfurNegotiation {
         LatexSocialMemory.settleAfterNegotiatedRelease(source, player);
         FactionHostilityGrace.begin(source, player);
         LatexSocialEvents.clearPendingCombatReactions(source, player);
-        CreaturePersonality.establishRelationship(source, player);
+        if (!CreaturePersonality.balanced()) CreaturePersonality.establishRelationship(source, player);
         source.setPersistenceRequired();
         if (fusionSplit) {
             LatexFusionIntent.beginReleaseCooldown(source, player);
@@ -1112,9 +1178,7 @@ public final class InvoluntaryTransfurNegotiation {
     private static void completeInterruptedRelease(
             ChangedEntity source,
             ServerPlayer player,
-            boolean bondedReversal) {
-        CompoundTag release = new CompoundTag();
-        release.putBoolean(RELEASE_BONDED, bondedReversal);
+            CompoundTag release) {
         release.putBoolean(RELEASE_REVERSED, true);
         completeReleaseHold(source, player, release, false);
     }
@@ -1127,10 +1191,10 @@ public final class InvoluntaryTransfurNegotiation {
         boolean bondedReversal = release.getBoolean(RELEASE_BONDED);
         source.getPersistentData().remove(RELEASE_ROOT);
         if (player != null && release.getBoolean(RELEASE_REVERSED)) {
-            completeInterruptedRelease(source, player, bondedReversal);
+            completeInterruptedRelease(source, player, release);
             return;
         }
-        if (player != null && !bondedReversal) {
+        if (player != null && !bondedReversal && releaseMatchesClaim(source, player, release)) {
             CompoundTag data = existingPlayerData(player);
             if (data != null) {
                 data.putInt(PROGRESS, release.getInt(RELEASE_PREVIOUS_PROGRESS));
@@ -1194,10 +1258,95 @@ public final class InvoluntaryTransfurNegotiation {
             ServerPlayer original,
             ServerPlayer clone) {
         CompoundTag originalPersisted = persisted(original);
-        if (originalPersisted.contains(PLAYER_ROOT, Tag.TAG_COMPOUND)) {
+        if (originalPersisted.contains(PLAYER_ROOT, Tag.TAG_COMPOUND)
+                && !expiredCapture(original, originalPersisted.getCompound(PLAYER_ROOT))) {
             persisted(clone).put(
                     PLAYER_ROOT,
                     originalPersisted.getCompound(PLAYER_ROOT).copy());
+        } else {
+            persisted(clone).remove(PLAYER_ROOT);
+        }
+    }
+
+    private static UUID beginCapture(ServerPlayer player, Mode mode,
+            @Nullable ResourceLocation expectedForm) {
+        clearPreviousClaim(player);
+        player.getPersistentData().remove(CSP_EXPOSURE);
+        CompoundTag data = new CompoundTag();
+        persisted(player).put(PLAYER_ROOT, data);
+        UUID id = captureId(data);
+        data.putString(MODE, mode.name());
+        data.putBoolean(CAPTURE_PENDING, true);
+        data.putLong(CAPTURE_PENDING_AT, player.server.overworld().getGameTime());
+        putLocation(data, EXPECTED_PLAYER_FORM, expectedForm);
+        syncAbsorptionState(player, false);
+        return id;
+    }
+
+    private static UUID captureId(CompoundTag data) {
+        if (!data.hasUUID(CAPTURE_ID)) data.putUUID(CAPTURE_ID, UUID.randomUUID());
+        return data.getUUID(CAPTURE_ID);
+    }
+
+    private static boolean matchesCapture(@Nullable CompoundTag data, UUID id) {
+        return data != null && data.hasUUID(CAPTURE_ID) && id.equals(data.getUUID(CAPTURE_ID));
+    }
+
+    private static boolean expiredCapture(ServerPlayer player, CompoundTag data) {
+        if (!data.getBoolean(CAPTURE_PENDING)) return false;
+        long age = player.server.overworld().getGameTime() - data.getLong(CAPTURE_PENDING_AT);
+        return !data.hasUUID(CAPTURE_ID) || !data.contains(CAPTURE_PENDING_AT, Tag.TAG_LONG)
+                || age < 0L || age >= CAPTURE_TIMEOUT_TICKS;
+    }
+
+    private static void appendClaimRetirement(
+            TransfurEvents.LatexAssimilationDecisionEvent event, ServerPlayer player) {
+        CompoundTag previous = existingPlayerData(player);
+        if (previous == null) return;
+        UUID id = captureId(previous);
+        event.appendTransfurListener(ignored -> {
+            ServerPlayer current = currentPlayerEntity(player);
+            if (matchesCapture(existingPlayerData(current), id)) abandonClaim(current);
+        });
+    }
+
+    private static boolean matchesResultForm(ServerPlayer player, CompoundTag data) {
+        ResourceLocation actual = currentForm(player);
+        ResourceLocation expected = readLocation(data, RESULT_PLAYER_FORM);
+        return actual == null || !data.getBoolean(EXTERNAL_FORM_REMOVED)
+                && (expected == null || actual.equals(expected));
+    }
+
+    /** Called after the common Changed setter, including direct command/mod reversals. */
+    public static void onFormAssigned(ServerPlayer player) {
+        CompoundTag data = existingPlayerData(player);
+        if (data == null) {
+            if (currentForm(player) == null) player.getPersistentData().remove(CSP_EXPOSURE);
+            return;
+        }
+        ResourceLocation actual = currentForm(player);
+        if (data.getBoolean(CAPTURE_PENDING)) {
+            // Native absorption kills before confirming the capture. A death-time
+            // reset must not consume the clone-safe pending snapshot.
+            if (actual == null && !player.isAlive()
+                    && Mode.ABSORPTION.name().equals(data.getString(MODE))) return;
+            if (expiredCapture(player, data) || actual == null
+                    || !actual.equals(readLocation(data, EXPECTED_PLAYER_FORM))) {
+                player.getPersistentData().remove(CSP_EXPOSURE);
+                abandonClaim(player);
+            }
+            return;
+        }
+        if (data.getBoolean(ABSORPTION_RELEASING)) return;
+        // Same-form/no-op setters need no lookup through loaded creature claims.
+        if (actual != null && matchesResultForm(player, data)) return;
+        if (isReleaseParticipant(player)) return;
+        if (!matchesResultForm(player, data)) {
+            player.getPersistentData().remove(CSP_EXPOSURE);
+            abandonClaim(player);
+        } else if (actual == null && !data.getBoolean(FORM_RESTORE_PENDING)) {
+            onExternalUntransfur(player);
+            if (existingPlayerData(player) == data) data.putBoolean(EXTERNAL_FORM_REMOVED, true);
         }
     }
 
@@ -1208,6 +1357,10 @@ public final class InvoluntaryTransfurNegotiation {
             // Only the Changed post-transfur listener may confirm a staged
             // absorption. A pending record on login/respawn means the attempt
             // never reached its successful completion callback.
+            abandonClaim(player);
+            return;
+        }
+        if (data != null && !matchesResultForm(player, data) && !isReleaseParticipant(player)) {
             abandonClaim(player);
             return;
         }
@@ -1286,11 +1439,13 @@ public final class InvoluntaryTransfurNegotiation {
      * the swallowed individual is materialised on the following server tick.
      */
     public static void onExternalUntransfur(ServerPlayer player) {
+        player.getPersistentData().remove(CSP_EXPOSURE);
         CompoundTag data = existingPlayerData(player);
         if (isReleaseParticipant(player)
                 || data != null && data.getBoolean(ABSORPTION_RELEASING)) {
             return;
         }
+        if (data != null && data.getBoolean(EXTERNAL_RELEASE_PENDING)) return;
         if (isAbsorptionClaim(data)) {
             data.putBoolean(EXTERNAL_RELEASE_PENDING, true);
             data.putLong(EXTERNAL_RELEASE_CHECK_AT,
@@ -1305,7 +1460,18 @@ public final class InvoluntaryTransfurNegotiation {
     public static void tickPlayer(ServerPlayer player) {
         if (TakeoverService.active(player)) return;
         CompoundTag data = existingPlayerData(player);
-        if (data == null || !player.isAlive()) {
+        if (data == null) {
+            return;
+        }
+        if (data.getBoolean(CAPTURE_PENDING)) {
+            if (expiredCapture(player, data)) abandonClaim(player);
+            return;
+        }
+        if (!player.isAlive()) {
+            return;
+        }
+        if (!matchesResultForm(player, data) && !isReleaseParticipant(player)) {
+            abandonClaim(player);
             return;
         }
         if (data.getBoolean(FORM_RESTORE_PENDING)) {
@@ -1386,6 +1552,7 @@ public final class InvoluntaryTransfurNegotiation {
 
     private static void completeCapture(
             ServerPlayer player,
+            UUID captureId,
             ChangedEntity originalSource,
             @Nullable IAbstractChangedEntity result,
             Mode mode,
@@ -1398,6 +1565,12 @@ public final class InvoluntaryTransfurNegotiation {
             boolean darkYufengSplit,
             boolean sourceWasRelated) {
         ServerPlayer recipient = currentPlayerEntity(player);
+        CompoundTag data = existingPlayerData(recipient);
+        // A callback belongs to one attempt, including across PlayerEvent.Clone.
+        // Never let an interrupted/older completion overwrite a newer claim.
+        if (!matchesCapture(data, captureId) || !data.getBoolean(CAPTURE_PENDING)
+                || expiredCapture(recipient, data)) return;
+        recipient.getPersistentData().remove(CSP_EXPOSURE);
         // A previously appended completion callback must not resurrect the
         // snapshot/respawn negotiation after a live native-wrap takeover wins.
         if (TakeoverService.active(recipient)) return;
@@ -1407,10 +1580,6 @@ public final class InvoluntaryTransfurNegotiation {
             return;
         }
 
-        if (mode != Mode.ABSORPTION) {
-            clearPreviousClaim(recipient);
-        }
-        CompoundTag data = playerData(recipient);
         if (!data.contains(SOURCE_SNAPSHOT, Tag.TAG_COMPOUND)) {
             captureSourceState(data, source, specialCompletion);
         }
@@ -1445,9 +1614,11 @@ public final class InvoluntaryTransfurNegotiation {
         data.putBoolean(RELEASE_WHEN_SAFE, false);
         data.putBoolean(OPENED, false);
         data.putBoolean(CAPTURE_PENDING, false);
+        data.remove(CAPTURE_PENDING_AT);
+        data.remove(EXPECTED_PLAYER_FORM);
         data.putBoolean(FORM_RESTORE_PENDING,
                 mode == Mode.ABSORPTION
-                        && !recipient.isAlive()
+                        && !ProcessTransfur.isPlayerTransfurred(recipient)
                         && resultForm != null);
         boolean playerCanAct = recipient.isAlive();
         data.putBoolean(RESPAWN_NOTICE, playerCanAct);
@@ -1455,6 +1626,7 @@ public final class InvoluntaryTransfurNegotiation {
         if (mode != Mode.ABSORPTION) {
             CompoundTag marker = new CompoundTag();
             marker.putUUID(CLAIMED_PLAYER, recipient.getUUID());
+            marker.putUUID(CAPTURE_ID, captureId);
             putLocation(marker, ORIGINAL_SOURCE_TYPE, originalType);
             marker.putString(MODE, mode.name());
             marker.putBoolean(CAPTURE_PENDING, false);
@@ -1467,19 +1639,19 @@ public final class InvoluntaryTransfurNegotiation {
             source.setPersistenceRequired();
         }
 
-        // Assimilation creates a direct personal connection regardless of why
-        // it happened.  A hostile incident starts at a lower familiarity, but
-        // stale combat targets must not make the new friend attack immediately.
+        // Negotiation always settles combat. Balanced growth still requires a deliberate gift.
         if (mode == Mode.ASSIMILATION) {
             LatexSocialEvents.clearPendingCombatReactions(source, recipient);
             LatexSocialEvents.calmTowards(source, recipient);
-            CreaturePersonality.establishRelationship(source, recipient);
-            CreaturePersonality.setFamiliarity(
+            if (!CreaturePersonality.balanced()) {
+                CreaturePersonality.establishRelationship(source, recipient);
+                CreaturePersonality.setFamiliarity(
                     source,
                     recipient,
                     Math.max(isPeacefulReason(reason) ? 14 : 8,
                             CreaturePersonality.familiarity(
                             source, recipient)));
+            }
         }
 
         if (playerCanAct) {
@@ -1505,7 +1677,6 @@ public final class InvoluntaryTransfurNegotiation {
             boolean whiteKnightSplit,
             boolean darkYufengSplit,
             boolean sourceWasRelated) {
-        clearPreviousClaim(player);
         CompoundTag data = playerData(player);
         captureSourceState(data, source, specialCompletion);
         data.putUUID(SOURCE_UUID, source.getUUID());
@@ -1533,8 +1704,6 @@ public final class InvoluntaryTransfurNegotiation {
         data.putBoolean(OPENED, false);
         data.putBoolean(RESPAWN_NOTICE, false);
         data.putBoolean(CAPTURE_PENDING, true);
-
-        syncAbsorptionState(player, false);
     }
 
     private static ServerPlayer currentPlayerEntity(ServerPlayer original) {
@@ -1579,12 +1748,14 @@ public final class InvoluntaryTransfurNegotiation {
         FactionHostilityGrace.begin(released, player);
         LatexSocialEvents.clearPendingCombatReactions(released, player);
         LatexSocialEvents.calmTowards(released, player);
-        CreaturePersonality.establishRelationship(released, player);
-        CreaturePersonality.setFamiliarity(
+        if (!CreaturePersonality.balanced()) {
+            CreaturePersonality.establishRelationship(released, player);
+            CreaturePersonality.setFamiliarity(
                 released,
                 player,
                 Math.max(claim.getBoolean(SPECIAL_COMPLETION) ? 34 : 24,
                         CreaturePersonality.familiarity(released, player)));
+        }
         released.setPersistenceRequired();
         if (claim.getBoolean(FUSION_SPLIT)) {
             LatexFusionIntent.beginReleaseCooldown(released, player);
@@ -1811,6 +1982,7 @@ public final class InvoluntaryTransfurNegotiation {
 
         long now = source.level().getGameTime();
         CompoundTag release = new CompoundTag();
+        release.putUUID(CAPTURE_ID, captureId(playerData(player)));
         release.putUUID(RELEASE_PLAYER, player.getUUID());
         release.putLong(RELEASE_REVERSE_AT, now + RELEASE_REVERSE_DELAY);
         release.putLong(RELEASE_END_AT, now + RELEASE_DURATION);
@@ -1829,7 +2001,6 @@ public final class InvoluntaryTransfurNegotiation {
 
         // Addon is optional. Never leave a completed negotiation stuck when
         // its presentation layer is unavailable.
-        source.getPersistentData().remove(RELEASE_ROOT);
         applyPlayerReversal(player, view.whiteKnightSplit());
         release.putBoolean(RELEASE_REVERSED, true);
         source.getPersistentData().put(RELEASE_ROOT, release);
@@ -1977,8 +2148,15 @@ public final class InvoluntaryTransfurNegotiation {
         if (variant == null) {
             return false;
         }
-        ProcessTransfur.setPlayerTransfurVariant(player, variant);
-        ProcessTransfur.setPlayerTransfurProgress(player, 0.0F);
+        // Recovery belongs to the confirmed capture, not a new external TF.
+        claim.putBoolean(ABSORPTION_RELEASING, true);
+        try {
+            ProcessTransfur.setPlayerTransfurVariant(player, variant);
+            ProcessTransfur.setPlayerTransfurProgress(player, 0.0F);
+        } finally {
+            claim.remove(ABSORPTION_RELEASING);
+            claim.remove(EXTERNAL_FORM_REMOVED);
+        }
         return ProcessTransfur.isPlayerTransfurred(player);
     }
 
@@ -2399,7 +2577,8 @@ public final class InvoluntaryTransfurNegotiation {
 
     private static void clearPreviousClaim(ServerPlayer player) {
         CompoundTag old = existingPlayerData(player);
-        if (old == null || !old.hasUUID(SOURCE_UUID)) {
+        if (old == null || !old.hasUUID(SOURCE_UUID) || old.getBoolean(CAPTURE_PENDING)
+                || Mode.ABSORPTION.name().equals(old.getString(MODE))) {
             return;
         }
         ChangedEntity previous = resolveSource(player, old);

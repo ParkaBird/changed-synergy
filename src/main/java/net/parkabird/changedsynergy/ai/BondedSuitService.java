@@ -50,6 +50,8 @@ public final class BondedSuitService {
     private static final String DROWNING_SUIT = "ChangedSynergyDrowningSuit";
     private static final String DROWNING_DAMAGE_UNTIL = "ChangedSynergyDrowningDamageUntil";
     private static final String RESCUE_GRACE_UNTIL = "ChangedSynergyRescueGraceUntil";
+    private static final String RESCUE_RELEASE_SUPPRESSED =
+            "ChangedSynergyRescueReleaseSuppressed";
     private static final String TRANSFUR_SUIT = "ChangedSynergyTransfurSuit";
     private static final String TRANSFUR_RESCUE_OWNER =
             "ChangedSynergyTransfurRescueOwner";
@@ -64,10 +66,35 @@ public final class BondedSuitService {
     private BondedSuitService() {
     }
 
+    /** A released owner must first recover before the same emergency can start again. */
+    public static boolean isRescueGraceActive(ServerPlayer owner) {
+        if (owner.getPersistentData().getLong(RESCUE_GRACE_UNTIL)
+                > owner.level().getGameTime()) return true;
+        if (!owner.getPersistentData().getBoolean(RESCUE_RELEASE_SUPPRESSED))
+            return false;
+        float tolerance = (float)Math.max(0.0001D,
+                ProcessTransfur.getEntityTransfurTolerance(owner));
+        if (owner.getHealth() >= owner.getMaxHealth() * EMERGENCY_RELEASE_HEALTH
+                && !owner.isUnderWater()
+                && ProcessTransfur.getPlayerTransfurProgress(owner)
+                        <= tolerance * TRANSFUR_RELEASE_RATIO) {
+            owner.getPersistentData().remove(RESCUE_RELEASE_SUPPRESSED);
+            return false;
+        }
+        return true;
+    }
+
+    public static void markRescueReleased(ServerPlayer owner) {
+        owner.getPersistentData().putLong(RESCUE_GRACE_UNTIL,
+                owner.level().getGameTime() + MANUAL_RELEASE_COOLDOWN);
+        owner.getPersistentData().putBoolean(RESCUE_RELEASE_SUPPRESSED, true);
+        owner.getPersistentData().remove(DROWNING_DAMAGE_UNTIL);
+    }
+
     public static boolean needsEmergencyRescue(ChangedEntity pet, ServerPlayer player) {
         return ChangedSynergyConfig.COMMON.bondedEmergencyRescue.get()
-                && player.getPersistentData().getLong(RESCUE_GRACE_UNTIL)
-                        <= player.level().getGameTime()
+                && BondedOwnerDefenseGoal.canProtectOwner(pet, player)
+                && !isRescueGraceActive(player)
                 && LatexSocialMemory.canStartEmergencyRescue(pet)
                 && player.isAlive()
                 && !player.isCreative()
@@ -87,8 +114,7 @@ public final class BondedSuitService {
             float incomingProgress) {
         if (incomingProgress <= 0.0F
                 || !ChangedSynergyConfig.COMMON.bondedEmergencyRescue.get()
-                || owner.getPersistentData().getLong(RESCUE_GRACE_UNTIL)
-                        > owner.level().getGameTime()
+                || isRescueGraceActive(owner)
                 || !owner.isAlive()
                 || owner.isCreative()
                 || owner.isSpectator()) {
@@ -116,6 +142,7 @@ public final class BondedSuitService {
 
         for (ChangedEntity candidate : LatexSocialMemory.loadedBondedCreatures(owner)) {
             if (candidate.level() == owner.level()
+                    && BondedOwnerDefenseGoal.canProtectOwner(candidate, owner)
                     && LatexSocialMemory.isPetOwner(candidate, owner)
                     && canStartSuit(candidate, owner)
                     && LatexSocialMemory.canStartEmergencyRescue(candidate)
@@ -129,6 +156,7 @@ public final class BondedSuitService {
         ChangedEntity rescuer = LatexSocialMemory.loadedBondedCreatures(owner)
                 .stream()
                 .filter(candidate -> candidate.level() == owner.level())
+                .filter(candidate -> BondedOwnerDefenseGoal.canProtectOwner(candidate, owner))
                 .filter(candidate -> LatexSocialMemory.isPetOwner(candidate, owner))
                 .filter(candidate -> canStartSuit(candidate, owner))
                 .filter(LatexSocialMemory::canStartEmergencyRescue)
@@ -160,7 +188,13 @@ public final class BondedSuitService {
             return false;
         }
         if (pet.getPersistentData().getLong(TRANSFUR_RESCUE_UNTIL)
-                > pet.level().getGameTime()) {
+                > pet.level().getGameTime()
+                && BondedOwnerDefenseGoal.canProtectOwner(pet, owner)
+                && owner.isAlive() && owner.level() == pet.level()
+                && !ProcessTransfur.isPlayerTransfurred(owner)
+                && ProcessTransfur.getPlayerTransfurProgress(owner)
+                        > ProcessTransfur.getEntityTransfurTolerance(owner)
+                                * TRANSFUR_RELEASE_RATIO) {
             return true;
         }
         clearTransfurRescueRequest(pet);
@@ -191,15 +225,17 @@ public final class BondedSuitService {
 
     public static boolean canStartFriendDrowningSuit(ChangedEntity pet, ServerPlayer player) {
         return ChangedSynergyConfig.COMMON.bondedEmergencyRescue.get()
+                && net.parkabird.changedsynergy.compat.FirearmCompat.ridingSuperbVehicle(player) == null
                 && ChangedSynergyConfig.COMMON.aquaticFriendDrowningRescue.get()
-                && player.getPersistentData().getLong(RESCUE_GRACE_UNTIL)
-                        <= player.level().getGameTime()
+                && !isRescueGraceActive(player)
                 && HunterFaction.isAquatic(pet)
                 && !LatexSocialMemory.isOrganic(pet)
                 && !CreatureSocialProfile.isJuvenile(pet)
                 && LatexSocialMemory.petOwnerUuid(pet).isEmpty()
                 && CreaturePersonality.canFriendFollow(pet, player)
                 && player.isAlive() && !player.isCreative() && !player.isSpectator()
+                && pet.level() == player.level()
+                && pet.distanceToSqr(player) <= 20.0D * 20.0D
                 && !ProcessTransfur.isPlayerTransfurred(player)
                 && player.isUnderWater()
                 && player.getPersistentData().getLong(DROWNING_DAMAGE_UNTIL)
@@ -209,13 +245,21 @@ public final class BondedSuitService {
 
     /** A friendly suit may begin only for a reverted owner and never from an organic creature. */
     public static boolean canStartSuit(ChangedEntity pet, ServerPlayer owner) {
+        if (net.parkabird.changedsynergy.compat.FirearmCompat.ridingSuperbVehicle(owner) != null) return false;
         IAbstractChangedEntity currentGrabber = GrabEntityAbility.getGrabber(owner);
         if (currentGrabber != null && currentGrabber.getEntity() != pet) {
+            var hold = currentGrabber.getAbilityInstanceSafe(
+                    ChangedAbilities.GRAB_ENTITY_ABILITY.get()).orElse(null);
+            if (hold != null && hold.grabbedEntity == owner
+                    && (hold.suited || BondedOwnerGrabRescueGoal.isFriendlyGrab(
+                            owner, currentGrabber.getEntity(), hold))) return false;
             ChangedEntity other = currentGrabber.getEntity() instanceof ChangedEntity changed
                     ? changed : null;
             if (other != null && isWrappingOwner(other, owner)) return false;
         }
         return pet.isAlive()
+                && pet.getUnderlyingPlayer() == null
+                && pet.level() == owner.level()
                 && !CreatureSocialProfile.isJuvenile(pet)
                 && owner.isAlive()
                 && !owner.isCreative()
@@ -226,8 +270,7 @@ public final class BondedSuitService {
     }
 
     public static boolean shouldBlockNativeSuit(ChangedEntity pet, ServerPlayer owner) {
-        if (owner.getPersistentData().getLong(RESCUE_GRACE_UNTIL)
-                > owner.level().getGameTime()) return true;
+        if (isRescueGraceActive(owner)) return true;
         IAbstractChangedEntity current = GrabEntityAbility.getGrabber(owner);
         return current != null && current.getEntity() != pet
                 && current.getEntity() instanceof ChangedEntity other
@@ -241,15 +284,17 @@ public final class BondedSuitService {
                 .orElse(null);
     }
 
-    /** Gives a reconstructed non-grabber the standard Changed suit ability. */
-    public static void ensureRevivalGrabAbility(ChangedEntity pet) {
+    /** Supplies the native capability for scripted social holds on either logical side. */
+    public static void ensureGrabAbility(ChangedEntity pet) {
         if (ability(pet) != null) {
             return;
         }
         var instance = ChangedAbilities.GRAB_ENTITY_ABILITY.get()
                 .makeInstance(IAbstractChangedEntity.forEntity(pet));
         ((ChangedEntityAbilityInvoker)pet).changedSynergy$registerAbility(
-                ignored -> true, instance);
+                ignored -> false, instance);
+        // Scripted goals call grab/suit directly. Do not let UseAbilityGoal
+        // continuously hold this ability key and unwrap/release every 40 ticks.
     }
 
     public static boolean isSuitingOwner(ChangedEntity pet, ServerPlayer owner) {
@@ -359,6 +404,18 @@ public final class BondedSuitService {
                 clearTransfurRescueRequest(pet);
             }
             return true;
+        }
+        // A goal can already be running when a different companion releases
+        // the player. Recheck at the shared commit point, not only in canUse.
+        if (reason != SuitReason.MANUAL
+                && (isRescueGraceActive(owner)
+                        || LatexSocialMemory.isPetOwner(pet, owner)
+                                && !BondedOwnerDefenseGoal.canProtectOwner(pet, owner)
+                        || pet.distanceToSqr(owner) > 2.5D * 2.5D
+                                && !pet.getBoundingBox().inflate(0.75D)
+                                        .intersects(owner.getBoundingBox()))) {
+            clearTransfurRescueRequest(pet);
+            return false;
         }
         if (!canStartSuit(pet, owner)
                 && !(reason == SuitReason.DROWNING
@@ -583,12 +640,25 @@ public final class BondedSuitService {
             ServerPlayer owner,
             ReleaseReason reason) {
         GrabEntityAbilityInstance ability = ability(pet);
+        IAbstractChangedEntity currentGrabber = GrabEntityAbility.getGrabber(owner);
+        if (ability != null && ability.grabbedEntity == owner
+                && currentGrabber != null && currentGrabber.getEntity() != pet) {
+            // Finish only the stale reference. The new carrier owns the form,
+            // release request and player-side grab link.
+            ability.releaseEntity(false);
+            return false;
+        }
         if (ability == null || ability.grabbedEntity != owner) {
+            if (LatexSocialMemory.isFriendlySuitActive(pet, owner)) {
+                if (currentGrabber == null) markRescueReleased(owner);
+                BondedPetSettings.clearFavor(pet);
+                ChangedAddonCompat.clearBondedFavor(pet);
+            }
             LatexSocialMemory.endFriendlySuit(pet, owner);
             pet.getPersistentData().remove(DROWNING_SUIT);
             pet.getPersistentData().remove(TRANSFUR_SUIT);
             clearTransfurRescueRequest(pet);
-            clearTemporarySuitVariant(owner);
+            clearTemporarySuitVariant(pet, owner);
             syncOwnerSuitState(pet, owner, false);
             return false;
         }
@@ -606,6 +676,7 @@ public final class BondedSuitService {
         boolean drowning = pet.getPersistentData().getBoolean(DROWNING_SUIT);
         boolean transfurRescue = pet.getPersistentData().getBoolean(TRANSFUR_SUIT);
         UUID revivalToken = BondedRevivalService.token(pet);
+        BondedSuitDimensionTransfer.cancelRestoration(owner);
         pet.getPersistentData().remove(DROWNING_SUIT);
         pet.getPersistentData().remove(TRANSFUR_SUIT);
         clearTransfurRescueRequest(pet);
@@ -617,7 +688,7 @@ public final class BondedSuitService {
                 new GrabEntityPacket(pet, owner, GrabType.RELEASE));
         ChangedAddonCompat.syncFriendlySuitControl(pet, owner, false);
         syncOwnerSuitState(pet, owner, false);
-        if (temporarySuit) TrueTransfurCompat.clearTemporarySuit(owner);
+        if (temporarySuit) clearTemporarySuitVariant(pet, owner);
         ChangedSounds.broadcastSound(pet, ChangedSounds.LATEX_UNSUIT_ENTITY, 1.0F, 1.0F);
 
         if (revivalToken != null) {
@@ -627,6 +698,9 @@ public final class BondedSuitService {
             return true;
         }
 
+        ChangedAddonCompat.clearBondedFavor(pet);
+        BondedPetSettings.clearFavor(pet);
+
         // The old pending request and a fresh health/air check can otherwise
         // suit the player again immediately after a successful release.
         for (ChangedEntity bonded : LatexSocialMemory.loadedBondedCreatures(owner)) {
@@ -634,8 +708,7 @@ public final class BondedSuitService {
             LatexSocialMemory.delayEmergencyRescue(bonded, MANUAL_RELEASE_COOLDOWN);
         }
         LatexSocialMemory.delayEmergencyRescue(pet, MANUAL_RELEASE_COOLDOWN);
-        owner.getPersistentData().putLong(RESCUE_GRACE_UNTIL,
-                owner.level().getGameTime() + MANUAL_RELEASE_COOLDOWN);
+        markRescueReleased(owner);
         owner.getPersistentData().remove(DROWNING_DAMAGE_UNTIL);
         BondedEmergencySuitGoal.suppressSelfRecovery(pet);
 
@@ -663,6 +736,34 @@ public final class BondedSuitService {
         }
     }
 
+    /** Native damage, favor changes and ability removal can bypass releaseOwner. */
+    public static void onNativeSuitReleased(ChangedEntity pet, ServerPlayer owner) {
+        IAbstractChangedEntity current = GrabEntityAbility.getGrabber(owner);
+        boolean released = current == null || current.getEntity() == pet;
+        if (released) {
+            markRescueReleased(owner);
+            if (pet.level() == owner.level()) BondedSuitDimensionTransfer.cancelRestoration(owner);
+        }
+        clearTransfurRescueRequest(pet);
+        LatexSocialMemory.endFriendlySuit(pet, owner);
+        pet.getPersistentData().remove(DROWNING_SUIT);
+        pet.getPersistentData().remove(TRANSFUR_SUIT);
+        LatexSocialMemory.delayEmergencyRescue(pet, MANUAL_RELEASE_COOLDOWN);
+        BondedEmergencySuitGoal.suppressSelfRecovery(pet);
+        ChangedAddonCompat.configureFriendlyGrab(ability(pet), false);
+        ChangedAddonCompat.clearBondedFavor(pet);
+        BondedPetSettings.clearFavor(pet);
+        if (released) {
+            for (ChangedEntity bonded : LatexSocialMemory.loadedBondedCreatures(owner)) {
+                clearTransfurRescueRequest(bonded);
+                LatexSocialMemory.delayEmergencyRescue(bonded, MANUAL_RELEASE_COOLDOWN);
+            }
+        }
+        clearTemporarySuitVariant(pet, owner);
+        ChangedAddonCompat.syncFriendlySuitControl(pet, owner, false);
+        syncOwnerSuitState(pet, owner, false);
+    }
+
     /**
      * Detaches a native Changed/Addon pet before its wrapping around the owner
      * variant is reversed. The actual pet entity is retained; only the grab and
@@ -679,10 +780,11 @@ public final class BondedSuitService {
             return false;
         }
 
-        owner.getPersistentData().putLong(RESCUE_GRACE_UNTIL,
-                owner.level().getGameTime() + MANUAL_RELEASE_COOLDOWN);
+        markRescueReleased(owner);
 
         boolean bondedSuit = LatexSocialMemory.isFriendlySuitActive(pet, owner);
+        ChangedAddonCompat.clearBondedFavor(pet);
+        BondedPetSettings.clearFavor(pet);
         ability.releaseEntity(false);
         ChangedAddonCompat.configureFriendlyGrab(ability, false);
         LatexSocialMemory.endFriendlySuit(pet, owner);
@@ -704,6 +806,7 @@ public final class BondedSuitService {
 
     /** Covers direct form removal paths that do not post an untransfur event. */
     public static void tickNativeOwnerSuit(ServerPlayer owner) {
+        if(TakeoverService.active(owner))return;
         ChangedEntity pet = getWrappingPet(owner);
         if (pet == null || !isNativeOwnerSuit(pet, owner)) {
             return;
@@ -768,7 +871,7 @@ public final class BondedSuitService {
         pet.getPersistentData().remove(TRANSFUR_SUIT);
         clearTransfurRescueRequest(pet);
         syncOwnerSuitState(pet, owner, false);
-        clearTemporarySuitVariant(owner);
+        clearTemporarySuitVariant(pet, owner);
     }
 
     /** Permanently restores the bonded creature's own form to a reverted owner. */
@@ -853,8 +956,10 @@ public final class BondedSuitService {
 
     /** Maintains healing and performs the automatic release after emergency recovery. */
     public static void tickFriendlySuit(ServerPlayer owner) {
-        ChangedEntity pet = getFriendlySuitPet(owner);
-        if (pet == null) {
+        if(TakeoverService.active(owner))return;
+        IAbstractChangedEntity grabber = GrabEntityAbility.getGrabber(owner);
+        if (grabber == null || !(grabber.getEntity() instanceof ChangedEntity pet)
+                || !LatexSocialMemory.isFriendlySuitActive(pet, owner)) {
             return;
         }
         boolean bond = LatexSocialMemory.isPetOwner(pet, owner);
@@ -865,13 +970,13 @@ public final class BondedSuitService {
             return;
         }
         GrabEntityAbilityInstance ability = ability(pet);
-        if (ability == null || ability.grabbedEntity != owner || !ability.suited) {
+        if (ability == null || ability.grabbedEntity != owner) {
             LatexSocialMemory.endFriendlySuit(pet, owner);
             ChangedAddonCompat.configureFriendlyGrab(ability, false);
             pet.getPersistentData().remove(DROWNING_SUIT);
             pet.getPersistentData().remove(TRANSFUR_SUIT);
             clearTransfurRescueRequest(pet);
-            clearTemporarySuitVariant(owner);
+            clearTemporarySuitVariant(pet, owner);
             syncOwnerSuitState(pet, owner, false);
             return;
         }
@@ -884,6 +989,10 @@ public final class BondedSuitService {
             return;
         }
 
+        // The social session and temporary body own this relation. An Addon
+        // control packet may briefly reset one bit; repair it instead of ending
+        // and immediately recreating the entire wrapping interaction.
+        ability.suited = true;
         ability.grabbedHasControl = true;
         ability.attackDown = false;
         ability.useDown = false;
@@ -987,8 +1096,12 @@ public final class BondedSuitService {
                 PacketDistributor.PLAYER.with(() -> owner), packet);
     }
 
-    private static void clearTemporarySuitVariant(ServerPlayer owner) {
-        TrueTransfurCompat.clearTemporarySuit(owner);
+    private static void clearTemporarySuitVariant(ChangedEntity pet, ServerPlayer owner) {
+        IAbstractChangedEntity current = GrabEntityAbility.getGrabber(owner);
+        // A stale wrapper must not remove the new wrapper's temporary body.
+        if (current == null || current.getEntity() == pet) {
+            TrueTransfurCompat.clearTemporarySuit(owner);
+        }
     }
 
     public enum SuitReason {

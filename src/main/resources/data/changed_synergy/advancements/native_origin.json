@@ -1,0 +1,29 @@
+{
+  "parent": "changed_synergy:root",
+  "display": {
+    "icon": {
+      "item": "changed:dark_latex_mask"
+    },
+    "title": {
+      "translate": "advancement.changed_synergy.native_origin.title"
+    },
+    "description": {
+      "translate": "advancement.changed_synergy.native_origin.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "complete": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "true_transfur"
+    }
+  ]
+}

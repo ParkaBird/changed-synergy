@@ -15,6 +15,20 @@ public final class BondedInventoryService {
     private BondedInventoryService() {
     }
 
+    /** Reuse an open fallback view so meals cannot overwrite a viewer's newer items. */
+    public static Container inventory(ChangedEntity pet, ServerPlayer owner) {
+        if (pet.level() instanceof net.minecraft.server.level.ServerLevel level) {
+            for (ServerPlayer viewer : level.players()) {
+                if (viewer.containerMenu instanceof BondedCreatureInventoryMenu menu && menu.getPet() == pet)
+                    return menu.getPetInventory();
+            }
+        }
+        if (pet.getPersistentData().contains("ChangedSynergyBondedInventory")) return new BondedCreatureInventory(pet);
+        if (pet instanceof AbstractDarkLatexEntity dark && dark.getInventory() != null) return dark.getInventory();
+        Container nativeInventory = owner == null ? null : ChangedAddonCompat.prepareBondedInventory(pet, owner);
+        return nativeInventory == null ? new BondedCreatureInventory(pet) : nativeInventory;
+    }
+
     public static boolean canAccess(ServerPlayer player, ChangedEntity pet) {
         if (!pet.isAlive() || pet.isRemoved() || pet.level() != player.level()
                 || player.isSpectator() || player.distanceToSqr(pet) > 64.0D) return false;

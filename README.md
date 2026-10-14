@@ -5,137 +5,95 @@
 <h1 align="center">Changed: Synergy</h1>
 
 <p align="center">
-  A relationship-focused Forge addon for <em>Changed</em> on Minecraft 1.20.1.
+  Friends, factions and camp life for Changed on Minecraft 1.20.1.
 </p>
 
 <p align="center">
-  <a href="https://github.com/ParkaBird/changed-synergy/releases"><img alt="GitHub release" src="https://img.shields.io/github/v/release/ParkaBird/changed-synergy?include_prereleases&label=release"></a>
-  <a href="https://github.com/ParkaBird/changed-synergy/blob/main/LICENSE.txt"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
+  <a href="https://github.com/ParkaBird/changed-synergy/releases"><img alt="GitHub release" src="https://img.shields.io/github/v/release/ParkaBird/changed-synergy?label=release"></a>
+  <a href="LICENSE.txt"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
   <img alt="Minecraft 1.20.1" src="https://img.shields.io/badge/Minecraft-1.20.1-62B47A">
   <img alt="Forge 47.4.x" src="https://img.shields.io/badge/Forge-47.4.x-E04E14">
 </p>
 
-Changed: Synergy turns aggressive latex creatures into neighbors you can actually get along with. An orange or a friendly pat will often get you further than fists and blades. Transfur is not always the end. Sometimes, you can even talk your way back out of it.
+Changed: Synergy turns aggressive latex creatures into neighbors you can get along with. Answer a greeting, offer a gift and earn their trust over time. Creatures have persistent names, personalities and memories; friendships can lead to companion bonds, shared adventures and a home around the campfire.
 
-Creatures have persistent names, individual personalities, memories and social behavior. You can befriend them, build affection, form one voluntary bond and watch them interact with their surroundings.
+**1.1.4 focuses on TrueTransfur integration.** With **TrueTransfur 2.0.0**, begin as a native latex creature, choose a species through an animated archive, speak in character and interact with other players in PLAYER or INSTINCT mode. TrueTransfur is optional: NPC relationships, camps and companion features work without it. Backward compatibility with **1.0.1** is retained; the expanded Instinct features require 2.0.0.
 
-> [!WARNING]
-> Synergy changes AI, entity state and world data. Back up important worlds before installing or updating it.
+## Player guides
 
-## At a glance
+Start with the [guide directory](docs/README.md), or choose a topic:
 
-- Friendship, affection, faction reputation and an exclusive bond system
-- Linked faction reputations by default, with an optional server setting for independent reputations and simultaneous alliances with every faction. See [diplomacy rules](docs/FACTION_DIPLOMACY.md).
-- Social, relationship and creature-function radial menus
-- Negotiation after involuntary assimilation, absorption or fusion
-- Bonded-companion revival through repaired Dark Latex Masks or species samples processed in the Latex Infuser
-- Rest Together, shore waiting, protective wrapping and other companion actions
-- Smooth patting speed control, speed-dependent reactions and third-person animations for players and Changed creatures
-- Context-aware dialogue in English and Simplified Chinese
-- Grapple QTEs, gaze-based hypnosis resistance, and improved movement, swimming and combat behavior
-- Creature gathering, fishing, hunting, mining, outposts and environmental interactions
-- Player-built bell outposts with trusted residents, guards, a following crew and real chest supplies
-- Optional integration with Changed Addon Plus, Changed Additions, Changed Vanilla,
-  Changed Extras and Domestication Innovation
-- Forge configuration screens and gamerules for the main systems
-- Server-side configuration commands and personality-selectable creature spawning for operators
+| Guide | What it covers |
+| --- | --- |
+| [Social guide](docs/SOCIAL_GUIDE.md) · [中文](docs/SOCIAL_GUIDE.zh-CN.md) | First contact, feeding, gifts, friends, bonds and player interactions |
+| [Player camps](docs/PLAYER_CAMP_GUIDE.md) | Establishing a camp, linking facilities, work, meals and travelling crews |
+| [Native origins](docs/NATIVE_ORIGINS.md) | Choosing a human or creature origin and using the archive |
+| [TrueTransfur and Instinct](docs/TRUETRANSFUR_INSTINCT_COMPAT.md) | Installation, visible bodies, control modes and player takeover |
+| [Settings reference](docs/SETTINGS_GUIDE.md) · [中文](docs/SETTINGS_GUIDE.zh-CN.md) | Defaults, ranges and server-controlled options |
+| [Server configuration](docs/SERVER_CONFIGURATION.md) | Operator commands, multiplayer settings and world rules |
 
-The full feature list, screenshots and release downloads are available on the project pages:
+See the [1.1.4 changelog](docs/CHANGELOG-1.1.4.md) for the changes since 1.1.3.
+
+## What you can do
+
+- **Build relationships over time.** Patting and feeding help with first contact; the first suitable wheel gift establishes acquaintance. Continued care and gifts deepen friendship. Full affection and a species-themed token unlock a first bond. Bonds can be ended without erasing friendship and renewed later.
+- **Begin as a native latex creature.** Choose an eligible species or a human origin from the archive. Native identity, faction citizenship and a creature name persist. The archive supports category random choices and a fully random choice from its available records.
+- **Interact with real players.** Native players can use nearby role speech, expressions, gifts and mutually confirmed friendships. Language understanding follows the same rules as NPC dialogue. Instinct bodies represent their actual players rather than separate social NPCs.
+- **Build a camp.** Claim a campfire, link beds, rest points and containers, then invite trusted adult friends. Assign gathering, hunting, farming, cooking or hauling, with optional backup jobs. Shared meals bring residents around the campfire.
+- **Take a crew along.** Choose Combat, Mining, Gathering or Hunting. Workers finish nearby tasks, keep real products in accessible Work Cargo, then resume following. Supplied pickaxes and fishing rods retain their useful properties.
+- **Explore factions and communities.** Regional reputation, alliances, wild outposts, provisioner trades and remembered encounters influence creature behavior. Rival reputations are linked by default; servers can make them independent.
+- **Negotiate and cooperate.** Supported creatures offer wrapping, rescue, rest, shore waiting, riding and revival. Takeover, release and transfur outcomes depend on the encounter and server settings. Companion wrapping and rescue do not require Addon Plus.
+- **Configure the experience.** Server settings, world rules and client visuals are separate. Operators can tune relationships, camp limits, work areas, item restrictions, wild-outpost placement and AI scheduling.
+
+## Downloads and requirements
 
 - [Modrinth](https://modrinth.com/mod/changed-synergy)
 - [CurseForge](https://www.curseforge.com/minecraft/mc-mods/changed-synergy)
 - [GitHub releases](https://github.com/ParkaBird/changed-synergy/releases)
-
-## Requirements
 
 | Component | Supported version | Required |
 | --- | --- | --- |
 | Minecraft | 1.20.1 | Yes |
 | Forge | 47.4.x | Yes |
 | Changed | 0.15.7 | Yes |
+| TrueTransfur | 2.0.0; backward compatibility with 1.0.1 | For native origins and TrueTransfur features |
+| Mixin Args | 1.0 or newer | When using TrueTransfur 2.0.0 |
 | Changed Addon Plus | 2.9.2c | No |
 | Changed Vanilla | 1.0.1 | No |
-| Changed Extras | 1.1.4-beta3b | No |
+| Changed Extras | 1.1.8b | No |
+| Farmer's Delight | 1.3.4 | No |
 | Domestication Innovation | 1.7.1 | No |
 
-Synergy uses targeted mixins and direct integration points. Compatibility with newer Changed or Changed Addon Plus releases is not guaranteed. See [COMPATIBILITY.md](COMPATIBILITY.md) for the complete support policy.
+The [compatibility guide](COMPATIBILITY.md) covers other integrations and their limits. Optional mods are not bundled.
 
-## Installation
+## Installation and getting started
 
 1. Install Forge 47.4.x for Minecraft 1.20.1.
-2. Put Changed 0.15.7 and the Synergy JAR in the instance's `mods` folder.
-3. Add Changed Addon Plus 2.9.2c only if you want its optional integration.
-4. Start the game and check the Forge Mods screen for dependency errors.
+2. Put Changed 0.15.7 and one Synergy JAR in the instance's `mods` folder.
+3. For native origins and Instinct gameplay, add TrueTransfur 2.0.0 and its required Mixin Args dependency. Add other integrations if wanted.
+4. In multiplayer, install the same Synergy build and the relevant dependencies on the server and every client.
 
-Do not install multiple Synergy JARs at the same time.
+Back up important worlds before updating. For an existing world, review the server's **Starting Origin Selection** rule and use the [native-origin guide](docs/NATIVE_ORIGINS.md) to configure selection.
 
-## Configuration
+To start a camp, look at a placed campfire and use `/changedsynergy outpost create`, or choose **Establish Camp** on the relationship wheel. Look at a functional block and use `/changedsynergy outpost link`. Beds provide sleeping places; pillows, office chairs and tall cardboard boxes provide rest points. New members need Close friendship. See the [camp guide](docs/PLAYER_CAMP_GUIDE.md) for the full setup and orders.
 
-To equip a friend or bonded creature, hold armor or a melee weapon and **sneak-right-click** them. The matching armor slot or main hand must be empty, and armor must fit their body shape. Swords, axes, tridents, and modded items with positive main-hand attack damage are accepted; ranged weapons and shields are not. This gesture does not mount a taur or open its configuration. Creatures already wearing armor will not replace or expand it through absorption; you can still equip their other empty slots yourself.
+For gameplay settings, open **Server Settings**, **World Rules** or **Client Visuals** in the configuration screen. Multiplayer gameplay values come from the server. Operators can use `/changedsynergy config categories`, `get`, `set` and `reset`; see [server configuration](docs/SERVER_CONFIGURATION.md).
 
-To build a player outpost, place a bell and look at it while using `/changedsynergy outpost claim`. Within 32 blocks, look at a chest or bed (Changed pillows also work as rest places) and use `/changedsynergy outpost storage` or `/changedsynergy outpost bed`. Look at a trusted adult creature and use `/changedsynergy outpost invite`. Aim at your claimed bell to see the sneak-right-click shortcut, or choose Manage outpost on the relationship wheel; `/changedsynergy outpost` opens the same page. Assigning Supply makes a member gather resources suited to its species and faction within the outpost and carry them to the linked chest; the roster shows its harvest type. Latex bees can use yellow hive pillows at night. `/changedsynergy outpost status` provides a clickable chat roster, and `/changedsynergy outpost help` lists commands. Outpost records and unloaded members persist, but the outpost does not force chunks to stay loaded. Server owners can change the resident and active-crew caps under `COMMUNITIES` or with `/changedsynergy config`.
+## Source and contributing
 
-Open Synergy's configuration screen from the Forge Mods list or through a compatible configuration-menu mod. Client settings control local presentation. Multiplayer gameplay and AI use the server's common configuration and gamerules.
+Java 17 is required. Run `./gradlew build`, or `gradlew.bat build` on Windows. Release and source JARs are written to `build/libs`. See [building](docs/BUILDING.md), [architecture](docs/ARCHITECTURE.md) and [contributing](CONTRIBUTING.md) for development details.
 
-The Gameplay tab begins with performance controls and a live FPS/server/latex-AI readout. Background decisions are staggered by default, distant idle creatures run optional work less often, and a soft budget defers noncritical work without delaying combat or companion safety. See [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for metric definitions and a step-by-step crowded-area diagnosis.
+- [Changelog](CHANGELOG.md)
+- [Known limitations](KNOWN_ISSUES.md)
+- [Performance controls](docs/PERFORMANCE.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
 
-Servers can disable Synergy's ordinary negotiated, bonded-companion and sleep-based transfur reversal without disabling takeover separation or Changed's `/untf` and `/untransfur` recovery commands.
+## Support and credits
 
-`TAKEOVER.TransfurAfterSleep` is disabled by default, preserving the ordinary sleep-and-release outcome after timer expiry or a failed escape. When enabled, the player wakes in permanent control of the carrier's form, including that carrier's eye colors and style.
+Report reproducible bugs through the [issue tracker](https://github.com/ParkaBird/changed-synergy/issues), including `latest.log` or the crash report, exact mod versions and reproduction steps. Join the [Changed: Synergy Discord](https://discord.gg/3yscxe2YgN) for feedback and discussion.
 
-`RELATIONSHIPS.ProtectiveReleaseRequests` lets cautious, protective, and sensitive companions respond to repeated danger rescues by requiring two or three release requests after recovery. Every request closes the radial menu, and reopening it does not reset the server-side count.
+Changed: Synergy is developed by ParkaBird. Thanks to Nic, Crossader and Sword for dialogue and localization, and to TrueTransfur's author for collaboration, testing and Russian localization. This is an unofficial addon, not affiliated with the creators of Changed or Mojang Studios.
 
-The optional 0.13-style transfur progress mask and skin coating are disabled by default. Players who prefer those effects can enable either one independently without replacing Changed's current presentation for everyone else.
+Generative AI assisted with parts of the English and Chinese text and code; ParkaBird reviewed, edited, integrated and tested the work. Artwork, textures, models, screenshots and promotional images are not AI-generated. See [AI disclosure](AI_DISCLOSURE.md).
 
-Game-rule names and behavior are documented in [docs/GAMERULES.md](docs/GAMERULES.md).
-
-Dedicated-server settings, operator commands and the difference between
-server gameplay options and client visuals are documented in
-[docs/SERVER_CONFIGURATION.md](docs/SERVER_CONFIGURATION.md).
-
-## Building
-
-Synergy requires Java 17. Clone the repository and run:
-
-```shell
-./gradlew build
-```
-
-On Windows, use `gradlew.bat build`. Release and source JARs are written to `build/libs`.
-
-`-PwithoutAddon` removes Changed Addon Plus from the development runtime. Its API remains available at compile time so the optional compatibility layer can compile.
-
-## Repository guide
-
-- [COMPATIBILITY.md](COMPATIBILITY.md) defines the supported game and mod versions.
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains the main systems and dependency boundaries.
-- [docs/GAMERULES.md](docs/GAMERULES.md) documents the server-side feature switches.
-- [docs/PERFORMANCE.md](docs/PERFORMANCE.md) explains the live diagnostics and AI scheduling controls.
-- [KNOWN_ISSUES.md](KNOWN_ISSUES.md) lists current known limitations.
-- [CHANGELOG.md](CHANGELOG.md) records user-facing changes.
-- [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) identifies upstream projects and reused material.
-
-## Reporting bugs
-
-Before opening an issue, check [KNOWN_ISSUES.md](KNOWN_ISSUES.md) and test without unrelated mods when possible. Bug reports should include:
-
-- the crash report or `latest.log`
-- exact Forge, Changed and Synergy versions
-- whether Changed Addon Plus, Changed Additions or Changed Vanilla is installed
-- steps that reproduce the problem
-
-Use the [issue tracker](https://github.com/ParkaBird/changed-synergy/issues) for reproducible bugs. The [Changed: Synergy Discord](https://discord.gg/3yscxe2YgN) is available for discussion, feedback and development updates.
-
-## Contributing
-
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a patch. The project does not yet have an automated in-game regression suite, so gameplay changes must include clear manual test steps.
-
-## Credits, AI assistance and license
-
-Changed: Synergy is developed by ParkaBird. It is an unofficial addon and is not affiliated with the creators of Changed or Mojang Studios.
-
-Dialogue contributions: Nic, Crossader, and Sword.
-
-Generative AI was used as an assistive tool during development of parts of the English and Chinese text and code. ParkaBird reviewed, edited, integrated and tested the resulting work. Artwork, textures, models, screenshots and promotional images are not AI-generated. Details are in [AI_DISCLOSURE.md](AI_DISCLOSURE.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-Changed: Synergy is licensed under [GPL-3.0-or-later](LICENSE.txt).
+Licensed under [GPL-3.0-or-later](LICENSE.txt).

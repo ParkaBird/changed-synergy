@@ -16,7 +16,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.AABB;
 import net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole;
-import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
@@ -96,8 +95,6 @@ public final class CreatureCacheGuardService {
             return false;
         }
 
-        SynergyAdvancements.grant(
-                player, SynergyAdvancements.MYSTERIOUS_FORAGING_SPOT);
         applyReputationCost(witness, player, level.getGameTime(), -2);
         NpcDialogue.trigger(witness, player, Cue.CACHE_INTRUSION);
         attackIntruder(members, witness, player, position);
@@ -141,6 +138,8 @@ public final class CreatureCacheGuardService {
                         creature -> creature.isAlive()
                                 && !creature.isNoAi()
                                 && LatexSocialMemory.isSocialLatex(creature)
+                                && !CreatureCommunityData.isPlayerCompanion(creature)
+                                && !PlayerOutpostService.assigned(creature)
                                 && (CreatureSettlementService.cachePosition(creature)
                                                 .filter(position::equals).isPresent()
                                         || CreatureLifeMemory.role(creature)
@@ -171,8 +170,8 @@ public final class CreatureCacheGuardService {
                     .filter(member -> CreatureLifeMemory.role(member)
                             != GroupRole.GUARD)
                     .filter(member -> assignment(member).isEmpty())
-                    .filter(member -> !LatexSocialMemory.hasActiveBond(member))
-                    .filter(member -> LatexSocialMemory.petOwnerUuid(member).isEmpty())
+                    .filter(member -> !CreatureCommunityData.isPlayerCompanion(member))
+                    .filter(member -> !PlayerOutpostService.assigned(member))
                     .min(Comparator.comparingDouble(player::distanceToSqr))
                     .ifPresent(member -> {
                         CreatureLifeMemory.setRole(member, GroupRole.GUARD);
@@ -190,7 +189,9 @@ public final class CreatureCacheGuardService {
     public static void ensureGuardPresence(
             ChangedEntity member,
             BlockPos cache) {
-        if (!(member.level() instanceof ServerLevel level)) {
+        if (!(member.level() instanceof ServerLevel level)
+                || CreatureCommunityData.isPlayerCompanion(member)
+                || PlayerOutpostService.assigned(member)) {
             return;
         }
         if (!stationedGuards(level, cache).isEmpty()) {
@@ -204,8 +205,8 @@ public final class CreatureCacheGuardService {
                         && LatexSocialMemory.isSocialLatex(candidate)
                         && CreatureCommunityData.sameCommunity(member, candidate)
                         && CreatureLifeMemory.role(candidate) != GroupRole.YOUNGSTER
-                        && !LatexSocialMemory.hasActiveBond(candidate)
-                        && LatexSocialMemory.petOwnerUuid(candidate).isEmpty());
+                        && !CreatureCommunityData.isPlayerCompanion(candidate)
+                        && !PlayerOutpostService.assigned(candidate));
         peers.stream()
                 .filter(candidate ->
                         CreatureLifeMemory.role(candidate) != GroupRole.GUARD)
@@ -224,7 +225,7 @@ public final class CreatureCacheGuardService {
                         ChangedEntity.class,
                         new AABB(cache).inflate(GUARD_PATROL_RADIUS),
                         candidate -> eligibleCacheGuard(candidate)
-                                && patrolCache(candidate)
+                                && uncappedPatrolCache(candidate)
                                         .filter(cache::equals).isPresent())
                 .stream()
                 .sorted(Comparator.comparing(ChangedEntity::getUUID))
@@ -241,6 +242,11 @@ public final class CreatureCacheGuardService {
             ASSIGNMENTS.remove(guard.getUUID());
             return Optional.empty();
         }
+        if (CreatureCommunityData.isPlayerCompanion(guard)
+                || PlayerOutpostService.assigned(guard)) {
+            finish(guard, false);
+            return Optional.empty();
+        }
         return Optional.of(assignment);
     }
 
@@ -254,17 +260,16 @@ public final class CreatureCacheGuardService {
             return Optional.empty();
         }
         BlockPos cache = nearest.get();
-        List<ChangedEntity> candidates = level.getEntitiesOfClass(
-                        ChangedEntity.class,
-                        new AABB(cache).inflate(GUARD_PATROL_RADIUS),
-                        candidate -> eligibleCacheGuard(candidate)
-                                && uncappedPatrolCache(candidate)
-                                        .filter(cache::equals).isPresent())
-                .stream()
-                .sorted(Comparator.comparing(ChangedEntity::getUUID))
-                .limit(MAX_GUARDS_PER_CACHE)
-                .toList();
-        return candidates.contains(guard) ? nearest : Optional.empty();
+        return stationedGuards(level, cache).contains(guard) ? nearest : Optional.empty();
+    }
+
+    /** Unloaded/dead entities cannot retain a live cache-defense order. */
+    public static void forget(ChangedEntity guard) {
+        ASSIGNMENTS.remove(guard.getUUID());
+    }
+
+    public static void clearAssignments() {
+        ASSIGNMENTS.clear();
     }
 
     private static Optional<BlockPos> uncappedPatrolCache(ChangedEntity guard) {
@@ -277,14 +282,16 @@ public final class CreatureCacheGuardService {
                 && !guard.isNoAi()
                 && CreatureLifeMemory.role(guard) == GroupRole.GUARD
                 && LatexSocialMemory.isSocialLatex(guard)
-                && !LatexSocialMemory.hasActiveBond(guard)
-                && LatexSocialMemory.petOwnerUuid(guard).isEmpty();
+                && !CreatureCommunityData.isPlayerCompanion(guard)
+                && !PlayerOutpostService.assigned(guard);
     }
 
     public static void begin(
             ChangedEntity guard,
             ServerPlayer intruder,
             BlockPos cache) {
+        if (CreatureCommunityData.isPlayerCompanion(guard)
+                || PlayerOutpostService.assigned(guard)) return;
         BlockPos current = guard.blockPosition();
         BlockPos returnPost = current.distSqr(cache) <= 14.0D * 14.0D
                 ? current.immutable() : cache.immutable();

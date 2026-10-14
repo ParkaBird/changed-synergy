@@ -78,7 +78,8 @@ public final class HypnosisQteOverlay {
             HypnosisQteSyncPacket state) {
         int centerX = screenWidth / 2;
         int centerY = screenHeight / 2;
-        int barX = centerX - 100;
+        int barWidth = Math.min(state.playerDuel() ? 260 : 200, screenWidth - 16);
+        int barX = centerX - barWidth / 2;
         int barY = centerY + 35;
         int themeRgb = HypnosisQteClientState.themeColor();
         Color3 theme = Color3.fromInt(themeRgb);
@@ -102,28 +103,31 @@ public final class HypnosisQteOverlay {
                     entry);
         }
 
-        int halfReveal = Math.max(1, Math.round(100.0F * reveal));
+        int halfReveal = Math.max(1, Math.round(barWidth / 2.0F * reveal));
         graphics.enableScissor(
                 centerX - halfReveal,
                 barY,
                 centerX + halfReveal,
                 barY + 32);
         GrabOverlay.renderBackground(
-                graphics, GRAB_PROGRESS_BAR, barX, barY, 200, 32, background);
+                graphics, GRAB_PROGRESS_BAR, barX, barY, barWidth, 32, background);
         GrabOverlay.renderForeground(
-                graphics, GRAB_PROGRESS_BAR, barX, barY, 200, 32,
+                graphics, GRAB_PROGRESS_BAR, barX, barY, barWidth, 32,
                 resistance, theme);
         graphics.disableScissor();
 
-        int timeWidth = Math.round(196.0F * Mth.clamp(
-                HypnosisQteClientState.ticksRemaining() / 160.0F,
+        int duration = state.playerDuel() ? net.parkabird.changedsynergy.ai.HypnosisGazeContest.PLAYER_DURATION_TICKS
+                : net.parkabird.changedsynergy.ai.HypnosisGazeContest.DURATION_TICKS;
+        int timeWidth = Math.round((barWidth - 4) * Mth.clamp(
+                HypnosisQteClientState.ticksRemaining() / (float)duration,
                 0.0F,
                 1.0F));
         graphics.fill(barX + 2, barY + 30, barX + 2 + Math.max(0, timeWidth),
                 barY + 32, withAlpha(theme.toInt(), 190));
 
-        Component title = Component.translatable(
-                "overlay.changed_synergy.hypnosis.look_away");
+        Component title = Component.translatable(state.playerDuel()
+                ? "overlay.changed_synergy.hypnosis.shared_control"
+                : "overlay.changed_synergy.hypnosis.look_away");
         float titleAlpha = animated
                 ? QteAnimationUtil.smooth((entry - 0.52F) / 0.48F)
                 : 1.0F;
@@ -133,10 +137,19 @@ public final class HypnosisQteOverlay {
                         brightenRgb(themeRgb, 0.48F),
                         Math.round(titleAlpha * 255.0F)));
 
-        Component hint = Component.translatable(
-                gazeAlignment < 0.72F
+        Component hint = state.playerDuel()
+                ? Component.translatable(state.hypnotist()
+                        ? "overlay.changed_synergy.hypnosis.tap_control"
+                        : "overlay.changed_synergy.hypnosis.tap_escape",
+                        HypnosisQteClientState.contestMovementKeys().stream()
+                                .map(key -> key.getTranslatedKeyMessage().getString())
+                                .collect(java.util.stream.Collectors.joining(" / ")))
+                : Component.translatable(gazeAlignment < 0.72F
                         ? "overlay.changed_synergy.hypnosis.resisting"
                         : "overlay.changed_synergy.hypnosis.captured");
+        if (HypnosisQteClientState.hypnotistDistracted()) {
+            hint = Component.translatable("overlay.changed_synergy.hypnosis.pat_distracted");
+        }
         graphics.drawCenteredString(
                 gui.getFont(), hint, centerX, barY + 37,
                 withAlpha(brightenRgb(themeRgb, 0.44F),
@@ -208,7 +221,13 @@ public final class HypnosisQteOverlay {
             int screenWidth,
             int screenHeight,
             int state) {
-        Component title = switch (state) {
+        Component title = HypnosisQteClientState.current().hypnotist()
+                ? Component.translatable(state == HypnosisQteSyncPacket.SUCCESS
+                        ? "overlay.changed_synergy.hypnosis.target_escaped"
+                        : state == HypnosisQteSyncPacket.FAILED
+                                ? "overlay.changed_synergy.hypnosis.control_won"
+                                : "overlay.changed_synergy.hypnosis.interrupted")
+                : switch (state) {
             case HypnosisQteSyncPacket.SUCCESS ->
                     Component.translatable("overlay.changed_synergy.hypnosis.success");
             case HypnosisQteSyncPacket.FAILED ->

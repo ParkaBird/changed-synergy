@@ -46,6 +46,9 @@ public final class SocialInteractionScreen
             32);
     private static final Action NEGOTIATION_ENTRY =
             emote("social_negotiation", "pause");
+    private static final Action NATIVE_BOND = emote("social_native_bond", "heart");
+    private static final Action FRIENDLY_TRANSFUR = new Action("social_friendly_transfur", VOLUNTARY_TRANSFUR.texture(), 32);
+    private static final Action WITHDRAW_TOKEN = emote("social_withdraw_token", "deny");
     private static final Action PROVISIONER_TRADE = synergyIcon(
             "social_trade", "cooked_fish_gray.png", 16);
     private static final List<Action> BONDED_ACTIONS = List.of(
@@ -54,6 +57,11 @@ public final class SocialInteractionScreen
             synergyIcon("social_gift", "orange_gray.png", 16),
             emote("social_play", "idea"),
             emote("social_rest", "sleepy"));
+    private static final List<Action> PLAYER_ACTIONS = List.of(
+            emote("social_talk", "pause"), emote("social_pat", "heart"),
+            synergyIcon("social_gift", "orange_gray.png", 16),
+            emote("social_play", "idea"),
+            changedIcon("social_follow", "textures/gui/tamed_dl_interactions/cycle_follow.png", 16));
     private static final List<Action> NEGOTIATION_ACTIONS = List.of(
             emote("negotiation_reason", "pause"),
             emote("negotiation_empathy", "heart"),
@@ -77,7 +85,11 @@ public final class SocialInteractionScreen
         super(menu, inventory, title, colors(menu, inventory).background(),
                 colors(menu, inventory).foreground(), center(menu, inventory));
         this.absorptionPreviewEntity = createAbsorptionPreview(menu);
-        if (menu.isNegotiationMode()) {
+        if (menu.isPlayerMode()) {
+            List<Action> entries=new ArrayList<>(PLAYER_ACTIONS);
+            if(menu.getProgression().getBoolean("PlayerEligible"))entries.add(emote(menu.getProgression().getBoolean("PlayerFriends")?"social_unfriend":"social_friend","heart"));
+            actions=List.copyOf(entries);
+        } else if (menu.isNegotiationMode()) {
             List<Action> entries = new ArrayList<>(NEGOTIATION_ACTIONS);
             if (menu.isFoodBribeAvailable()) {
                 entries.add(menu.isFelineFoodBribe()
@@ -90,15 +102,23 @@ public final class SocialInteractionScreen
             if (menu.isProvisionerTradeAvailable()) {
                 entries.add(PROVISIONER_TRADE);
             }
+            if (menu.getProgression().getBoolean("TokenReserved")) entries.add(WITHDRAW_TOKEN);
             actions = List.copyOf(entries);
         } else {
             List<Action> entries = new ArrayList<>();
             if (menu.hasTrustedRelationship()) {
                 entries.addAll(RELATIONSHIP_ACTIONS);
+            } else if (menu.getProgression().getBoolean("BasicWheel")) {
+                entries.addAll(RELATIONSHIP_ACTIONS.subList(0, 3));
             }
             if (menu.isVoluntaryBondAvailable()) {
                 entries.add(VOLUNTARY_TRANSFUR);
             }
+            if (menu.isNativeBondAvailable()) {
+                entries.add(NATIVE_BOND);
+            }
+            if (menu.getProgression().getBoolean("CanFriendlyTransfur")) entries.add(FRIENDLY_TRANSFUR);
+            if (menu.getProgression().getBoolean("TokenReserved")) entries.add(WITHDRAW_TOKEN);
             if (menu.canFriendInventory()) entries.add(changedIcon("social_inventory",
                     "textures/gui/tamed_dl_interactions/view_inventory.png", 16));
             if (menu.isNegotiationAvailable()) {
@@ -114,6 +134,7 @@ public final class SocialInteractionScreen
     private static LivingEntity center(
             SocialInteractionMenu menu,
             Inventory inventory) {
+        if (menu.isPlayerMode() && menu.getSocialPlayerBody() != null) return menu.getSocialPlayerBody();
         return menu.getCreature() != null ? menu.getCreature() : inventory.player;
     }
 
@@ -172,6 +193,14 @@ public final class SocialInteractionScreen
             SocialInteractionMenu menu,
             Inventory inventory) {
         ChangedEntity creature = menu.getCreature();
+        if (menu.isPlayerMode()) {
+            LivingEntity body = menu.getSocialPlayerBody();
+            if (body instanceof ChangedEntity proxy) creature = proxy;
+            else if (body instanceof net.minecraft.world.entity.player.Player target) {
+                var variant = ProcessTransfur.getPlayerTransfurVariant(target);
+                if (variant != null) return readableColors(AbstractRadialScreen.getColors(variant));
+            }
+        }
         if (menu.isVirtualAbsorptionNegotiation()) {
             var variant = ProcessTransfur.getPlayerTransfurVariant(
                     inventory.player);
@@ -220,6 +249,14 @@ public final class SocialInteractionScreen
             return null;
         }
         Action action = actions.get(section);
+        if (menu.isPlayerMode()) {
+            String hint = "social_follow".equals(action.command())
+                    ? menu.isFollowing() ? "stop_hint"
+                    : menu.isInstinctPlayer() ? "instinct_hint" : "invite_hint"
+                    : action.command() + "_hint";
+            return List.of(Component.translatable("menu.changed_synergy.player_social." + action.command()),
+                    Component.translatable("menu.changed_synergy.player_social." + hint));
+        }
         if ("social_follow".equals(action.command())) {
             if (!menu.canFriendFollow()) {
                 return List.of(
@@ -235,10 +272,29 @@ public final class SocialInteractionScreen
                             : "menu.changed_synergy.social.walk"));
         }
         if ("social_gift".equals(action.command())) {
-            return List.of(
-                    Component.translatable("menu.changed_synergy.social.social_gift"),
-                    Component.translatable("menu.changed_synergy.social.social_gift_hint"));
+            List<Component> hints = new ArrayList<>();
+            hints.add(Component.translatable("menu.changed_synergy.social.social_gift"));
+            hints.add(Component.translatable("menu.changed_synergy.social.social_gift_hint"));
+            if (!menu.isPlayerMode()) {
+                if (menu.giftWaitSeconds() > 0) hints.add(Component.translatable("message.changed_synergy.relationship.gift_cooldown", menu.giftWaitSeconds()));
+                if (!menu.hasTrustedRelationship() && menu.getProgression().getBoolean("Balanced"))
+                    hints.add(Component.translatable("message.changed_synergy.relationship.first_gift_requires_care", menu.getProgression().getInt("StrangerLimit")));
+                if (menu.getProgression().getBoolean("TokenRequired") && !menu.isBondedMode()) {
+                    var token = net.minecraft.world.item.ItemStack.of(menu.getProgression().getCompound("Token"));
+                    hints.add(Component.translatable("menu.changed_synergy.social.bond_token_hint", token.getCount(), token.getHoverName()));
+                    if (menu.getProgression().getBoolean("TokenReserved")) hints.add(Component.translatable("menu.changed_synergy.social.bond_token_reserved"));
+                    else if (menu.getProgression().getBoolean("Recognized")) hints.add(Component.translatable("menu.changed_synergy.social.bond_recognized"));
+                    else if (menu.getProgression().getBoolean("ReservedElsewhere")) hints.add(Component.translatable("message.changed_synergy.relationship.reserved_elsewhere"));
+                }
+            }
+            return hints;
         }
+        if ("social_friendly_transfur".equals(action.command())) return List.of(
+                Component.translatable("menu.changed_synergy.social.social_friendly_transfur"),
+                Component.translatable("menu.changed_synergy.social.social_friendly_transfur_hint"));
+        if ("social_withdraw_token".equals(action.command())) return List.of(
+                Component.translatable("menu.changed_synergy.social.social_withdraw_token"),
+                Component.translatable("menu.changed_synergy.social.social_withdraw_token_hint"));
         if ("social_voluntary_transfur".equals(action.command())) {
             return List.of(
                     Component.translatable(
@@ -246,6 +302,10 @@ public final class SocialInteractionScreen
                     Component.translatable(voluntaryConfirmationArmed
                             ? "menu.changed_synergy.social.social_voluntary_transfur_confirm"
                             : "menu.changed_synergy.social.social_voluntary_transfur_hint"));
+        }
+        if ("social_native_bond".equals(action.command())) {
+            return List.of(Component.translatable("menu.changed_synergy.social.social_native_bond"),
+                    Component.translatable("menu.changed_synergy.social.social_native_bond_hint"));
         }
         if ("social_negotiation".equals(action.command())) {
             return List.of(
@@ -302,6 +362,26 @@ public final class SocialInteractionScreen
         ChangedEntity creature = menu.getCreature();
         float alpha = RadialWheelAnimations.overallAlpha(this);
         if (alpha <= 0.01F) {
+            return;
+        }
+        if (menu.isPlayerMode()) {
+            List<Component> lines = new ArrayList<>();
+            lines.add(Component.translatable("menu.changed_synergy.player_social.account", menu.getSocialPlayerAccount()));
+            if(menu.getProgression().getBoolean("PlayerEligible"))lines.add(Component.translatable("menu.changed_synergy.player_social.familiarity",menu.getProgression().getInt("PlayerFamiliarity")));
+            lines.add(Component.translatable(menu.isInstinctPlayer()
+                    ? "menu.changed_synergy.player_social.mode_instinct" : "menu.changed_synergy.player_social.mode_player"));
+            LivingEntity body = menu.getSocialPlayerBody();
+            ChangedEntity form = body instanceof ChangedEntity proxy ? proxy : null;
+            if (body instanceof net.minecraft.world.entity.player.Player target) {
+                var variant = ProcessTransfur.getPlayerTransfurVariant(target);
+                if (variant != null) form = variant.getChangedEntity();
+            }
+            if (form != null) {
+                lines.add(form.getType().getDescription());
+                lines.add(Component.translatable("menu.changed_synergy.player_social.faction",
+                        Component.translatable(HunterFaction.of(form).translationKey())));
+            }
+            renderCards(graphics, List.of(new InfoCard(menu.getSocialPlayerName(), lines)), alpha);
             return;
         }
 
@@ -614,15 +694,13 @@ public final class SocialInteractionScreen
             float red,
             float green,
             float blue) {
-        boolean selected = getSectionAt(mouseX, mouseY)
-                .filter(index -> index == section)
-                .isPresent();
+        boolean selected = RadialWheelAnimations.isSectionSelected(this, section, mouseX, mouseY);
         String style = menu.isOrganic() ? "organic" : "goo";
         // Changed provides eight radial backgrounds; later scrolling entries reuse them.
         ResourceLocation texture = Changed.modResource(
                 "textures/gui/radial/" + style
                         + (selected ? "_selected/" : "/") + (section % 8) + ".png");
-        boolean used = isUsedNegotiationSection(section);
+        boolean used = isUsedNegotiationSection(section + RadialWheelAnimations.viewOffset(this));
         graphics.setColor(red, green, blue,
                 RadialWheelAnimations.layerAlpha(this)
                         * (used ? 0.42F : 1.0F));
@@ -700,7 +778,7 @@ public final class SocialInteractionScreen
         Minecraft.getInstance().getSoundManager().play(
                 SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
         String command = actions.get(section).command();
-        if ("social_voluntary_transfur".equals(command)) {
+        if ("social_voluntary_transfur".equals(command) || "social_friendly_transfur".equals(command)) {
             voluntaryConfirmationArmed = true;
         }
         if ("social_follow".equals(command)) {

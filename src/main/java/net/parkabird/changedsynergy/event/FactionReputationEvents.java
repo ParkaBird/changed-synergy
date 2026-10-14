@@ -83,6 +83,7 @@ public final class FactionReputationEvents {
                 && !event.getEntity().level().isClientSide
                 && event.getEntity() instanceof ChangedEntity creature
                 && event.getSource().getEntity() instanceof ServerPlayer player) {
+            if (net.parkabird.changedsynergy.ai.PlayfulFriendTransfurGoal.isDefense(creature, player)) return;
             if (FactionHostilityGrace.damageLocked(creature, player)) {
                 event.setCanceled(true);
             } else {
@@ -178,7 +179,9 @@ public final class FactionReputationEvents {
         if (event.getEntity() instanceof ChangedEntity creature
                 && event.getSource().getEntity() instanceof ServerPlayer player
                 && LatexSocialMemory.isSocialLatex(creature)) {
-            FactionReputation.adjust(creature, player, -15);
+            if (net.parkabird.changedsynergy.ai.PlayfulFriendTransfurGoal.isDefense(creature, player)) return;
+            if (!net.parkabird.changedsynergy.ai.TakeoverConflictMemory.protectsSelfDefense(creature, player))
+                FactionReputation.adjust(creature, player, -15);
             return;
         }
         if (event.getEntity() instanceof Mob defeated
@@ -202,6 +205,8 @@ public final class FactionReputationEvents {
             return;
         }
         long now = creature.level().getGameTime();
+        if (net.parkabird.changedsynergy.ai.PlayfulFriendTransfurGoal.isDefense(creature, player)) return;
+        if (net.parkabird.changedsynergy.ai.TakeoverConflictMemory.protectsSelfDefense(creature, player)) return;
         if (FactionHostilityGrace.damageLocked(creature, player)) {
             event.setCanceled(true);
             return;

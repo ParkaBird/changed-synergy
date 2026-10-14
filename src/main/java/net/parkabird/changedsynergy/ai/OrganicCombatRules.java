@@ -22,12 +22,20 @@ public final class OrganicCombatRules {
     private OrganicCombatRules() {
     }
 
+    /** Low-damage assimilation combat is reserved for humans, not creature players. */
+    public static boolean isHumanTarget(ServerPlayer player) {
+        return !ProcessTransfur.isPlayerTransfurred(player)
+                && !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
+                && !net.parkabird.changedsynergy.origin.NativeOriginService.isNative(player);
+    }
+
     /** Low-health players are preserved for assimilation through a grapple. */
     public static boolean shouldUseOnlyGrapple(
             ChangedEntity mob,
             ServerPlayer player) {
-        return LatexSocialMemory.isSocialLatex(mob)
+        return isHumanTarget(player) && LatexSocialMemory.isSocialLatex(mob)
                 && LatexSocialMemory.isOrganic(mob)
+                && LatexSocialMemory.allowsHostilePlayerTransfur(player)
                 && player.getHealth() <= grappleOnlyHealth(player);
     }
 
@@ -45,6 +53,7 @@ public final class OrganicCombatRules {
     public static float limitSwipeDamage(
             ServerPlayer player,
             float requestedDamage) {
+        if (!isHumanTarget(player)) return requestedDamage;
         float healthAboveFloor = player.getHealth() - grappleOnlyHealth(player);
         return Math.max(0.0F, Math.min(
                 SWIPE_DAMAGE,

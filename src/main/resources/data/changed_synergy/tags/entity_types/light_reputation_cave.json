@@ -1,6 +1,10 @@
 {
   "replace": false,
   "values": [
-    "changed:beifeng"
+    "changed:beifeng",
+    "changed:latex_kobold",
+    "changed:latex_stiger",
+    "changed:latex_traffic_cone_dragon",
+    "changed:latex_translucent_lizard"
   ]
 }

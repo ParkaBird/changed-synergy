@@ -12,7 +12,6 @@ import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.BondReleaseService;
 import net.parkabird.changedsynergy.ai.BondReleaseService.Result;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
-import net.parkabird.changedsynergy.ai.CreaturePersonality;
 import net.parkabird.changedsynergy.ai.CreatureLifeMemory;
 import net.parkabird.changedsynergy.ai.CreatureCommunityData;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService;
@@ -50,19 +49,33 @@ public final class BondCommand {
                 .then(Commands.literal("help")
                         .executes(context -> showHelp(context.getSource())))
                 .then(bondCommand())
-                .then(relationshipCommand())
+                .then(RelationshipCommand.create())
                 .then(reputationCommand())
                 .then(routineCommand())
                 .then(PlayerOutpostCommand.create())
                 .then(ServerConfigCommand.create())
-                .then(PersonalitySpawnCommand.create());
+                .then(PersonalitySpawnCommand.create())
+                .then(NativeOriginCommand.create());
+        root.then(net.parkabird.changedsynergy.ai.PlayerSocialService.command());
         event.getDispatcher().register(root);
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> bondCommand() {
         return Commands.literal("bond")
-                .requires(source -> source.getEntity() instanceof ServerPlayer)
-                .then(Commands.literal("release")
+                .then(Commands.literal("token")
+                        .then(Commands.literal("withdraw").requires(source -> source.getEntity() instanceof ServerPlayer)
+                                .then(Commands.argument("creature", UuidArgument.uuid())
+                                        .executes(context -> net.parkabird.changedsynergy.ai.BondTokenService.withdraw(context.getSource().getPlayerOrException(), UuidArgument.getUuid(context, "creature")) ? 1 : 0)))
+                        .then(Commands.literal("cancel").requires(source -> source.hasPermission(2))
+                                .then(Commands.argument("creature", UuidArgument.uuid()).executes(context -> {
+                                    UUID id = net.parkabird.changedsynergy.ai.CreatureMorphAliasData.get(context.getSource().getServer()).resolveAlias(UuidArgument.getUuid(context, "creature"));
+                                    var data = net.parkabird.changedsynergy.ai.BondTokenData.get(context.getSource().getServer());
+                                    boolean refunded = data.hasOffer(id);
+                                    data.refund(id);
+                                    context.getSource().sendSuccess(() -> Component.translatable("message.changed_synergy.relationship.token_cancelled"), false);
+                                    return refunded ? 1 : 0;
+                                }))))
+                .then(Commands.literal("release").requires(source -> source.getEntity() instanceof ServerPlayer)
                         .executes(context -> releaseOnly(context.getSource()))
                         .then(Commands.literal("all")
                                 .executes(context -> releaseAll(context.getSource())))
@@ -70,77 +83,6 @@ public final class BondCommand {
                                 .executes(context -> release(
                                         context.getSource(),
                                         UuidArgument.getUuid(context, "creature")))));
-    }
-
-    private static LiteralArgumentBuilder<CommandSourceStack> relationshipCommand() {
-        return Commands.literal("relationship")
-                .executes(context -> openRelationshipManager(context.getSource()))
-                .then(Commands.literal("inspect")
-                        .then(Commands.argument("creature", EntityArgument.entity())
-                                .executes(context -> inspectRelationship(
-                                        context.getSource(),
-                                        EntityArgument.getEntity(context, "creature"),
-                                        context.getSource().getPlayerOrException()))
-                                .then(Commands.argument("player", EntityArgument.player())
-                                        .requires(source -> source.hasPermission(2))
-                                        .executes(context -> inspectRelationship(
-                                                context.getSource(),
-                                                EntityArgument.getEntity(context, "creature"),
-                                                EntityArgument.getPlayer(context, "player"))))))
-                .then(Commands.literal("set")
-                        .requires(source -> source.hasPermission(2))
-                        .then(Commands.argument("creature", EntityArgument.entity())
-                                .then(Commands.argument("player", EntityArgument.player())
-                                        .then(Commands.argument(
-                                                        "value",
-                                                        IntegerArgumentType.integer(-40, 60))
-                                                .executes(context -> setRelationship(
-                                                        context.getSource(),
-                                                        EntityArgument.getEntity(
-                                                                context, "creature"),
-                                                        EntityArgument.getPlayer(
-                                                                context, "player"),
-                                                        IntegerArgumentType.getInteger(
-                                                                context, "value")))))))
-                .then(Commands.literal("add")
-                        .requires(source -> source.hasPermission(2))
-                        .then(Commands.argument("creature", EntityArgument.entity())
-                                .then(Commands.argument("player", EntityArgument.player())
-                                        .then(Commands.argument(
-                                                        "amount",
-                                                        IntegerArgumentType.integer(-100, 100))
-                                                .executes(context -> addRelationship(
-                                                        context.getSource(),
-                                                        EntityArgument.getEntity(
-                                                                context, "creature"),
-                                                        EntityArgument.getPlayer(
-                                                                context, "player"),
-                                                        IntegerArgumentType.getInteger(
-                                                                context, "amount")))))))
-                .then(Commands.literal("establish")
-                        .requires(source -> source.hasPermission(2))
-                        .then(Commands.argument("creature", EntityArgument.entity())
-                                .then(Commands.argument("player", EntityArgument.player())
-                                        .executes(context -> establishRelationship(
-                                                context.getSource(),
-                                                EntityArgument.getEntity(context, "creature"),
-                                                EntityArgument.getPlayer(context, "player"))))))
-                .then(Commands.literal("forget")
-                        .requires(source -> source.hasPermission(2))
-                        .then(Commands.argument("creature", EntityArgument.entity())
-                                .then(Commands.argument("player", EntityArgument.player())
-                                        .executes(context -> forgetRelationship(
-                                                context.getSource(),
-                                                EntityArgument.getEntity(context, "creature"),
-                                                EntityArgument.getPlayer(context, "player"))))))
-                .then(Commands.literal("reconcile")
-                        .requires(source -> source.hasPermission(2))
-                        .then(Commands.argument("creature", EntityArgument.entity())
-                                .then(Commands.argument("player", EntityArgument.player())
-                                        .executes(context -> reconcileRelationship(
-                                                context.getSource(),
-                                                EntityArgument.getEntity(context, "creature"),
-                                                EntityArgument.getPlayer(context, "player"))))));
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> reputationCommand() {
@@ -240,14 +182,20 @@ public final class BondCommand {
         sendHelpLine(source, "command.changed_synergy.help.outpost",
                 "/changedsynergy outpost");
         sendHelpLine(source, "command.changed_synergy.help.inspect",
-                "/changedsynergy relationship inspect ");
+                "/changedsynergy relationship inspect");
         if (source.getEntity() instanceof ServerPlayer) {
             sendHelpLine(source, "command.changed_synergy.help.bond",
                     "/changedsynergy bond release");
+            sendHelpLine(source, "command.changed_synergy.help.token_withdraw",
+                    "/changedsynergy bond token withdraw ");
         }
         sendHelpLine(source, "command.changed_synergy.help.routine",
                 "/changedsynergy routine inspect ");
         if (source.hasPermission(2)) {
+            sendHelpLine(source, "command.changed_synergy.help.relationship_debug",
+                    "/changedsynergy relationship help");
+            sendHelpLine(source, "command.changed_synergy.help.token_cancel",
+                    "/changedsynergy bond token cancel ");
             sendHelpLine(source, "command.changed_synergy.help.config",
                     "/changedsynergy config list");
             sendHelpLine(source, "command.changed_synergy.help.spawn",
@@ -259,7 +207,7 @@ public final class BondCommand {
         return 1;
     }
 
-    private static void sendHelpLine(
+    static void sendHelpLine(
             CommandSourceStack source,
             String translationKey,
             String command) {
@@ -280,7 +228,7 @@ public final class BondCommand {
                                         "command.changed_synergy.help.click"))));
     }
 
-    private static int openRelationshipManager(CommandSourceStack source)
+    static int openRelationshipManager(CommandSourceStack source)
             throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
         if (!player.isAlive() || player.isSpectator()) {
@@ -403,91 +351,6 @@ public final class BondCommand {
         return 1;
     }
 
-    private static int inspectRelationship(
-            CommandSourceStack source,
-            Entity entity,
-            ServerPlayer player) {
-        ChangedEntity creature = socialCreature(source, entity);
-        if (creature == null) return 0;
-        int affection = CreaturePersonality.familiarity(creature, player);
-        source.sendSuccess(() -> Component.translatable(
-                "command.changed_synergy.relationship.status",
-                creature.getDisplayName(),
-                Component.translatable(CreaturePersonality
-                        .relationshipTier(creature, player).translationKey()),
-                affection), false);
-        return affection;
-    }
-
-    private static int setRelationship(
-            CommandSourceStack source,
-            Entity entity,
-            ServerPlayer player,
-            int value) {
-        ChangedEntity creature = socialCreature(source, entity);
-        if (creature == null) return 0;
-        int updated = CreaturePersonality.setFamiliarity(
-                creature, player, value);
-        reportRelationshipChange(source, creature, player, updated);
-        return updated;
-    }
-
-    private static int addRelationship(
-            CommandSourceStack source,
-            Entity entity,
-            ServerPlayer player,
-            int amount) {
-        ChangedEntity creature = socialCreature(source, entity);
-        if (creature == null) return 0;
-        int updated = CreaturePersonality.adjustFamiliarity(
-                creature, player, amount);
-        reportRelationshipChange(source, creature, player, updated);
-        return updated;
-    }
-
-    private static int establishRelationship(
-            CommandSourceStack source,
-            Entity entity,
-            ServerPlayer player) {
-        ChangedEntity creature = socialCreature(source, entity);
-        if (creature == null) return 0;
-        CreaturePersonality.establishRelationship(creature, player);
-        int affection = CreaturePersonality.familiarity(creature, player);
-        reportRelationshipChange(source, creature, player, affection);
-        return 1;
-    }
-
-    private static int forgetRelationship(
-            CommandSourceStack source,
-            Entity entity,
-            ServerPlayer player) {
-        ChangedEntity creature = socialCreature(source, entity);
-        if (creature == null) return 0;
-        if (!CreaturePersonality.forgetRelationship(creature, player)) {
-            source.sendFailure(Component.translatable(
-                    "command.changed_synergy.relationship.cannot_forget_bond"));
-            return 0;
-        }
-        source.sendSuccess(() -> Component.translatable(
-                "command.changed_synergy.relationship.forgotten",
-                creature.getDisplayName(), player.getDisplayName()), true);
-        return 1;
-    }
-
-    private static int reconcileRelationship(
-            CommandSourceStack source,
-            Entity entity,
-            ServerPlayer player) {
-        ChangedEntity creature = socialCreature(source, entity);
-        if (creature == null) return 0;
-        CreaturePersonality.establishRelationship(creature, player);
-        LatexSocialMemory.reconcileRelationship(creature, player);
-        source.sendSuccess(() -> Component.translatable(
-                "command.changed_synergy.relationship.reconciled",
-                creature.getDisplayName(), player.getDisplayName()), true);
-        return 1;
-    }
-
     private static int inspectReputation(
             CommandSourceStack source,
             Entity entity,
@@ -533,20 +396,6 @@ public final class BondCommand {
         source.sendFailure(Component.translatable(
                 "command.changed_synergy.relationship.invalid_creature"));
         return null;
-    }
-
-    private static void reportRelationshipChange(
-            CommandSourceStack source,
-            ChangedEntity creature,
-            ServerPlayer player,
-            int affection) {
-        source.sendSuccess(() -> Component.translatable(
-                "command.changed_synergy.relationship.changed",
-                creature.getDisplayName(),
-                player.getDisplayName(),
-                Component.translatable(CreaturePersonality
-                        .relationshipTier(creature, player).translationKey()),
-                affection), true);
     }
 
     private static Component reputationStatus(

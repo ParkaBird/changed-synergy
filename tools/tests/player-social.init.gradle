@@ -1,0 +1,53 @@
+// Private real-server regression. -PauthorTrueTransfur=<extracted src/main> tests the supplied backend.
+// -PtrueTransfurJar=<jar> tests an older backend; omit both to test without TrueTransfur.
+gradle.beforeProject { project ->
+    project.layout.buildDirectory.set(project.file('.codex-tmp/player-social-build'))
+    project.afterEvaluate {
+        project.sourceSets.main.java.srcDir(project.file('tools/tests/player-social'))
+        def classes = project.file('.codex-tmp/player-social-build/classes/java/main')
+        project.sourceSets.main.java.destinationDirectory.set(classes)
+        project.sourceSets.main.output.classesDirs = project.files(classes)
+        project.tasks.named('compileJava').configure { destinationDirectory.set(classes) }
+        if (project.hasProperty('authorTrueTransfur')) {
+            project.minecraft.runs.server.property 'changed_synergy.test.tt', 'author'
+            def reference = project.file(project.property('authorTrueTransfur'))
+            def backend = project.sourceSets.create('authorTrueTransfur')
+            backend.java.srcDir(new File(reference, 'java'))
+            backend.resources.srcDir(new File(reference, 'resources'))
+            backend.compileClasspath += project.sourceSets.main.compileClasspath
+            backend.runtimeClasspath += backend.compileClasspath
+            def extras = project.file('.codex-tmp/true-transfur-instinct-libs/mixinextras-forge-0.4.1.jar')
+            project.dependencies.add(backend.compileOnlyConfigurationName, project.files(extras))
+            project.dependencies.add(backend.compileOnlyConfigurationName,
+                    project.files('.codex-tmp/true-transfur-instinct-libs/MixinExtras-0.4.1.jar'))
+            project.dependencies.add('runtimeOnly', project.files(extras))
+            project.tasks.named(backend.processResourcesTaskName).configure {
+                inputs.property('authorReferenceModVersion', '2.0.0-reference')
+                filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+                    // The supplied archive has no version metadata; this is a fixture identifier, not a release claim.
+                    expand([mod_id:'true_transfur', mod_version:'2.0.0-reference', mod_name:'TrueTransfur Author Reference',
+                            mod_license:'Test reference only', mod_authors:'Lugert',
+                            loader_version_range:'[47,)', forge_version_range:'[47,)', minecraft_version_range:'[1.20.1,1.21)'])
+                    // Archive has no build/dependency files. MixinExtras is provided directly in this private fixture.
+                    filter { line -> line == 'mandatory=true' ? 'mandatory=false' : line }
+                }
+            }
+            project.minecraft.runs.server.mods.create('true_transfur') { source backend }
+            project.minecraft.runs.server.args '--mixin', 'true_transfur.mixins.json'
+        } else if (project.hasProperty('trueTransfurJar')) {
+            def localMods = project.file('.codex-tmp/player-social-localmods')
+            def backendJar = project.file(project.property('trueTransfurJar'))
+            if (!backendJar.isFile()) throw new GradleException("Missing TrueTransfur fixture: ${backendJar}")
+            project.copy {
+                from backendJar
+                into localMods
+                rename { 'truetransfur-1.0.1.jar' }
+            }
+            project.repositories.flatDir { dirs localMods }
+            project.dependencies.add('runtimeOnly', project.fg.deobf('instinct.test:truetransfur:1.0.1'))
+            project.minecraft.runs.server.property 'changed_synergy.test.tt', 'old'
+        }
+        project.minecraft.runs.server.workingDirectory project.file('.codex-tmp/player-social-server')
+        project.minecraft.runs.server.property 'forge.logging.console.level', 'info'
+    }
+}

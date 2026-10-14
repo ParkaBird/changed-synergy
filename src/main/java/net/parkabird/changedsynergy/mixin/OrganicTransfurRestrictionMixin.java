@@ -4,6 +4,7 @@ import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.TransfurCause;
 import net.ltxprogrammer.changed.entity.ai.LatexAssimilationDecision;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
+import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import net.parkabird.changedsynergy.ai.BondedPetSettings;
 import net.parkabird.changedsynergy.ai.CreatureCacheGuardService;
 import net.parkabird.changedsynergy.ai.OrganicCombatRules;
@@ -53,8 +54,27 @@ public abstract class OrganicTransfurRestrictionMixin {
             Entity target,
             CallbackInfoReturnable<Boolean> callback) {
         ChangedEntity self = (ChangedEntity)(Object)this;
+        if (target instanceof ServerPlayer player && net.parkabird.changedsynergy.ai.TakeoverService.hidesPlayer(player)) {
+            // Consume the attempted swipe without falling back to health damage.
+            callback.setReturnValue(true);return;
+        }
+        if (target instanceof LivingEntity living && net.parkabird.changedsynergy.ai.InstinctConfinementService.protectsHumanForm(self, living)) {
+            // The final-conversion interceptor, rather than this swipe gate,
+            // protects identity. Keep Changed's normal transfur damage intact.
+            return;
+        }
         if (ChangedAddonCompat.suppressBondedTransfurAttack(self)
                 || BondedPetSettings.suppressTransfurAttack(self)) {
+            callback.setReturnValue(false);
+            return;
+        }
+        // Only hostile NPC conversion is gated; voluntary changes and Changed
+        // fusion recipes keep their separate paths.
+        if (self.getUnderlyingPlayer() == null
+                && target instanceof ServerPlayer player
+                && LatexSocialMemory.isSocialLatex(self)
+                && !LatexSocialMemory.allowsHostilePlayerTransfur(player)
+                && !LatexFusionIntent.nativeFusionAvailable(self, player)) {
             callback.setReturnValue(false);
             return;
         }

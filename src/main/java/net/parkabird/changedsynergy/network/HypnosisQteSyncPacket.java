@@ -14,7 +14,11 @@ public record HypnosisQteSyncPacket(
         float resistance,
         float gazeAlignment,
         int ticksRemaining,
-        int state) {
+        int state,
+        boolean playerDuel,
+        boolean hypnotist,
+        int victimId,
+        int hypnotistStunTicks) {
     public static final int ACTIVE = 0;
     public static final int SUCCESS = 1;
     public static final int FAILED = 2;
@@ -29,13 +33,18 @@ public record HypnosisQteSyncPacket(
         buffer.writeFloat(packet.gazeAlignment);
         buffer.writeVarInt(packet.ticksRemaining);
         buffer.writeByte(packet.state);
+        buffer.writeBoolean(packet.playerDuel);
+        buffer.writeBoolean(packet.hypnotist);
+        buffer.writeVarInt(packet.victimId);
+        buffer.writeVarInt(packet.hypnotistStunTicks);
     }
 
     public static HypnosisQteSyncPacket decode(FriendlyByteBuf buffer) {
         return new HypnosisQteSyncPacket(
                 buffer.readVarInt(), buffer.readVarInt(), buffer.readVarInt(),
                 buffer.readFloat(), buffer.readFloat(),
-                buffer.readVarInt(), buffer.readByte());
+                buffer.readVarInt(), buffer.readByte(),
+                buffer.readBoolean(), buffer.readBoolean(), buffer.readVarInt(), buffer.readVarInt());
     }
 
     public static void handle(

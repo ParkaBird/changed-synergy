@@ -33,7 +33,8 @@ import net.ltxprogrammer.changed.entity.LivingEntityDataExtension;
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID, value = Dist.CLIENT,
         bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class TakeoverOverlay {
-    private static final int VANILLA_BOSS_BAR_WIDTH = 182;
+    private static final ResourceLocation RELEASE_BAR = net.ltxprogrammer.changed.Changed.modResource(
+            "textures/gui/grab_progress_bar_latex.png");
 
     private TakeoverOverlay() {}
     @SubscribeEvent public static void register(RegisterGuiOverlaysEvent event) {
@@ -98,7 +99,7 @@ public final class TakeoverOverlay {
                 && (s.phase() == TakeoverStatePacket.CONTROLLED
                     || s.phase() == TakeoverStatePacket.BORROWED
                     || s.phase() == TakeoverStatePacket.STRUGGLE)) {
-            releaseCountdown(g, w, s);
+            releaseCountdown(g, w, h, s);
         }
         if (s.kind() == TakeoverStatePacket.EXOSKELETON
                 && ChangedSynergyClientConfig.CLIENT.exoskeletonHypnosisVisual.get()) {
@@ -120,21 +121,28 @@ public final class TakeoverOverlay {
     private static void releaseCountdown(
             GuiGraphics graphics,
             int screenWidth,
+            int screenHeight,
             TakeoverStatePacket state) {
         int remaining = TakeoverClientState.releaseRemainingTicks();
         int total = Math.max(1, TakeoverClientState.releaseTotalTicks());
         float progress = Mth.clamp(remaining / (float) total, 0.0F, 1.0F);
-        int left = (screenWidth - VANILLA_BOSS_BAR_WIDTH) / 2;
-        int top = 17;
-        int fill = (int) (progress * 183.0F);
-        int color = TakeoverScreen.foregroundColor(state);
-        graphics.fill(left, top, left + VANILLA_BOSS_BAR_WIDTH, top + 5, 0xFF181818);
-        graphics.fill(left + 1, top + 1, left + VANILLA_BOSS_BAR_WIDTH - 1,
-                top + 4, 0xFF383838);
-        if (fill > 0) {
-            graphics.fill(left + 1, top + 1, left + Math.min(fill, 181),
-                    top + 4, 0xFF000000 | color);
+        int left = screenWidth / 2 - 91, top = 17;
+        var color = net.ltxprogrammer.changed.util.Color3.fromInt(TakeoverScreen.foregroundColor(state));
+        var level = Minecraft.getInstance().level;
+        if (level != null && level.getEntity(state.carrierId()) instanceof ChangedEntity carrier) {
+            var pair = net.ltxprogrammer.changed.init.ChangedEntities.getEntityColor(carrier);
+            color = new net.ltxprogrammer.changed.client.gui.AbstractRadialScreen.ColorScheme(
+                    pair.getFirst(), pair.getSecond()).setForegroundToBright().foreground();
         }
+        // Reuse only Changed's release-bar appearance. The takeover countdown
+        // retains its original top-centre position and contextual time label.
+        net.ltxprogrammer.changed.client.gui.GrabOverlay.renderBackground(graphics, RELEASE_BAR,
+                left, top, 182, 10, net.ltxprogrammer.changed.util.Color3.WHITE);
+        net.ltxprogrammer.changed.client.gui.GrabOverlay.renderForeground(graphics, RELEASE_BAR,
+                left, top, 182, 10, progress, color);
+        net.ltxprogrammer.changed.client.gui.GrabOverlay.renderSuit(graphics, RELEASE_BAR,
+                left, top, 182, 10, 1, color);
+        graphics.setColor(1, 1, 1, 1);
         int seconds = (remaining + 19) / 20;
         Component label = TakeoverClientState.text(state.outcome() == 2
                         ? "fatal_countdown" : state.outcome() == 1

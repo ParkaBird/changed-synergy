@@ -45,7 +45,23 @@ public final class CreatureIdentity {
     private CreatureIdentity() {
     }
 
+    /** Pure naming descriptor: never assign NPC personality, persistence or ownership to a player body. */
+    public static Component playerName(ChangedEntity visual, long seed) {
+        CompoundTag descriptor = new CompoundTag();
+        HunterFaction faction = HunterFaction.of(visual);
+        ColorFamily family = ColorFamily.of(visual, faction);
+        descriptor.putString(FACTION, faction.id());
+        descriptor.putString(COLOR_FAMILY, family.key);
+        descriptor.putInt(COLOR_INDEX, (int)Long.remainderUnsigned(mix64(seed), COLOR_NAMES_PER_FAMILY));
+        descriptor.putString(SPECIES_PROFILE, SpeciesProfile.of(visual).key);
+        descriptor.putString(DOMINANT_TRAIT, CreaturePersonality.Trait.CALM.dialogueKey());
+        descriptor.putInt(NAME_INDEX, (int)Long.remainderUnsigned(mix64(seed ^ 0x94D049BB133111EBL), NAMES_PER_FACTION));
+        return Component.translatable("name.changed_synergy.generated.localized_choice.base",
+                legacyBaseName(descriptor), standardBaseName(descriptor));
+    }
+
     public static void ensure(ChangedEntity mob) {
+        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(mob)) return;
         boolean recognized = isRecognizedCompanion(mob)
                 || CreatureSocialProfile.allowsPersonalRelationship(mob)
                         && CreaturePersonality.hasAnyEstablishedRelationship(mob);

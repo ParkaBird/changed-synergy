@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.UUID;
 import net.ltxprogrammer.changed.ability.IAbstractChangedEntity;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
+import net.ltxprogrammer.changed.Changed;
+import net.ltxprogrammer.changed.init.ChangedAbilities;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.ltxprogrammer.changed.util.CameraUtil;
 import net.minecraft.nbt.CompoundTag;
@@ -18,6 +20,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -62,6 +65,99 @@ public final class HypnosisQteService {
     private static int nextSessionId = 1;
 
     private HypnosisQteService() {
+    }
+
+    /** Replace Changed's immediate player hypnosis with one server-owned two-player contest. */
+    public static boolean usesSharedPlayerContest(LivingEntity source) {
+        return source instanceof Player && enabled(source.level());
+    }
+
+    public static boolean handlePlayerAbilityTick(IAbstractChangedEntity abstraction) {
+        if (!(abstraction.getEntity() instanceof Player actor) || !enabled(actor.level())) return false;
+        if (!(actor instanceof ServerPlayer source)) return true;
+        if (!validPlayerHypnotist(source)) return true;
+        Session existing = playerDuelForSource(source.getUUID());
+        if (existing != null) {
+            existing.lastAbilityTick = source.level().getGameTime();
+            return true;
+        }
+        ((ServerLevel) source.level()).getEntitiesOfClass(ServerPlayer.class,
+                source.getBoundingBox().inflate(HYPNOSIS_RANGE), target ->
+                        validPlayerPair(source, target) && isPotentialTarget(source, target)
+                                && hasUnobstructedEyeContact(source, target)
+                                && lookingToward(source, target))
+                .stream().min(java.util.Comparator.comparingDouble(source::distanceToSqr))
+                .ifPresent(target -> observe(source, target));
+        return true;
+    }
+
+    private static boolean validPlayerHypnotist(ServerPlayer source) {
+        var body = ProcessTransfur.getPlayerTransfurVariant(source);
+        return source.isAlive() && !source.isSpectator() && enabled(source.level())
+                && !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(source)
+                && Changed.config.server.playerControllingAbilities.get()
+                && !isPlayerControlLocked(source) && !TakeoverService.active(source)
+                && !net.parkabird.changedsynergy.origin.NativeOriginService.pending(source)
+                && body != null && !body.isTemporaryFromSuit()
+                && body.hasAbility(ChangedAbilities.HYPNOSIS.get());
+    }
+
+    private static boolean validPlayerPair(ServerPlayer source, ServerPlayer target) {
+        return source != target && source.server.isPvpAllowed() && source.canHarmPlayer(target)
+                && source.level() == target.level() && target.isAlive()
+                && !target.isCreative() && !target.isSpectator()
+                && !ProcessTransfur.isPlayerTransfurred(target)
+                && !TakeoverService.active(target)
+                && !net.parkabird.changedsynergy.origin.NativeOriginService.pending(target)
+                && !target.hasEffect(ChangedSynergyMobEffects.MESMERIZED.get());
+    }
+
+    private static boolean lookingToward(LivingEntity source, LivingEntity target) {
+        Vec3 toward = target.getEyePosition().subtract(source.getEyePosition());
+        return toward.lengthSqr() < 1.0E-4D || source.getLookAngle().dot(toward.normalize()) >= 0.70D;
+    }
+
+    private static Session playerDuelForSource(UUID source) {
+        return SESSIONS.values().stream().filter(session -> session.playerDuel && session.sourceUuid.equals(source))
+                .findFirst().orElse(null);
+    }
+
+    public static void playerTap(ServerPlayer actor, int sessionId, boolean pressed) {
+        Session session = SESSIONS.get(actor.getUUID());
+        boolean hypnotist = session == null;
+        if (hypnotist) session = playerDuelForSource(actor.getUUID());
+        if (session == null || !session.playerDuel || session.id != sessionId) return;
+        ServerPlayer target = actor.server.getPlayerList().getPlayer(session.victimUuid);
+        ServerPlayer source = actor.server.getPlayerList().getPlayer(session.sourceUuid);
+        if (source == null || target == null || !validPlayerHypnotist(source)
+                || !validPlayerPair(source, target)
+                || source.distanceToSqr(target) > HYPNOSIS_RANGE * HYPNOSIS_RANGE
+                || !hasUnobstructedLineOfSight(source, target)) return;
+        boolean wasPressed = hypnotist ? session.sourcePressed : session.targetPressed;
+        if (hypnotist) session.sourcePressed = pressed; else session.targetPressed = pressed;
+        if (!pressed || wasPressed) return;
+        long now = target.level().getGameTime();
+        if (hypnotist && now < session.sourceTapBlockedUntil) return;
+        if (now >= session.endTick || now - session.lastAbilityTick > OBSERVATION_GRACE_TICKS) return;
+        long previous = hypnotist ? session.lastSourceTap : session.lastTargetTap;
+        if (now - previous < HypnosisGazeContest.PLAYER_TAP_INTERVAL_TICKS) return;
+        if (hypnotist) session.lastSourceTap = now; else session.lastTargetTap = now;
+        session.resistance = HypnosisGazeContest.playerTap(session.resistance, hypnotist);
+        sync(target, session, HypnosisQteSyncPacket.ACTIVE);
+    }
+
+    /** A real close-range pat distracts only the caster of this human's current contest. */
+    public static boolean reactToPlayerPat(ServerPlayer caster, ServerPlayer human) {
+        Session session = SESSIONS.get(human.getUUID());
+        if (session == null || !session.playerDuel || !session.sourceUuid.equals(caster.getUUID())
+                || !validPlayerHypnotist(caster) || !validPlayerPair(caster, human)
+                || human.distanceToSqr(caster) > 36.0D || !human.hasLineOfSight(caster)) return false;
+        long now = human.level().getGameTime();
+        if (now >= session.endTick || now < session.nextPatReactionTick) return false;
+        session.sourceTapBlockedUntil = now + 60;
+        session.nextPatReactionTick = now + 160;
+        sync(human, session, HypnosisQteSyncPacket.ACTIVE);
+        return true;
     }
 
     /** Called after Changed applies one tick of its standard hypnosis ability. */
@@ -116,11 +212,15 @@ public final class HypnosisQteService {
         if (session != null) {
             return;
         }
+        if (source instanceof ServerPlayer caster
+                && (!validPlayerHypnotist(caster) || !validPlayerPair(caster, player)
+                        || playerDuelForSource(caster.getUUID()) != null)) return;
         if (isHypnosisOnCooldown(source, player)) {
             return;
         }
 
         Session created = new Session(nextSessionId++, source, now, false);
+        created.victimUuid = player.getUUID();
         SESSIONS.put(player.getUUID(), created);
         sync(player, created, HypnosisQteSyncPacket.ACTIVE);
         dialogue(source, player, Cue.HYPNOSIS_START);
@@ -177,6 +277,7 @@ public final class HypnosisQteService {
     private static boolean shouldBlockHypnosisFrom(
             ServerPlayer player,
             LivingEntity hypnotist) {
+        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)) return true;
         if (isHypnotizing(hypnotist, player)) {
             return false;
         }
@@ -332,6 +433,14 @@ public final class HypnosisQteService {
             return;
         }
 
+        if (session.playerDuel && (!(source instanceof ServerPlayer caster)
+                || !validPlayerHypnotist(caster) || !validPlayerPair(caster, player)
+                || now - session.lastAbilityTick > OBSERVATION_GRACE_TICKS
+                || !lookingToward(source, player))) {
+            clear(player, session);
+            return;
+        }
+
         suppressActions(player);
         if (hasUnobstructedLineOfSight(source, player)) {
             session.lastObservedTick = now;
@@ -343,7 +452,7 @@ public final class HypnosisQteService {
 
         session.gazeAlignment = gazeAlignment(source, player);
         float previousResistance = session.resistance;
-        session.resistance = HypnosisGazeContest.nextResistance(
+        if (!session.playerDuel) session.resistance = HypnosisGazeContest.nextResistance(
                 session.resistance, session.gazeAlignment);
         if (HypnosisGazeContest.isActivelyLookingAway(session.gazeAlignment)) {
             session.offGazeTicks++;
@@ -353,7 +462,7 @@ public final class HypnosisQteService {
 
         float elapsed = Mth.clamp(
                 (now - session.startTick)
-                        / (float)HypnosisGazeContest.DURATION_TICKS,
+                        / (float)(session.endTick - session.startTick),
                 0.0F,
                 1.0F);
         CameraUtil.tugEntityLookDirection(
@@ -361,12 +470,14 @@ public final class HypnosisQteService {
                 source,
                 HypnosisGazeContest.pullStrength(session.gazeAlignment, elapsed));
 
-        if (session.resistance >= 1.0F) {
-            finish(player, session, HypnosisQteSyncPacket.SUCCESS);
+        if ((session.playerDuel && session.resistance <= 0.0F) || session.resistance >= 1.0F) {
+            finish(player, session, session.playerDuel && session.resistance >= 1.0F
+                    ? HypnosisQteSyncPacket.FAILED : HypnosisQteSyncPacket.SUCCESS);
             return;
         }
         if (now >= session.endTick) {
-            finish(player, session, HypnosisQteSyncPacket.FAILED);
+            finish(player, session, session.playerDuel && !HypnosisGazeContest.playerControlWins(session.resistance)
+                    ? HypnosisQteSyncPacket.SUCCESS : HypnosisQteSyncPacket.FAILED);
             return;
         }
 
@@ -480,7 +591,9 @@ public final class HypnosisQteService {
             Session session = SESSIONS.remove(playerUuid);
             if (session != null) {
                 beginCooldown(findSource(player, session), player);
+                send(player, session, 0, HypnosisQteSyncPacket.CLEAR);
             }
+            interruptSource(player, playerUuid);
         } else {
             SESSIONS.remove(playerUuid);
         }
@@ -490,6 +603,7 @@ public final class HypnosisQteService {
     }
 
     private static boolean isPotentialTarget(LivingEntity source, ServerPlayer player) {
+        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)) return false;
         Session session = SESSIONS.get(player.getUUID());
         if (session != null && session.friendlyPractice
                 && session.sourceUuid.equals(source.getUUID())) {
@@ -502,7 +616,8 @@ public final class HypnosisQteService {
                         && !isHypnotizing(source, player)) {
             return false;
         }
-        return !(source instanceof ChangedEntity changed
+        return (!(source instanceof ServerPlayer caster) || validPlayerPair(caster, player))
+                && !(source instanceof ChangedEntity changed
                 && LatexSocialMemory.isSocialLatex(changed)
                 && LatexSocialMemory.shouldRemainNeutral(changed, player));
     }
@@ -579,7 +694,7 @@ public final class HypnosisQteService {
         LivingEntity source = findSource(player, session);
         beginCooldown(source, player);
         if (result == HypnosisQteSyncPacket.SUCCESS) {
-            session.resistance = 1.0F;
+            session.resistance = session.playerDuel ? 0.0F : 1.0F;
             TARGET_IMMUNITY.put(player.getUUID(), now + SUCCESS_IMMUNITY_TICKS);
             IMMUNITY_SOURCE.put(player.getUUID(), session.sourceUuid);
             releaseMindEffects(player);
@@ -593,6 +708,7 @@ public final class HypnosisQteService {
                         player, SynergyAdvancements.HYPNOSIS_ESCAPE);
             }
         } else if (result == HypnosisQteSyncPacket.FAILED) {
+            if (session.playerDuel) session.resistance = 1.0F;
             releaseMindEffects(player);
             if (session.friendlyPractice) {
                 calmAfterEscape(source, player);
@@ -748,7 +864,16 @@ public final class HypnosisQteService {
                 PacketDistributor.PLAYER.with(() -> player),
                 new HypnosisQteSyncPacket(
                         session.id, session.sourceId, session.offGazeTicks,
-                        session.resistance, session.gazeAlignment, remaining, state));
+                        session.resistance, session.gazeAlignment, remaining, state,
+                        session.playerDuel, false, player.getId(),
+                        (int)Math.max(0, session.sourceTapBlockedUntil - player.level().getGameTime())));
+        if (session.playerDuel) {
+            ServerPlayer caster = player.server.getPlayerList().getPlayer(session.sourceUuid);
+            if (caster != null) ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> caster),
+                    new HypnosisQteSyncPacket(session.id, session.sourceId, session.offGazeTicks,
+                            session.resistance, session.gazeAlignment, remaining, state, true, true, player.getId(),
+                            (int)Math.max(0, session.sourceTapBlockedUntil - player.level().getGameTime())));
+        }
     }
 
     private static void prune(long now) {
@@ -756,6 +881,12 @@ public final class HypnosisQteService {
         IMMUNITY_SOURCE.keySet().removeIf(
                 uuid -> TARGET_IMMUNITY.getOrDefault(uuid, 0L) <= now);
         SOURCE_LOCK.entrySet().removeIf(entry -> entry.getValue() <= now);
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
+        SESSIONS.clear(); MESMERIZED_RESTRAINTS.clear(); TARGET_IMMUNITY.clear();
+        IMMUNITY_SOURCE.clear(); SOURCE_LOCK.clear();
     }
 
     private static boolean enabled(Level level) {
@@ -773,6 +904,12 @@ public final class HypnosisQteService {
         private final long startTick;
         private final long endTick;
         private final boolean friendlyPractice;
+        private final boolean playerDuel;
+        private UUID victimUuid;
+        private long lastAbilityTick;
+        private long lastSourceTap = Long.MIN_VALUE / 2, lastTargetTap = Long.MIN_VALUE / 2;
+        private boolean sourcePressed, targetPressed;
+        private long sourceTapBlockedUntil, nextPatReactionTick;
         private long lastObservedTick;
         private long lastSyncTick;
 
@@ -785,12 +922,14 @@ public final class HypnosisQteService {
             this.sourceUuid = source.getUUID();
             this.sourceId = source.getId();
             this.offGazeTicks = 0;
-            this.resistance = 0.0F;
+            this.playerDuel = source instanceof ServerPlayer;
+            this.resistance = playerDuel ? 0.5F : 0.0F;
             this.gazeAlignment = 1.0F;
             this.startTick = now;
-            this.endTick = now + HypnosisGazeContest.DURATION_TICKS;
+            this.endTick = now + (playerDuel ? HypnosisGazeContest.PLAYER_DURATION_TICKS : HypnosisGazeContest.DURATION_TICKS);
             this.friendlyPractice = friendlyPractice;
             this.lastObservedTick = now;
+            this.lastAbilityTick = now;
             this.lastSyncTick = now;
         }
     }

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Locale;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -57,9 +58,7 @@ public final class LightFactionGroup {
                 LEGACY_GROUP_DATA);
         String migrated = regionFromLegacyBiome(creature.level(), legacy);
         String current = at(creature.level(), creature.blockPosition());
-        List<String> nativeRegions = REGIONS.stream()
-                .filter(region -> creature.getType().is(regionTag(region)))
-                .toList();
+        List<String> nativeRegions = taggedRegions(creature.getType());
 
         String resolved;
         if (!nativeRegions.isEmpty()) {
@@ -82,6 +81,39 @@ public final class LightFactionGroup {
 
     public static boolean isAssigned(ChangedEntity creature) {
         return creature.getPersistentData().contains(GROUP_DATA);
+    }
+
+    /** Species-level origins use explicit affiliations, then the world's final spawn tables. */
+    public static List<String> nativeRegions(RegistryAccess registries, EntityType<?> type) {
+        List<String> tagged = taggedRegions(type);
+        if (!tagged.isEmpty()) return tagged;
+        var biomes = registries.registry(Registries.BIOME).orElse(null);
+        if (biomes == null) return List.of();
+        var weights = new java.util.HashMap<String, Integer>();
+        var counts = new java.util.HashMap<String, Integer>();
+        for (var key : LatexSocialRelation.naturalSpawnBiomes(biomes, type)) {
+            var holder = biomes.getHolder(key).orElse(null);
+            if (holder == null || !holder.isBound()) continue;
+            String path = key.location().getPath();
+            String region = LatexTerritory.populationRegion(holder, key.location(),
+                    path.contains("cave") || path.equals("deep_dark"));
+            counts.merge(region, 1, Integer::sum);
+            for (var category : net.minecraft.world.entity.MobCategory.values()) {
+                for (var spawn : holder.value().getMobSettings().getMobs(category).unwrap()) {
+                    if (spawn.type == type) weights.merge(region, spawn.getWeight().asInt(), Math::max);
+                }
+            }
+        }
+        // Prefer the strongest native spawn entry, then its most common region.
+        // A forest-spawn tag also covers windswept forest; that overlap alone
+        // must not assign every forest species to the Mountain population.
+        return REGIONS.stream().filter(weights::containsKey)
+                .sorted(java.util.Comparator.<String>comparingInt(region -> -weights.get(region))
+                        .thenComparingInt(region -> -counts.get(region))).toList();
+    }
+
+    private static List<String> taggedRegions(EntityType<?> type) {
+        return REGIONS.stream().filter(region -> type.is(regionTag(region))).toList();
     }
 
     public static boolean canResolveAt(Level level, BlockPos position) {

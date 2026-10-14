@@ -19,10 +19,16 @@ public final class NameVisibilityClientEvents {
 
     @SubscribeEvent
     public static void onRenderNameTag(RenderNameTagEvent event) {
-        if (!(event.getEntity() instanceof ChangedEntity mob)
-                || !mob.hasCustomName()) {
+        if (!(event.getEntity() instanceof ChangedEntity mob)) {
             return;
         }
+
+        // Keep the profile for social interaction without rendering a floating NPC label.
+        if (PlayerSocialClient.isPlayerBody(mob)) {
+            event.setResult(Result.DENY);
+            return;
+        }
+        if (!mob.hasCustomName()) return;
 
         Entity cameraEntity = Minecraft.getInstance().getCameraEntity();
         if (cameraEntity != null

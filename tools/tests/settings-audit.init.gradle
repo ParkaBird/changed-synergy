@@ -1,0 +1,14 @@
+// Private settings/authority regression; no test classes enter the release JAR.
+gradle.beforeProject { project ->
+    project.layout.buildDirectory.set(project.file('.codex-tmp/settings-audit-build'))
+    project.afterEvaluate {
+        project.sourceSets.main.java.srcDir(project.file('tools/tests/settings-audit'))
+        def classes = project.file('.codex-tmp/settings-audit-build/classes/java/main')
+        project.sourceSets.main.java.destinationDirectory.set(classes)
+        project.sourceSets.main.output.classesDirs = project.files(classes)
+        project.tasks.named('compileJava').configure { destinationDirectory.set(classes) }
+        project.minecraft.runs.server.workingDirectory project.file('.codex-tmp/settings-audit-server')
+        project.minecraft.runs.server.property 'settings.audit.output', project.file('.codex-tmp/settings-audit').absolutePath
+        project.minecraft.runs.server.property 'forge.logging.console.level', 'info'
+    }
+}

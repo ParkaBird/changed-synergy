@@ -45,6 +45,14 @@ public final class SynergyAdvancements {
     public static final String FUSION_SEPARATION = "fusion_separation";
     public static final String BONDED_REVIVAL = "bonded_revival";
     public static final String BOX_SURPRISE = "box_surprise";
+    public static final String PLAYER_CAMP = "player_camp";
+    public static final String CAMP_DELIVERY = "camp_delivery";
+    public static final String CAMP_MEAL = "camp_meal";
+    public static final String NATIVE_ORIGIN = "native_origin";
+    public static final String NATIVE_BOND = "native_bond";
+    public static final String BOND_TOKEN = "bond_token";
+    public static final String REUNITED_COMPANION = "reunited_companion";
+    public static final String PLAYFUL_WARNING = "playful_warning";
 
     private SynergyAdvancements() {
     }

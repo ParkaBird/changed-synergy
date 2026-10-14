@@ -10,12 +10,11 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.parkabird.changedsynergy.ChangedSynergyClientConfig;
 import net.parkabird.changedsynergy.ChangedSynergyClientConfig.DialogueDisplayMode;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
-import net.parkabird.changedsynergy.ChangedSynergyConfig.CreatureTransfurMethod;
+import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 
 /** Native Forge config screen used by Forge's mod list and menu integrations. */
 public final class ChangedSynergyConfigScreen extends Screen {
@@ -23,8 +22,9 @@ public final class ChangedSynergyConfigScreen extends Screen {
     private static final int TOP = 70;
 
     private final Screen parent;
-    private final List<Category> gameplayCategories;
+    private List<Category> gameplayCategories;
     private final List<Category> clientCategories;
+    private final List<Category> worldCategories;
     private final List<RowLabel> rowLabels = new ArrayList<>();
     private Section section = Section.GAMEPLAY;
     private int pageIndex;
@@ -38,6 +38,7 @@ public final class ChangedSynergyConfigScreen extends Screen {
         this.parent = parent;
         this.gameplayCategories = createGameplayCategories();
         this.clientCategories = createClientCategories();
+        this.worldCategories = createWorldCategories();
     }
 
     @Override
@@ -50,28 +51,35 @@ public final class ChangedSynergyConfigScreen extends Screen {
         contentWidth = Math.min(520, width - 24);
         contentLeft = (width - contentWidth) / 2;
 
-        int tabWidth = Math.min(150, (contentWidth - 6) / 2);
+        int tabWidth = Math.min(160, (contentWidth - 12) / 3);
         Button gameplay = addRenderableWidget(Button.builder(
                         Component.translatable("config.changed_synergy.section.gameplay"),
                         button -> switchSection(Section.GAMEPLAY))
-                .bounds(width / 2 - tabWidth - 3, 24, tabWidth, 20)
+                .bounds(width / 2 - tabWidth * 3 / 2 - 6, 24, tabWidth, 20)
                 .build());
         gameplay.active = section != Section.GAMEPLAY;
+        Button world = addRenderableWidget(Button.builder(
+                        Component.translatable("config.changed_synergy.section.world"), button -> switchSection(Section.WORLD))
+                .bounds(width / 2 - tabWidth / 2, 24, tabWidth, 20).build());
+        world.active = section != Section.WORLD;
         Button client = addRenderableWidget(Button.builder(
                         Component.translatable("config.changed_synergy.section.client"),
                         button -> switchSection(Section.CLIENT))
-                .bounds(width / 2 + 3, 24, tabWidth, 20)
+                .bounds(width / 2 + tabWidth / 2 + 6, 24, tabWidth, 20)
                 .build());
         client.active = section != Section.CLIENT;
 
         // Reserve the live diagnostics and server note above the action buttons.
         int rowsPerPage = Math.max(2, (height - TOP - 88) / ROW_HEIGHT);
-        pages = remoteGameplay()
+        pages = section != Section.CLIENT && isRemoteServer() && !ServerConfigClient.received()
                 ? List.of(new Page(Component.translatable(
                         "config.changed_synergy.remote_title"),
                         List.of(), 1, 1, false))
-                : buildPages(section == Section.GAMEPLAY
-                        ? gameplayCategories : clientCategories, rowsPerPage);
+                : buildPages(switch (section) {
+                    case GAMEPLAY -> gameplayCategories;
+                    case WORLD -> worldCategories;
+                    case CLIENT -> clientCategories;
+                }, rowsPerPage);
         pageIndex = Math.max(0, Math.min(pageIndex, pages.size() - 1));
         Page page = pages.get(pageIndex);
 
@@ -105,7 +113,7 @@ public final class ChangedSynergyConfigScreen extends Screen {
                 .bounds(width / 2 - buttonWidth * 3 / 2 - 6,
                         bottomY, buttonWidth, 20)
                 .build());
-        defaults.active = !remoteGameplay();
+        defaults.active = !readOnlySection();
         addRenderableWidget(Button.builder(CommonComponents.GUI_CANCEL,
                         button -> onClose())
                 .bounds(width / 2 - buttonWidth / 2,
@@ -116,6 +124,12 @@ public final class ChangedSynergyConfigScreen extends Screen {
                 .bounds(width / 2 + buttonWidth / 2 + 6,
                         bottomY, buttonWidth, 20)
                 .build());
+    }
+
+    public void refreshServerValues() {
+        if (isRemoteServer()) gameplayCategories = createGameplayCategories();
+        worldCategories.forEach(category -> category.entries().forEach(entry -> ((RuleEntry)entry).refresh()));
+        if (minecraft != null) refreshWidgets();
     }
 
     private void addEntryWidget(ConfigEntry entry, int rowY) {
@@ -131,6 +145,27 @@ public final class ChangedSynergyConfigScreen extends Screen {
                 .tooltip(Tooltip.create(tooltip))
                 .build());
 
+        if (entry instanceof RuleEntry rule) {
+            if (rule.value instanceof Boolean enabled) {
+                Button toggle = addRenderableWidget(Button.builder(booleanMessage(enabled), button -> {
+                    rule.value = !(Boolean)rule.value;
+                    rule.dirty = true;
+                    button.setMessage(booleanMessage((Boolean)rule.value));
+                }).bounds(controlX, rowY + 2, controlWidth, 20).tooltip(Tooltip.create(tooltip)).build());
+                toggle.active = !readOnlySection();
+            } else {
+                EditBox field = new EditBox(font, controlX, rowY + 2, controlWidth, 20, rule.label());
+                field.setValue(rule.value.toString());
+                field.setFilter(ChangedSynergyConfigScreen::isPotentialNumber);
+                field.setResponder(text -> { rule.value = text; rule.dirty = true; field.setTextColor(rule.valid() ? 0xE0E0E0 : 0xFF5555); });
+                field.setTooltip(Tooltip.create(tooltip));
+                field.setEditable(!readOnlySection());
+                field.active = !readOnlySection();
+                addRenderableWidget(field);
+            }
+            return;
+        }
+
         if (entry instanceof BooleanEntry booleanEntry) {
             Button toggle = addRenderableWidget(Button.builder(
                             booleanMessage(booleanEntry.value), button -> {
@@ -139,6 +174,7 @@ public final class ChangedSynergyConfigScreen extends Screen {
                             })
                     .bounds(controlX, rowY + 2, controlWidth, 20)
                     .build());
+            toggle.active = !readOnlySection();
             toggle.setTooltip(Tooltip.create(tooltip));
             return;
         }
@@ -151,7 +187,23 @@ public final class ChangedSynergyConfigScreen extends Screen {
                             })
                     .bounds(controlX, rowY + 2, controlWidth, 20)
                     .build());
+            mode.active = !readOnlySection();
             mode.setTooltip(Tooltip.create(tooltip));
+            return;
+        }
+
+        if (entry instanceof FormListEntry formList) {
+            EditBox field = new EditBox(font, controlX, rowY + 2, controlWidth, 20, entry.label());
+            field.setMaxLength(32767);
+            field.setValue(formList.text);
+            field.setResponder(value -> {
+                formList.text = value;
+                field.setTextColor(formList.valid() ? 0xE0E0E0 : 0xFF5555);
+            });
+            field.setTooltip(Tooltip.create(tooltip));
+            field.setEditable(!readOnlySection());
+            field.active = !readOnlySection();
+            addRenderableWidget(field);
             return;
         }
 
@@ -168,9 +220,11 @@ public final class ChangedSynergyConfigScreen extends Screen {
             field.setTextColor(numeric.valid() ? 0xE0E0E0 : 0xFF5555);
         });
         field.setTooltip(Tooltip.create(tooltip));
+        field.setEditable(!readOnlySection());
+        field.active = !readOnlySection();
         addRenderableWidget(field);
 
-        addRenderableWidget(Button.builder(Component.literal("-"),
+        Button decrease = addRenderableWidget(Button.builder(Component.literal("-"),
                         button -> {
                             numeric.adjust(-1);
                             field.setValue(numeric.text);
@@ -178,7 +232,8 @@ public final class ChangedSynergyConfigScreen extends Screen {
                 .bounds(controlX, rowY + 2, adjustWidth, 20)
                 .tooltip(Tooltip.create(tooltip))
                 .build());
-        addRenderableWidget(Button.builder(Component.literal("+"),
+        decrease.active = !readOnlySection();
+        Button increase = addRenderableWidget(Button.builder(Component.literal("+"),
                         button -> {
                             numeric.adjust(1);
                             field.setValue(numeric.text);
@@ -187,6 +242,7 @@ public final class ChangedSynergyConfigScreen extends Screen {
                         adjustWidth, 20)
                 .tooltip(Tooltip.create(tooltip))
                 .build());
+        increase.active = !readOnlySection();
     }
 
     private void switchSection(Section next) {
@@ -223,9 +279,11 @@ public final class ChangedSynergyConfigScreen extends Screen {
 
     private void saveAndClose() {
         boolean remote = isRemoteServer();
-        List<ConfigEntry> entries = remote
+        List<ConfigEntry> entries = new ArrayList<>(remote
                 ? clientCategories.stream().flatMap(category -> category.entries().stream()).toList()
-                : allEntries();
+                : allEntries());
+        if (canEditWorld()) worldCategories.forEach(category -> category.entries().stream()
+                .filter(entry -> ((RuleEntry)entry).dirty).forEach(entries::add));
         if (entries.stream().anyMatch(entry -> !entry.valid())) {
             status = Component.translatable("config.changed_synergy.invalid_value");
             return;
@@ -272,10 +330,11 @@ public final class ChangedSynergyConfigScreen extends Screen {
             int background = row.entry().valid() ? 0x66000000 : 0x66880000;
             graphics.fill(contentLeft, row.y() + 1,
                     contentLeft + contentWidth, row.y() + 23, background);
-            graphics.drawString(font, row.entry().label(),
+            graphics.drawString(font, font.plainSubstrByWidth(row.entry().label().getString(),
+                            contentWidth - Math.min(150, contentWidth / 2) - 38),
                     contentLeft + 6, row.y() + 8, 0xFFFFFF, false);
         }
-        if (remoteGameplay()) {
+        if (remoteGameplay() && !ServerConfigClient.received()) {
             graphics.drawCenteredString(font,
                     Component.translatable("config.changed_synergy.remote_line_1"),
                     width / 2, TOP + 28, 0xFFFFFF);
@@ -300,9 +359,13 @@ public final class ChangedSynergyConfigScreen extends Screen {
         if (!status.equals(CommonComponents.EMPTY)) {
             graphics.drawCenteredString(font, status,
                     width / 2, height - 39, 0xFFD36A);
+        } else if (section == Section.WORLD) {
+            graphics.drawCenteredString(font, Component.translatable(canEditWorld()
+                    ? "config.changed_synergy.world_note" : "config.changed_synergy.world_read_only"),
+                    width / 2, height - 39, 0xA0A0A0);
         } else if (section == Section.GAMEPLAY) {
             graphics.drawCenteredString(font,
-                    Component.translatable("config.changed_synergy.server_note"),
+                    Component.translatable(remoteGameplay() ? "config.changed_synergy.server_read_only" : "config.changed_synergy.server_note"),
                     width / 2, height - 39, 0xA0A0A0);
         }
         super.render(graphics, mouseX, mouseY, partialTick);
@@ -313,7 +376,7 @@ public final class ChangedSynergyConfigScreen extends Screen {
     }
 
     private static boolean isPotentialNumber(String value) {
-        return value.isEmpty() || value.matches("[0-9]*\\.?[0-9]*");
+        return value.matches("-?[0-9]*\\.?[0-9]*");
     }
 
     private static List<Page> buildPages(List<Category> categories,
@@ -335,142 +398,187 @@ public final class ChangedSynergyConfigScreen extends Screen {
 
     private static List<Category> createGameplayCategories() {
         ChangedSynergyConfig.Common config = ChangedSynergyConfig.COMMON;
-        List<Category> categories = new ArrayList<>();
-        categories.addAll(List.of(
+        return List.of(
                 category("performance",
-                        bool("performance_diagnostics", config.performanceDiagnostics, true),
-                        bool("stagger_background_ai", config.staggerBackgroundAi, true),
-                        integer("background_scan_interval", config.backgroundScanInterval, 10, 1, 40),
-                        bool("distant_ai_throttling", config.distantAiThrottling, true),
-                        decimal("distant_ai_range", config.distantAiRange, 48.0, 16.0, 128.0, 4.0),
-                        integer("distant_ai_multiplier", config.distantAiIntervalMultiplier, 4, 1, 12),
-                        bool("adaptive_ai_budget", config.adaptiveAiBudget, true),
-                        decimal("latex_ai_budget", config.latexAiBudgetMs, 8.0, 1.0, 40.0, 1.0),
-                        bool("community_ai", config.communityAi, true),
-                        bool("companion_work_ai", config.companionWorkAi, true),
-                        bool("ambient_social_ai", config.ambientSocialAi, true),
-                        bool("enhanced_hunt_ai", config.enhancedHuntAi, true)),
+                        bool("performance_diagnostics", config.performanceDiagnostics),
+                        bool("stagger_background_ai", config.staggerBackgroundAi),
+                        integer("background_scan_interval", config.backgroundScanInterval),
+                        bool("distant_ai_throttling", config.distantAiThrottling),
+                        decimal("distant_ai_range", config.distantAiRange, 4.0),
+                        integer("distant_ai_multiplier", config.distantAiIntervalMultiplier),
+                        bool("adaptive_ai_budget", config.adaptiveAiBudget),
+                        decimal("latex_ai_budget", config.latexAiBudgetMs, 1.0)),
+                category("ai_systems",
+                        bool("community_ai", config.communityAi),
+                        bool("companion_work_ai", config.companionWorkAi),
+                        bool("ambient_social_ai", config.ambientSocialAi),
+                        bool("enhanced_hunt_ai", config.enhancedHuntAi)),
+                category("relationship_growth",
+                        bool("balanced_relationships", config.balancedRelationships),
+                        integer("stranger_affection_limit", config.strangerAffectionLimit),
+                        integer("care_affection_allowance", config.careAffectionAllowance),
+                        integer("care_affection_cooldown_seconds", config.careAffectionCooldownSeconds),
+                        integer("gift_cooldown_seconds", config.giftCooldownSeconds),
+                        bool("bond_tokens_required", config.bondTokensRequired),
+                        new FormListEntry("bond_tokens", config.bondTokens, ";")),
                 category("relationships",
-                        integer("pet_regeneration", config.tamedCompanionRegeneration, 0, 0, 5),
-                        decimal("awareness_range", config.npcAwarenessRange, 32.0, 8.0, 96.0, 1.0),
-                        bool("pat_pacification", config.patPacification, true),
-                        bool("ordinary_transfur_reversal", config.ordinaryTransfurReversal, true),
-                        bool("bond_protective_release_requests", config.bondProtectiveReleaseRequests, true),
-                        bool("bonded_emergency_rescue", config.bondedEmergencyRescue, true),
-                        bool("aquatic_friend_drowning_rescue", config.aquaticFriendDrowningRescue, true),
-                        bool("bonded_kin_confinement", config.bondedKinConfinement, true),
-                        integer("bonded_kin_kill_base_limit", config.bondedKinKillBaseLimit, 3, 1, 20),
-                        bool("changed_vanilla_relationship_animal_protection",
-                                config.changedVanillaRelationshipAnimalProtection, true),
-                        bool("companion_monster_assist_only", config.companionMonsterAssistOnly, false),
-                        bool("allow_multiple_bonds", config.allowMultipleBonds, false),
-                        bool("peaceful_village_relations", config.peacefulVillageRelations, true),
-                        bool("faction_pursuit", config.factionPursuit, true),
-                        bool("faction_pursuit_overworld_only", config.factionPursuitOverworldOnly, false),
-                        bool("independent_faction_reputation", config.independentFactionReputation, false),
-                        integer("post_transfur_truce", config.postTransfurTruceSeconds, 90, 0, 600),
-                        bool("polite_interaction", config.politeHumanInteraction, true),
-                        decimal("polite_range", config.politeApproachRange, 12.0, 4.0, 32.0, 1.0),
-                        decimal("polite_speed", config.politeApproachSpeed, 0.42, 0.05, 1.5, 0.05),
-                        integer("polite_wait", config.politeResponseSeconds, 14, 4, 60),
-                        integer("polite_attempts", config.politeUnansweredLimit, 2, 1, 6)),
+                        integer("pet_regeneration", config.tamedCompanionRegeneration),
+                        bool("ordinary_transfur_reversal", config.ordinaryTransfurReversal),
+                        bool("bond_protective_release_requests", config.bondProtectiveReleaseRequests),
+                        bool("bonded_emergency_rescue", config.bondedEmergencyRescue),
+                        bool("aquatic_friend_drowning_rescue", config.aquaticFriendDrowningRescue),
+                        bool("bonded_kin_confinement", config.bondedKinConfinement),
+                        integer("bonded_kin_kill_base_limit", config.bondedKinKillBaseLimit),
+                        bool("changed_vanilla_relationship_animal_protection", config.changedVanillaRelationshipAnimalProtection),
+                        bool("companion_monster_assist_only", config.companionMonsterAssistOnly),
+                        bool("self_defense_penalty_protection", config.selfDefensePenaltyProtection),
+                        bool("allow_multiple_bonds", config.allowMultipleBonds)),
+                category("factions",
+                        bool("faction_pursuit", config.factionPursuit),
+                        bool("faction_pursuit_overworld_only", config.factionPursuitOverworldOnly),
+                        bool("independent_faction_reputation", config.independentFactionReputation),
+                        integer("post_transfur_truce", config.postTransfurTruceSeconds),
+                        bool("peaceful_village_relations", config.peacefulVillageRelations)),
+                category("social_behavior",
+                        decimal("awareness_range", config.npcAwarenessRange, 1.0),
+                        bool("pat_pacification", config.patPacification),
+                        bool("playful_friend_transfur", config.playfulFriendTransfur),
+                        bool("polite_interaction", config.politeHumanInteraction),
+                        decimal("polite_range", config.politeApproachRange, 1.0),
+                        decimal("polite_speed", config.politeApproachSpeed, 0.05),
+                        integer("polite_wait", config.politeResponseSeconds),
+                        integer("polite_attempts", config.politeUnansweredLimit)),
+                category("player_roleplay",
+                        bool("player_role_speech",config.playerRoleSpeech),
+                        decimal("player_role_speech_cooldown",config.playerRoleSpeechCooldown,0.5),
+                        bool("instinct_confinement",config.instinctConfinement),
+                        integer("instinct_confinement_seconds",config.instinctConfinementSeconds)),
+                category("player_outposts",
+                        bool("player_outposts", config.playerOutposts),
+                        integer("player_outpost_residents", config.playerOutpostResidents),
+                        integer("player_outpost_crew", config.playerOutpostCrew),
+                        bool("player_outpost_crew_gathering", config.playerOutpostCrewGathering),
+                        new FormListEntry("player_outpost_crew_blocked_ores", config.playerOutpostCrewBlockedOres),
+                        bool("player_outpost_work_while_owner_offline", config.playerOutpostWorkWhileOwnerOffline),
+                        bool("player_outpost_guard_pvp", config.playerOutpostGuardPvp)),
+                category("outpost_work",
+                        bool("player_outpost_supply_work", config.playerOutpostSupplyWork),
+                        bool("player_outpost_harvesting", config.playerOutpostHarvesting),
+                        bool("player_outpost_hauling", config.playerOutpostHauling),
+                        new FormListEntry("player_outpost_hauling_blocked_items", config.playerOutpostHaulingBlockedItems),
+                        bool("player_outpost_hunting", config.playerOutpostHunting),
+                        bool("player_outpost_farming", config.playerOutpostFarming),
+                        bool("player_outpost_cooking", config.playerOutpostCooking),
+                        bool("player_outpost_composting", config.playerOutpostComposting),
+                        integer("player_outpost_work_scan_interval", config.playerOutpostWorkScanInterval),
+                        integer("player_outpost_active_workers", config.playerOutpostActiveWorkers)),
+                category("outpost_rest",
+                        bool("player_outpost_rest", config.playerOutpostRest),
+                        bool("player_outpost_idle_rest", config.playerOutpostIdleRest),
+                        bool("player_outpost_meals", config.playerOutpostMeals)),
                 category("communities",
-                        integer("outpost_spacing", config.settlementMinimumSpacing, 48, 16, 256),
-                        bool("player_outposts", config.playerOutposts, true),
-                        integer("player_outpost_residents", config.playerOutpostResidents, 6, 1, 32),
-                        integer("player_outpost_crew", config.playerOutpostCrew, 3, 1, 16),
-                        bool("player_outpost_supply_work", config.playerOutpostSupplyWork, true),
-                        bool("player_outpost_harvesting", config.playerOutpostHarvesting, true),
-                        bool("player_outpost_rest", config.playerOutpostRest, true),
-                        bool("player_outpost_guard_pvp", config.playerOutpostGuardPvp, false),
-                        bool("changed_structure_outposts", config.useChangedStructureOutposts, true),
-                        bool("latex_bee_hive_outposts", config.latexBeeHiveOutposts, true),
-                        integer("structure_outpost_search_radius",
-                                config.structureOutpostSearchRadiusChunks, 6, 2, 12),
-                        bool("provisioner_trade", config.provisionerTrading, true),
-                        decimal("provisioner_trade_reserve",
-                                config.provisionerTradeReserveMultiplier,
-                                1.0, 0.25, 4.0, 0.25)),
+                        integer("outpost_spacing", config.settlementMinimumSpacing),
+                        integer("player_wild_outpost_spacing", config.playerWildOutpostMinimumSpacing),
+                        bool("creature_outposts", config.creatureOutposts),
+                        bool("changed_structure_outposts", config.useChangedStructureOutposts),
+                        bool("latex_bee_hive_outposts", config.latexBeeHiveOutposts),
+                        integer("structure_outpost_search_radius", config.structureOutpostSearchRadiusChunks)),
+                category("trading",
+                        bool("provisioner_trade", config.provisionerTrading),
+                        decimal("provisioner_trade_reserve", config.provisionerTradeReserveMultiplier, 0.25)),
                 category("ecology",
-                        bool("pure_white_wolf_adaptation", config.pureWhiteWolfAdaptation, true)),
+                        bool("pure_white_wolf_adaptation", config.pureWhiteWolfAdaptation)),
+                category("origins",
+                        bool("modded_origin_species", config.includeModdedOriginSpecies),
+                        bool("human_origin_instinct", config.allowHumanOriginInstinct),
+                        new FormListEntry("disabled_origin_forms", config.disabledOriginForms)),
                 category("behaviour",
-                        decimal("visual_range", config.visualAcquisitionRange, 18.0, 6.0, 48.0, 1.0),
-                        decimal("pursuit_range", config.maximumPursuitRange, 28.0, 8.0, 64.0, 1.0),
-                        integer("lose_sight", config.huntLoseSightSeconds, 2, 1, 30),
-                        integer("search_time", config.huntSearchSeconds, 8, 2, 120),
-                        decimal("alert_radius", config.huntAlertRadius, 12.0, 0.0, 96.0, 1.0),
-                        decimal("search_speed", config.huntSearchSpeed, 0.45, 0.05, 3.0, 0.05),
-                        decimal("gunshot_radius", config.firearmGunshotRadius, 48.0, 0.0, 128.0, 1.0),
-                        bool("firearm_evasion", config.firearmEvasion, true),
-                        decimal("grab_chance", config.hostileGrabAttemptChance, 0.65, 0.0, 1.0, 0.05),
-                        decimal("organic_grab_chance", config.organicHostileGrabAttemptChance, 0.85, 0.0, 1.0, 0.05),
-                        bool("mindless_mob_transfur", config.allowMindlessMobTransfur, false),
-                        bool("secondary_transfur", config.allowSecondaryTransfur, true),
+                        decimal("visual_range", config.visualAcquisitionRange, 1.0),
+                        decimal("pursuit_range", config.maximumPursuitRange, 1.0),
+                        integer("lose_sight", config.huntLoseSightSeconds),
+                        integer("search_time", config.huntSearchSeconds),
+                        decimal("alert_radius", config.huntAlertRadius, 1.0),
+                        decimal("search_speed", config.huntSearchSpeed, 0.05),
+                        decimal("gunshot_radius", config.firearmGunshotRadius, 1.0),
+                        bool("firearm_evasion", config.firearmEvasion)),
+                category("transfur",
+                        decimal("grab_chance", config.hostileGrabAttemptChance, 0.05),
+                        decimal("organic_grab_chance", config.organicHostileGrabAttemptChance, 0.05),
+                        bool("mindless_mob_transfur", config.allowMindlessMobTransfur),
+                        bool("secondary_transfur", config.allowSecondaryTransfur),
                         enumMode("creature_transfur_method",
                                 config.creatureTransfurMethod,
-                                CreatureTransfurMethod.NATIVE,
                                 "config.changed_synergy.transfur_method.")),
                 category("takeover",
-                        bool("takeover_enabled", config.takeoverEnabled, true),
-                        bool("takeover_punitive", config.takeoverPunitive, true),
-                        bool("takeover_competitive", config.takeoverCompetitive, true),
-                        bool("takeover_exoskeleton", config.takeoverExoskeleton, true),
-                        bool("exoskeleton_sleep", config.exoskeletonSleep, true),
-                        bool("takeover_borrow", config.takeoverBorrow, true),
-                        bool("takeover_escape", config.takeoverEscape, true),
-                        bool("takeover_wake_prone", config.takeoverWakeProne, true),
-                        bool("takeover_negotiation", config.takeoverNegotiation, true),
-                        bool("takeover_hostile_finale", config.takeoverHostileFinale, true),
-                        bool("takeover_oranges", config.takeoverOranges, true),
-                        integer("takeover_seconds", config.takeoverSeconds, 180, 30, 300),
-                        integer("takeover_punitive_seconds", config.takeoverPunitiveSeconds, 240, 30, 300),
-                        integer("takeover_exoskeleton_seconds", config.takeoverExoskeletonSeconds, 30, 5, 60)),
+                        bool("takeover_enabled", config.takeoverEnabled),
+                        bool("takeover_punitive", config.takeoverPunitive),
+                        bool("takeover_competitive", config.takeoverCompetitive),
+                        bool("takeover_exoskeleton", config.takeoverExoskeleton),
+                        bool("exoskeleton_sleep", config.exoskeletonSleep),
+                        bool("takeover_borrow", config.takeoverBorrow),
+                        bool("takeover_escape", config.takeoverEscape),
+                        bool("takeover_wake_prone", config.takeoverWakeProne),
+                        bool("takeover_negotiation", config.takeoverNegotiation),
+                        bool("takeover_hostile_finale", config.takeoverHostileFinale),
+                        bool("takeover_oranges", config.takeoverOranges),
+                        integer("takeover_seconds", config.takeoverSeconds),
+                        integer("takeover_punitive_seconds", config.takeoverPunitiveSeconds),
+                        integer("takeover_exoskeleton_seconds", config.takeoverExoskeletonSeconds)),
                 category("dialogue",
-                        decimal("dialogue_range", config.npcDialogueRange, 32.0, 4.0, 96.0, 1.0),
-                        integer("dialogue_cooldown", config.npcDialogueCooldownSeconds, 12, 2, 120),
-                        decimal("dialogue_chance", config.npcDialogueChance, 0.72, 0.0, 1.0, 0.05),
-                        decimal("personality_chance", config.personalityDialogueChance, 0.68, 0.0, 1.0, 0.05),
-                        bool("translator", config.npcDialogueUsesTranslator, true),
-                        bool("addon_animal_calls", config.addonAnimalCalls, true),
-                        integer("telepathy_unlock", config.telepathyUnlockTransfurs, 3, 0, 20))));
-        if (ModList.get().isLoaded("changed_addon")) {
-            categories.add(category("changed_addon",
-                    bool("respect_pacified", config.respectPacifiedLatexes, true),
-                    bool("pacify_pets", config.pacifyTamedCompanions, true)));
-        }
-        return List.copyOf(categories);
+                        decimal("dialogue_range", config.npcDialogueRange, 1.0),
+                        integer("dialogue_cooldown", config.npcDialogueCooldownSeconds),
+                        decimal("dialogue_chance", config.npcDialogueChance, 0.05),
+                        decimal("personality_chance", config.personalityDialogueChance, 0.05)),
+                category("understanding",
+                        bool("translator", config.npcDialogueUsesTranslator),
+                        bool("addon_animal_calls", config.addonAnimalCalls),
+                        bool("telepathy_enabled", config.telepathyEnabled),
+                        integer("telepathy_unlock", config.telepathyUnlockTransfurs)),
+                category("changed_addon",
+                        bool("respect_pacified", config.respectPacifiedLatexes),
+                        bool("pacify_pets", config.pacifyTamedCompanions)));
     }
 
     private static List<Category> createClientCategories() {
         ChangedSynergyClientConfig.Client config = ChangedSynergyClientConfig.CLIENT;
         return List.of(
                 category("legacy_visuals",
-                        bool("legacy_screen", config.legacyTransfurScreenEffect, false),
-                        bool("legacy_skin", config.legacyTransfurSkinEffect, false),
-                        decimal("legacy_opacity", config.legacyTransfurScreenOpacity, 1.0, 0.0, 1.0, 0.05)),
+                        bool("legacy_screen", config.legacyTransfurScreenEffect),
+                        bool("legacy_skin", config.legacyTransfurSkinEffect),
+                        decimal("legacy_opacity", config.legacyTransfurScreenOpacity, 0.05)),
                 category("pure_white_visuals",
-                        bool("disable_pure_white_overlays",
-                                config.disablePureWhiteVisionOverlays, false)),
+                        bool("disable_pure_white_overlays", config.disablePureWhiteVisionOverlays)),
                 category("suit_visuals",
-                        bool("suit_vignette", config.friendlySuitVignette, true),
-                        decimal("suit_opacity", config.friendlySuitVignetteOpacity, 0.25, 0.0, 0.5, 0.05)),
+                        bool("suit_vignette", config.friendlySuitVignette),
+                        decimal("suit_opacity", config.friendlySuitVignetteOpacity, 0.05)),
                 category("telepathy",
-                        bool("danmaku", config.telepathicDanmaku, true),
-                        decimal("popup_height", config.popupHeightOffset, 0.0, -0.75, 0.75, 0.05),
-                        decimal("danmaku_height", config.danmakuHeightOffset, 0.0, -0.75, 0.75, 0.05),
+                        bool("danmaku", config.telepathicDanmaku),
+                        decimal("popup_height", config.popupHeightOffset, 0.05),
+                        decimal("danmaku_height", config.danmakuHeightOffset, 0.05),
                         displayMode(
                                 "dialogue_display",
-                                config.dialogueDisplayMode,
-                                DialogueDisplayMode.AUTO),
-                        bool("territory_hud", config.territoryHud, true)),
+                                config.dialogueDisplayMode),
+                        bool("territory_hud", config.territoryHud)),
                 category("hints",
-                        bool("mechanic_hints", config.mechanicHints, true),
-                        bool("negotiation_next_step_hint", config.negotiationNextStepHint, true)),
+                        bool("mechanic_hints", config.mechanicHints),
+                        bool("negotiation_next_step_hint", config.negotiationNextStepHint)),
                 category("qte",
-                        bool("qte_animations", config.qteAnimations, true),
-                        bool("reduced_motion", config.reducedQteMotion, false),
-                        bool("exoskeleton_hypnosis_visual",
-                                config.exoskeletonHypnosisVisual, true)));
+                        bool("qte_animations", config.qteAnimations),
+                        bool("reduced_motion", config.reducedQteMotion),
+                        bool("exoskeleton_hypnosis_visual", config.exoskeletonHypnosisVisual)));
+    }
+
+    private static List<Category> createWorldCategories() {
+        var grouped = new java.util.LinkedHashMap<String, List<ConfigEntry>>();
+        for (var setting : ChangedSynergyGameRules.settings()) {
+            String name = setting.name();
+            String category = name.contains("Native") ? "world_origins"
+                    : name.contains("Qte") ? "world_qte"
+                    : name.contains("Dialogue") || name.contains("Emotes") || name.contains("TerritoryDisplay") ? "world_presentation"
+                    : name.contains("NpcAI") || name.contains("CreatureLife") ? "world_ai" : "world_social";
+            grouped.computeIfAbsent(category, ignored -> new ArrayList<>()).add(new RuleEntry(setting));
+        }
+        return grouped.entrySet().stream().map(entry -> category(entry.getKey(), entry.getValue().toArray(ConfigEntry[]::new))).toList();
     }
 
     private static Category category(String key, ConfigEntry... entries) {
@@ -494,38 +602,46 @@ public final class ChangedSynergyConfigScreen extends Screen {
         return section == Section.GAMEPLAY && isRemoteServer();
     }
 
-    private static BooleanEntry bool(String key,
-            ForgeConfigSpec.BooleanValue value, boolean defaultValue) {
-        return new BooleanEntry(key, value, defaultValue);
+    private boolean canEditWorld() {
+        return minecraft != null && minecraft.player != null && minecraft.getConnection() != null
+                && minecraft.player.hasPermissions(2) && (!isRemoteServer() || ServerConfigClient.received());
     }
 
-    private static IntegerEntry integer(String key,
-            ForgeConfigSpec.IntValue value, int defaultValue, int min, int max) {
-        return new IntegerEntry(key, value, defaultValue, min, max);
+    private boolean readOnlySection() {
+        return remoteGameplay() || section == Section.WORLD && !canEditWorld();
     }
 
-    private static EnumEntry<DialogueDisplayMode> displayMode(
-            String key,
-            ForgeConfigSpec.EnumValue<DialogueDisplayMode> value,
-            DialogueDisplayMode defaultValue) {
-        return enumMode(key, value, defaultValue,
-                "config.changed_synergy.dialogue_display.");
+    private static ForgeConfigSpec.ValueSpec spec(ForgeConfigSpec.ConfigValue<?> value) {
+        ForgeConfigSpec owner = ChangedSynergyConfig.SPEC.getValues().get(value.getPath()) == value
+                ? ChangedSynergyConfig.SPEC : ChangedSynergyClientConfig.SPEC;
+        return owner.getSpec().get(value.getPath());
     }
 
-    private static <E extends Enum<E>> EnumEntry<E> enumMode(
-            String key, ForgeConfigSpec.EnumValue<E> value,
-            E defaultValue, String translationPrefix) {
-        return new EnumEntry<>(key, value, defaultValue, translationPrefix);
+    private static BooleanEntry bool(String key, ForgeConfigSpec.BooleanValue value) {
+        return new BooleanEntry(key, value);
     }
 
-    private static DoubleEntry decimal(String key,
-            ForgeConfigSpec.DoubleValue value, double defaultValue,
-            double min, double max, double step) {
-        return new DoubleEntry(key, value, defaultValue, min, max, step);
+    private static IntegerEntry integer(String key, ForgeConfigSpec.IntValue value) {
+        return new IntegerEntry(key, value);
+    }
+
+    private static EnumEntry<DialogueDisplayMode> displayMode(String key,
+            ForgeConfigSpec.EnumValue<DialogueDisplayMode> value) {
+        return enumMode(key, value, "config.changed_synergy.dialogue_display.");
+    }
+
+    private static <E extends Enum<E>> EnumEntry<E> enumMode(String key,
+            ForgeConfigSpec.EnumValue<E> value, String translationPrefix) {
+        return new EnumEntry<>(key, value, translationPrefix);
+    }
+
+    private static DoubleEntry decimal(String key, ForgeConfigSpec.DoubleValue value, double step) {
+        return new DoubleEntry(key, value, step);
     }
 
     private enum Section {
         GAMEPLAY,
+        WORLD,
         CLIENT
     }
 
@@ -547,7 +663,7 @@ public final class ChangedSynergyConfigScreen extends Screen {
             this.key = key;
         }
 
-        private Component label() {
+        protected Component label() {
             return Component.translatable("config.changed_synergy.option." + key);
         }
 
@@ -560,23 +676,80 @@ public final class ChangedSynergyConfigScreen extends Screen {
         protected abstract void reset();
     }
 
-    private static final class BooleanEntry extends ConfigEntry {
-        private final ForgeConfigSpec.BooleanValue config;
-        private final boolean defaultValue;
-        private boolean value;
+    private static final class RuleEntry extends ConfigEntry {
+        private final ChangedSynergyGameRules.Setting<?> rule;
+        private Object value;
+        private boolean dirty;
+        private RuleEntry(ChangedSynergyGameRules.Setting<?> rule) {
+            super(rule.name());
+            this.rule = rule;
+            this.value = ServerConfigClient.ruleValue(rule);
+        }
+        private void refresh() { if (!dirty) value = ServerConfigClient.ruleValue(rule); }
+        @Override protected Component label() { return Component.translatable("gamerule." + key); }
+        @Override protected Component tooltip() {
+            return Component.translatable("gamerule." + key + ".description").copy()
+                    .append(Component.literal("\n/gamerule " + key + " " + value + "\n"))
+                    .append(Component.translatable("config.changed_synergy.world_default", rule.defaultValue()));
+        }
+        @Override protected boolean valid() {
+            if (rule.defaultValue() instanceof Boolean) return value instanceof Boolean;
+            try { int number = Integer.parseInt(value.toString()); return number >= -100 && number <= 100; }
+            catch (NumberFormatException invalid) { return false; }
+        }
+        @Override protected void save() {
+            var client = net.minecraft.client.Minecraft.getInstance();
+            if (dirty && client.player != null && client.player.hasPermissions(2) && client.getConnection() != null)
+                client.getConnection().sendCommand("gamerule " + key + " " + value);
+        }
+        @Override protected void reset() { value = rule.defaultValue(); dirty = true; }
+    }
 
-        private BooleanEntry(String key, ForgeConfigSpec.BooleanValue config,
-                boolean defaultValue) {
+    private static final class FormListEntry extends ConfigEntry {
+        private final ForgeConfigSpec.ConfigValue<List<? extends String>> config;
+        private final String separator;
+        private String text;
+
+        private FormListEntry(String key, ForgeConfigSpec.ConfigValue<List<? extends String>> config) {
+            this(key, config, ",");
+        }
+
+        private FormListEntry(String key, ForgeConfigSpec.ConfigValue<List<? extends String>> config, String separator) {
             super(key);
             this.config = config;
-            this.defaultValue = defaultValue;
-            this.value = config.get();
+            this.separator = separator;
+            this.text = String.join(separator + " ", ServerConfigClient.value(config));
+        }
+
+        private List<String> forms() {
+            return text.isBlank() ? List.of()
+                    : java.util.Arrays.stream(text.split(separator, -1)).map(String::trim).toList();
+        }
+
+        @Override protected Component tooltip() {
+            return label().copy().append("\n").append(Component.translatable("config.changed_synergy.option." + key + ".description"));
+        }
+        @Override protected boolean valid() {
+            return ChangedSynergyConfig.SPEC.getSpec().<ForgeConfigSpec.ValueSpec>get(config.getPath()).test(forms());
+        }
+        @Override protected void save() { config.set(forms()); }
+        @Override protected void reset() { text = String.join(separator + " ", config.getDefault()); }
+    }
+
+    private static final class BooleanEntry extends ConfigEntry {
+        private final ForgeConfigSpec.BooleanValue config;
+        private boolean value;
+
+        private BooleanEntry(String key, ForgeConfigSpec.BooleanValue config) {
+            super(key);
+            this.config = config;
+            this.value = ServerConfigClient.value(config);
         }
 
         @Override
         protected Component tooltip() {
-            return Component.translatable("config.changed_synergy.option."
-                    + key + ".description");
+            return label().copy().append("\n").append(Component.translatable("config.changed_synergy.option."
+                    + key + ".description"));
         }
 
         @Override
@@ -591,25 +764,23 @@ public final class ChangedSynergyConfigScreen extends Screen {
 
         @Override
         protected void reset() {
-            value = defaultValue;
+            value = config.getDefault();
         }
     }
 
     private static final class EnumEntry<E extends Enum<E>> extends ConfigEntry {
         private final ForgeConfigSpec.EnumValue<E> config;
-        private final E defaultValue;
         private final String translationPrefix;
         private E value;
 
         private EnumEntry(
                 String key,
                 ForgeConfigSpec.EnumValue<E> config,
-                E defaultValue, String translationPrefix) {
+                String translationPrefix) {
             super(key);
             this.config = config;
-            this.defaultValue = defaultValue;
             this.translationPrefix = translationPrefix;
-            this.value = config.get();
+            this.value = ServerConfigClient.value(config);
         }
 
         private void next() {
@@ -624,8 +795,8 @@ public final class ChangedSynergyConfigScreen extends Screen {
 
         @Override
         protected Component tooltip() {
-            return Component.translatable(
-                    "config.changed_synergy.option." + key + ".description");
+            return label().copy().append("\n").append(Component.translatable(
+                    "config.changed_synergy.option." + key + ".description"));
         }
 
         @Override
@@ -640,7 +811,7 @@ public final class ChangedSynergyConfigScreen extends Screen {
 
         @Override
         protected void reset() {
-            value = defaultValue;
+            value = config.getDefault();
         }
     }
 
@@ -650,11 +821,11 @@ public final class ChangedSynergyConfigScreen extends Screen {
         protected final double step;
         protected String text;
 
-        private NumericEntry(String key, double min, double max, double step,
+        private NumericEntry(String key, ForgeConfigSpec.ValueSpec definition, double step,
                 String initial) {
             super(key);
-            this.min = min;
-            this.max = max;
+            this.min = ((Number)definition.getRange().getMin()).doubleValue();
+            this.max = ((Number)definition.getRange().getMax()).doubleValue();
             this.step = step;
             this.text = initial;
         }
@@ -681,37 +852,31 @@ public final class ChangedSynergyConfigScreen extends Screen {
         protected void adjust(int direction) {
             double current = valid() ? parsed() : min;
             setFromNumber(Math.max(min, Math.min(max,
-                    current + step * direction)));
+                    java.math.BigDecimal.valueOf(current).add(java.math.BigDecimal.valueOf(step)
+                            .multiply(java.math.BigDecimal.valueOf(direction))).doubleValue())));
         }
 
         protected abstract void setFromNumber(double value);
 
         @Override
         protected Component tooltip() {
-            return Component.translatable("config.changed_synergy.numeric_tooltip",
+            return label().copy().append("\n").append(Component.translatable("config.changed_synergy.numeric_tooltip",
                     Component.translatable("config.changed_synergy.option."
                             + key + ".description"),
-                    format(min), format(max));
+                    format(min), format(max)));
         }
 
         protected static String format(double value) {
-            if (value == Math.rint(value)) {
-                return Long.toString(Math.round(value));
-            }
-            return String.format(Locale.ROOT, "%.2f", value)
-                    .replaceAll("0+$", "").replaceAll("\\.$", "");
+            return java.math.BigDecimal.valueOf(value).stripTrailingZeros().toPlainString();
         }
     }
 
     private static final class IntegerEntry extends NumericEntry {
         private final ForgeConfigSpec.IntValue config;
-        private final int defaultValue;
 
-        private IntegerEntry(String key, ForgeConfigSpec.IntValue config,
-                int defaultValue, int min, int max) {
-            super(key, min, max, 1.0, Integer.toString(config.get()));
+        private IntegerEntry(String key, ForgeConfigSpec.IntValue config) {
+            super(key, spec(config), 1.0, Integer.toString(ServerConfigClient.value(config)));
             this.config = config;
-            this.defaultValue = defaultValue;
         }
 
         @Override
@@ -731,19 +896,16 @@ public final class ChangedSynergyConfigScreen extends Screen {
 
         @Override
         protected void reset() {
-            text = Integer.toString(defaultValue);
+            text = Integer.toString(config.getDefault());
         }
     }
 
     private static final class DoubleEntry extends NumericEntry {
         private final ForgeConfigSpec.DoubleValue config;
-        private final double defaultValue;
 
-        private DoubleEntry(String key, ForgeConfigSpec.DoubleValue config,
-                double defaultValue, double min, double max, double step) {
-            super(key, min, max, step, format(config.get()));
+        private DoubleEntry(String key, ForgeConfigSpec.DoubleValue config, double step) {
+            super(key, spec(config), step, format(ServerConfigClient.value(config)));
             this.config = config;
-            this.defaultValue = defaultValue;
         }
 
         @Override
@@ -758,7 +920,7 @@ public final class ChangedSynergyConfigScreen extends Screen {
 
         @Override
         protected void reset() {
-            text = format(defaultValue);
+            text = format(config.getDefault());
         }
     }
 }

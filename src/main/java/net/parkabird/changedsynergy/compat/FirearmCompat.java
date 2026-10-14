@@ -35,8 +35,25 @@ public final class FirearmCompat {
     private static Method superbIsBarrelSilenced;
     private static Class<?> superbGunItem;
     private static boolean registered;
+    private static final ClassValue<Boolean> SUPERB_VEHICLES = new ClassValue<>() {
+        @Override protected Boolean computeValue(Class<?> type) {
+            for (Class<?> base = type; base != null; base = base.getSuperclass()) {
+                if (base.getName().equals("com.atsuishio.superbwarfare.entity.vehicle.base.VehicleEntity")) return true;
+            }
+            return false;
+        }
+    };
 
     private FirearmCompat() {
+    }
+
+    /** Recognizes the optional vehicle base without linking its classes on clients or dedicated servers. */
+    @javax.annotation.Nullable
+    public static Entity ridingSuperbVehicle(Entity passenger) {
+        for (Entity vehicle = passenger.getVehicle(); vehicle != null; vehicle = vehicle.getVehicle()) {
+            if (SUPERB_VEHICLES.get(vehicle.getClass())) return vehicle;
+        }
+        return null;
     }
 
     public static void registerOptionalEvents() {

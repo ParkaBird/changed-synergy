@@ -60,11 +60,6 @@ public final class PlayerRelationshipSettings {
         return current;
     }
 
-    /** Active pats use their ordinary social rules; damage filtering is separate. */
-    public static boolean allowsActivePat(ServerPlayer player, ChangedEntity creature) {
-        return true;
-    }
-
     public static double bondedStartDistance(ServerPlayer player) {
         return switch (formation(player)) {
             case CLOSE -> 7.0D;
@@ -119,7 +114,8 @@ public final class PlayerRelationshipSettings {
         ResourceLocation type = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE
                 .getKey(creature.getType());
         contact.putString("Type", type.toString());
-        contact.putBoolean("Bonded", bonded);
+        contact.putBoolean("Bonded", bonded && LatexSocialMemory.isBonded(creature, player)
+                && CreatureSocialProfile.allowsPersonalRelationship(creature));
         contact.putString("Dimension", creature.level().dimension().location().toString());
         contact.putInt("X", creature.blockPosition().getX());
         contact.putInt("Y", creature.blockPosition().getY());
@@ -197,7 +193,8 @@ public final class PlayerRelationshipSettings {
                     stored.remove(key);
                     continue;
                 }
-                merged.put(uuid, Contact.fromStored(uuid, tag));
+                tag.putBoolean("Bonded", LatexSocialMemory.bondedCreatureUuids(player).contains(uuid));
+                merged.put(uuid, Contact.fromStored(uuid, tag, BondTokenService.reservedFor(player, uuid)));
             } catch (IllegalArgumentException ignored) {
                 stored.remove(key);
             }
@@ -210,8 +207,9 @@ public final class PlayerRelationshipSettings {
                     continue;
                 }
                 boolean bonded = LatexSocialMemory.isBonded(creature, player)
-                        || LatexSocialMemory.isPetOwner(creature, player);
+                        && CreatureSocialProfile.allowsPersonalRelationship(creature);
                 boolean related = bonded
+                        || LatexSocialMemory.isPetOwner(creature, player)
                         || CreaturePersonality.hasEstablishedRelationship(creature, player);
                 if (!related) {
                     continue;
@@ -230,6 +228,14 @@ public final class PlayerRelationshipSettings {
                         (Contact contact) -> contact.following()).reversed())
                 .thenComparing(Comparator.comparingInt(Contact::familiarity).reversed())
                 .thenComparing(Contact::name, String.CASE_INSENSITIVE_ORDER);
+        for(var pair:PlayerFriendshipData.get(player.server).contacts(player.getUUID())) {
+            UUID id=pair.other(player.getUUID());ServerPlayer peer=player.server.getPlayerList().getPlayer(id);
+            var body=peer==null?null:net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(peer);
+            boolean loaded=peer!=null&&NativeRoleplayService.validBody(peer,body);
+            merged.put(id,new Contact(id,loaded?body.getId():-1,peer==null?pair.name(id):NativeRoleplayService.name(peer).getString(),
+                    "minecraft:player",loaded?body.level().dimension().location().toString():"",false,0,0,0,false,loaded,loaded&&body.level()==player.level(),
+                    PlayerSocialService.isFollowing(id,player.getUUID()),false,pair.familiarity,loaded?body.getHealth():0,loaded?body.getMaxHealth():0,false));
+        }
         return merged.values().stream()
                 .sorted(order)
                 .limit(MAX_CONTACTS)
@@ -359,12 +365,13 @@ public final class PlayerRelationshipSettings {
             boolean pureWhiteAdapted,
             int familiarity,
             float health,
-            float maxHealth) {
+            float maxHealth,
+            boolean tokenReserved) {
         private static Contact fromLoaded(
                 ServerPlayer player,
                 ChangedEntity creature,
                 boolean bonded) {
-            boolean following = bonded
+            boolean following = bonded || LatexSocialMemory.isPetOwner(creature, player)
                     ? LatexSocialMemory.isFollowingOwner(creature)
                     : CreaturePersonality.isSocialFollowing(creature, player);
             return new Contact(
@@ -385,10 +392,10 @@ public final class PlayerRelationshipSettings {
                     PureWhiteWolfAdaptation.isAdaptedForm(creature),
                     CreaturePersonality.familiarity(creature, player),
                     creature.getHealth(),
-                    creature.getMaxHealth());
+                    creature.getMaxHealth(), BondTokenService.reservedFor(creature, player));
         }
 
-        private static Contact fromStored(UUID uuid, CompoundTag tag) {
+        private static Contact fromStored(UUID uuid, CompoundTag tag, boolean tokenReserved) {
             return new Contact(
                     uuid,
                     -1,
@@ -406,7 +413,7 @@ public final class PlayerRelationshipSettings {
                     tag.getBoolean("PureWhiteAdapted"),
                     tag.getInt("Familiarity"),
                     0.0F,
-                    0.0F);
+                    0.0F, tokenReserved);
         }
     }
 

@@ -177,7 +177,7 @@ public final class SharedRestGoal extends Goal {
             if (groundSeat == null && !creature.isPassenger()) makeGroundSeat();
             return;
         }
-        BlockPos bed = BlockPos.of(data.getLong(BED));
+        BlockPos bed = PlayerOutpostRestGoal.restingPlace(level, BlockPos.of(data.getLong(BED)));
         if (!isFreeBed(level, bed)) {
             finishCarry(owner);
             data.remove(BED);
@@ -194,7 +194,7 @@ public final class SharedRestGoal extends Goal {
         }
         if (creature.distanceToSqr(bed.getX() + 0.5D, bed.getY(), bed.getZ() + 0.5D)
                 > 4.0D) {
-            if (--repath <= 0 || creature.getNavigation().isDone()) {
+            if (--repath <= 0) {
                 repath = 20;
                 creature.getNavigation().moveTo(bed.getX() + 0.5D,
                         bed.getY(), bed.getZ() + 0.5D, WALK_SPEED);
@@ -271,11 +271,12 @@ public final class SharedRestGoal extends Goal {
         double distance = Double.MAX_VALUE;
         for (BlockPos pos : BlockPos.betweenClosed(origin.offset(-5, -2, -5),
                 origin.offset(5, 2, 5))) {
-            if (!isFreeBed(level, pos)) continue;
-            double candidate = creature.distanceToSqr(pos.getX() + 0.5D,
-                    pos.getY(), pos.getZ() + 0.5D);
+            BlockPos head = PlayerOutpostRestGoal.restingPlace(level, pos);
+            if (!isFreeBed(level, head)) continue;
+            double candidate = creature.distanceToSqr(head.getX() + 0.5D,
+                    head.getY(), head.getZ() + 0.5D);
             if (candidate < distance) {
-                best = pos.immutable();
+                best = head;
                 distance = candidate;
             }
         }
@@ -283,6 +284,7 @@ public final class SharedRestGoal extends Goal {
     }
 
     private static boolean isFreeBed(ServerLevel level, BlockPos pos) {
+        if (pos == null || !level.hasChunkAt(pos)) return false;
         BlockState state = level.getBlockState(pos);
         return state.getBlock() instanceof BedBlock && !state.getValue(BedBlock.OCCUPIED);
     }

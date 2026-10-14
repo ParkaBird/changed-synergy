@@ -18,6 +18,7 @@ import net.parkabird.changedsynergy.ai.CreaturePersonality;
 import net.parkabird.changedsynergy.ai.FactionPursuitService;
 import net.parkabird.changedsynergy.ai.LatexCreatureCombatRules;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
+import net.parkabird.changedsynergy.ai.PlayerOutpostService;
 import net.parkabird.changedsynergy.ai.SafeEntityMutationQueue;
 import net.parkabird.changedsynergy.ai.SocialAudienceGoal;
 import net.parkabird.changedsynergy.ai.TakeoverService;
@@ -81,7 +82,9 @@ public final class ChangedExtrasCompat {
      */
     public static boolean shouldYieldSmartAi(ChangedEntity mob) {
         return mob != null
-                && (LatexSocialMemory.hasActiveBond(mob)
+                && (TrueTransfurCompat.isInstinctBody(mob)
+                        || PlayerOutpostService.assigned(mob)
+                        || LatexSocialMemory.hasActiveBond(mob)
                         || LatexSocialMemory.petOwnerUuid(mob).isPresent()
                         || CreaturePersonality.hasAnyEstablishedRelationship(mob)
                         || SocialAudienceGoal.isActive(mob)
@@ -113,7 +116,7 @@ public final class ChangedExtrasCompat {
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
         if (!(event.getEntity() instanceof ChangedEntity mob)
                 || mob.level().isClientSide
-                || !smartAiEnabled(mob)
+                || !isLoaded()
                 || !shouldYieldSmartAi(mob)
                 || !externalAiInstalled(mob)) {
             return;
@@ -187,7 +190,7 @@ public final class ChangedExtrasCompat {
     }
 
     private static void restoreSynergyOwnedGoals(ChangedEntity mob) {
-        if (mob.isRemoved() || !smartAiEnabled(mob)
+        if (mob.isRemoved()
                 || !shouldYieldSmartAi(mob) || !resolveHandler()) {
             return;
         }
@@ -197,10 +200,17 @@ public final class ChangedExtrasCompat {
                 return;
             }
             forgetMind.invoke(null, mob);
+            // Extras clears selectors without stopping active goals. Release seats, bed
+            // reservations and staged food before reinstalling their replacements.
+            mob.goalSelector.getRunningGoals().toList().forEach(net.minecraft.world.entity.ai.goal.WrappedGoal::stop);
+            mob.targetSelector.getRunningGoals().toList().forEach(net.minecraft.world.entity.ai.goal.WrappedGoal::stop);
             restoreNativeGoals.invoke(null, mob);
             mob.setTarget(null);
             LatexSocialEvents.ensureSocialGoals(mob);
             HuntAIEvents.ensureHuntGoals(mob);
+            if (PlayerOutpostService.assigned(mob)) {
+                PlayerOutpostService.ensureGoal(mob);
+            }
             if (FactionPursuitService.isPursuer(mob)) {
                 FactionPursuitService.ensurePursuitGoal(mob);
             }

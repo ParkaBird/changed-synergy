@@ -1,0 +1,13 @@
+{
+  "parent": "changed_synergy:trusted_friend",
+  "display": {
+    "icon": { "item": "minecraft:feather" },
+    "title": { "translate": "advancement.changed_synergy.playful_warning.title" },
+    "description": { "translate": "advancement.changed_synergy.playful_warning.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": { "complete": { "trigger": "minecraft:impossible" } }
+}

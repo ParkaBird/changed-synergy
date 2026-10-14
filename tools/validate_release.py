@@ -203,6 +203,32 @@ def check_advancement_icons(audit: Audit) -> None:
             audit.error(f"advancement icon {icon} is reused by: {', '.join(sorted(names))}")
 
 
+def class_references(data: bytes) -> set[str]:
+    """Read class entries from the JVM constant pool without loading the mod."""
+    cursor, index = 10, 1
+    strings: dict[int, str] = {}
+    classes: list[int] = []
+    count = int.from_bytes(data[8:10], "big")
+    sizes = {3: 4, 4: 4, 5: 8, 6: 8, 7: 2, 8: 2, 9: 4, 10: 4,
+             11: 4, 12: 4, 15: 3, 16: 2, 17: 4, 18: 4, 19: 2, 20: 2}
+    while index < count:
+        tag = data[cursor]
+        cursor += 1
+        if tag == 1:
+            length = int.from_bytes(data[cursor:cursor + 2], "big")
+            cursor += 2
+            strings[index] = data[cursor:cursor + length].decode("utf-8", errors="replace")
+            cursor += length
+        else:
+            if tag == 7:
+                classes.append(int.from_bytes(data[cursor:cursor + 2], "big"))
+            cursor += sizes[tag]
+            if tag in (5, 6):
+                index += 1
+        index += 1
+    return {strings[name].removeprefix("[L").removesuffix(";") for name in classes}
+
+
 def check_jar(audit: Audit, jar_path: Path) -> None:
     if not jar_path.is_file():
         audit.error(f"JAR does not exist: {jar_path}")
@@ -217,6 +243,15 @@ def check_jar(audit: Audit, jar_path: Path) -> None:
         names = set(jar.namelist())
         for entry in sorted(required_entries - names):
             audit.error(f"release JAR is missing {entry}")
+        # Check lazy input paths and nested classes directly, even without local build outputs.
+        own_prefix = "net/parkabird/changedsynergy/"
+        required_classes: set[str] = set()
+        for entry in names:
+            if entry.startswith(own_prefix) and entry.endswith(".class"):
+                required_classes.update(ref + ".class" for ref in class_references(jar.read(entry))
+                                        if ref.startswith(own_prefix))
+        for entry in sorted(required_classes - names):
+            audit.error(f"release JAR is missing referenced class {entry}")
         forbidden_prefixes = ("net/ltxprogrammer/", "net/foxyas/", "top/theillusivec4/curios/")
         bundled = sorted(name for name in names if name.startswith(forbidden_prefixes))
         if bundled:

@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
+    "changed:phage_latex_wolf_male",
+    "changed:phage_latex_wolf_female",
     "changed:dark_dragon",
     "changed:crystal_wolf",
     "changed:crystal_wolf_horned"

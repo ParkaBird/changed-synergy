@@ -1,6 +1,8 @@
 package net.parkabird.changedsynergy.ai;
 
 import java.util.EnumSet;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -58,10 +60,12 @@ public final class CreatureComfortGoal extends Goal {
     private static final double ARRIVAL_SQR = 2.4D * 2.4D;
     private static final int FULL_HEALTH_ORANGE_CHANCE = 12;
     private static final int RESERVED_ORANGES = 1;
+    private static final int MAX_PATH_PROBES = 16;
     private static final Set<ChangedEntity> ACTIVE_RESTS =
             Collections.newSetFromMap(new WeakHashMap<>());
 
     private final ChangedEntity mob;
+    private final int[] searchStarts = new int[Mode.values().length];
     private Mode mode = Mode.NONE;
     @Nullable private BlockPos target;
     @Nullable private Path path;
@@ -122,6 +126,11 @@ public final class CreatureComfortGoal extends Goal {
                         Mode.EAT_ORANGE,
                         CreatureComfortGoal::hasConsumableOrange)) {
             return true;
+        }
+        // Camp members use their registered rest points and the camp's rest setting.
+        if (PlayerOutpostService.assigned(mob)) {
+            scheduleNext(now, 220, 281);
+            return false;
         }
         // Tall Changed cardboard boxes are real seats with their own open/close
         // animation.  Feline bodies seek them out much more often, while other
@@ -192,7 +201,7 @@ public final class CreatureComfortGoal extends Goal {
                 target.getX() + 0.5D,
                 target.getY() + 0.5D,
                 target.getZ() + 0.5D) > ARRIVAL_SQR) {
-            if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
+            if (--repathTicks <= 0) {
                 repathTicks = 20;
                 path = mob.getNavigation().createPath(target, 1);
                 if (path == null || !path.canReach()) {
@@ -239,35 +248,35 @@ public final class CreatureComfortGoal extends Goal {
             return false;
         }
         BlockPos origin = mob.blockPosition();
-        double nearest = Double.MAX_VALUE;
-        BlockPos chosen = null;
-        Path chosenPath = null;
+        List<BlockPos> candidates = new ArrayList<>();
         for (BlockPos cursor : BlockPos.betweenClosed(
                 origin.offset(-SEARCH_RADIUS, -VERTICAL_RADIUS, -SEARCH_RADIUS),
                 origin.offset(SEARCH_RADIUS, VERTICAL_RADIUS, SEARCH_RADIUS))) {
-            BlockState state = level.getBlockState(cursor);
-            if (!predicate.test(state)) {
-                continue;
+            if (level.hasChunkAt(cursor) && predicate.test(level.getBlockState(cursor))) {
+                candidates.add(cursor.immutable());
             }
-            double distance = cursor.distSqr(origin);
-            if (distance >= nearest) {
-                continue;
-            }
-            Path candidate = mob.getNavigation().createPath(cursor, 1);
+        }
+        if (candidates.isEmpty()) {
+            searchStarts[selectedMode.ordinal()] = 0;
+            return false;
+        }
+        candidates.sort(Comparator.comparingDouble(origin::distSqr));
+        int start = Math.floorMod(searchStarts[selectedMode.ordinal()], candidates.size());
+        int count = Math.min(MAX_PATH_PROBES, candidates.size());
+        searchStarts[selectedMode.ordinal()] = (start + count) % candidates.size();
+        for (int offset = 0; offset < count; offset++) {
+            BlockPos chosen = candidates.get((start + offset) % candidates.size());
+            Path candidate = mob.getNavigation().createPath(chosen, 1);
             if (candidate == null || !candidate.canReach()) {
                 continue;
             }
-            nearest = distance;
-            chosen = cursor.immutable();
-            chosenPath = candidate;
+            searchStarts[selectedMode.ordinal()] = 0;
+            mode = selectedMode;
+            target = chosen;
+            path = candidate;
+            return true;
         }
-        if (chosen == null) {
-            return false;
-        }
-        mode = selectedMode;
-        target = chosen;
-        path = chosenPath;
-        return true;
+        return false;
     }
 
     private boolean selectOrangeRestockSite() {
@@ -405,7 +414,7 @@ public final class CreatureComfortGoal extends Goal {
     }
 
     private boolean targetStillValid() {
-        if (target == null) {
+        if (target == null || !mob.level().hasChunkAt(target)) {
             return false;
         }
         BlockState state = mob.level().getBlockState(target);
@@ -429,6 +438,7 @@ public final class CreatureComfortGoal extends Goal {
     private boolean idleAvailable(boolean allowOwnSeat) {
         if (!mob.isAlive()
                 || mob.isNoAi()
+                || mob.isSleeping()
                 || mob.isLeashed()
                 || CreatureSettlementService.hasCargo(mob)
                 || mob.getTarget() != null
@@ -546,6 +556,7 @@ public final class CreatureComfortGoal extends Goal {
         }
         SharedRestGoal.cancelAllForServer(event.getServer());
         PlayerOutpostRestGoal.cleanupAllForServer(event.getServer());
+        PlayerOutpostMealGoal.cleanupAllForServer(event.getServer());
     }
 
     private enum Mode {

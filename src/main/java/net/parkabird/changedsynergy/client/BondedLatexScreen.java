@@ -220,9 +220,10 @@ public final class BondedLatexScreen extends AbstractRadialScreen<BondedLatexMen
             float green,
             float blue) {
         Optional<Integer> hovered = getSectionAt(mouseX, mouseY);
-        boolean thisHovered = hovered.filter(index -> index == section).isPresent();
-        boolean active = section >= 0 && section < interactions.size()
-                && interactions.get(section).highlight().get();
+        boolean thisHovered = RadialWheelAnimations.isSectionSelected(this, section, mouseX, mouseY);
+        int actionSection = section + RadialWheelAnimations.viewOffset(this);
+        boolean active = actionSection >= 0 && actionSection < interactions.size()
+                && interactions.get(actionSection).highlight().get();
         String wheelStyle = menu.isOrganicPet() ? "organic" : "goo";
         ResourceLocation texture = Changed.modResource(
                 "textures/gui/radial/" + wheelStyle

@@ -20,6 +20,7 @@ import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.Enemy;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
+import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.event.NpcDispositionEvents;
 import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
@@ -206,7 +207,7 @@ public final class SocialFriendDefenseGoal extends TargetGoal {
         }
         return ((ServerLevel)friend.level()).players().stream()
                 .filter(this::isSupported)
-                .min(Comparator.comparingDouble(friend::distanceToSqr))
+                .min(Comparator.comparingDouble(candidate -> friend.distanceToSqr(TrueTransfurCompat.interactionBody(candidate))))
                 .orElse(null);
     }
 
@@ -214,19 +215,21 @@ public final class SocialFriendDefenseGoal extends TargetGoal {
         if (candidate == null
                 || !candidate.isAlive()
                 || candidate.isSpectator()
-                || candidate.level() != friend.level()
                 || LatexSocialMemory.isProvoked(friend, candidate)
                 || LatexSocialMemory.hasRelationshipBetrayal(
                         friend, candidate)) {
             return false;
         }
+        LivingEntity body = TrueTransfurCompat.interactionBody(candidate);
+        if (!body.isAlive() || body.isRemoved() || body.level() != friend.level()
+                || body == candidate && TrueTransfurCompat.isInstinctShell(candidate)) return false;
         boolean personalSupport = hasPersonalSupport(candidate);
         boolean factionSupport = hasFactionSupport(candidate);
         if (!personalSupport && !factionSupport) {
             return false;
         }
         double supportRange = supportRange(candidate);
-        return friend.distanceToSqr(candidate)
+        return friend.distanceToSqr(body)
                 <= supportRange * supportRange;
     }
 
@@ -243,7 +246,8 @@ public final class SocialFriendDefenseGoal extends TargetGoal {
     }
 
     private boolean hasFactionSupport(ServerPlayer candidate) {
-        return FactionReputation.isAllied(friend, candidate);
+        return FactionReputation.isAllied(friend, candidate)
+                || net.parkabird.changedsynergy.origin.NativeOriginService.protectedMember(friend, candidate);
     }
 
     private double supportRange(ServerPlayer candidate) {
@@ -257,28 +261,29 @@ public final class SocialFriendDefenseGoal extends TargetGoal {
     }
 
     private LivingEntity findThreat(ServerPlayer supportedPlayer) {
-        LivingEntity attacked = supportedPlayer.getLastHurtMob();
-        if (supportedPlayer.tickCount - supportedPlayer.getLastHurtMobTimestamp()
+        LivingEntity body = TrueTransfurCompat.interactionBody(supportedPlayer);
+        LivingEntity attacked = body.getLastHurtMob();
+        if (body.tickCount - body.getLastHurtMobTimestamp()
                         <= RECENT_HIT_TICKS
                 && canDefendAgainst(attacked, supportedPlayer)) return attacked;
-        LivingEntity recent = supportedPlayer.getLastHurtByMob();
-        if (supportedPlayer.tickCount - supportedPlayer.getLastHurtByMobTimestamp()
+        LivingEntity recent = body.getLastHurtByMob();
+        if (body.tickCount - body.getLastHurtByMobTimestamp()
                         <= RECENT_HIT_TICKS
                 && canDefendAgainst(recent, supportedPlayer)) {
             return recent;
         }
-        return supportedPlayer.level().getEntitiesOfClass(
+        return body.level().getEntitiesOfClass(
                         Mob.class,
-                        supportedPlayer.getBoundingBox().inflate(
+                        body.getBoundingBox().inflate(
                                 supportRange(supportedPlayer)),
-                        candidate -> candidate.getTarget() == supportedPlayer
+                        candidate -> candidate.getTarget() == body
                                 && (!(candidate instanceof ChangedEntity changed)
                                         || NpcDispositionEvents.hasHostileDisposition(
                                                 changed, supportedPlayer))
                                 && canDefendAgainst(candidate, supportedPlayer))
                 .stream()
                 .min(Comparator.comparingDouble(candidate ->
-                        candidate.distanceToSqr(supportedPlayer)))
+                        candidate.distanceToSqr(body)))
                 .orElse(null);
     }
 
@@ -292,9 +297,10 @@ public final class SocialFriendDefenseGoal extends TargetGoal {
     private boolean remainsThreat(
             LivingEntity candidate,
             ServerPlayer supportedPlayer) {
-        if (supportedPlayer.getLastHurtByMob() == candidate
-                && supportedPlayer.tickCount
-                        - supportedPlayer.getLastHurtByMobTimestamp()
+        LivingEntity body = TrueTransfurCompat.interactionBody(supportedPlayer);
+        if (body.getLastHurtByMob() == candidate
+                && body.tickCount
+                        - body.getLastHurtByMobTimestamp()
                         <= RECENT_HIT_TICKS) {
             return true;
         }
@@ -306,13 +312,15 @@ public final class SocialFriendDefenseGoal extends TargetGoal {
     private boolean canDefendAgainst(
             LivingEntity candidate,
             ServerPlayer supportedPlayer) {
+        if (!PlayerOutpostService.mayAttackTarget(friend, candidate)) return false;
+        LivingEntity body = TrueTransfurCompat.interactionBody(supportedPlayer);
         if (ChangedSynergyConfig.COMMON.companionMonsterAssistOnly.get()
                 && (!(candidate instanceof Enemy)
-                        || !(candidate == supportedPlayer.getLastHurtMob()
-                                && supportedPlayer.tickCount - supportedPlayer.getLastHurtMobTimestamp()
+                        || !(candidate == body.getLastHurtMob()
+                                && body.tickCount - body.getLastHurtMobTimestamp()
                                         <= RECENT_HIT_TICKS
-                            || candidate == supportedPlayer.getLastHurtByMob()
-                                && supportedPlayer.tickCount - supportedPlayer.getLastHurtByMobTimestamp()
+                            || candidate == body.getLastHurtByMob()
+                                && body.tickCount - body.getLastHurtByMobTimestamp()
                                         <= RECENT_HIT_TICKS))) return false;
         if (!(candidate instanceof Mob)
                 || candidate == friend
@@ -325,6 +333,7 @@ public final class SocialFriendDefenseGoal extends TargetGoal {
         }
         if (candidate instanceof ChangedEntity other
                 && (LatexCreatureCombatRules.areCompatriots(friend, other)
+                        || LatexCreatureCombatRules.sharePlayerAlliance(friend, other)
                         || LatexSocialMemory.isBonded(other, supportedPlayer)
                         || LatexSocialMemory.isPetOwner(other, supportedPlayer)
                         || CreaturePersonality.hasTrustedRelationship(other, supportedPlayer)

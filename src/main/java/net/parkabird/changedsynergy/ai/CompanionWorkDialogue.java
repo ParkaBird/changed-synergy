@@ -108,7 +108,7 @@ public final class CompanionWorkDialogue {
             if (!wrapped.isRunning()) {
                 continue;
             }
-            String name = wrapped.getGoal().getClass().getSimpleName();
+            String name = PlayerOutpostService.underlyingCompanionTask(wrapped.getGoal()).getClass().getSimpleName();
             // FallbackBondedWorkGoal reports exact outcomes directly below.
             if ("FallbackBondedWorkGoal".equals(name)) {
                 continue;

@@ -4,6 +4,7 @@ import java.util.Comparator;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.beast.AbstractDarkLatexEntity;
+import net.ltxprogrammer.changed.entity.ai.DarkLatexFavor;
 import net.ltxprogrammer.changed.entity.latex.LatexType;
 import net.ltxprogrammer.changed.init.ChangedTags;
 import net.minecraft.nbt.CompoundTag;
@@ -11,6 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.player.Player;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
@@ -108,6 +110,12 @@ public final class BondedPetSettings {
     }
 
     public static void clearFavor(ChangedEntity pet) {
+        if (pet instanceof AbstractDarkLatexEntity darkLatex) {
+            if (darkLatex.getCurrentFavor() == DarkLatexFavor.SUIT_OWNER) {
+                darkLatex.setFavor(DarkLatexFavor.NONE);
+            }
+            return;
+        }
         if (usesFallbackBackend(pet)) {
             data(pet).putInt(FAVOR, FAVOR_NONE);
             pet.getNavigation().stop();
@@ -123,6 +131,7 @@ public final class BondedPetSettings {
         return pet.goalSelector.getAvailableGoals().stream()
                 .filter(WrappedGoal::isRunning)
                 .map(WrappedGoal::getGoal)
+                .map(PlayerOutpostService::underlyingCompanionTask)
                 .map(goal -> goal.getClass().getSimpleName())
                 .anyMatch(name -> name.contains("FishingGoal")
                         || name.contains("CaveHarvestGoal")
@@ -134,11 +143,9 @@ public final class BondedPetSettings {
             ChangedEntity pet,
             @Nullable ServerPlayer owner,
             LivingEntity target) {
+        if (!PlayerOutpostService.mayAttackTarget(pet, target)) return false;
         if (!usesFallbackBackend(pet)) {
             return ChangedAddonCompat.allowsBondedDefense(pet, target);
-        }
-        if (LatexSocialMemory.isPetDefenseForced(pet, target)) {
-            return true;
         }
         int[] state = stateFor(pet);
         if (state[2] == CONDITION_NEVER
@@ -200,7 +207,7 @@ public final class BondedPetSettings {
                 .orElse(null);
     }
 
-    private static boolean matchesTargetType(
+    public static boolean matchesTargetType(
             ChangedEntity pet,
             @Nullable ServerPlayer owner,
             LivingEntity target,
@@ -211,15 +218,26 @@ public final class BondedPetSettings {
                 && petType.isHostileTo(targetTypeValue);
         return switch (targetType) {
             case TARGET_MONSTERS -> hostileLatex
-                    || target.getType().getCategory() == MobCategory.MONSTER;
+                    || isHostileMonster(target, owner)
+                    || target instanceof NeutralMob && pet.getLastHurtByMob() == target
+                            && pet.tickCount - pet.getLastHurtByMobTimestamp() < 600;
             case TARGET_HOSTILE_TO_OWNER -> owner != null
-                    && (target instanceof Mob mob && mob.getTarget() == owner
-                            || owner.getLastHurtMob() == target
-                            || owner.getLastHurtByMob() == target);
+                    && (target instanceof Mob mob && mob.getTarget()
+                            == net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(owner)
+                            || BondedOwnerDefenseGoal.hasRecentConflict(pet, owner, target));
             default -> hostileLatex
                     || target.getType().is(ChangedTags.EntityTypes.HUMANOIDS)
                     || target instanceof ChangedEntity;
         };
+    }
+
+    /** Monster category alone includes peaceful neutral mobs such as zombified piglins. */
+    public static boolean isHostileMonster(LivingEntity target, @Nullable ServerPlayer owner) {
+        if (target.getType().getCategory() != MobCategory.MONSTER) return false;
+        if (!(target instanceof NeutralMob neutral)) return true;
+        return owner != null && (owner.getUUID().equals(neutral.getPersistentAngerTarget())
+                || target instanceof Mob mob && mob.getTarget()
+                        == net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(owner));
     }
 
     private static CompoundTag data(ChangedEntity pet) {

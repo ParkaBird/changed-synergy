@@ -52,11 +52,13 @@ public final class TakeoverSafety {
                 restoredWidth, restoredHeight, 0.0, 32);
     }
 
-    /** Searches only the top motion-blocking surface, never a cave beneath it. */
+    /** Outdoor surface; ceiling dimensions instead use nearby floors below the roof. */
     public static Optional<Vec3> findSurface(ServerPlayer player, Vec3 anchor,
             @Nullable Entity carrier, int radius, boolean avoidThreats,
             double restoredWidth, double restoredHeight) {
         ServerLevel level = player.serverLevel();
+        if (level.dimensionType().hasCeiling() && anchor.y < level.dimensionType().logicalHeight())
+            return find(player, anchor, carrier, radius, avoidThreats, restoredWidth, restoredHeight);
         double width = Math.max(restoredWidth, player.getBbWidth());
         double height = Math.max(restoredHeight, player.getBbHeight());
         for (int ring = 0; ring <= Math.min(radius, 64); ring++) {
@@ -117,6 +119,8 @@ public final class TakeoverSafety {
             AABB top = part.move(floor);
             if (x < top.minX || x > top.maxX || z < top.minZ || z > top.maxZ) continue;
             Vec3 point = new Vec3(x, top.maxY, z);
+            if (level.dimensionType().hasCeiling() && player.getY() < level.dimensionType().logicalHeight()
+                    && point.y >= level.dimensionType().logicalHeight()) continue;
             AABB body = new AABB(x - width / 2, point.y, z - width / 2,
                     x + width / 2, point.y + height, z + width / 2).deflate(1.0E-6);
             if (!level.getWorldBorder().isWithinBounds(body)

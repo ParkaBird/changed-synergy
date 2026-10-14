@@ -4,7 +4,6 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
-import net.ltxprogrammer.changed.entity.TamableLatexEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -69,6 +68,7 @@ public final class CreatureRoutineGoal extends Goal {
     private int repathTicks;
     private int dwellTicks;
     private int actionTicks;
+    private float miningProgress;
     private int shoreTransitionTicks;
     private boolean fishFromWaterFallback;
     private boolean offshoreFishing;
@@ -148,11 +148,12 @@ public final class CreatureRoutineGoal extends Goal {
         repathTicks = 0;
         dwellTicks = 0;
         actionTicks = 0;
+        miningProgress = 0;
         CreatureLifeMemory.beginRoutine(mob, state, mob.level().getGameTime());
         if (state == RoutineState.FISHING && !offshoreFishing) {
-            showTool(new ItemStack(Items.FISHING_ROD));
+            showTool(CompanionToolEffects.gatheringRod(mob).stack());
         } else if (state == RoutineState.MINING) {
-            showTool(new ItemStack(Items.IRON_PICKAXE));
+            showTool(CompanionToolEffects.gatheringPickaxe(mob, mob.level().getBlockState(blockTarget)).stack());
         } else if (state == RoutineState.GATHERING
                 && minecartTarget != null) {
             showTool(new ItemStack(Items.COMPASS));
@@ -195,7 +196,8 @@ public final class CreatureRoutineGoal extends Goal {
             default -> 1.9D * 1.9D;
         };
         if (mob.distanceToSqr(destination) > arrival) {
-            if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
+            // A failed path is already "done"; retrying it every tick bypasses the throttle.
+            if (--repathTicks <= 0) {
                 repathTicks = 16;
                 moveToDestination();
             }
@@ -621,7 +623,7 @@ public final class CreatureRoutineGoal extends Goal {
         }
         FishingVisualEffects.tick(
                 level, mob, fishingSite.water(), actionTicks);
-        if (actionTicks < 160) {
+        if (actionTicks < CompanionToolEffects.fishingWaitTicks(CompanionToolEffects.gatheringRod(mob).stack())) {
             return;
         }
         mob.swing(InteractionHand.MAIN_HAND);
@@ -729,13 +731,22 @@ public final class CreatureRoutineGoal extends Goal {
             return;
         }
         mob.getLookControl().setLookAt(Vec3.atCenterOf(blockTarget));
+        BlockState block = level.getBlockState(blockTarget);
+        float hardness = block.getDestroySpeed(level, blockTarget);
+        ItemStack tool = CompanionToolEffects.gatheringPickaxe(mob, block).stack();
+        if (!block.is(net.minecraftforge.common.Tags.Blocks.ORES) || hardness < 0 || !tool.isCorrectToolForDrops(block)) {
+            remainingTicks = 0;
+            clearMiningProgress();
+            return;
+        }
         actionTicks++;
-        int stage = Math.min(9, actionTicks / 7);
+        miningProgress += hardness == 0 ? 1 : CompanionToolEffects.miningSpeed(mob, tool, block) / hardness / 30;
+        int stage = Math.min(9, (int)(miningProgress * 10));
         level.destroyBlockProgress(mob.getId(), blockTarget, stage);
         if (actionTicks % 10 == 1) {
             mob.swing(InteractionHand.MAIN_HAND);
         }
-        if (actionTicks < 70) {
+        if (miningProgress < 1) {
             return;
         }
         clearMiningProgress();
@@ -817,6 +828,7 @@ public final class CreatureRoutineGoal extends Goal {
     }
 
     private void clearMiningProgress() {
+        miningProgress = 0;
         if (blockTarget != null && mob.level() instanceof ServerLevel level) {
             level.destroyBlockProgress(mob.getId(), blockTarget, -1);
         }
@@ -913,6 +925,7 @@ public final class CreatureRoutineGoal extends Goal {
     @Nullable
     private ServerPlayer nearestObserver(ServerLevel level) {
         return level.players().stream()
+                .filter(player -> !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player))
                 .filter(player -> player.isAlive()
                         && !player.isSpectator()
                         && player.distanceToSqr(mob) <= PRESENTATION_RANGE_SQR)
@@ -969,16 +982,11 @@ public final class CreatureRoutineGoal extends Goal {
                 || HypnosisQteService.getActiveVictim(mob) != null) {
             return false;
         }
-        if (LatexSocialMemory.hasActiveBond(mob)
-                || LatexSocialMemory.petOwnerUuid(mob).isPresent()
+        if (CreatureCommunityData.isPlayerCompanion(mob)
                 || CreaturePersonality.socialPartner(mob) != null) {
-            if (deliveringCargo) {
-                return true;
-            }
-            return false;
+            return deliveringCargo;
         }
-        return deliveringCargo
-                || !(mob instanceof TamableLatexEntity pet && pet.isTame());
+        return true;
     }
 
     private boolean hasDelivery() {

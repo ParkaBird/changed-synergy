@@ -36,7 +36,6 @@ public final class SocialFollowGoal extends Goal {
         }
         player = CreaturePersonality.socialPartner(mob);
         return player != null
-                && !CreatureSettlementService.hasCargo(mob)
                 && player.isAlive()
                 && !player.isSpectator()
                 && mob.getTarget() == null
@@ -51,7 +50,6 @@ public final class SocialFollowGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return player != null
-                && !CreatureSettlementService.hasCargo(mob)
                 && player.isAlive()
                 && !player.isSpectator()
                 && player.level() == mob.level()
@@ -64,6 +62,7 @@ public final class SocialFollowGoal extends Goal {
 
     @Override
     public void start() {
+        if (CreatureSettlementService.hasCargo(mob)) CreatureSettlementService.dropCargo(mob);
         repathTicks = 0;
         teleportRetryTicks = 0;
         oldWaterCost = mob.getPathfindingMalus(BlockPathTypes.WATER);
@@ -80,7 +79,8 @@ public final class SocialFollowGoal extends Goal {
         if (teleportRetryTicks > 0) {
             teleportRetryTicks--;
         }
-        double distanceSqr = mob.distanceToSqr(player);
+        var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player);
+        double distanceSqr = mob.distanceToSqr(body);
         double stopDistance = PlayerRelationshipSettings
                 .friendStopDistance(player);
         double startDistance = PlayerRelationshipSettings
@@ -97,8 +97,8 @@ public final class SocialFollowGoal extends Goal {
             followNavigation.resetProgress();
             return;
         }
-        mob.getLookControl().setLookAt(player, 30.0F, 30.0F);
-        if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
+        mob.getLookControl().setLookAt(body, 30.0F, 30.0F);
+        if (--repathTicks <= 0) {
             repathTicks = 5;
             Level level = mob.level();
             boolean farAway = distanceSqr
@@ -117,7 +117,7 @@ public final class SocialFollowGoal extends Goal {
                 }
                 teleportRetryTicks = 60;
             }
-            followNavigation.moveToward(player, FOLLOW_SPEED);
+            followNavigation.moveToward(body, FOLLOW_SPEED);
         }
     }
 
@@ -135,7 +135,12 @@ public final class SocialFollowGoal extends Goal {
     }
 
     private boolean movementAvailable() {
+        if (player == null) return false;
+        var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player);
         return mob.isAlive()
+                && body.isAlive() && !body.isRemoved() && body.level() == mob.level()
+                && !(body == player && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player))
+                && !PlayerOutpostService.assigned(mob)
                 && !mob.isNoAi()
                 && !mob.isPassenger()
                 && !mob.isLeashed()

@@ -1,0 +1,15 @@
+// Isolated protection checks; add -PwithoutAddon to exercise the fallback backend.
+gradle.beforeProject { project ->
+    project.layout.buildDirectory.set(project.file('.codex-tmp/companion-protection-build'))
+    project.afterEvaluate {
+        project.sourceSets.main.java.srcDir(project.file('tools/tests/companion-protection'))
+        project.sourceSets.main.java.srcDir(project.file('tools/tests/grab-qte'))
+        def classes = project.file('.codex-tmp/companion-protection-build/classes/java/main')
+        project.sourceSets.main.java.destinationDirectory.set(classes)
+        project.sourceSets.main.output.classesDirs = project.files(classes)
+        project.tasks.named('compileJava').configure { destinationDirectory.set(classes) }
+        project.minecraft.runs.server.workingDirectory project.file('.codex-tmp/companion-protection-server')
+        project.minecraft.runs.server.property 'forge.logging.console.level', 'info'
+        project.minecraft.runs.server.property 'mixin.debug.export', 'true'
+    }
+}

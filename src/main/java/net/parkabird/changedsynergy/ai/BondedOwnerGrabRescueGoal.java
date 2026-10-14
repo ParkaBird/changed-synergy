@@ -10,10 +10,8 @@ import net.ltxprogrammer.changed.entity.Emote;
 import net.ltxprogrammer.changed.init.ChangedAbilities;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket.GrabType;
-import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
@@ -55,20 +53,13 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
 
         grabberEntity = context.grabber();
         grabAbility = context.ability();
-        boolean forcedRevertedRescue = !ProcessTransfur.isPlayerTransfurred(owner);
-        if (!forcedRevertedRescue
-                && !BondedOwnerDefenseGoal.allowsConfiguredDefense(
+        if (!BondedOwnerDefenseGoal.allowsConfiguredDefense(
                         pet, owner, grabberEntity)) {
             clearState();
             return false;
         }
-        if (forcedRevertedRescue) {
-            LatexSocialMemory.authorizeForcedPetDefense(
-                    pet, grabberEntity, OWNER_DEFENSE_TICKS);
-        } else {
-            LatexSocialMemory.authorizePetDefense(
-                    pet, grabberEntity, OWNER_DEFENSE_TICKS);
-        }
+        LatexSocialMemory.authorizePetDefense(
+                pet, grabberEntity, OWNER_DEFENSE_TICKS);
         return true;
     }
 
@@ -79,8 +70,7 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
                 || !canDefendAgainst(pet, owner, grabberEntity)) {
             return false;
         }
-        if (ProcessTransfur.isPlayerTransfurred(owner)
-                && !BondedOwnerDefenseGoal.allowsConfiguredDefense(
+        if (!BondedOwnerDefenseGoal.allowsConfiguredDefense(
                         pet, owner, grabberEntity)) {
             return false;
         }
@@ -98,7 +88,7 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
 
     @Override
     public void tick() {
-        if (owner == null || grabberEntity == null || grabAbility == null) {
+        if (!canContinueToUse()) {
             return;
         }
 
@@ -114,17 +104,7 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
         }
 
         followNavigation.tickProgress(true);
-        if (followNavigation.isStalled()
-                && pet.level() instanceof ServerLevel level) {
-            boolean recovered = BondedTeleportSafety.teleportNearOwner(
-                    level, pet, owner);
-            followNavigation.resetProgress();
-            if (recovered) {
-                return;
-            }
-        }
-
-        if (--repathTicks <= 0 || pet.getNavigation().isDone()) {
+        if (--repathTicks <= 0) {
             repathTicks = 5;
             followNavigation.moveToward(grabberEntity, RESCUE_SPEED);
         }
@@ -134,9 +114,12 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
     public void stop() {
         pet.getNavigation().stop();
         followNavigation.reset();
-        if (grabberEntity != null && grabberEntity.isAlive()) {
+        if (canDefendAgainst(pet, owner, grabberEntity)
+                && BondedOwnerDefenseGoal.allowsConfiguredDefense(pet, owner, grabberEntity)) {
             // The rescue ends the hold, not the fight.
             pet.setTarget(grabberEntity);
+        } else if (grabberEntity != null) {
+            LatexSocialMemory.clearRejectedFollowingTarget(pet, grabberEntity);
         }
         clearState();
     }
@@ -175,13 +158,15 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
             ServerPlayer owner,
             LivingEntity attacker) {
         if (pet == null || owner == null || attacker == null
+                || !BondedOwnerDefenseGoal.canProtectOwner(pet, owner)
                 || !pet.isAlive() || !owner.isAlive() || !attacker.isAlive()
                 || attacker == owner || attacker == pet
                 || pet.level() != attacker.level()) {
             return false;
         }
         if (attacker instanceof Player player
-                && (player.isCreative() || player.isSpectator())) {
+                && (player.isCreative() || player.isSpectator()
+                        || !owner.canHarmPlayer(player))) {
             return false;
         }
         if (attacker instanceof ChangedEntity other
@@ -207,10 +192,25 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
                 .getAbilityInstanceSafe(ChangedAbilities.GRAB_ENTITY_ABILITY.get())
                 .orElse(null);
         if (currentGrabber == null || ability == null
-                || ability.grabbedEntity != player || ability.suited) {
+                || ability.grabbedEntity != player || ability.suited
+                || isFriendlyGrab(player, currentGrabber, ability)) {
             return null;
         }
         return new GrabContext(currentGrabber, ability);
+    }
+
+    /** A player's transport hold is not an attack; scripted safe holds stay safe. */
+    public static boolean isFriendlyGrab(ServerPlayer player, LivingEntity grabber,
+            GrabEntityAbilityInstance ability) {
+        if (ChangedAddonCompat.isSafeGrab(ability)) return true;
+        boolean attacking = ability.attackDown || player.getLastHurtByMob() == grabber
+                && player.tickCount - player.getLastHurtByMobTimestamp() < 100;
+        if (grabber instanceof ChangedEntity changed) {
+            return LatexSocialMemory.isFriendlyArmHoldTarget(changed, player)
+                    || !attacking && !LatexSocialMemory.isProvoked(changed, player)
+                            && CreaturePersonality.hasTrustedRelationship(changed, player);
+        }
+        return grabber instanceof Player && !attacking;
     }
 
     private void releaseOwner() {

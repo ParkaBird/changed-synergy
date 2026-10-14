@@ -228,6 +228,20 @@ public final class ExoskeletonTakeoverAdapter {
      * creating a second live robot.
      */
     public static Motion tick(ServerPlayer player, State state, UUID sessionId) {
+        Vec3 before=player.position();
+        Motion result=tickMovement(player,state);
+        if(result==Motion.NEEDS_RECOVERY)return result;
+        Vec3 actual=player.position().subtract(before);
+        player.setDeltaMovement(actual);
+        // Also publish stationary frames. Otherwise clients keep predicting the
+        // last walking frame during node changes or a parked controller.
+        ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(()->player),
+                new ExoskeletonMotionPacket(sessionId,player.getX(),player.getY(),player.getZ(),
+                        actual.x,actual.y,actual.z,player.getYRot()));
+        return actual.lengthSqr()>1.0E-8?Motion.MOVED:Motion.PARKED;
+    }
+
+    private static Motion tickMovement(ServerPlayer player, State state) {
         requireThread(player);
         if (!owns(player, state) || state.data.getBoolean("Released") || !matches(worn(player), state)
                 || !player.isAlive() || !isBenign(player))
@@ -242,15 +256,18 @@ public final class ExoskeletonTakeoverAdapter {
             }
             return Motion.PARKED;
         }
-        if (!player.onGround() && !hasFooting(player.getBoundingBox(), player)) {
-            player.setDeltaMovement(0.0D,
-                    Math.min(0.0D, player.getDeltaMovement().y), 0.0D);
-            return Motion.PARKED;
-        }
         if (!hazardFreeBox(player, player.getBoundingBox())) {
             player.setDeltaMovement(Vec3.ZERO);
             return Motion.PARKED;
         }
+        // ServerPlayer normally receives its vertical movement from client
+        // packets, which are locked here. Apply gravity through vanilla collision
+        // handling even during pauses; storing the velocity avoids network-tick resets.
+        player.noPhysics=false;
+        double vertical=player.isNoGravity()?0:state.data.getDouble("ControlVerticalSpeed")
+                -player.getAttributeValue(net.minecraftforge.common.ForgeMod.ENTITY_GRAVITY.get());
+        player.move(MoverType.SELF,new Vec3(0,Math.max(-3.92D,vertical),0));
+        state.data.putDouble("ControlVerticalSpeed",player.verticalCollision?0:vertical*0.98D);
         long now = player.serverLevel().getGameTime();
         ListTag path = state.data.getList("ControlPath", Tag.TAG_COMPOUND);
         int index = Mth.clamp(state.data.getInt("ControlPathIndex"), 0, path.size());
@@ -269,6 +286,14 @@ public final class ExoskeletonTakeoverAdapter {
                 return Motion.PARKED;
             }
         }
+        // Consume reached nodes without surrendering a movement tick at each one.
+        while(index<path.size()) {
+            Vec3 point=pathPoint(path.getCompound(index));
+            Vec3 difference=point.subtract(player.position());
+            if(!finite(point)||difference.horizontalDistanceSqr()>=0.2D||Math.abs(difference.y)>=0.6D)break;
+            state.data.putInt("ControlPathIndex",++index);
+        }
+        if(index>=path.size())return Motion.PARKED;
         Vec3 target = pathPoint(path.getCompound(index));
         if (!finite(target)) {
             clearControlPath(state, now);
@@ -289,28 +314,29 @@ public final class ExoskeletonTakeoverAdapter {
             state.data.putLong("LastProgressTick", now);
         }
         Vec3 delta = target.subtract(player.position());
-        if (delta.horizontalDistanceSqr() < 0.2D && Math.abs(delta.y) < 1.25D) {
-            state.data.putInt("ControlPathIndex", index + 1);
-            player.setDeltaMovement(0.0D,
-                    Math.min(0.0D, player.getDeltaMovement().y), 0.0D);
-            return Motion.PARKED;
-        }
         if (now - state.data.getLong("LastProgressTick") > 24L) {
             clearControlPath(state, now);
             return Motion.PARKED;
         }
         Vec3 requested = new Vec3(delta.x, 0.0D, delta.z).normalize().scale(0.105D);
-        if (!hazardFreeBox(player, player.getBoundingBox().move(requested))) {
+        if (!environmentSafeBox(player, player.getBoundingBox().move(requested))) {
             player.setDeltaMovement(Vec3.ZERO);
             clearControlPath(state, now);
             return Motion.PARKED;
+        }
+        double jump=0;
+        if(player.onGround()&&delta.y>0.5D&&delta.y<=1.125D) {
+            try { NativeJump.METHOD.invoke(player); }
+            catch(ReflectiveOperationException failure) {throw new IllegalStateException("Cannot apply native exoskeleton jump",failure);}
+            jump=player.getDeltaMovement().y;
+            state.data.putDouble("ControlVerticalSpeed",jump);
         }
         // ServerPlayer locomotion is normally driven by client movement packets,
         // which takeover deliberately rejects. Move authoritatively here through
         // vanilla collision handling, then send a render frame to the owning client.
         player.setDeltaMovement(requested.x,
                 Math.min(0.0D, player.getDeltaMovement().y), requested.z);
-        player.move(MoverType.SELF, requested);
+        player.move(MoverType.SELF, requested.add(0,jump,0));
         float desiredYaw = (float)(Math.atan2(requested.z, requested.x)
                 * 180.0D / Math.PI) - 90.0F;
         float yaw = Mth.rotLerp(0.35F, player.getYRot(), desiredYaw);
@@ -318,10 +344,12 @@ public final class ExoskeletonTakeoverAdapter {
         player.setYBodyRot(yaw);
         player.setYHeadRot(yaw);
         player.setXRot(Mth.rotLerp(0.3F, player.getXRot(), 0.0F));
-        ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                new ExoskeletonMotionPacket(sessionId, player.getX(), player.getY(),
-                        player.getZ(), requested.x, 0.0D, requested.z, yaw));
         return Motion.MOVED;
+    }
+
+    private static final class NativeJump {
+        private static final java.lang.reflect.Method METHOD=net.minecraftforge.fml.util.ObfuscationReflectionHelper.findMethod(
+                net.minecraft.world.entity.LivingEntity.class,"m_6135_");
     }
 
     private static ListTag selectNativePath(ServerPlayer player, State state) {
@@ -632,15 +660,4 @@ public final class ExoskeletonTakeoverAdapter {
         return true;
     }
 
-    private static boolean hasFooting(AABB box, ServerPlayer player) {
-        var level = player.serverLevel();
-        for (double x : new double[]{box.minX + 0.05D, box.maxX - 0.05D}) {
-            for (double z : new double[]{box.minZ + 0.05D, box.maxZ - 0.05D}) {
-                BlockPos below = BlockPos.containing(x, box.minY - 0.08D, z);
-                if (level.hasChunkAt(below)
-                        && !level.getBlockState(below).getCollisionShape(level, below).isEmpty()) return true;
-            }
-        }
-        return false;
-    }
 }

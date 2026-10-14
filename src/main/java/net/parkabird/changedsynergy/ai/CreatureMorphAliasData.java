@@ -14,12 +14,15 @@ public final class CreatureMorphAliasData extends SavedData {
     private static final String DATA_NAME = "changed_synergy_creature_morph_aliases";
     private static final String ALIASES = "Aliases";
     private final Map<UUID, UUID> aliases = new LinkedHashMap<>();
+    private MinecraftServer server;
 
     public static CreatureMorphAliasData get(MinecraftServer server) {
-        return server.overworld().getDataStorage().computeIfAbsent(
+        CreatureMorphAliasData data = server.overworld().getDataStorage().computeIfAbsent(
                 CreatureMorphAliasData::load,
                 CreatureMorphAliasData::new,
                 DATA_NAME);
+        data.server = server;
+        return data;
     }
 
     private static CreatureMorphAliasData load(CompoundTag tag) {
@@ -48,6 +51,7 @@ public final class CreatureMorphAliasData extends SavedData {
             return;
         }
         UUID resolved = resolve(replacementId);
+        if (server != null) BondTokenData.get(server).replace(previousId, resolved);
         aliases.replaceAll((ignored, current) ->
                 current.equals(previousId) ? resolved : current);
         aliases.put(previousId, resolved);

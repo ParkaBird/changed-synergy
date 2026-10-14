@@ -1,6 +1,7 @@
 package net.parkabird.changedsynergy.world.inventory;
 
 import javax.annotation.Nullable;
+import java.util.UUID;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.world.inventory.UpdateableMenu;
 import net.minecraft.nbt.CompoundTag;
@@ -13,6 +14,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -47,6 +49,9 @@ import net.parkabird.changedsynergy.ai.ProvisionerTradeService;
 import net.parkabird.changedsynergy.ai.SocialAudienceGoal;
 import net.parkabird.changedsynergy.ai.SharedRestGoal;
 import net.parkabird.changedsynergy.ai.VoluntaryBondTransfurService;
+import net.parkabird.changedsynergy.ai.NativeBondInvitationService;
+import net.parkabird.changedsynergy.ai.BondTokenService;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
@@ -74,6 +79,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
     private final boolean negotiationAvailable;
     private final boolean trustedRelationship;
     private final boolean voluntaryBondAvailable;
+    private final boolean nativeBondAvailable;
     private final boolean foodBribeAvailable;
     private final boolean felineFoodBribe;
     private final boolean provisionerTradeAvailable;
@@ -83,6 +89,37 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
     private final Component negotiationSpeakerName;
     private final CompoundTag negotiationAppearance;
     private boolean audienceReleased;
+    @Nullable private UUID socialPlayerId;
+    @Nullable private LivingEntity socialPlayerBody;
+    private Component socialPlayerName = Component.empty();
+    private String socialPlayerAccount = "";
+    private boolean instinctPlayer;
+    private CompoundTag progression = new CompoundTag();
+    private long openedAt;
+
+    public SocialInteractionMenu(int id, Inventory inventory, ServerPlayer recipient, LivingEntity body) {
+        this(id, inventory, false);
+        this.socialPlayerId = recipient.getUUID();
+        this.socialPlayerBody = body;
+        this.socialPlayerName = recipient.getDisplayName();
+        this.socialPlayerAccount = recipient.getGameProfile().getName();
+        this.instinctPlayer = body instanceof ChangedEntity
+                && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody((ChangedEntity)body);
+        this.following = net.parkabird.changedsynergy.ai.PlayerSocialService.isFollowing(recipient.getUUID(), player.getUUID());
+        this.progression = playerProgression((ServerPlayer)inventory.player,recipient);
+    }
+
+    public boolean isPlayerMode() { return socialPlayerId != null; }
+    private static CompoundTag playerProgression(ServerPlayer viewer,ServerPlayer recipient) {
+        CompoundTag state=new CompoundTag();state.putBoolean("PlayerEligible",net.parkabird.changedsynergy.ai.PlayerFriendshipData.eligible(viewer,recipient));
+        state.putBoolean("PlayerFriends",net.parkabird.changedsynergy.ai.PlayerFriendshipData.friends(viewer,recipient));
+        var pair=net.parkabird.changedsynergy.ai.PlayerFriendshipData.get(viewer.server).find(viewer.getUUID(),recipient.getUUID());
+        state.putInt("PlayerFamiliarity",pair==null?0:pair.familiarity);return state;
+    }
+    @Nullable public LivingEntity getSocialPlayerBody() { return socialPlayerBody; }
+    public Component getSocialPlayerName() { return socialPlayerName; }
+    public String getSocialPlayerAccount() { return socialPlayerAccount; }
+    public boolean isInstinctPlayer() { return instinctPlayer; }
 
     public SocialInteractionMenu(
             int id,
@@ -108,6 +145,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         super(ChangedSynergyMenus.SOCIAL_INTERACTION.get(), id);
         this.player = inventory.player;
         this.creature = creature;
+        if (inventory.player instanceof ServerPlayer server) this.progression = progression(creature, server);
         ServerPlayer serverPlayer = inventory.player instanceof ServerPlayer server
                 ? server : null;
         this.following = serverPlayer != null
@@ -141,6 +179,8 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
                 && !negotiation
                 && VoluntaryBondTransfurService.canOffer(
                         creature, serverPlayer);
+        this.nativeBondAvailable = serverPlayer != null && !bonded && !negotiation
+                && NativeBondInvitationService.canOffer(creature, serverPlayer);
         this.foodBribeAvailable = serverPlayer != null
                 && negotiation
                 && InvoluntaryTransfurNegotiation.canOfferFoodBribe(
@@ -177,7 +217,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         this.humanIntent = HumanIntent.GREET;
         this.organic = false;
         this.bonded = false;
-        this.negotiation = true;
+        this.negotiation = virtualAbsorptionNegotiation;
         this.virtualAbsorptionNegotiation = virtualAbsorptionNegotiation;
         this.negotiationView = serverPlayer == null
                 ? null
@@ -186,6 +226,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         this.negotiationAvailable = false;
         this.trustedRelationship = false;
         this.voluntaryBondAvailable = false;
+        this.nativeBondAvailable = false;
         this.foodBribeAvailable = serverPlayer != null
                 && InvoluntaryTransfurNegotiation.canOfferFoodBribe(
                         serverPlayer, null);
@@ -230,6 +271,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         this.negotiationAvailable = extraData.readBoolean();
         this.trustedRelationship = extraData.readBoolean();
         this.voluntaryBondAvailable = extraData.readBoolean();
+        this.nativeBondAvailable = extraData.readBoolean();
         this.foodBribeAvailable = extraData.readBoolean();
         this.felineFoodBribe = extraData.readBoolean();
         this.provisionerTradeAvailable = extraData.readBoolean();
@@ -246,6 +288,40 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
                     : creature.getDisplayName();
             this.negotiationAppearance = new CompoundTag();
         }
+        if (extraData.readBoolean()) {
+            this.socialPlayerId = extraData.readUUID();
+            this.socialPlayerName = extraData.readComponent();
+            this.socialPlayerAccount = extraData.readUtf(16);
+            Entity body = inventory.player.level().getEntity(extraData.readVarInt());
+            UUID bodyId = extraData.readUUID();
+            this.socialPlayerBody = body instanceof LivingEntity living && body.getUUID().equals(bodyId) ? living : null;
+            this.instinctPlayer = extraData.readBoolean();
+        }
+        CompoundTag growth = extraData.readNbt();
+        this.progression = growth == null ? new CompoundTag() : growth;
+        this.openedAt = inventory.player.level().getGameTime();
+    }
+
+    public CompoundTag getProgression() { return progression; }
+
+    public long giftWaitSeconds() {
+        return Math.max(0, progression.getLong("GiftWait") - (player.level().getGameTime() - openedAt) + 19) / 20;
+    }
+
+    private static CompoundTag progression(ChangedEntity creature, ServerPlayer player) {
+        CompoundTag data = new CompoundTag();
+        data.putBoolean("Balanced", CreaturePersonality.balanced());
+        data.putBoolean("BasicWheel", RelationshipFavorService.canOpenBasicWheel(creature, player));
+        data.putInt("StrangerLimit", ChangedSynergyConfig.COMMON.strangerAffectionLimit.get());
+        data.putInt("Allowance", CreaturePersonality.careAllowance(creature, player));
+        data.putLong("GiftWait", CreaturePersonality.giftCooldownRemaining(creature, player));
+        data.putBoolean("TokenRequired", ChangedSynergyConfig.COMMON.bondTokensRequired.get());
+        data.put("Token", BondTokenService.required(creature).save(new CompoundTag()));
+        data.putBoolean("TokenReserved", BondTokenService.reservedFor(creature, player));
+        data.putBoolean("ReservedElsewhere", BondTokenService.reservedElsewhere(creature, player));
+        data.putBoolean("Recognized", CreaturePersonality.recognizesBond(creature, player));
+        data.putBoolean("CanFriendlyTransfur", VoluntaryBondTransfurService.canOfferFriendly(creature, player));
+        return data;
     }
 
     @Nullable
@@ -299,6 +375,10 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
 
     public boolean isVoluntaryBondAvailable() {
         return voluntaryBondAvailable;
+    }
+
+    public boolean isNativeBondAvailable() {
+        return nativeBondAvailable;
     }
 
     public boolean isFoodBribeAvailable() {
@@ -447,7 +527,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
     }
 
     public boolean canFriendFollow() {
-        return bonded || tier == RelationshipTier.FAMILIAR
+        return isPlayerMode() || bonded || tier == RelationshipTier.FAMILIAR
                 || tier == RelationshipTier.CLOSE;
     }
 
@@ -466,6 +546,14 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
 
     @Override
     public boolean stillValid(Player viewer) {
+        if (viewer instanceof ServerPlayer server && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isRebirthing(server)) return false;
+        if (isPlayerMode()) {
+            if (socialPlayerBody == null || !socialPlayerBody.isAlive() || socialPlayerBody.isRemoved()
+                    || viewer.distanceToSqr(socialPlayerBody) > 64.0D) return false;
+            if (!(viewer instanceof ServerPlayer server)) return true;
+            ServerPlayer recipient = server.server.getPlayerList().getPlayer(socialPlayerId);
+            return recipient != null && net.parkabird.changedsynergy.ai.PlayerSocialService.canInteract(server, recipient, socialPlayerBody);
+        }
         if (virtualAbsorptionNegotiation) {
             return !(viewer instanceof ServerPlayer serverPlayer)
                     || InvoluntaryTransfurNegotiation
@@ -499,14 +587,21 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
             LogicalSide receiver,
             @Nullable ServerPlayer origin) {
         String command = payload.getString("command");
+        if (receiver == LogicalSide.SERVER && origin != null && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isRebirthing(origin)) return;
         if (receiver == LogicalSide.CLIENT) {
             if ("negotiation_state".equals(command)) {
                 negotiationView = readNegotiationView(payload);
             }
             return;
         }
-        if (origin == null
+        if (isPlayerMode()) {
+            if (origin == player && socialPlayerBody != null && stillValid(origin))
+                net.parkabird.changedsynergy.ai.PlayerSocialService.act(origin, socialPlayerId, socialPlayerBody, command);
+            return;
+        }
+        if (origin != player
                 || (!virtualAbsorptionNegotiation && creature == null)
+                || !stillValid(origin)
                 || !(virtualAbsorptionNegotiation
                         ? InvoluntaryTransfurNegotiation
                                 .canNegotiateAbsorption(origin)
@@ -532,6 +627,19 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         if (!negotiation && !bonded
                 && "social_voluntary_transfur".equals(command)) {
             VoluntaryBondTransfurService.select(creature, origin);
+            return;
+        }
+        if (!negotiation && !bonded && "social_friendly_transfur".equals(command)) {
+            VoluntaryBondTransfurService.select(creature, origin, true);
+            return;
+        }
+        if (!negotiation && "social_withdraw_token".equals(command)) {
+            BondTokenService.withdraw(origin, creature.getUUID());
+            origin.closeContainer();
+            return;
+        }
+        if (!negotiation && !bonded && "social_native_bond".equals(command)) {
+            NativeBondInvitationService.select(creature, origin);
             return;
         }
         if (!negotiation && "social_negotiation".equals(command)) {
@@ -584,6 +692,18 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
                             "message.changed_synergy.social.no_gift"));
                     return;
                 }
+                if (result == Result.COOLDOWN) {
+                    BondTokenService.message(origin, "gift_cooldown", Math.max(1, (CreaturePersonality.giftCooldownRemaining(creature, origin) + 19) / 20));
+                    return;
+                }
+                if (result == Result.NEEDS_FAMILIARITY) {
+                    BondTokenService.message(origin, "first_gift_requires_care", ChangedSynergyConfig.COMMON.strangerAffectionLimit.get());
+                    return;
+                }
+                if (result == Result.TOKEN_ACCEPTED) {
+                    origin.swing(InteractionHand.MAIN_HAND, true);
+                    return;
+                }
                 if (result == Result.UNSUITABLE) {
                     NpcDialogue.trigger(
                             creature, origin, Cue.SOCIAL_GIFT_UNSUITABLE);
@@ -609,7 +729,9 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
                 NpcDialogue.trigger(
                         creature,
                         origin,
-                        result == Result.DIET_EXISTING
+                        result == Result.ESTABLISHED || result == Result.DIET_ESTABLISHED
+                                ? result == Result.DIET_ESTABLISHED ? Cue.RELATIONSHIP_DIET_ESTABLISHED : Cue.RELATIONSHIP_ESTABLISHED
+                                : result == Result.DIET_EXISTING
                                 ? Cue.SOCIAL_DIET_GIFT
                                 : Cue.SOCIAL_GIFT);
             }
@@ -684,9 +806,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         }
         boolean relationship = bonded
                 ? LatexSocialMemory.isPetOwner(creature, player)
-                : CreaturePersonality.hasTrustedRelationship(creature, player)
-                        && !LatexSocialMemory.isProvoked(creature, player)
-                        && !LatexSocialMemory.hasBetrayedPatTruce(creature, player);
+                : RelationshipFavorService.canOpenBasicWheel(creature, player);
         return CreatureSocialProfile.allowsSocialWheel(creature)
                 && relationship;
     }
@@ -756,6 +876,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
     }
 
     private void playTogether(ServerPlayer origin) {
+        if (!bonded && !CreaturePersonality.hasTrustedRelationship(creature, origin)) return;
         long remaining = CreaturePersonality.playCooldownRemaining(
                 creature,
                 origin,
@@ -778,7 +899,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
             return;
         }
 
-        CreaturePersonality.rememberPlayedTogether(creature, origin);
+        int playGain = CreaturePersonality.rememberPlayedTogether(creature, origin);
         LatexSocialEvents.calmTowards(creature, origin);
         creature.getNavigation().stop();
         creature.getLookControl().setLookAt(origin, 30.0F, 30.0F);
@@ -789,9 +910,10 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
             return;
         }
 
-        Trait trait = CreaturePersonality.dominantTrait(creature);
+        Trait trait = CreaturePersonality.has(creature, Trait.PLAYFUL) ? Trait.PLAYFUL
+                : CreaturePersonality.has(creature, Trait.POLITE) ? Trait.POLITE : CreaturePersonality.dominantTrait(creature);
         if (tryFriendlyHug(origin, trait)) {
-            if (creature.level() instanceof ServerLevel level) {
+            if (playGain > 0 && creature.level() instanceof ServerLevel level) {
                 level.sendParticles(
                         ParticleTypes.HEART,
                         creature.getX(),
@@ -837,7 +959,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
                 || trait == Trait.SHOW_OFF) {
             creature.getJumpControl().jump();
         }
-        if (creature.level() instanceof ServerLevel level) {
+        if (playGain > 0 && creature.level() instanceof ServerLevel level) {
             level.sendParticles(
                     ParticleTypes.HAPPY_VILLAGER,
                     creature.getX(),
@@ -932,6 +1054,8 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         buffer.writeBoolean(!bonded
                 && !negotiation
                 && VoluntaryBondTransfurService.canOffer(creature, player));
+        buffer.writeBoolean(!bonded && !negotiation
+                && NativeBondInvitationService.canOffer(creature, player));
         buffer.writeBoolean(negotiation
                 && InvoluntaryTransfurNegotiation.canOfferFoodBribe(
                         player, creature));
@@ -941,6 +1065,8 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         buffer.writeBoolean(!negotiation
                 && ProvisionerTradeService.canOpen(creature, player));
         PanelData.of(creature, player).write(buffer);
+        buffer.writeBoolean(false);
+        buffer.writeNbt(progression(creature, player));
     }
 
     /**
@@ -973,6 +1099,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         buffer.writeBoolean(false);
         buffer.writeBoolean(false);
         buffer.writeBoolean(false);
+        buffer.writeBoolean(false);
         buffer.writeBoolean(InvoluntaryTransfurNegotiation
                 .canOfferFoodBribe(player, null));
         buffer.writeBoolean(InvoluntaryTransfurNegotiation
@@ -983,6 +1110,29 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
                 .absorptionSourceName(player));
         buffer.writeNbt(InvoluntaryTransfurNegotiation
                 .absorptionSourceAppearance(player));
+        buffer.writeBoolean(false);
+        buffer.writeNbt(new CompoundTag());
+    }
+
+    public static void writePlayerOpeningData(FriendlyByteBuf buffer, ServerPlayer viewer, ServerPlayer recipient, LivingEntity body) {
+        buffer.writeVarInt(-1);
+        buffer.writeBoolean(net.parkabird.changedsynergy.ai.PlayerSocialService.isFollowing(recipient.getUUID(), viewer.getUUID()));
+        buffer.writeVarInt(0);
+        buffer.writeVarInt(RelationshipTier.STRANGER.ordinal());
+        buffer.writeVarInt(Trait.CURIOUS.ordinal());
+        buffer.writeVarInt(HumanIntent.GREET.ordinal());
+        // NPC organic, bond, negotiation and absorption flags, then seven capabilities.
+        for (int index = 0; index < 11; index++) buffer.writeBoolean(false);
+        PanelData.empty().write(buffer);
+        buffer.writeBoolean(true);
+        buffer.writeUUID(recipient.getUUID());
+        buffer.writeComponent(recipient.getDisplayName());
+        buffer.writeUtf(recipient.getGameProfile().getName(), 16);
+        buffer.writeVarInt(body.getId());
+        buffer.writeUUID(body.getUUID());
+        buffer.writeBoolean(body instanceof ChangedEntity proxy
+                && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(proxy));
+        buffer.writeNbt(playerProgression(viewer,recipient));
     }
 
     private static void writeNegotiationView(

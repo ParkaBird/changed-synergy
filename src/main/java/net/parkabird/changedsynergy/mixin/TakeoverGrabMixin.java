@@ -26,7 +26,32 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * before applying an authoritative client release; active markers never bypass.
  */
 @Mixin(value = GrabEntityAbilityInstance.class, remap = false, priority = 1100)
-public abstract class TakeoverGrabMixin {
+public abstract class TakeoverGrabMixin implements net.parkabird.changedsynergy.ai.GrabAbilityTick {
+    @Unique private int changedSynergy$holdTick = Integer.MIN_VALUE;
+    @Unique private LivingEntity changedSynergy$tickedPassenger;
+
+    @Inject(method="tickIdle()V", at=@At("HEAD"), require=1)
+    private void changedSynergy$markHoldTick(CallbackInfo callback) {
+        var grab=(GrabEntityAbilityInstance)(Object)this;
+        if(grab.entity.getEntity() instanceof ChangedEntity carrier && grab.grabbedEntity instanceof Player player) {
+            if(grab.entity.getLevel().isClientSide()) {
+                if(carrier.getPersistentData().getBoolean("SynergyTakeoverClient"))
+                    grab.grabbedHasControl=carrier.getPersistentData().getBoolean("SynergyTakeoverBorrowed");
+            } else if(TakeoverService.contains(carrier,player)) {
+                // Native tame-owner and Addon updates may flip this bit before
+                // tickIdle. Repair it before position sync can pull the carrier backwards.
+                grab.grabbedHasControl=!TakeoverService.blocksPlayerInput(player);
+            }
+        }
+        changedSynergy$holdTick=grab.entity.getEntity().tickCount;
+        changedSynergy$tickedPassenger=grab.grabbedEntity;
+    }
+
+    @Override public void changedSynergy$tickHoldIfNeeded() {
+        var grab=(GrabEntityAbilityInstance)(Object)this;
+        if(changedSynergy$holdTick!=grab.entity.getEntity().tickCount
+                ||changedSynergy$tickedPassenger!=grab.grabbedEntity)grab.tickIdle();
+    }
     @Unique
     private boolean changedSynergy$takeoverParticipant(LivingEntity participant) {
         if (participant == null) {

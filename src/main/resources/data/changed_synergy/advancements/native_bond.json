@@ -1,0 +1,29 @@
+{
+  "parent": "changed_synergy:native_origin",
+  "display": {
+    "icon": {
+      "item": "minecraft:lead"
+    },
+    "title": {
+      "translate": "advancement.changed_synergy.native_bond.title"
+    },
+    "description": {
+      "translate": "advancement.changed_synergy.native_bond.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "complete": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "true_transfur"
+    }
+  ]
+}

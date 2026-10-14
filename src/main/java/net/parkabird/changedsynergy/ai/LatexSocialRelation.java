@@ -53,6 +53,7 @@ public enum LatexSocialRelation {
 
         TransfurVariantInstance<?> variant = ProcessTransfur.getPlayerTransfurVariant(player);
         if (variant == null) {
+            if (net.parkabird.changedsynergy.origin.NativeOriginService.sameFaction(mob, player)) return SAME_CATEGORY;
             if (LatexSocialMemory.isBonded(mob, player)) {
                 return FORMER_BONDED;
             }
@@ -84,7 +85,8 @@ public enum LatexSocialRelation {
         // Light variants form ecological groups instead of one flat colour
         // faction. A shared natural spawn biome makes them compatriots even if
         // Changed's broad latex-type table would otherwise call them rivals.
-        if (sharesLightSpawnBiome(mob, playerForm)) {
+        if (net.parkabird.changedsynergy.origin.NativeOriginService.sameFaction(mob, player)
+                || sharesLightSpawnBiome(mob, playerForm)) {
             return SAME_CATEGORY;
         }
 
@@ -208,7 +210,7 @@ public enum LatexSocialRelation {
         return firstBiomes.stream().anyMatch(secondBiomes::contains);
     }
 
-    private static Set<ResourceKey<Biome>> naturalSpawnBiomes(
+    public static Set<ResourceKey<Biome>> naturalSpawnBiomes(
             Registry<Biome> biomes,
             EntityType<?> entityType) {
         synchronized (NATURAL_SPAWN_BIOMES) {
@@ -223,17 +225,24 @@ public enum LatexSocialRelation {
             Registry<Biome> biomes,
             EntityType<?> entityType) {
         Set<ResourceKey<Biome>> matches = new HashSet<>();
-        for (Map.Entry<ResourceKey<Biome>, Biome> entry : biomes.entrySet()) {
+        // Optional or removed worldgen entries can leave unbound holders. The
+        // registry entrySet resolves their values before callers can check them.
+        for (ResourceKey<Biome> key : biomes.registryKeySet()) {
+            var holder = biomes.getHolder(key).orElse(null);
+            if (holder == null || !holder.isBound()) {
+                continue;
+            }
+            Biome biome = holder.value();
             boolean present = false;
             for (MobCategory category : MobCategory.values()) {
-                if (entry.getValue().getMobSettings().getMobs(category).unwrap().stream()
+                if (biome.getMobSettings().getMobs(category).unwrap().stream()
                         .anyMatch(spawn -> spawn.type == entityType)) {
                     present = true;
                     break;
                 }
             }
             if (present) {
-                matches.add(entry.getKey());
+                matches.add(key);
             }
         }
         return Set.copyOf(matches);

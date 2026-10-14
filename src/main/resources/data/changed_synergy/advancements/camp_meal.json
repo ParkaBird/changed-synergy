@@ -1,0 +1,23 @@
+{
+  "parent": "changed_synergy:player_camp",
+  "display": {
+    "icon": {
+      "item": "minecraft:mushroom_stew"
+    },
+    "title": {
+      "translate": "advancement.changed_synergy.camp_meal.title"
+    },
+    "description": {
+      "translate": "advancement.changed_synergy.camp_meal.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "complete": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

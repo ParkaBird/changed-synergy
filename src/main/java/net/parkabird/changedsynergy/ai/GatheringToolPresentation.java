@@ -1,9 +1,11 @@
 package net.parkabird.changedsynergy.ai;
 
 import net.ltxprogrammer.changed.entity.ChangedEntity;
+import net.ltxprogrammer.changed.entity.beast.AbstractDarkLatexEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -59,6 +61,29 @@ public final class GatheringToolPresentation {
             persistent.getCompound(ROOT).putLong(
                     LAST_HEARTBEAT, creature.level().getGameTime());
         }
+    }
+
+    /** Native dark-latex hands are inventory slots: the displayed copy must
+     * never become a second tool, or restore an older durability value. */
+    private static boolean hidesSlot(ChangedEntity creature, Container inventory, int slot) {
+        return creature instanceof AbstractDarkLatexEntity dark
+                && inventory == dark.getInventory() && dark.getInventory().selected == slot
+                && creature.getPersistentData().contains(ROOT)
+                && creature.getMainHandItem().hasTag()
+                && creature.getMainHandItem().getTag().getBoolean(TEMPORARY_TOOL);
+    }
+
+    public static ItemStack inventoryItem(ChangedEntity creature, Container inventory, int slot) {
+        return hidesSlot(creature, inventory, slot)
+                ? ItemStack.of(creature.getPersistentData().getCompound(ROOT).getCompound(ORIGINAL))
+                : inventory.getItem(slot);
+    }
+
+    public static void updateInventoryItem(ChangedEntity creature, Container inventory, int slot, ItemStack stack) {
+        if (hidesSlot(creature, inventory, slot))
+            creature.getPersistentData().getCompound(ROOT).put(ORIGINAL, stack.save(new CompoundTag()));
+        else inventory.setItem(slot, stack);
+        inventory.setChanged();
     }
 
     public static void restore(ChangedEntity creature) {

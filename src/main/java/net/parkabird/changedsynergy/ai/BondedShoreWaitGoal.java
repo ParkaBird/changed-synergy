@@ -15,7 +15,7 @@ public final class BondedShoreWaitGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return LatexSocialMemory.isWaitingOnShore(mob)
+        return !PlayerOutpostService.assigned(mob) && LatexSocialMemory.isWaitingOnShore(mob)
                 && mob.getTarget() == null && !mob.isInWater();
     }
 

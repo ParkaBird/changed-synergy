@@ -47,7 +47,7 @@ public final class SocialAudienceGoal extends Goal {
                     mob,
                     new Audience(
                             player.getUUID(),
-                            mob.level().getGameTime() + AUDIENCE_TICKS));
+                            mob.level().getGameTime() + AUDIENCE_TICKS, Emote.CASUAL, true));
             if (newlyStarted) {
                 player.displayClientMessage(
                         Component.translatable(
@@ -60,6 +60,18 @@ public final class SocialAudienceGoal extends Goal {
     public static boolean isActive(ChangedEntity mob) {
         Audience audience = validAudience(mob);
         return audience != null;
+    }
+
+    /** Short, interruptible responses to deliberate group commands share the existing MOVE goal. */
+    public static boolean beginResponse(ChangedEntity mob, ServerPlayer player, Emote emote, long ticks, boolean approach) {
+        if (!hasVisibleBody(mob, player) || mob.level() != player.level() || !mob.isAlive() || mob.isSleeping() || mob.isNoAi()
+                || mob.isPassenger() || mob.isLeashed() || mob.getTarget() != null
+                || ChangedAddonCompat.isGrabberBusy(mob) || HypnosisQteService.getActiveVictim(mob) != null
+                || mob.getPersistentData().hasUUID("ChangedSynergyRestOwner")) return false;
+        AUDIENCES.put(mob, new Audience(player.getUUID(), mob.level().getGameTime() + ticks, emote, approach));
+        mob.getNavigation().stop();
+        NpcDialogue.emoteOnly(mob, emote);
+        return true;
     }
 
     /** Releases only this player's active wheel audience, if one exists. */
@@ -96,7 +108,7 @@ public final class SocialAudienceGoal extends Goal {
                 && player.isAlive()
                 && !TakeoverService.active(player)
                 && !player.isSpectator()
-                && player.level() == mob.level();
+                && player.level() == mob.level() && hasVisibleBody(mob, player);
     }
 
     @Override
@@ -106,6 +118,7 @@ public final class SocialAudienceGoal extends Goal {
                 && !TakeoverService.active(player)
                 && !player.isSpectator()
                 && player.level() == mob.level()
+                && hasVisibleBody(mob, player)
                 && validAudience(mob) != null
                 && mob.getTarget() == null
                 && movementAvailable();
@@ -116,7 +129,8 @@ public final class SocialAudienceGoal extends Goal {
         repathTicks = 0;
         mob.getNavigation().stop();
         followNavigation.reset();
-        NpcDialogue.emoteOnly(mob, Emote.CASUAL);
+        Audience audience = validAudience(mob);
+        if (audience != null) NpcDialogue.emoteOnly(mob, audience.emote());
     }
 
     @Override
@@ -124,24 +138,29 @@ public final class SocialAudienceGoal extends Goal {
         if (player == null) {
             return;
         }
-        mob.getLookControl().setLookAt(player, 30.0F, 30.0F);
-        Vec3 look = player.getLookAngle();
+        var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player);
+        if (body.isRemoved() || body.level() != mob.level()
+                || body == player && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)) return;
+        mob.getLookControl().setLookAt(body, 30.0F, 30.0F);
+        Audience audience = validAudience(mob);
+        if (audience == null || !audience.approach()) return;
+        Vec3 look = body.getLookAngle();
         Vec3 horizontal = new Vec3(look.x, 0.0D, look.z);
         if (horizontal.lengthSqr() < 0.0001D) {
             horizontal = new Vec3(0.0D, 0.0D, 1.0D);
         } else {
             horizontal = horizontal.normalize();
         }
-        Vec3 standAt = player.position().add(horizontal.scale(STAND_DISTANCE));
+        Vec3 standAt = body.position().add(horizontal.scale(STAND_DISTANCE));
         double distanceSqr = mob.distanceToSqr(
                 standAt.x, standAt.y, standAt.z);
         if (distanceSqr <= ARRIVAL_DISTANCE_SQR) {
             mob.getNavigation().stop();
             return;
         }
-        if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
+        if (--repathTicks <= 0) {
             repathTicks = 8;
-            followNavigation.moveTowardPosition(player, standAt, WALK_SPEED);
+            followNavigation.moveTowardPosition(body, standAt, WALK_SPEED);
         }
     }
 
@@ -160,10 +179,17 @@ public final class SocialAudienceGoal extends Goal {
     private boolean movementAvailable() {
         return mob.isAlive()
                 && !mob.isNoAi()
+                && !mob.isSleeping()
                 && !mob.isPassenger()
                 && !mob.isLeashed()
                 && !ChangedAddonCompat.isGrabberBusy(mob)
                 && HypnosisQteService.getActiveVictim(mob) == null;
+    }
+
+    private static boolean hasVisibleBody(ChangedEntity mob, ServerPlayer player) {
+        var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player);
+        return body.isAlive() && !body.isRemoved() && body.level() == mob.level()
+                && !(body == player && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player));
     }
 
     private static Audience validAudience(ChangedEntity mob) {
@@ -173,6 +199,7 @@ public final class SocialAudienceGoal extends Goal {
         }
         if (!mob.isAlive()
                 || mob.isRemoved()
+                || mob.isSleeping() || mob.getTarget() != null
                 || audience.untilTick() <= mob.level().getGameTime()) {
             AUDIENCES.remove(mob);
             return null;
@@ -180,6 +207,6 @@ public final class SocialAudienceGoal extends Goal {
         return audience;
     }
 
-    private record Audience(UUID playerUuid, long untilTick) {
+    private record Audience(UUID playerUuid, long untilTick, Emote emote, boolean approach) {
     }
 }

@@ -14,6 +14,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.HunterFaction;
+import net.parkabird.changedsynergy.ai.PureWhiteWolfAdaptation;
 import net.parkabird.changedsynergy.network.TerritorySyncPacket;
 import net.parkabird.changedsynergy.util.PureWhiteVision;
 
@@ -53,7 +54,8 @@ public final class PureWhiteVisionClientState {
 
         var variant = ProcessTransfur.getPlayerTransfurVariantSafe(player);
         boolean formActive = variant.map(PureWhiteVision::isPureWhiteForm)
-                .orElse(false);
+                .orElse(false)
+                && !PureWhiteWolfAdaptation.isAdaptedPlayer(player);
         long now = player.level().getGameTime();
         float strengthTarget = formActive ? 1.0F : 0.0F;
         effectStrength += (strengthTarget - effectStrength) * 0.12F;

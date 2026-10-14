@@ -1,0 +1,14 @@
+// Private production client assertions; not included by normal release builds.
+gradle.beforeProject { project ->
+    project.layout.buildDirectory.set(project.file('.codex-tmp/truetransfur-camera-build'))
+    project.afterEvaluate {
+        project.sourceSets.main.java.srcDir(project.file('tools/tests/truetransfur-camera'))
+        def classes = project.file('.codex-tmp/truetransfur-camera-build/classes/java/main')
+        project.sourceSets.main.java.destinationDirectory.set(classes)
+        project.sourceSets.main.output.classesDirs = project.files(classes)
+        project.tasks.named('compileJava').configure {
+            destinationDirectory.set(classes)
+            source project.file('tools/tests/player-visual-mechanics/net/parkabird/changedsynergy/regression/TakeoverGuiClientRegression.java')
+        }
+    }
+}

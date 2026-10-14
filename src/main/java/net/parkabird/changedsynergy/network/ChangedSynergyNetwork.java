@@ -8,7 +8,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class ChangedSynergyNetwork {
-    private static final String PROTOCOL = "38";
+    private static final String PROTOCOL = "48";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(ChangedSynergyMod.MOD_ID, "network"),
             () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
@@ -22,6 +22,20 @@ public final class ChangedSynergyNetwork {
             return;
         }
         registered = true;
+        CHANNEL.registerMessage(34, NativeRoleplayStatePacket.class, NativeRoleplayStatePacket::encode,
+                NativeRoleplayStatePacket::decode, NativeRoleplayStatePacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(33, ServerConfigSnapshotPacket.class, ServerConfigSnapshotPacket::encode,
+                ServerConfigSnapshotPacket::decode, ServerConfigSnapshotPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(32, PlayerBodyPacket.class, PlayerBodyPacket::encode,
+                PlayerBodyPacket::decode, PlayerBodyPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(31, HypnosisTapPacket.class, HypnosisTapPacket::encode,
+                HypnosisTapPacket::decode, HypnosisTapPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(30, NativeOriginPolicyPacket.class, NativeOriginPolicyPacket::encode,
+                NativeOriginPolicyPacket::decode, NativeOriginPolicyPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(28, NativeOriginStatePacket.class, NativeOriginStatePacket::encode,
+                NativeOriginStatePacket::decode, NativeOriginStatePacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(29, NativeOriginChoosePacket.class, NativeOriginChoosePacket::encode,
+                NativeOriginChoosePacket::decode, NativeOriginChoosePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(
                 0,
                 TransfurVisualPacket.class,

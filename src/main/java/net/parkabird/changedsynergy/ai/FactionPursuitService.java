@@ -69,10 +69,15 @@ public final class FactionPursuitService {
 
     private static boolean available(ServerPlayer player) {
         return ChangedSynergyConfig.COMMON.factionPursuit.get() && player.isAlive()
+                && net.parkabird.changedsynergy.init.ChangedSynergyGameRules.enabled(player.level(),
+                        net.parkabird.changedsynergy.init.ChangedSynergyGameRules.FACTION_REPUTATION)
+                && !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
                 && (!ChangedSynergyConfig.COMMON.factionPursuitOverworldOnly.get()
                         || player.level().dimension() == Level.OVERWORLD)
                 && !player.isCreative() && !player.isSpectator() && !player.isSleeping()
-                && !player.isPassenger() && !player.isChangingDimension()
+                && (!player.isPassenger()
+                        || net.parkabird.changedsynergy.compat.FirearmCompat.ridingSuperbVehicle(player) != null)
+                && !player.isChangingDimension()
                 && player.level().getDifficulty() != Difficulty.PEACEFUL
                 && player.level().getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING);
     }

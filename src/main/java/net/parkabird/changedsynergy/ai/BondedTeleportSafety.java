@@ -46,6 +46,14 @@ public final class BondedTeleportSafety {
             ServerLevel level,
             ChangedEntity creature,
             ServerPlayer owner) {
+        LivingEntity body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(owner);
+        if (!body.isAlive() || body.isRemoved() || body.level() != level
+                || body == owner && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(owner))
+            return Optional.empty();
+        return findSafeLanding(level, creature, body);
+    }
+
+    private static Optional<Vec3> findSafeLanding(ServerLevel level, ChangedEntity creature, LivingEntity owner) {
         int ownerY = owner.blockPosition().getY();
         int entityBlocksHigh = Math.max(1, (int)Math.ceil(creature.getBbHeight()));
         int minimumY = level.getMinBuildHeight() + 1;
@@ -127,7 +135,7 @@ public final class BondedTeleportSafety {
                                 : step % 2 == 1 ? -magnitude : magnitude;
                         int y = origin.getY() + dy;
                         BlockPos stand = new BlockPos(x, y, z);
-                        if (!level.getFluidState(stand).isEmpty()) {
+                        if (!level.hasChunkAt(stand) || !level.getFluidState(stand).isEmpty()) {
                             continue;
                         }
                         Optional<Vec3> land = validate(
@@ -138,6 +146,7 @@ public final class BondedTeleportSafety {
                         }
                         for (Direction direction : Direction.Plane.HORIZONTAL) {
                             BlockPos beside = stand.relative(direction);
+                            if (!level.hasChunkAt(beside)) continue;
                             for (int drop = 0; drop <= 1; drop++) {
                                 BlockPos water = beside.below(drop);
                                 if (!level.getFluidState(water)
@@ -285,7 +294,7 @@ public final class BondedTeleportSafety {
     private static Optional<Vec3> findInColumn(
             ServerLevel level,
             ChangedEntity creature,
-            ServerPlayer owner,
+            LivingEntity owner,
             int x,
             int z,
             int ownerY,

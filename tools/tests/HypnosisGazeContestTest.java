@@ -46,6 +46,17 @@ public final class HypnosisGazeContestTest {
         check(HypnosisGazeContest.pullStrength(0.0F, 0.0F) > 0.0D,
                 "camera pull never disappears while looking away");
 
+        check(HypnosisGazeContest.playerTap(0.5F, true) > 0.5F,
+                "player hypnotist raises shared control");
+        check(HypnosisGazeContest.playerTap(0.5F, false) < 0.5F,
+                "human lowers the same control value");
+        check(HypnosisGazeContest.playerTap(1.0F, true) == 1.0F
+                        && HypnosisGazeContest.playerTap(0.0F, false) == 0.0F,
+                "shared player control remains bounded");
+        check(!HypnosisGazeContest.playerControlWins(0.5F)
+                        && HypnosisGazeContest.playerControlWins(0.51F),
+                "equal or unanswered player contests favour escape");
+
         System.out.println("HypnosisGazeContestTest: " + checks + " checks passed");
     }
 }

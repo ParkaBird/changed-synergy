@@ -12,14 +12,55 @@ public final class ChangedSynergyConfig {
 
     public static final Common COMMON;
     public static final ForgeConfigSpec SPEC;
+    private static final java.util.Map<String, ForgeConfigSpec.ConfigValue<?>> OPTIONS;
 
     static {
         Pair<Common, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(Common::new);
         COMMON = pair.getLeft();
         SPEC = pair.getRight();
+        var options = new java.util.TreeMap<String, ForgeConfigSpec.ConfigValue<?>>();
+        collectOptions(SPEC.getValues(), options);
+        OPTIONS = java.util.Collections.unmodifiableMap(options);
     }
 
     private ChangedSynergyConfig() {
+    }
+
+    /** Public server settings; migration bookkeeping is deliberately excluded. */
+    public static java.util.Map<String, ForgeConfigSpec.ConfigValue<?>> options() { return OPTIONS; }
+
+    private static void collectOptions(com.electronwill.nightconfig.core.UnmodifiableConfig node,
+            java.util.Map<String, ForgeConfigSpec.ConfigValue<?>> result) {
+        for (Object child : node.valueMap().values()) {
+            if (child instanceof com.electronwill.nightconfig.core.UnmodifiableConfig nested) collectOptions(nested, result);
+            else if (child instanceof ForgeConfigSpec.ConfigValue<?> value && value != COMMON.behaviourConfigRevision)
+                result.put(String.join(".", value.getPath()), value);
+        }
+    }
+
+    /** Check list syntax without requiring optional mods to be loaded. */
+    public static boolean validBondTokens(Object value) {
+        if (!(value instanceof java.util.List<?> entries)) return false;
+        var categories = new java.util.HashSet<String>();
+        for (Object entry : entries) {
+            if (!(entry instanceof String text) || text.length() > 256) return false;
+            String[] pair = text.split("=", -1);
+            if (pair.length != 2 || !java.util.Set.of("dark", "white", "variant", "organic", "aquatic").contains(pair[0].trim())
+                    || !categories.add(pair[0].trim())) return false;
+            String[] item = pair[1].split(",", -1);
+            if (item.length < 1 || item.length > 2 || !validResourceId(item[0].trim())
+                    || "minecraft:air".equals(item[0].trim())) return false;
+            try {
+                int count = item.length == 1 ? 1 : Integer.parseInt(item[1].trim());
+                if (count < 1 || count > 64) return false;
+            } catch (NumberFormatException invalid) { return false; }
+        }
+        return true;
+    }
+
+    private static boolean validResourceId(Object value) {
+        return value instanceof String id && id.length() <= 256 && id.contains(":")
+                && net.minecraft.resources.ResourceLocation.tryParse(id) != null;
     }
 
     /** Rebalances installations that still use the original over-wide awareness defaults. */
@@ -46,6 +87,14 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.IntValue tamedCompanionRegeneration;
         public final ForgeConfigSpec.DoubleValue npcAwarenessRange;
         public final ForgeConfigSpec.BooleanValue patPacification;
+        public final ForgeConfigSpec.BooleanValue balancedRelationships;
+        public final ForgeConfigSpec.IntValue strangerAffectionLimit;
+        public final ForgeConfigSpec.IntValue careAffectionAllowance;
+        public final ForgeConfigSpec.IntValue careAffectionCooldownSeconds;
+        public final ForgeConfigSpec.IntValue giftCooldownSeconds;
+        public final ForgeConfigSpec.BooleanValue bondTokensRequired;
+        public final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> bondTokens;
+        public final ForgeConfigSpec.BooleanValue playfulFriendTransfur;
         public final ForgeConfigSpec.BooleanValue ordinaryTransfurReversal;
         public final ForgeConfigSpec.BooleanValue bondProtectiveReleaseRequests;
         public final ForgeConfigSpec.BooleanValue bondedEmergencyRescue;
@@ -54,6 +103,7 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.IntValue bondedKinKillBaseLimit;
         public final ForgeConfigSpec.BooleanValue changedVanillaRelationshipAnimalProtection;
         public final ForgeConfigSpec.BooleanValue companionMonsterAssistOnly;
+        public final ForgeConfigSpec.BooleanValue selfDefensePenaltyProtection;
         public final ForgeConfigSpec.BooleanValue allowMultipleBonds;
         public final ForgeConfigSpec.BooleanValue peacefulVillageRelations;
         public final ForgeConfigSpec.BooleanValue factionPursuit;
@@ -61,12 +111,27 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.BooleanValue independentFactionReputation;
         public final ForgeConfigSpec.IntValue postTransfurTruceSeconds;
         public final ForgeConfigSpec.IntValue settlementMinimumSpacing;
+        public final ForgeConfigSpec.IntValue playerWildOutpostMinimumSpacing;
+        public final ForgeConfigSpec.BooleanValue creatureOutposts;
         public final ForgeConfigSpec.BooleanValue playerOutposts;
         public final ForgeConfigSpec.IntValue playerOutpostResidents;
         public final ForgeConfigSpec.IntValue playerOutpostCrew;
+        public final ForgeConfigSpec.BooleanValue playerOutpostCrewGathering;
+        public final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> playerOutpostCrewBlockedOres;
         public final ForgeConfigSpec.BooleanValue playerOutpostSupplyWork;
         public final ForgeConfigSpec.BooleanValue playerOutpostHarvesting;
+        public final ForgeConfigSpec.BooleanValue playerOutpostHauling;
+        public final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> playerOutpostHaulingBlockedItems;
+        public final ForgeConfigSpec.BooleanValue playerOutpostHunting;
+        public final ForgeConfigSpec.BooleanValue playerOutpostFarming;
+        public final ForgeConfigSpec.BooleanValue playerOutpostCooking;
+        public final ForgeConfigSpec.BooleanValue playerOutpostComposting;
+        public final ForgeConfigSpec.BooleanValue playerOutpostMeals;
+        public final ForgeConfigSpec.IntValue playerOutpostWorkScanInterval;
+        public final ForgeConfigSpec.IntValue playerOutpostActiveWorkers;
+        public final ForgeConfigSpec.BooleanValue playerOutpostWorkWhileOwnerOffline;
         public final ForgeConfigSpec.BooleanValue playerOutpostRest;
+        public final ForgeConfigSpec.BooleanValue playerOutpostIdleRest;
         public final ForgeConfigSpec.BooleanValue playerOutpostGuardPvp;
         public final ForgeConfigSpec.BooleanValue useChangedStructureOutposts;
         public final ForgeConfigSpec.BooleanValue latexBeeHiveOutposts;
@@ -105,6 +170,13 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.DoubleValue organicHostileGrabAttemptChance;
         public final ForgeConfigSpec.BooleanValue allowMindlessMobTransfur;
         public final ForgeConfigSpec.BooleanValue allowSecondaryTransfur;
+        public final ForgeConfigSpec.BooleanValue includeModdedOriginSpecies;
+        public final ForgeConfigSpec.BooleanValue allowHumanOriginInstinct;
+        public final ForgeConfigSpec.BooleanValue playerRoleSpeech;
+        public final ForgeConfigSpec.DoubleValue playerRoleSpeechCooldown;
+        public final ForgeConfigSpec.BooleanValue instinctConfinement;
+        public final ForgeConfigSpec.IntValue instinctConfinementSeconds;
+        public final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> disabledOriginForms;
         public final ForgeConfigSpec.EnumValue<CreatureTransfurMethod> creatureTransfurMethod;
         public final ForgeConfigSpec.IntValue behaviourConfigRevision;
 
@@ -128,6 +200,7 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.DoubleValue personalityDialogueChance;
         public final ForgeConfigSpec.BooleanValue npcDialogueUsesTranslator;
         public final ForgeConfigSpec.BooleanValue addonAnimalCalls;
+        public final ForgeConfigSpec.BooleanValue telepathyEnabled;
         public final ForgeConfigSpec.IntValue telepathyUnlockTransfurs;
 
         private Common(ForgeConfigSpec.Builder builder) {
@@ -164,6 +237,24 @@ public final class ChangedSynergyConfig {
                     .defineInRange("ExoskeletonAwakeSeconds", 30, 5, 60);
             builder.pop();
             builder.comment("Relationship and companion settings").push("RELATIONSHIPS");
+            balancedRelationships = builder.comment("Require a deliberate gift to become acquainted; daily care uses a shared allowance and cooldown.")
+                    .define("BalancedRelationships", true);
+            strangerAffectionLimit = builder.comment("Maximum preliminary affection before a wheel gift establishes a relationship.")
+                    .defineInRange("StrangerAffectionLimit", 8, 2, 10);
+            careAffectionAllowance = builder.comment("Daily-care affection allowance replenished, not stacked, by an accepted wheel gift.")
+                    .defineInRange("CareAffectionAllowance", 8, 0, 60);
+            careAffectionCooldownSeconds = builder.comment("Shared affection reward cooldown for patting, direct feeding, play and shared activities. Actions and healing remain available.")
+                    .defineInRange("CareAffectionCooldownSeconds", 60, 1, 3600);
+            giftCooldownSeconds = builder.comment("Independent cooldown for accepted wheel gifts and bond tokens while BalancedRelationships is enabled.")
+                    .defineInRange("GiftCooldownSeconds", 300, 1, 7200);
+            bondTokensRequired = builder.comment("Require full affection and a species-themed token before a new bond. Unused tokens are refunded when disabled.")
+                    .define("BondTokensRequired", true);
+            bondTokens = builder.comment("Bond token entries: category=item_id,count. Categories: dark, white, variant, organic, aquatic. Counts: 1-64; no duplicate categories. Missing categories or unavailable optional-mod items use the default.")
+                    .define("BondTokens", java.util.List.of("dark=changed:dark_latex_crystal_fragment,4", "white=minecraft:quartz,1",
+                            "variant=minecraft:amethyst_shard,1", "organic=minecraft:golden_apple,1", "aquatic=minecraft:heart_of_the_sea,1"),
+                            ChangedSynergyConfig::validBondTokens);
+            playfulFriendTransfur = builder.comment("Adult playful friends below Close affection may occasionally attempt assimilation or absorption. Playful and Polite are mutually exclusive behavior traits. A light unarmed warning stops them.")
+                    .define("PlayfulFriendTransfur", true);
             factionPursuit = builder.comment("At minimum faction reputation, allow warned, limited pursuit squads.")
                     .define("FactionPursuit", true);
             factionPursuitOverworldOnly = builder.comment("Limit pursuit squad spawning to the Overworld. Disabled by default: squads can spawn in any dimension.")
@@ -222,6 +313,10 @@ public final class ChangedSynergyConfig {
             companionMonsterAssistOnly = builder
                     .comment("Restrict companion and friend combat assistance to hostile monsters that the player hits or is hit by.")
                     .define("CompanionMonsterAssistOnly", false);
+            selfDefensePenaltyProtection = builder
+                    .comment("Do not lower faction reputation or punish witnessed kin kills when a creature initiated the fight.",
+                            "Attacking a peaceful creature first never qualifies, even after it retaliates.")
+                    .define("SelfDefensePenaltyProtection", true);
             allowMultipleBonds = builder
                     .comment("Allow one player to form bonds with several creatures.",
                             "When disabled, voluntary transfur remains available but creates no new bond if the player already has one.")
@@ -248,23 +343,67 @@ public final class ChangedSynergyConfig {
             builder.pop();
 
             builder.comment("Community settlement and outpost placement").push("COMMUNITIES");
+            creatureOutposts = builder.comment("Allow wild latex creatures to build or claim new autonomous outposts, including ruins, hives and aquatic caches.",
+                            "Disabling preserves existing outposts, their storage and deliveries. Player camps and existing facility storage remain available.")
+                    .define("CreatureOutposts", true);
             settlementMinimumSpacing = builder
-                    .comment("Minimum horizontal distance in blocks between independently claimed outposts.",
+                    .comment("Minimum horizontal distance in blocks between independently claimed wild outposts.",
                             "Nearby compatible creatures still reuse an existing community outpost.")
                     .defineInRange("MinimumOutpostSpacing", 48, 16, 256);
-            playerOutposts = builder.comment("Allow players to claim a bell as a home outpost.")
+            playerWildOutpostMinimumSpacing = builder
+                    .comment("Minimum horizontal distance in blocks from a player's camp marker to a newly claimed wild outpost cache.",
+                            "Only affects new wild outpost placement. Existing outposts are not moved or removed.")
+                    .defineInRange("PlayerWildOutpostMinimumSpacing", 48, 16, 256);
+            playerOutposts = builder.comment("Allow players to claim a campfire as a home outpost. Existing bell-founded outposts remain supported.")
                     .define("PlayerOutposts", true);
             playerOutpostResidents = builder.comment("Maximum recruited residents per player outpost.")
-                    .defineInRange("PlayerOutpostResidents", 6, 1, 32);
+                    .defineInRange("PlayerOutpostResidents", 16, 1, 64);
             playerOutpostCrew = builder.comment("Maximum residents assigned to follow as a crew.")
-                    .defineInRange("PlayerOutpostCrew", 3, 1, 16);
+                    .defineInRange("PlayerOutpostCrew", 6, 1, 32);
+            playerOutpostCrewGathering = builder.comment("Allow travelling crew members assigned mining, foraging or hunting to gather near their owner.",
+                            "Uses loaded chunks, mobGriefing, the work scan interval and active-worker limit. Camp Supply Work is independent.")
+                    .define("PlayerOutpostCrewGathering", true);
+            playerOutpostCrewBlockedOres = builder.comment("Block registry IDs that travelling miners must not mine, for example minecraft:diamond_ore.",
+                            "List deepslate and regular variants separately. Does not affect stationary camp gatherers.")
+                    .defineListAllowEmpty("PlayerOutpostCrewBlockedOres", java.util.List.<String>of(),
+                            value -> validResourceId(value) && ((String)value).contains(":"));
             playerOutpostSupplyWork = builder.comment("Let assigned suppliers collect dropped supplies and harvest nearby resources for a linked chest.")
                     .define("PlayerOutpostSupplyWork", true);
-            playerOutpostHarvesting = builder.comment("Let player-outpost suppliers actively harvest resources.",
-                            "When disabled, they can still collect dropped items if supply work is enabled.")
+            playerOutpostHarvesting = builder.comment("Let gatherers actively harvest resources suited to their species and faction.",
+                            "Haulers still collect loose drops when Supply Work is enabled.")
                     .define("PlayerOutpostHarvesting", true);
-            playerOutpostRest = builder.comment("Let player-outpost residents use linked beds or suitable hive pillows at night.")
+            playerOutpostHauling = builder.comment("Let assigned haulers collect loose items in their marked area, or within 32 blocks of the camp when unmarked, and deliver batches to linked storage.",
+                            "Supply Work must also be enabled. Farmers, hunters and cooks still collect their own outputs.")
+                    .define("PlayerOutpostHauling", true);
+            playerOutpostHaulingBlockedItems = builder.comment("Item registry IDs that camp haulers must not pick up, for example minecraft:diamond or changed:orange.",
+                            "Applies to hauling only; workers can still collect and return the products of their own jobs.")
+                    .defineListAllowEmpty("PlayerOutpostHaulingBlockedItems", java.util.List.<String>of(),
+                            value -> validResourceId(value) && ((String)value).contains(":"));
+            playerOutpostHunting = builder.comment("Let camp hunters use marked hunting areas and travelling hunters hunt near their owner.",
+                            "Named, tame, leashed and baby animals are protected. Camp hunters also need Supply Work; travelling hunters need Crew Gathering.")
+                    .define("PlayerOutpostHunting", true);
+            playerOutpostFarming = builder.comment("Let assigned farmers harvest mature crops and replant the same crop inside linked farmland.",
+                            "Uses actual drops and planting material and respects mobGriefing. Supply Work must also be enabled.")
+                    .define("PlayerOutpostFarming", true);
+            playerOutpostCooking = builder.comment("Let assigned cooks use campfire recipes and food-only smelting recipes in real campfire slots.",
+                            "Supply Work must also be enabled. No food is generated without consuming real ingredients.")
+                    .define("PlayerOutpostCooking", true);
+            playerOutpostComposting = builder.comment("Let farmers compost surplus planting material when no crop task is available, using a linked composter.",
+                            "Supply Work and Farming must also be enabled.")
+                    .define("PlayerOutpostComposting", true);
+            playerOutpostMeals = builder.comment("Let members sit around the campfire and eat their own food, fetching one from linked storage if needed.",
+                            "Prefers nearby linked pillows, chairs and tall cardboard boxes; uses native eating animation.")
+                    .define("PlayerOutpostMeals", true);
+            playerOutpostWorkScanInterval = builder.comment("Ticks between player-outpost work searches. Higher values lower background AI cost but delay task discovery.")
+                    .defineInRange("PlayerOutpostWorkScanInterval", 100, 40, 1200);
+            playerOutpostActiveWorkers = builder.comment("Maximum simultaneous active workers per group in one player outpost. Stationary suppliers and travelling gatherers each have this limit, so home production cannot starve crew jobs. Lower values reduce AI and pathfinding load.")
+                    .defineInRange("PlayerOutpostActiveWorkers", 4, 1, 32);
+            playerOutpostWorkWhileOwnerOffline = builder.comment("Allow camp work while the owner is offline, only in already loaded chunks. Never force-loads chunks.")
+                    .define("PlayerOutpostWorkWhileOwnerOffline", false);
+            playerOutpostRest = builder.comment("Let player-outpost residents use linked beds at night. Bees can also sleep on linked yellow hive pillows.")
                     .define("PlayerOutpostRest", true);
+            playerOutpostIdleRest = builder.comment("Let idle camp residents use linked pillows, office chairs and tall cardboard boxes. Work and orders interrupt this rest. Low performance impact.")
+                    .define("PlayerOutpostIdleRest", true);
             playerOutpostGuardPvp = builder.comment("Allow outpost guards to defend against hostile players. Off by default.")
                     .define("PlayerOutpostGuardPvp", false);
             useChangedStructureOutposts = builder
@@ -272,7 +411,7 @@ public final class ChangedSynergyConfig {
                             "The facility is never claimed, and only empty space is changed.")
                     .define("UseChangedStructureOutposts", true);
             latexBeeHiveOutposts = builder
-                    .comment("Let latex-bee provisioners establish an outpost beside a generated Changed beehive.")
+                    .comment("Let latex-bee provisioners establish a hive-themed outpost inside a generated Changed beehive.")
                     .define("LatexBeeHiveOutposts", true);
             structureOutpostSearchRadiusChunks = builder
                     .comment("Loaded-chunk search radius for unclaimed Changed ruins and latex beehives.",
@@ -283,7 +422,7 @@ public final class ChangedSynergyConfig {
             builder.comment("Provisioner community trade settings")
                     .push("PROVISIONER_TRADING");
             provisionerTrading = builder
-                    .comment("Allow provisioners to exchange resources that were actually delivered to their community.")
+                    .comment("Allow provisioner trading: food currency purchases, community-stock-backed food exchanges and relationship-gated collectibles.")
                     .define("Enabled", true);
             provisionerTradeReserveMultiplier = builder
                     .comment("Multiplier applied to the share of food and materials kept out of trade.",
@@ -333,8 +472,22 @@ public final class ChangedSynergyConfig {
                     .define("AllowMindlessMobTransfur", false);
             allowSecondaryTransfur = builder
                     .comment("Allow hostile latex creatures to grab and transfur players who are already transfurred.",
+                            "Native-origin players are always excluded, regardless of this setting.",
                             "When disabled, those creatures keep fighting the player with ordinary attacks instead.")
                     .define("AllowSecondaryTransfur", true);
+            includeModdedOriginSpecies = builder
+                    .comment("Include playable transfur species from other mods in starting origin selection.",
+                            "Disabled by default. Bosses, excluded creatures, partial/custom/benign forms and special characters remain unavailable.",
+                            "This only expands the catalog; starting origin selection is still controlled by its gamerule.")
+                    .define("IncludeModdedOriginSpecies", false);
+            allowHumanOriginInstinct = builder.comment("Allow transformed human-origin players to use TrueTransfur 2.0 Instinct control while origin selection is enabled.",
+                    "Disabled by default. Does not enable TrueTransfur permanent identity, lethal reversal or native rebirth for human origins.")
+                    .define("AllowHumanOriginInstinct", false);
+            disabledOriginForms = builder
+                    .comment("Transfur form IDs excluded from starting origin selection (not entity IDs).",
+                            "Example: [\"changed:form_dark_latex_wolf/male\"]. Empty means no additional exclusions.",
+                            "Applies to original and modded forms; existing committed origins are retained.")
+                    .defineListAllowEmpty("DisabledOriginForms", java.util.List.<String>of(), ChangedSynergyConfig::validResourceId);
             creatureTransfurMethod = builder
                     .comment("Method for hostile latex-creature attacks and grabs: NATIVE, RANDOM, ASSIMILATION, ABSORPTION, or TAKEOVER.",
                             "TAKEOVER uses absorption and the usual faction-standing outcomes; other takeover settings still apply.",
@@ -416,15 +569,31 @@ public final class ChangedSynergyConfig {
                     .comment("Chance that a suitable cue uses the creature's dominant-trait line.")
                     .defineInRange("PersonalityLineChance", 0.68, 0.0, 1.0);
             npcDialogueUsesTranslator = builder
-                    .comment("Let an enabled Changed Addon Translator bypass the permanent telepathy unlock.")
+                    .comment("Let an enabled Changed Addon Translator interpret creature speech, including when telepathy is disabled.",
+                            "Disabling translator support does not grant universal understanding.")
                     .define("UsesTranslator", true);
             addonAnimalCalls = builder
                     .comment("Play Changed Addon's species-appropriate animal calls for some creature reactions when that addon is installed.")
                     .define("AddonAnimalCalls", true);
+            telepathyEnabled = builder
+                    .comment("Enable understanding through permanent telepathy, transformed bodies, hypnosis and takeover.",
+                            "Disabling this pauses unlock progress and uses creature vocalizations instead. Saved progress is retained.",
+                            "An enabled supported Translator can still interpret speech; hypnosis and takeover gameplay remain available.")
+                    .define("TelepathyEnabled", true);
             telepathyUnlockTransfurs = builder
                     .comment("Completed non-suit transformations needed to permanently understand telepathic speech.",
                             "Set to 0 to prevent transformations from unlocking telepathy.")
                     .defineInRange("TelepathyUnlockTransfurs", 3, 0, 20);
+            builder.pop();
+            builder.comment("Native-player role speech and safe Instinct-body restraint. Server authoritative.").push("PLAYER_ROLEPLAY");
+            playerRoleSpeech = builder.comment("Route native players' role chat to nearby listeners. Global chat remains available.")
+                    .define("SpeechEnabled", true);
+            playerRoleSpeechCooldown = builder.comment("Seconds between accepted player role messages; independent of NPC dialogue chance and cooldown.")
+                    .defineInRange("SpeechCooldownSeconds", 2.0D, 0.5D, 10.0D);
+            instinctConfinement = builder.comment("After normal transfur progress, allow a native Instinct player to temporarily suit hostile human players under PvP and friendship rules. Release restores the human; the carrier retains its permanent form and TT mode.")
+                    .define("InstinctConfinement", true);
+            instinctConfinementSeconds = builder.comment("Initial temporary takeover duration; failed negotiation adds ten seconds, capped at 1.5 times this duration.")
+                    .defineInRange("InstinctConfinementSeconds", 30, 5, 120);
             builder.pop();
         }
     }

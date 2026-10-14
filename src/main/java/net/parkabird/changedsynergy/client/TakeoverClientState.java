@@ -51,6 +51,8 @@ public final class TakeoverClientState {
     private static ClientLevel trackedLevel;
     private static Entity observedCamera;
     private static Entity previousCamera;
+    private static Float observationYaw;
+    private static float observationPitch;
     private static Vec3 exoskeletonWalkPosition;
     private static UUID exoskeletonWalkSession;
     private static Float exoskeletonFacingYaw;
@@ -63,10 +65,33 @@ public final class TakeoverClientState {
 
     public static TakeoverStatePacket current() { return current; }
     public static boolean active() { return current != null; }
-    public static boolean normal() { return active() && current.kind() == TakeoverStatePacket.NORMAL; }
+    public static boolean normal() { return active() && (current.kind() == TakeoverStatePacket.NORMAL || current.kind() == TakeoverStatePacket.INSTINCT); }
     public static boolean movementLocked() {
         return active() && !(normal() && current.phase() == TakeoverStatePacket.BORROWED);
     }
+    public static boolean freeLook() {
+        return movementLocked() && Minecraft.getInstance().player != null
+                && !Minecraft.getInstance().options.getCameraType().isFirstPerson();
+    }
+
+    /** Only the camera turns; the captured player and carrier keep their authoritative heading. */
+    public static boolean turnObservation(double yaw, double pitch) {
+        if (!freeLook()) return false;
+        observationYaw = observationYaw() + (float)yaw * 0.15F;
+        observationPitch = Mth.clamp(observationPitch + (float)pitch * 0.15F, -90.0F, 90.0F);
+        return true;
+    }
+
+    public static float observationYaw() {
+        if (observationYaw == null) {
+            var mc = Minecraft.getInstance();
+            var body = mc.getCameraEntity() != null ? mc.getCameraEntity() : mc.player;
+            observationYaw = body == null ? 0 : body.getYRot();
+            observationPitch = body == null ? 0 : body.getXRot();
+        }
+        return observationYaw;
+    }
+    public static float observationPitch() { observationYaw(); return observationPitch; }
     public static boolean canOpen() {
         return normal() && (current.phase() == TakeoverStatePacket.CONTROLLED
                 || current.phase() == TakeoverStatePacket.BORROWED);
@@ -105,7 +130,7 @@ public final class TakeoverClientState {
         return Mth.clamp(value, 0.0F, 1.0F);
     }
     public static Component text(String key, Object... args) {
-        return Component.translatable("takeover.changed_synergy." + key, args);
+        return Component.translatable(active() && current.kind() == TakeoverStatePacket.INSTINCT && (key.equals("title") || key.equals("warning") || key.equals("release_countdown") || key.equals("controlled")) ? "takeover.changed_synergy.instinct_" + key : "takeover.changed_synergy." + key, args);
     }
     public static KeyMapping[] movementKeys() {
         var o = Minecraft.getInstance().options;
@@ -113,7 +138,7 @@ public final class TakeoverClientState {
     }
 
     public static void receive(TakeoverStatePacket packet) {
-        if (packet.kind() < 0 || packet.kind() > 1 || !validPhase(packet.phase())) return;
+        if (packet.kind() < 0 || packet.kind() > 2 || !validPhase(packet.phase())) return;
         trackReceive(packet);
         var player = Minecraft.getInstance().player;
         if (player == null || packet.playerId() != player.getId()) return;
@@ -141,8 +166,9 @@ public final class TakeoverClientState {
             }
             return;
         }
-        if (packet.kind() < 0 || packet.kind() > 1 || !validActivePhase(packet.phase())) return;
+        if (packet.kind() < 0 || packet.kind() > 2 || !validActivePhase(packet.phase())) return;
         if (current == null || !current.sessionId().equals(packet.sessionId())) {
+            observationYaw = null;
             age = 0;
             sequenceSent = false;
             wakeFadeTicks = 0;
@@ -191,6 +217,7 @@ public final class TakeoverClientState {
 
     private static void clearLocal() {
         restoreCamera();
+        observationYaw = null;
         current = null;
         sequenceSent = false;
         age = sinceSync = 0;
@@ -299,9 +326,13 @@ public final class TakeoverClientState {
             double prediction = exoskeletonMotionAge <= 3 ? 0.45D : 0.0D;
             Vec3 rendered = player.position().add(error.scale(0.48D))
                     .add(velocity.scale(prediction));
-            player.setPos(rendered);
+            // Predict horizontal motion only. Extrapolating/interpolating feet
+            // height past a step or landing makes the worn body float or sink.
+            player.setPos(rendered.x,target.y,rendered.z);
         }
         boolean freshMotion = exoskeletonMotionAge <= 3;
+        player.setOnGround(exoskeletonMotion.velocityY()<=0
+                &&player.level().getBlockCollisions(player,player.getBoundingBox().move(0,-0.05D,0)).iterator().hasNext());
         player.setDeltaMovement(freshMotion ? exoskeletonMotion.velocityX() : 0.0D,
                 freshMotion ? exoskeletonMotion.velocityY() : 0.0D,
                 freshMotion ? exoskeletonMotion.velocityZ() : 0.0D);
@@ -507,6 +538,7 @@ public final class TakeoverClientState {
         } else if (owned(entity, session)) {
             data.putBoolean(CLIENT_ACTIVE, false);
             data.remove(CLIENT_SESSION);
+            data.remove("SynergyTakeoverBorrowed");
         }
     }
 
@@ -519,7 +551,9 @@ public final class TakeoverClientState {
         boolean ownedPlayer = owned(target, packet.sessionId());
         mark(source, packet.sessionId(), active);
         mark(target, packet.sessionId(), active);
-        if (packet.kind() != TakeoverStatePacket.NORMAL) return;
+        if (packet.kind() != TakeoverStatePacket.NORMAL && packet.kind() != TakeoverStatePacket.INSTINCT) return;
+        if (active && source instanceof ChangedEntity body)
+            net.parkabird.changedsynergy.ai.BondedSuitService.ensureGrabAbility(body);
         GrabEntityAbilityInstance ability = source instanceof ChangedEntity carrier
                 ? IAbstractChangedEntity.forEntity(carrier)
                     .getAbilityInstanceSafe(ChangedAbilities.GRAB_ENTITY_ABILITY.get()).orElse(null)
@@ -550,8 +584,10 @@ public final class TakeoverClientState {
         ability.grabbedEntity = player;
         ability.suited = true;
         ability.grabbedHasControl = packet.phase() == TakeoverStatePacket.BORROWED;
-        ability.grabStrength = ability.grabStrengthO = 1;
-        ability.suitTransition = ability.suitTransitionO = GrabEntityAbilityInstance.SUIT_TRANSITION_MAX;
+        carrier.getPersistentData().putBoolean("SynergyTakeoverBorrowed",ability.grabbedHasControl);
+        ability.grabStrength = ability.grabStrengthO = packet.kind() == TakeoverStatePacket.INSTINCT
+                ? Mth.clamp(packet.releaseRemainingTicks() / (float)Math.max(1, packet.releaseTotalTicks()), 0.001F, 1.0F) : 1;
+        ability.suitTransition = ability.suitTransitionO = ability.suited ? GrabEntityAbilityInstance.SUIT_TRANSITION_MAX : 0;
         ability.attackDown = ability.useDown = false;
         ability.currentEscapeKey = ability.lastEscapeKey = null;
         ability.ticksUnpressed = 0;
@@ -559,5 +595,6 @@ public final class TakeoverClientState {
         if (player instanceof LivingEntityDataExtension extension) extension.setGrabbedBy(carrier);
         player.noPhysics = !ability.grabbedHasControl;
         carrier.noPhysics = ability.grabbedHasControl;
+        ((net.parkabird.changedsynergy.ai.GrabAbilityTick)ability).changedSynergy$tickHoldIfNeeded();
     }
 }

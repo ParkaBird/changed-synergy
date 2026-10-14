@@ -30,8 +30,7 @@ public final class BondedFollowGoal extends Goal {
     @Override
     public boolean canUse() {
         if (!(mob.level() instanceof ServerLevel)
-                || !LatexSocialMemory.isFollowingOwner(mob)
-                || CreatureSettlementService.hasCargo(mob)) {
+                || !LatexSocialMemory.isFollowingOwner(mob)) {
             return false;
         }
 
@@ -39,31 +38,30 @@ public final class BondedFollowGoal extends Goal {
         if (player == null || !player.isAlive() || player.isSpectator()
                 || mob.getTarget() != null
                 || SocialAudienceGoal.isActive(mob)
-                || !movementAvailable()
-                || BondedPetSettings.hasRunningUtilityGoal(mob)) {
+                || !movementAvailable()) {
             return false;
         }
         double startDistance = PlayerRelationshipSettings.bondedStartDistance(player);
-        return mob.distanceToSqr(player) > startDistance * startDistance;
+        return mob.distanceToSqr(net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player)) > startDistance * startDistance;
     }
 
     @Override
     public boolean canContinueToUse() {
         return player != null && player.isAlive() && !player.isSpectator()
-                && !CreatureSettlementService.hasCargo(mob)
                 && LatexSocialMemory.isPetOwner(mob, player)
                 && LatexSocialMemory.isFollowingOwner(mob)
                 && mob.getTarget() == null
                 && !SocialAudienceGoal.isActive(mob)
                 && movementAvailable()
                 && player.level() == mob.level()
-                && !BondedPetSettings.hasRunningUtilityGoal(mob)
-                && mob.distanceToSqr(player)
+                && mob.distanceToSqr(net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player))
                         > Math.pow(PlayerRelationshipSettings.bondedStopDistance(player), 2.0D);
     }
 
     @Override
     public void start() {
+        CreatureComfortGoal.endSeatedActivity(mob);
+        if (CreatureSettlementService.hasCargo(mob)) CreatureSettlementService.dropCargo(mob);
         repathTicks = 0;
         teleportRetryTicks = 0;
         oldWaterCost = mob.getPathfindingMalus(BlockPathTypes.WATER);
@@ -80,7 +78,8 @@ public final class BondedFollowGoal extends Goal {
         if (teleportRetryTicks > 0) {
             teleportRetryTicks--;
         }
-        double distanceSqr = mob.distanceToSqr(player);
+        var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player);
+        double distanceSqr = mob.distanceToSqr(body);
         double stopDistance = PlayerRelationshipSettings
                 .bondedStopDistance(player);
         double startDistance = PlayerRelationshipSettings
@@ -97,8 +96,8 @@ public final class BondedFollowGoal extends Goal {
             followNavigation.resetProgress();
             return;
         }
-        mob.getLookControl().setLookAt(player, 30.0F, 30.0F);
-        if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
+        mob.getLookControl().setLookAt(body, 30.0F, 30.0F);
+        if (--repathTicks <= 0) {
             repathTicks = 5;
             boolean farAway = distanceSqr
                     >= TELEPORT_DISTANCE * TELEPORT_DISTANCE;
@@ -118,7 +117,7 @@ public final class BondedFollowGoal extends Goal {
                 // dropping the creature into open air.
                 teleportRetryTicks = 60;
             }
-            followNavigation.moveToward(player, FOLLOW_SPEED);
+            followNavigation.moveToward(body, FOLLOW_SPEED);
         }
     }
 
@@ -136,7 +135,12 @@ public final class BondedFollowGoal extends Goal {
     }
 
     private boolean movementAvailable() {
+        if (player == null) return false;
+        var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player);
         return player != null
+                && body.isAlive() && !body.isRemoved() && body.level() == mob.level()
+                && !(body == player && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player))
+                && !PlayerOutpostService.assigned(mob)
                 && mob.getTarget() == null
                 && !SocialAudienceGoal.isActive(mob)
                 && !BondedSuitService.isSuitingOwner(mob, player)

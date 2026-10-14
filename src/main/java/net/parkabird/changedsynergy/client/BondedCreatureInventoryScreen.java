@@ -2,6 +2,7 @@ package net.parkabird.changedsynergy.client;
 
 import net.ltxprogrammer.changed.Changed;
 import net.parkabird.changedsynergy.world.inventory.BondedCreatureInventoryMenu;
+import net.parkabird.changedsynergy.world.inventory.PlayerOutpostCargoInventory;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -29,7 +30,7 @@ public final class BondedCreatureInventoryScreen
             Component title) {
         super(menu, inventory, title);
         imageWidth = 212;
-        imageHeight = 166;
+        imageHeight = menu.hasWorkCargo() ? 210 : 166;
     }
 
     @Override
@@ -107,7 +108,10 @@ public final class BondedCreatureInventoryScreen
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        // The native Changed pet inventory intentionally has no text labels.
+        if (menu.hasWorkCargo()) {
+            graphics.drawString(font, Component.translatable("menu.changed_synergy.inventory.work_cargo"),
+                    BondedCreatureInventoryMenu.WORK_SLOT_X, 172, 0x404040, false);
+        }
     }
 
     @Override
@@ -117,7 +121,13 @@ public final class BondedCreatureInventoryScreen
             int mouseX,
             int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0.0F, 0.0F,
-                imageWidth, imageHeight, imageWidth, imageHeight);
+                212, 166, 212, 166);
+        if (menu.hasWorkCargo()) {
+            graphics.fill(leftPos, topPos + 166, leftPos + imageWidth, topPos + imageHeight, 0xFFC6C6C6);
+            renderSlotPanel(graphics, BondedCreatureInventoryMenu.WORK_SLOT_X,
+                    BondedCreatureInventoryMenu.WORK_SLOT_Y, PlayerOutpostCargoInventory.SIZE,
+                    PlayerOutpostCargoInventory.SIZE);
+        }
         if (menu.clothingVisible()) {
             graphics.fill(
                     leftPos + 94,

@@ -1,5 +1,6 @@
 package net.parkabird.changedsynergy.ai;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -38,6 +39,9 @@ import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.PanicGoal;
 import net.minecraft.world.entity.player.Player;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.ClassNode;
 
 /** Persistent per-creature bonds, provocations and short pat truces. */
 public final class LatexSocialMemory {
@@ -101,11 +105,23 @@ public final class LatexSocialMemory {
         protected Boolean computeValue(Class<?> type) {
             for (Class<?> current = type; current != null && current != ChangedEntity.class;
                     current = current.getSuperclass()) {
-                for (Method method : current.getDeclaredMethods()) {
-                    if (method.getName().equals("tamedInteract")
-                            && method.getParameterCount() == 2) {
+                // Reflection resolves every method's parameter types, including
+                // client-only GUI classes on some Addon entities. Read the native
+                // class signatures without loading those referenced classes.
+                String resource = "/" + current.getName().replace('.', '/') + ".class";
+                try (var stream = current.getResourceAsStream(resource)) {
+                    if (stream == null) continue;
+                    ClassNode node = new ClassNode();
+                    new ClassReader(stream).accept(node,
+                            ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+                    if (node.methods.stream().anyMatch(method ->
+                            method.name.equals("tamedInteract")
+                                    && Type.getArgumentTypes(method.desc).length == 2)) {
                         return true;
                     }
+                } catch (IOException exception) {
+                    ChangedSynergyMod.LOGGER.warn(
+                            "Could not inspect native pet interaction for {}", current.getName(), exception);
                 }
             }
             return false;
@@ -150,9 +166,11 @@ public final class LatexSocialMemory {
         }
         CompoundTag social = data(mob);
         boolean newBond = !isBonded(mob, player);
+        boolean reunion = newBond && CreaturePersonality.recognizesBond(mob, player);
         boolean newRelationship =
                 CreaturePersonality.establishRelationship(mob, player);
         child(mob, BONDS).putBoolean(player.getUUID().toString(), true);
+        BondTokenService.completed(mob, player);
         if (!social.hasUUID(PET_OWNER)) {
             UUID nativeOwner = mob instanceof TamableLatexEntity nativePet
                     ? nativePet.getOwnerUUID() : null;
@@ -186,6 +204,7 @@ public final class LatexSocialMemory {
                     player, SynergyAdvancements.FIRST_CONTACT);
             SynergyAdvancements.grant(
                     player, SynergyAdvancements.BONDED_COMPANION);
+            if (reunion) SynergyAdvancements.grant(player, SynergyAdvancements.REUNITED_COMPANION);
         }
     }
 
@@ -306,22 +325,26 @@ public final class LatexSocialMemory {
     }
 
     /**
-     * Follow mode keeps ordinary wheel-authorized combat near the host. Forced
-     * grab rescues remain exempt so a companion can always free its host.
+     * Owner defense respects wait orders and local awareness. Ordinary combat
+     * while following also stays near the host.
      */
     public static boolean rejectsFollowingCombatTarget(
             ChangedEntity pet,
             LivingEntity target) {
         ServerPlayer owner = getPetOwner(pet);
-        if (owner == null || !isFollowingOwner(pet) || target == null) {
+        if (owner == null || target == null) {
             return false;
         }
         if (target == owner) {
+            return isFollowingOwner(pet);
+        }
+        boolean ownerConflict = isPetDefenseAuthorized(pet, target)
+                || owner.getLastHurtByMob() == target || owner.getLastHurtMob() == target;
+        if (ownerConflict && pet.getLastHurtByMob() != target
+                && !BondedOwnerDefenseGoal.canProtectOwner(pet, owner)) {
             return true;
         }
-        if (isPetDefenseForced(pet, target)) {
-            return false;
-        }
+        if (!isFollowingOwner(pet)) return false;
         return !target.isAlive()
                 || target.isRemoved()
                 || target.level() != owner.level()
@@ -349,6 +372,11 @@ public final class LatexSocialMemory {
     }
 
     public static void setFollowingOwner(ChangedEntity mob, boolean following) {
+        if (following) {
+            if (mob.getPersistentData().hasUUID("ChangedSynergyRestOwner")) SharedRestGoal.cancel(mob);
+            CreatureComfortGoal.endSeatedActivity(mob);
+            if (mob.isSleeping()) mob.stopSleeping();
+        }
         data(mob).putBoolean(SHORE_WAIT, false);
         data(mob).putBoolean(FOLLOW_OWNER, following);
         if (mob instanceof TamableLatexEntity nativePet) {
@@ -664,12 +692,10 @@ public final class LatexSocialMemory {
         Set<UUID> owners = BondedCreatureReleaseData.get(level.getServer())
                 .consume(mob.getUUID());
         for (UUID ownerUuid : owners) {
-            removeCreatureBondState(mob, ownerUuid);
             ServerPlayer online = level.getServer().getPlayerList().getPlayer(ownerUuid);
             if (online != null) {
-                playerBondData(online).remove(mob.getUUID().toString());
-                BondedCreatureLifecycle.forget(online, mob.getUUID());
-            }
+                BondReleaseService.finishLoaded(mob, online);
+            } else removeCreatureBondState(mob, ownerUuid);
         }
         if (bondedPlayerUuids(mob).isEmpty()) {
             BondedCreatureLifecycle.untrack(mob);
@@ -809,6 +835,7 @@ public final class LatexSocialMemory {
     }
 
     private static void removeCreatureBondState(ChangedEntity mob, UUID ownerUuid) {
+        CreaturePersonality.recognizeBond(mob, ownerUuid);
         CompoundTag social = data(mob);
         child(mob, BONDS).remove(ownerUuid.toString());
         child(mob, PROVOKED).remove(ownerUuid.toString());
@@ -1589,13 +1616,21 @@ public final class LatexSocialMemory {
         return false;
     }
 
+    /** Native bodies cannot be re-transfurred, even while their form is being restored. */
+    public static boolean allowsHostilePlayerTransfur(ServerPlayer player) {
+        return !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
+                && !net.parkabird.changedsynergy.origin.NativeOriginService.isNative(player)
+                && (ChangedSynergyConfig.COMMON.allowSecondaryTransfur.get()
+                        || !ProcessTransfur.isPlayerTransfurred(player));
+    }
+
     /** Single authoritative gate for hostile NPC-to-player grab attempts. */
     public static boolean mayInitiateHostileGrab(
             ChangedEntity mob,
             ServerPlayer player) {
         return !CreatureSocialProfile.isGrabMechanicExcluded(mob)
-                && (ChangedSynergyConfig.COMMON.allowSecondaryTransfur.get()
-                        || !ProcessTransfur.isPlayerTransfurred(player))
+                && net.parkabird.changedsynergy.compat.FirearmCompat.ridingSuperbVehicle(player) == null
+                && allowsHostilePlayerTransfur(player)
                 && !LatexFusionIntent.nativeFusionAvailable(mob, player)
                 && player.isAlive()
                 && !player.isCreative()
@@ -1642,6 +1677,7 @@ public final class LatexSocialMemory {
         if (hasRelationshipBetrayal(mob, player)) {
             return;
         }
+        TakeoverConflictMemory.clear(mob, player);
         CompoundTag data = data(mob);
         data.putUUID(TRUCE_PLAYER, player.getUUID());
         data.putLong(TRUCE_UNTIL, mob.level().getGameTime() + Math.max(1L, durationTicks));
@@ -1743,6 +1779,10 @@ public final class LatexSocialMemory {
     }
 
     public static boolean shouldRemainNeutral(ChangedEntity mob, ServerPlayer player) {
+        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)) return true;
+        if (net.parkabird.changedsynergy.origin.NativeOriginService.pending(player)
+                || net.parkabird.changedsynergy.origin.NativeOriginService.protectedMember(mob, player)) return true;
+        if (PlayfulFriendTransfurGoal.active(mob, player)) return false;
         if (isBonded(mob, player) || isPetOwner(mob, player)
                 || mob instanceof TamableLatexEntity nativePet
                         && nativePet.isTame()

@@ -128,6 +128,8 @@ public final class CreatureMorphContinuity {
         }
 
         CreaturePersonality.ensure(replacement);
+        // Changed adds the adult before copying the pup's native owner/tame flags.
+        CreaturePersonality.reconcileNativePetRelationship(replacement);
         CreatureIdentity.ensure(replacement);
         CreatureLifeMemory.ensure(replacement);
         CreatureCommunityData.bind(replacement);

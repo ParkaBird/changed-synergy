@@ -38,6 +38,8 @@ import net.parkabird.changedsynergy.ai.LatexCreatureCombatRules;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData;
+import net.parkabird.changedsynergy.command.PlayerOutpostCommand;
+import net.minecraft.core.BlockPos;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings.Contact;
 import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings.Formation;
@@ -63,6 +65,9 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
     private final boolean organicStyle;
     private final boolean absorptionNegotiation;
     private final boolean negotiationUsesRelationshipSlot;
+    private String outpostAction = "outpost";
+    @Nullable private BlockPos outpostTarget;
+    @Nullable private UUID outpostInvitee;
 
     public PlayerRelationshipMenu(
             int id,
@@ -88,6 +93,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                 && InvoluntaryTransfurNegotiation.hasAbsorptionClaim(server);
         this.negotiationUsesRelationshipSlot = absorptionNegotiation
                 && !hasFreeAbilitySlot(server);
+        if (server != null) refreshOutpostAction(server);
     }
 
     public PlayerRelationshipMenu(
@@ -105,6 +111,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
         this.damageFilter = enumByOrdinal(
                 DamageFilter.values(), data.readVarInt(),
                 DamageFilter.FRIENDS);
+        this.outpostAction = data.readUtf(32);
         int count = Math.min(64, data.readVarInt());
         this.contacts = new ArrayList<>(count);
         for (int index = 0; index < count; index++) {
@@ -152,6 +159,15 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
         return negotiationUsesRelationshipSlot;
     }
 
+    public String outpostAction() { return outpostAction; }
+
+    private void refreshOutpostAction(ServerPlayer player) {
+        outpostAction = PlayerOutpostCommand.wheelAction(player);
+        outpostTarget = PlayerOutpostCommand.lookedAt(player);
+        var invitee = outpostAction.equals("invite_outpost") ? PlayerOutpostCommand.wheelInvitee(player) : null;
+        outpostInvitee = invitee == null ? null : invitee.getUUID();
+    }
+
     @Override
     public ItemStack quickMoveStack(Player viewer, int slot) {
         return ItemStack.EMPTY;
@@ -192,6 +208,10 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
             case "toggle_contact_follow" ->
                     toggleContactFollow(origin, payload);
             case "cancel_relationship" -> cancelRelationship(origin, payload);
+            case "withdraw_bond_token" -> {
+                if (payload.hasUUID("contact")) net.parkabird.changedsynergy.ai.BondTokenService.withdraw(origin, payload.getUUID("contact"));
+                origin.closeContainer();
+            }
             case "toggle_group_follow" -> toggleGroupFollow(origin);
             case "cycle_formation" -> {
                 formation = PlayerRelationshipSettings.cycleFormation(origin);
@@ -221,7 +241,15 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
     }
 
     private void openOutpost(ServerPlayer origin) {
-        if (!ChangedSynergyConfig.COMMON.playerOutposts.get()) {
+        if (outpostAction.equals("invite_outpost")) {
+            PlayerOutpostCommand.wheelInvite(origin, outpostInvitee);
+            return;
+        }
+        if (!outpostAction.equals("outpost")) {
+            PlayerOutpostCommand.wheelAction(origin, outpostAction, outpostTarget);
+            return;
+        }
+        if (!net.parkabird.changedsynergy.ai.PlayerOutpostService.enabled(origin.level())) {
             origin.displayClientMessage(Component.translatable(
                     "command.changed_synergy.outpost.error.disabled"), true);
         } else if (PlayerOutpostData.get(origin.server).byOwner(origin.getUUID()).isEmpty()) {
@@ -251,13 +279,25 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
             next.putLong("Expires", now + 200L);
             origin.getPersistentData().put(CANCEL_CONFIRMATION, next);
             origin.displayClientMessage(Component.translatable(
-                    "message.changed_synergy.relationship.cancel_confirm", selected.name()), true);
+                    selected.bonded() ? "message.changed_synergy.relationship.end_bond_confirm"
+                            : "message.changed_synergy.relationship.cancel_confirm", selected.name()), true);
             return;
         }
         origin.getPersistentData().remove(CANCEL_CONFIRMATION);
-        if (LatexSocialMemory.bondedCreatureUuids(origin).contains(uuid)) {
-            BondReleaseService.release(origin, uuid);
+        if(selected.typeId().equals("minecraft:player")) {
+            net.parkabird.changedsynergy.ai.PlayerFriendshipData.get(origin.server).remove(origin.getUUID(),uuid);
+            ServerPlayer peer=origin.server.getPlayerList().getPlayer(uuid);
+            if(peer!=null&&net.parkabird.changedsynergy.ai.PlayerSocialService.isFollowing(uuid,origin.getUUID()))net.parkabird.changedsynergy.ai.PlayerSocialService.stopFollowing(peer);
+            if(net.parkabird.changedsynergy.ai.PlayerSocialService.isFollowing(origin.getUUID(),uuid))net.parkabird.changedsynergy.ai.PlayerSocialService.stopFollowing(origin);
+            origin.closeContainer();return;
         }
+        if (selected.bonded()) {
+            BondReleaseService.release(origin, uuid);
+            origin.closeContainer();
+            origin.displayClientMessage(Component.translatable("message.changed_synergy.relationship.bond_ended", selected.name()), true);
+            return;
+        }
+        net.parkabird.changedsynergy.ai.BondTokenService.withdraw(origin, uuid);
         ChangedEntity creature = PlayerRelationshipSettings.findLoaded(origin, uuid);
         if (creature != null) {
             if (selected.bonded() && LatexSocialMemory.isPetOwner(creature, origin)) {
@@ -281,6 +321,13 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
             ServerPlayer origin,
             CompoundTag payload) {
         if (!payload.hasUUID("contact")) {
+            return;
+        }
+        Contact contact=contacts.stream().filter(value->value.uuid().equals(payload.getUUID("contact"))).findFirst().orElse(null);
+        if(contact!=null&&contact.typeId().equals("minecraft:player")) {
+            ServerPlayer peer=origin.server.getPlayerList().getPlayer(contact.uuid());
+            if(peer!=null&&net.parkabird.changedsynergy.ai.PlayerSocialService.canInteract(origin,peer,net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(peer)))
+                net.parkabird.changedsynergy.ai.PlayerSocialService.requestFollow(origin,peer);
             return;
         }
         ChangedEntity creature = PlayerRelationshipSettings.findLoaded(
@@ -339,6 +386,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
     }
 
     private void sharedActivity(ServerPlayer origin) {
+        var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(origin);
         long now = origin.level().getGameTime();
         long next = origin.getPersistentData().getLong(NEXT_ACTIVITY);
         if (next > now) {
@@ -347,11 +395,15 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                     Math.max(1L, (next - now + 19L) / 20L)), true);
             return;
         }
+        boolean quietRest = origin.isShiftKeyDown();
+        Emote emote = quietRest ? Emote.SLEEPY : Emote.CASUAL;
         List<ChangedEntity> nearby = PlayerRelationshipSettings.loadedRelated(origin)
                 .stream()
                 .filter(creature -> creature.level() == origin.level()
-                        && creature.distanceToSqr(origin) <= 14.0D * 14.0D
+                        && creature.distanceToSqr(body) <= 14.0D * 14.0D
                         && creature.getTarget() == null)
+                .filter(creature -> net.parkabird.changedsynergy.ai.SocialAudienceGoal.beginResponse(
+                        creature, origin, emote, quietRest ? 100L : 120L, !quietRest))
                 .limit(6)
                 .toList();
         if (nearby.isEmpty()) {
@@ -359,18 +411,13 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                     "message.changed_synergy.relationship.no_nearby_contacts"), true);
             return;
         }
-        boolean quietRest = origin.isShiftKeyDown();
-        Emote emote = quietRest ? Emote.SLEEPY : Emote.CASUAL;
         ProcessEmote.playerEmote(origin, emote);
         for (ChangedEntity creature : nearby) {
-            creature.getNavigation().stop();
-            creature.getLookControl().setLookAt(origin, 30.0F, 30.0F);
-            NpcDialogue.emoteOnly(creature, emote);
             if (quietRest) {
                 creature.heal(2.0F);
             } else {
                 CreaturePersonality.adjustFamiliarityFromInteraction(
-                        creature, origin, 1);
+                        creature, origin, 2);
             }
         }
         if (quietRest) {
@@ -385,20 +432,19 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
     }
 
     private void socialSignal(ServerPlayer origin) {
+        var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(origin);
         Emote[] signals = {Emote.CASUAL, Emote.HEART, Emote.IDEA, Emote.PAUSE};
         Emote emote = signals[PlayerRelationshipSettings.nextSocialSignal(
                 origin, signals.length)];
         ProcessEmote.playerEmote(origin, emote);
-        PlayerRelationshipSettings.loadedRelated(origin).stream()
-                .filter(creature -> creature.level() == origin.level()
-                        && creature.distanceToSqr(origin) <= 12.0D * 12.0D
-                        && creature.hasLineOfSight(origin))
-                .limit(5)
-                .forEach(creature -> {
-                    creature.getLookControl().setLookAt(origin, 30.0F, 30.0F);
-                    NpcDialogue.emoteOnly(creature,
-                            emote == Emote.PAUSE ? Emote.CONFUSED : emote);
-                });
+        int responses = 0;
+        for (ChangedEntity creature : PlayerRelationshipSettings.loadedRelated(origin)) {
+            if (creature.level() == body.level() && creature.distanceToSqr(body) <= 12.0D * 12.0D
+                    && creature.hasLineOfSight(body)
+                    && net.parkabird.changedsynergy.ai.SocialAudienceGoal.beginResponse(creature, origin,
+                            emote == Emote.PAUSE ? Emote.CONFUSED : emote, 60L, false)
+                    && ++responses >= 5) break;
+        }
     }
 
     private void requestHelp(ServerPlayer origin) {
@@ -454,6 +500,8 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
     }
 
     private void mediate(ServerPlayer origin, CompoundTag payload) {
+        if (net.ltxprogrammer.changed.process.ProcessTransfur.isPlayerTransfurred(origin)) return;
+        var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(origin);
         if (!payload.hasUUID("contact")) {
             return;
         }
@@ -469,13 +517,17 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
         int calmed = 0;
         for (ChangedEntity candidate : origin.level().getEntitiesOfClass(
                 ChangedEntity.class,
-                origin.getBoundingBox().inflate(16.0D),
+                  body.getBoundingBox().inflate(16.0D),
                 creature -> creature != mediator && creature.isAlive())) {
             if (!group.equals(FactionReputation.groupId(candidate))
-                    || LatexSocialMemory.isProvoked(candidate, origin)
-                    || FactionReputation.isHostile(candidate, origin)) {
+                    || !net.parkabird.changedsynergy.ai.RelationshipFavorService.canMakePeace(candidate, origin)
+                    || (LatexSocialMemory.isProvoked(candidate, origin) || FactionReputation.isHostile(candidate, origin))
+                        && !CreaturePersonality.hasEstablishedRelationship(candidate, origin)) {
                 continue;
             }
+            LatexSocialMemory.reconcileRelationship(candidate, origin);
+            net.parkabird.changedsynergy.event.LatexSocialEvents.clearPendingCombatReactions(candidate, origin);
+            net.parkabird.changedsynergy.ai.TakeoverConflictMemory.clear(candidate, origin);
             LatexSocialMemory.beginTruce(candidate, origin, 600L);
             LatexSocialMemory.clearHostilityToward(candidate, origin);
             candidate.setTarget(null);
@@ -507,6 +559,8 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
         payload.putString("command", "sync");
         payload.putInt("formation", formation.ordinal());
         payload.putInt("damage_filter", damageFilter.ordinal());
+        refreshOutpostAction(origin);
+        payload.putString("outpost_action", outpostAction);
         ListTag list = new ListTag();
         for (Contact contact : contacts) {
             CompoundTag tag = new CompoundTag();
@@ -530,6 +584,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
     }
 
     private void applyClientSync(CompoundTag payload) {
+        outpostAction = payload.getString("outpost_action");
         formation = enumByOrdinal(
                 Formation.values(), payload.getInt("formation"), Formation.STANDARD);
         damageFilter = enumByOrdinal(
@@ -558,7 +613,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                         update.getBoolean("pureWhiteAdapted"),
                         update.getInt("familiarity"),
                         update.getFloat("health"),
-                        update.getFloat("maxHealth")));
+                        update.getFloat("maxHealth"), old.tokenReserved()));
                 break;
             }
         }
@@ -581,6 +636,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
         buffer.writeBoolean(absorption && !hasFreeAbilitySlot(player));
         buffer.writeVarInt(PlayerRelationshipSettings.formation(player).ordinal());
         buffer.writeVarInt(PlayerRelationshipSettings.damageFilter(player).ordinal());
+        buffer.writeUtf(PlayerOutpostCommand.wheelAction(player), 32);
         buffer.writeVarInt(contacts.size());
         contacts.forEach(contact -> writeContact(buffer, contact));
     }
@@ -618,6 +674,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
         buffer.writeInt(contact.familiarity());
         buffer.writeFloat(contact.health());
         buffer.writeFloat(contact.maxHealth());
+        buffer.writeBoolean(contact.tokenReserved());
     }
 
     private static Contact readContact(FriendlyByteBuf buffer) {
@@ -638,7 +695,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                 buffer.readBoolean(),
                 buffer.readInt(),
                 buffer.readFloat(),
-                buffer.readFloat());
+                buffer.readFloat(), buffer.readBoolean());
     }
 
     private static <T> T enumByOrdinal(T[] values, int ordinal, T fallback) {

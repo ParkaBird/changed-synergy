@@ -66,7 +66,9 @@ public final class NpcDialogue {
 
     /** Exact situation feedback, without replacing it with unrelated personality chatter. */
     public static void context(ChangedEntity speaker, ServerPlayer listener, String suffix) {
-        if (!speaker.isAlive() || listener.isSpectator()
+        if (!net.parkabird.changedsynergy.ai.NativeRoleplayService.validBody(listener,
+                net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(listener))) return;
+        if (!speaker.isAlive() || speaker.isSleeping() || listener.isSpectator()
                 || TakeoverService.active(listener)
                 || !CreatureSocialProfile.allowsDialogue(speaker)
                 || speaker.getType().is(SILENT_HUNTERS)
@@ -117,6 +119,8 @@ public final class NpcDialogue {
             Cue cue,
             boolean forcePersonality,
             Object... lineArguments) {
+        if (!net.parkabird.changedsynergy.ai.NativeRoleplayService.validBody(focus,
+                net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(focus))) return false;
         if (!(speaker.level() instanceof ServerLevel level)
                 || !speaker.isAlive()
                 || !CreatureSocialProfile.allowsDialogue(speaker)
@@ -183,6 +187,7 @@ public final class NpcDialogue {
                 ? -1 : speaker.getRandom().nextInt(PERSONALITY_LINES_PER_CONTEXT);
         String personalityKey = personalityTrait == null
                 ? null : personalityLineKey(personalityTrait, personalityContext, personalityIndex);
+        if (lineKey.startsWith("dialogue.changed_synergy.native.")) personalityKey = null;
         String lineIdentity = lineIdentity(lineKey, personalityKey);
         String previous = speaker.getPersistentData().getString(LAST_LINE);
         if (lineIdentity.equals(previous)) {
@@ -218,14 +223,15 @@ public final class NpcDialogue {
             }
             boolean priorityFocus = cue.important && listener == focus;
             if ((!listener.isAlive() && !priorityFocus) || listener.isSpectator()
-                    || listener.distanceToSqr(speaker) > rangeSqr
+                    || !net.parkabird.changedsynergy.ai.NativeRoleplayService.validBody(listener,net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(listener))
+                    || net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(listener).distanceToSqr(speaker) > rangeSqr
                     || !cue.important && !isPatSpeedCue(cue)
                             && LISTENER_COOLDOWNS.getOrDefault(
                                     listener.getUUID(), 0L) > now) {
                 continue;
             }
 
-            boolean understands = ((isTakeoverCue(cue)
+            boolean understands = (TelepathyService.enabled() && (isTakeoverCue(cue)
                     || cue == Cue.BOND_REVERSE_UNSAFE) && listener == focus)
                     || canUnderstand(speaker, listener);
             String visibleKey = understands
@@ -363,7 +369,7 @@ public final class NpcDialogue {
     private static boolean dialogueSuppressed(
             ChangedEntity speaker,
             ServerLevel level) {
-        return speaker.getPersistentData().getLong(DIALOGUE_SUPPRESSED_UNTIL)
+        return speaker.isSleeping() || speaker.getPersistentData().getLong(DIALOGUE_SUPPRESSED_UNTIL)
                 > level.getGameTime();
     }
 
@@ -406,16 +412,15 @@ public final class NpcDialogue {
                 forceTransition);
     }
 
-    private static boolean canUnderstand(ChangedEntity speaker, ServerPlayer player) {
+    public static boolean canUnderstand(ChangedEntity speaker, ServerPlayer player) {
         // This speaker can communicate directly; do not unlock the listener's telepathy.
-        if (HypnosisProfile.isHypnoticCreature(speaker)
+        if (TelepathyService.enabled() && (HypnosisProfile.isHypnoticCreature(speaker)
                 || ProcessTransfur.isPlayerTransfurred(player)
-                || TelepathyService.canUnderstand(player)
-                || !ChangedSynergyConfig.COMMON.npcDialogueUsesTranslator.get()) {
+                || TelepathyService.canUnderstand(player))) {
             return true;
         }
 
-        if (ChangedAddonCompat.isLoaded()) {
+        if (ChangedSynergyConfig.COMMON.npcDialogueUsesTranslator.get() && ChangedAddonCompat.isLoaded()) {
             for (ItemStack stack : player.getInventory().items) {
                 if (stack.isEmpty()
                         || !ChangedAddonCompat.TRANSLATOR.equals(
@@ -455,6 +460,17 @@ public final class NpcDialogue {
             ServerPlayer focus,
             LatexTerritory territory,
             int index) {
+        if (net.parkabird.changedsynergy.origin.NativeOriginService.isNative(focus)) {
+            if (cue == Cue.BOND_REVERSE_UNSAFE) return "dialogue.changed_synergy.native.reverse.0";
+            if (cue == Cue.PAT_BONDED || cue == Cue.PAT_KIN || cue == Cue.PAT_CATEGORY
+                    || cue == Cue.PAT_FRIEND || cue == Cue.SOCIAL_PAT
+                    || cue == Cue.SOCIAL_PAT_NEW || cue == Cue.SOCIAL_PAT_FAMILIAR || cue == Cue.SOCIAL_PAT_CLOSE)
+                return "dialogue.changed_synergy.native.pat." + index;
+            if (net.parkabird.changedsynergy.origin.NativeOriginService.protectedMember(speaker, focus)
+                    && (cue == Cue.SPOTTED || cue == Cue.MEET_ALLY || cue == Cue.MEET_SPECIES
+                            || cue == Cue.MEET_CATEGORY || cue == Cue.MEET_FRIENDLY))
+                return "dialogue.changed_synergy.native." + HunterFaction.of(speaker).id() + ".greeting." + index;
+        }
         String cueName = cue.name().toLowerCase(Locale.ROOT);
         if (cue == Cue.FUSION_APPROACH || cue == Cue.FUSION_COMPLETE) {
             return "dialogue.changed_synergy.fusion."
@@ -752,6 +768,8 @@ public final class NpcDialogue {
                     SOCIAL_TALK_HURT, SOCIAL_TALK_PLAYER_HURT,
                     SOCIAL_TALK_RAIN, SOCIAL_TALK_NIGHT,
                     SOCIAL_TALK_CLOSE, BOND_COMBAT_GRAB_ASSIST,
+                    BOND_FISHING_START, BOND_FISHING_SUCCESS,
+                    BOND_MINING_START, BOND_MINING_SUCCESS,
                     BOND_WITNESS_COMPATRIOT_ATTACK,
                     FRIEND_WITNESS_COMPATRIOT_ATTACK,
                     FRIEND_COMBAT_ASSIST,
@@ -799,6 +817,11 @@ public final class NpcDialogue {
         System.arraycopy(
                 lineArguments, 0, addressed, 2, lineArguments.length);
         return addressed;
+    }
+
+    public static Component vocalization(ChangedEntity speaker, ServerPlayer listener) {
+        String key = vocalizationKey(speaker, listener, null, speaker.getRandom().nextInt(LINES_PER_CUE));
+        return hasText(key) ? Component.translatable(key) : Component.literal("…");
     }
 
     private static String vocalizationKey(

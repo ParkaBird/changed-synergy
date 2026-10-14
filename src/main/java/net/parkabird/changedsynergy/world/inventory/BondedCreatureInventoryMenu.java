@@ -51,6 +51,8 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
     public static final int CLOTHING_COLUMNS = 5;
     /** Curios remains a distinct external panel, matching the player's Curios UI. */
     public static final int CURIO_SLOT_Y = 8;
+    public static final int WORK_SLOT_X = 80;
+    public static final int WORK_SLOT_Y = 186;
     private static final int CURIO_ROWS = 4;
     private static final EquipmentSlot[] ARMOR_SLOTS = {
             EquipmentSlot.HEAD,
@@ -69,6 +71,11 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
     @Nullable
     private final ChangedEntity pet;
     private final Container petInventory;
+    public Container getPetInventory() { return petInventory; }
+    private final Container workInventory;
+    private final boolean workCargo;
+    public Container getWorkInventory() { return workInventory; }
+    public boolean hasWorkCargo() { return workCargo; }
     private final List<AccessorySlotType> accessoryTypes;
     private final AccessoryContainer accessoryContainer;
     private final List<CuriosCompat.SlotDescriptor> curioSlots;
@@ -87,7 +94,9 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
                 pet,
                 petInventory,
                 accessoryTypes(pet),
-                CuriosCompat.slotDescriptors(playerInventory.player, pet));
+                CuriosCompat.slotDescriptors(playerInventory.player, pet),
+                new PlayerOutpostCargoInventory(pet),
+                PlayerOutpostCargoInventory.visible(pet));
     }
 
     private BondedCreatureInventoryMenu(
@@ -96,12 +105,16 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
             @Nullable ChangedEntity pet,
             Container petInventory,
             List<AccessorySlotType> accessoryTypes,
-            List<CuriosCompat.SlotDescriptor> curioSlots) {
+            List<CuriosCompat.SlotDescriptor> curioSlots,
+            Container workInventory,
+            boolean workCargo) {
         super(ChangedSynergyMenus.BONDED_CREATURE_INVENTORY.get(), id);
         checkContainerSize(petInventory, PET_INVENTORY_SIZE);
         this.owner = playerInventory.player;
         this.pet = pet;
         this.petInventory = petInventory;
+        this.workInventory = workInventory;
+        this.workCargo = workCargo;
         this.accessoryTypes = List.copyOf(accessoryTypes);
         this.accessoryContainer = new AccessoryContainer(pet, this.accessoryTypes);
         this.curioSlots = List.copyOf(curioSlots);
@@ -127,7 +140,9 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
                 openData.pet(),
                 new SimpleContainer(PET_INVENTORY_SIZE),
                 openData.accessoryTypes(),
-                openData.curioSlots());
+                openData.curioSlots(),
+                new SimpleContainer(PlayerOutpostCargoInventory.SIZE),
+                openData.workCargo());
     }
 
     @Nullable
@@ -183,6 +198,7 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
             buffer.writeUtf(descriptor.identifier(), 64);
             buffer.writeVarInt(descriptor.index());
         }
+        buffer.writeBoolean(PlayerOutpostCargoInventory.visible(pet));
     }
 
     @Override
@@ -330,6 +346,14 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
                     CURIO_SLOT_Y + index / columns * 18,
                     curioSlots.get(index)));
         }
+        if (workCargo) {
+            for (int index = 0; index < PlayerOutpostCargoInventory.SIZE; index++) {
+                addSlot(new Slot(workInventory, index, WORK_SLOT_X + index * 18, WORK_SLOT_Y) {
+                    @Override
+                    public boolean mayPlace(ItemStack stack) { return false; }
+                });
+            }
+        }
     }
 
     private boolean moveToAccessorySlot(ItemStack stack) {
@@ -411,7 +435,7 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
                 curios.add(new CuriosCompat.SlotDescriptor(identifier, slotIndex));
             }
         }
-        return new OpenData(pet, List.copyOf(types), List.copyOf(curios));
+        return new OpenData(pet, List.copyOf(types), List.copyOf(curios), extraData.readBoolean());
     }
 
     private static final class AccessoryContainer implements Container {
@@ -627,7 +651,8 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
     private record OpenData(
             @Nullable ChangedEntity pet,
             List<AccessorySlotType> accessoryTypes,
-            List<CuriosCompat.SlotDescriptor> curioSlots) {
+            List<CuriosCompat.SlotDescriptor> curioSlots,
+            boolean workCargo) {
     }
 
     private final class ArmorSlot extends Slot {

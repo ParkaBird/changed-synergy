@@ -19,6 +19,7 @@ public final class TakeoverAssimilationBehavior implements AssimilationBehavior 
     private final IAbstractChangedEntity source;
     private final Consumer<IAbstractChangedEntity> takeoverListeners;
     private final AtomicBoolean completed;
+    private final boolean instinctPlayer;
 
     public TakeoverAssimilationBehavior(AssimilationBehavior original, ChangedEntity carrier,
             ServerPlayer player, IAbstractChangedEntity source) {
@@ -34,11 +35,29 @@ public final class TakeoverAssimilationBehavior implements AssimilationBehavior 
         this.source = Objects.requireNonNull(source);
         this.takeoverListeners = Objects.requireNonNull(takeoverListeners);
         this.completed = Objects.requireNonNull(completed);
+        this.instinctPlayer = net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(carrier);
     }
 
     @Override
     public void stepAssimilate() {
         if (completed.get() || TakeoverService.active(player) || TakeoverService.carrying(carrier)) {
+            return;
+        }
+        if (instinctPlayer) {
+            if (!InstinctConfinementService.canTarget(carrier, player)) return;
+            if (original.willAssimilate()) {
+                // Preserve Changed's shield, armour and hit-delay checks. Only
+                // replace its final irreversible conversion with a temporary suit.
+                float previous = net.ltxprogrammer.changed.process.ProcessTransfur.getPlayerTransfurProgress(player);
+                net.ltxprogrammer.changed.process.ProcessTransfur.setPlayerTransfurProgress(player,
+                        (float)net.ltxprogrammer.changed.process.ProcessTransfur.getEntityTransfurTolerance(player));
+                if (InstinctConfinementService.begin(carrier, player)) completed.set(true);
+                else net.ltxprogrammer.changed.process.ProcessTransfur.setPlayerTransfurProgress(player, previous);
+                // A blocked completion must never fall through to replication or
+                // absorption, which can erase the human or TT's controlled body.
+                return;
+            }
+            original.stepAssimilate();
             return;
         }
         if (original.willAssimilate()) {
@@ -54,6 +73,14 @@ public final class TakeoverAssimilationBehavior implements AssimilationBehavior 
             }
         }
         original.stepAssimilate();
+    }
+
+    public boolean managesNativeProgress() {
+        return instinctPlayer
+                ? net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.instinctConfinement.get()
+                    && net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.takeoverEnabled.get()
+                    && InstinctConfinementService.canTarget(carrier, player)
+                : TakeoverService.canBeginOrdinary(carrier, player);
     }
 
     @Override

@@ -342,6 +342,7 @@ public final class ProvisionerGiftService {
             ServerPlayer player,
             long now) {
         return player.isAlive()
+                && !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
                 && !player.isSpectator()
                 && provider.distanceToSqr(player) <= GIFT_RANGE_SQR
                 && player.getPersistentData().getLong(NEXT_PLAYER_GIFT) <= now

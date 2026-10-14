@@ -1,6 +1,5 @@
 package net.parkabird.changedsynergy.command;
 
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -9,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -21,7 +19,7 @@ import net.parkabird.changedsynergy.ChangedSynergyConfig;
 /** Operator and console access to the server's existing common TOML settings. */
 final class ServerConfigCommand {
     private static final int PAGE_SIZE = 8;
-    private static final Map<String, ForgeConfigSpec.ConfigValue<?>> OPTIONS = options();
+    private static final Map<String, ForgeConfigSpec.ConfigValue<?>> OPTIONS = ChangedSynergyConfig.options();
 
     private ServerConfigCommand() {
     }
@@ -34,7 +32,18 @@ final class ServerConfigCommand {
                         .executes(context -> list(context.getSource(), 1))
                         .then(Commands.argument("page", IntegerArgumentType.integer(1))
                                 .executes(context -> list(context.getSource(),
-                                        IntegerArgumentType.getInteger(context, "page")))))
+                                        IntegerArgumentType.getInteger(context, "page"))))
+                        .then(Commands.argument("category", StringArgumentType.word())
+                                .suggests((context, builder) -> SharedSuggestionProvider.suggest(categories(), builder))
+                                .executes(context -> list(context.getSource(), 1, StringArgumentType.getString(context, "category")))
+                                .then(Commands.argument("page", IntegerArgumentType.integer(1))
+                                        .executes(context -> list(context.getSource(), IntegerArgumentType.getInteger(context, "page"),
+                                                StringArgumentType.getString(context, "category"))))))
+                .then(Commands.literal("categories").executes(context -> {
+                    context.getSource().sendSuccess(() -> Component.translatable("command.changed_synergy.config.categories",
+                            String.join(", ", categories())), false);
+                    return categories().size();
+                }))
                 .then(Commands.literal("get")
                         .then(Commands.argument("key", StringArgumentType.word())
                                 .suggests((context, builder) -> SharedSuggestionProvider.suggest(
@@ -45,9 +54,11 @@ final class ServerConfigCommand {
                         .then(Commands.argument("key", StringArgumentType.word())
                                 .suggests((context, builder) -> SharedSuggestionProvider.suggest(
                                         OPTIONS.keySet(), builder))
-                                .then(Commands.argument("value", StringArgumentType.word())
+                                .then(Commands.argument("value", StringArgumentType.greedyString())
                                         .suggests((context, builder) -> {
-                                            var option = OPTIONS.get(StringArgumentType.getString(context, "key"));
+                                            var option = option(StringArgumentType.getString(context, "key"));
+                                            if (option != null && option.getDefault() instanceof Boolean)
+                                                return SharedSuggestionProvider.suggest(List.of("true", "false"), builder);
                                             if (option != null && option.getDefault() instanceof Enum<?> sample) {
                                                 return SharedSuggestionProvider.suggest(Arrays.stream(
                                                         sample.getDeclaringClass().getEnumConstants())
@@ -66,24 +77,13 @@ final class ServerConfigCommand {
                                         StringArgumentType.getString(context, "key")))));
     }
 
-    private static Map<String, ForgeConfigSpec.ConfigValue<?>> options() {
-        Map<String, ForgeConfigSpec.ConfigValue<?>> result = new TreeMap<>();
-        collect(ChangedSynergyConfig.SPEC.getValues(), result);
-        return Map.copyOf(result);
+    private static List<String> categories() {
+        return OPTIONS.keySet().stream().map(key -> key.substring(0, key.indexOf('.'))).distinct().sorted().toList();
     }
 
-    private static void collect(UnmodifiableConfig node,
-            Map<String, ForgeConfigSpec.ConfigValue<?>> result) {
-        for (Object child : node.valueMap().values()) {
-            if (child instanceof UnmodifiableConfig nested) {
-                collect(nested, result);
-            } else if (child instanceof ForgeConfigSpec.ConfigValue<?> value) {
-                List<String> path = value.getPath();
-                if (!"BehaviourConfigRevision".equals(path.get(path.size() - 1))) {
-                    result.put(String.join(".", path), value);
-                }
-            }
-        }
+    private static ForgeConfigSpec.ConfigValue<?> option(String key) {
+        return OPTIONS.entrySet().stream().filter(entry -> entry.getKey().equalsIgnoreCase(key))
+                .map(Map.Entry::getValue).findFirst().orElse(null);
     }
 
     private static int help(CommandSourceStack source) {
@@ -93,8 +93,13 @@ final class ServerConfigCommand {
     }
 
     private static int list(CommandSourceStack source, int page) {
-        List<String> names = new ArrayList<>(OPTIONS.keySet());
-        names.sort(String::compareTo);
+        return list(source, page, "");
+    }
+
+    private static int list(CommandSourceStack source, int page, String category) {
+        List<String> names = OPTIONS.keySet().stream().filter(key -> category.isEmpty()
+                || key.regionMatches(true, 0, category + ".", 0, category.length() + 1)).sorted().toList();
+        if (names.isEmpty()) return unknown(source, category);
         int pages = Math.max(1, (names.size() + PAGE_SIZE - 1) / PAGE_SIZE);
         if (page > pages) {
             source.sendFailure(Component.translatable(
@@ -114,7 +119,7 @@ final class ServerConfigCommand {
     }
 
     private static int get(CommandSourceStack source, String key) {
-        ForgeConfigSpec.ConfigValue<?> option = OPTIONS.get(key);
+        ForgeConfigSpec.ConfigValue<?> option = option(key);
         if (option == null) {
             return unknown(source, key);
         }
@@ -124,15 +129,17 @@ final class ServerConfigCommand {
                 "command.changed_synergy.config.value", key, option.get(),
                 option.getDefault(), spec.getRange() == null
                         ? "-" : spec.getRange().toString()), false);
+        if (spec.getComment() != null)
+            source.sendSuccess(() -> Component.literal(spec.getComment()).withStyle(ChatFormatting.GRAY), false);
         return 1;
     }
 
     private static int set(CommandSourceStack source, String key, String raw) {
-        ForgeConfigSpec.ConfigValue<?> option = OPTIONS.get(key);
+        ForgeConfigSpec.ConfigValue<?> option = option(key);
         if (option == null) {
             return unknown(source, key);
         }
-        Object value = parse(raw, option.getDefault());
+        Object value = parse(raw, option);
         ForgeConfigSpec.ValueSpec spec = ChangedSynergyConfig.SPEC.getSpec()
                 .get(option.getPath());
         if (value == null || !spec.test(value)) {
@@ -148,11 +155,27 @@ final class ServerConfigCommand {
         return 1;
     }
 
-    private static Object parse(String text, Object defaultValue) {
+    private static Object parse(String text, ForgeConfigSpec.ConfigValue<?> option) {
+        text = text.trim();
+        Object defaultValue = option.getDefault();
         try {
             if (defaultValue instanceof Boolean) {
-                return "true".equalsIgnoreCase(text) ? true
-                        : "false".equalsIgnoreCase(text) ? false : null;
+                if ("true".equalsIgnoreCase(text)) return Boolean.TRUE;
+                if ("false".equalsIgnoreCase(text)) return Boolean.FALSE;
+                return null;
+            }
+            if (defaultValue instanceof List<?>) {
+                if (text.isEmpty()) return List.of();
+                if (text.trim().startsWith("[")) {
+                    var values = new ArrayList<String>();
+                    com.google.gson.JsonParser.parseString(text).getAsJsonArray().forEach(item -> {
+                        if (!item.isJsonPrimitive() || !item.getAsJsonPrimitive().isString()) throw new IllegalArgumentException("Expected item entries");
+                        values.add(item.getAsString());
+                    });
+                    return List.copyOf(values);
+                }
+                String separator = option == ChangedSynergyConfig.COMMON.bondTokens ? ";" : ",";
+                return Arrays.stream(text.split(separator, -1)).map(String::trim).toList();
             }
             if (defaultValue instanceof Integer) {
                 return Integer.valueOf(text);
@@ -166,14 +189,14 @@ final class ServerConfigCommand {
                     if (value.name().equals(text.toUpperCase(Locale.ROOT))) return value;
                 }
             }
-        } catch (NumberFormatException ignored) {
+        } catch (IllegalArgumentException | IllegalStateException | com.google.gson.JsonParseException ignored) {
             // A malformed or out-of-range value is reported without changing the config.
         }
         return null;
     }
 
     private static int reset(CommandSourceStack source, String key) {
-        ForgeConfigSpec.ConfigValue<?> option = OPTIONS.get(key);
+        ForgeConfigSpec.ConfigValue<?> option = option(key);
         if (option == null) {
             return unknown(source, key);
         }

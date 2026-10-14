@@ -53,3 +53,9 @@ ChangedAddon-*.jar
 
 # Files from Forge MDK
 forge*changelog.txt
+
+# Generated deliveries, local runtime configuration and Python caches
+outputs/
+config/
+__pycache__/
+*.pyc

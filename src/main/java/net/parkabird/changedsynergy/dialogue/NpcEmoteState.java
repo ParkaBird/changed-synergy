@@ -31,20 +31,20 @@ public final class NpcEmoteState {
     private NpcEmoteState() {
     }
 
-    public static void reset(ChangedEntity speaker) {
+    public static void reset(LivingEntity speaker) {
         speaker.getPersistentData().remove(ROOT);
     }
 
     public static boolean show(
             ServerLevel level,
-            ChangedEntity speaker,
+            LivingEntity speaker,
             LivingEntity target,
             Emote emote,
             int priority,
             int durationTicks,
             boolean forceTransition) {
         long now = level.getGameTime();
-        if (!target.isAlive() || target.isRemoved()) {
+        if (speaker.isSleeping() || !target.isAlive() || target.isRemoved()) {
             return false;
         }
         CompoundTag state = state(speaker, target);
@@ -84,7 +84,7 @@ public final class NpcEmoteState {
         return true;
     }
 
-    public static void tick(ChangedEntity speaker) {
+    public static void tick(LivingEntity speaker) {
         if (!(speaker.level() instanceof ServerLevel level)) {
             return;
         }
@@ -103,7 +103,7 @@ public final class NpcEmoteState {
 
     private static void tickSlot(
             ServerLevel level,
-            ChangedEntity speaker,
+            LivingEntity speaker,
             CompoundTag root,
             String slot) {
         if (!root.contains(slot, Tag.TAG_COMPOUND)) {
@@ -114,7 +114,7 @@ public final class NpcEmoteState {
         boolean targetValid = target instanceof LivingEntity living
                 ? living.isAlive() && !living.isRemoved()
                 : target != null && !target.isRemoved();
-        if (state.getLong(UNTIL) > level.getGameTime() && targetValid) {
+        if (!speaker.isSleeping() && state.getLong(UNTIL) > level.getGameTime() && targetValid) {
             return;
         }
         endTransition(
@@ -125,7 +125,7 @@ public final class NpcEmoteState {
         root.remove(slot);
     }
 
-    public static void clear(ChangedEntity speaker) {
+    public static void clear(LivingEntity speaker) {
         if (!(speaker.level() instanceof ServerLevel level)) {
             speaker.getPersistentData().remove(ROOT);
             return;
@@ -142,7 +142,7 @@ public final class NpcEmoteState {
 
     private static void clearSlot(
             ServerLevel level,
-            ChangedEntity speaker,
+            LivingEntity speaker,
             CompoundTag root,
             String slot) {
         if (!root.contains(slot, Tag.TAG_COMPOUND)) {
@@ -159,7 +159,7 @@ public final class NpcEmoteState {
 
     private static void endTransition(
             ServerLevel level,
-            ChangedEntity speaker,
+            LivingEntity speaker,
             int targetId,
             int token) {
         if (targetId <= 0 || token <= 0) {
@@ -193,7 +193,7 @@ public final class NpcEmoteState {
     }
 
     private static CompoundTag state(
-            ChangedEntity speaker,
+            LivingEntity speaker,
             LivingEntity target) {
         CompoundTag persistent = speaker.getPersistentData();
         if (!persistent.contains(ROOT, Tag.TAG_COMPOUND)) {

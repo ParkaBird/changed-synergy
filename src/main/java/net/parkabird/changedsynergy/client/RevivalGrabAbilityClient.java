@@ -38,7 +38,7 @@ public final class RevivalGrabAbilityClient {
         while (iterator.hasNext()) {
             var pending = iterator.next();
             if (level.getEntity(pending.getKey()) instanceof ChangedEntity creature) {
-                BondedSuitService.ensureRevivalGrabAbility(creature);
+                BondedSuitService.ensureGrabAbility(creature);
                 iterator.remove();
             } else if (pending.getValue() <= 1) {
                 iterator.remove();

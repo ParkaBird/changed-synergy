@@ -118,8 +118,6 @@ public final class CreatureLifeMemory {
     public static boolean enabled(ChangedEntity mob) {
         return CreatureSocialProfile.allowsSynergySystems(mob)
                 && ChangedSynergyGameRules.enabled(
-                        mob.level(), ChangedSynergyGameRules.NPC_AI)
-                && ChangedSynergyGameRules.enabled(
                         mob.level(), ChangedSynergyGameRules.CREATURE_LIFE);
     }
 

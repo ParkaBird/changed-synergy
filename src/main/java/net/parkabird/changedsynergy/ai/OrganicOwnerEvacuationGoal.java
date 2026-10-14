@@ -1,9 +1,7 @@
-package net.parkabird.changedsynergy.compat.addon;
+package net.parkabird.changedsynergy.ai;
 
 import java.util.Comparator;
 import java.util.EnumSet;
-import net.foxyas.changedaddon.ability.api.GrabEntityAbilityExtensor;
-import net.foxyas.changedaddon.entity.api.IGrabberEntity;
 import net.ltxprogrammer.changed.Changed;
 import net.ltxprogrammer.changed.ability.GrabEntityAbility;
 import net.ltxprogrammer.changed.ability.GrabEntityAbilityInstance;
@@ -12,21 +10,15 @@ import net.ltxprogrammer.changed.init.ChangedSounds;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket.GrabType;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.PacketDistributor;
-import net.parkabird.changedsynergy.ai.CreaturePersonality;
-import net.parkabird.changedsynergy.ai.BondedTeleportSafety;
-import net.parkabird.changedsynergy.ai.CompanionFollowNavigation;
-import net.parkabird.changedsynergy.ai.HuntMemory;
-import net.parkabird.changedsynergy.ai.HypnosisProfile;
-import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.event.LatexSocialEvents;
+import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.network.FriendlySocialHugSyncPacket;
 
@@ -46,7 +38,6 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
     private static final int WATCHDOG_HOLD_TICKS = 240;
 
     private final ChangedEntity mob;
-    private final IGrabberEntity grabber;
     private final CompanionFollowNavigation followNavigation;
     private ServerPlayer owner;
     private GrabEntityAbilityInstance ability;
@@ -61,11 +52,8 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
     private float previousMaxUpStep;
     private boolean raisedStepHeight;
 
-    public OrganicOwnerEvacuationGoal(
-            ChangedEntity mob,
-            IGrabberEntity grabber) {
+    public OrganicOwnerEvacuationGoal(ChangedEntity mob) {
         this.mob = mob;
-        this.grabber = grabber;
         this.followNavigation = new CompanionFollowNavigation(mob);
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.TARGET));
     }
@@ -78,13 +66,14 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
                 || HypnosisProfile.isHypnoticCreature(mob)
                 || mob.getPersistentData().getLong(NEXT_RESCUE)
                         > mob.level().getGameTime()
-                || !grabber.canUseGrab()
-                || !grabber.canEntityGrab(mob.getType(), mob.level())) {
+                || CreatureSocialProfile.isJuvenile(mob)
+                || CreatureSocialProfile.isGrabMechanicExcluded(mob)) {
             return false;
         }
         owner = LatexSocialMemory.getPetOwner(mob);
-        if (owner == null
+        if (!BondedOwnerDefenseGoal.canProtectOwner(mob, owner)
                 || !owner.isAlive()
+                || BondedSuitService.isRescueGraceActive(owner)
                 || owner.isCreative()
                 || owner.isSpectator()
                 || owner.level() != mob.level()
@@ -99,8 +88,8 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
             clearState();
             return false;
         }
-        ability = grabber.getGrabAbilityInstance();
-        if (!(ability instanceof GrabEntityAbilityExtensor)
+        ability = BondedSuitService.ability(mob);
+        if (ability == null
                 || ability.grabbedEntity != null) {
             clearState();
             return false;
@@ -125,6 +114,8 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
                     && LatexSocialMemory.isOrganicEvacuationActive(mob, owner);
         }
         return LatexSocialMemory.isPetOwner(mob, owner)
+                && BondedOwnerDefenseGoal.canProtectOwner(mob, owner)
+                && !BondedSuitService.isRescueGraceActive(owner)
                 && LatexSocialMemory.organicRescueMode(mob).shouldRescue(owner)
                 && GrabEntityAbility.getGrabber(owner) == null;
     }
@@ -157,24 +148,18 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
         LatexSocialEvents.calmTowards(mob, owner);
 
         if (!holding) {
+            if (!canContinueToUse()) return;
             followNavigation.tickProgress(
                     mob.distanceToSqr(owner) > GRAB_REACH_SQR);
             if (mob.getBoundingBox().inflate(0.75D)
                             .intersects(owner.getBoundingBox())
                     || mob.distanceToSqr(owner) <= GRAB_REACH_SQR) {
-                beginHold();
-                return;
-            }
-            if (followNavigation.isStalled()
-                    && mob.level() instanceof ServerLevel level) {
-                boolean recovered = BondedTeleportSafety.teleportNearOwner(
-                        level, mob, owner);
-                followNavigation.resetProgress();
-                if (recovered) {
+                if (TakeoverService.canPhysicallyCapture(mob, owner)) {
+                    beginHold();
                     return;
                 }
             }
-            if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
+            if (--repathTicks <= 0) {
                 repathTicks = 5;
                 followNavigation.moveToward(owner, APPROACH_SPEED);
             }
@@ -200,7 +185,7 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
             }
             lastProgressPosition = currentPosition;
         }
-        if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
+        if (--repathTicks <= 0) {
             repathTicks = 12;
             moveAwayFromDanger();
         }
@@ -227,9 +212,7 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
         mob.setSprinting(false);
         mob.getNavigation().stop();
         followNavigation.reset();
-        if (ability instanceof GrabEntityAbilityExtensor extensor) {
-            extensor.setSafeModeAuthoritative(false);
-        }
+        ChangedAddonCompat.configureFriendlyGrab(ability, false);
         LatexSocialMemory.endOrganicEvacuation(mob);
         clearState();
     }
@@ -246,16 +229,19 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
 
     private void beginHold() {
         if (owner == null
-                || !(ability instanceof GrabEntityAbilityExtensor extensor)) {
+                || !owner.isAlive() || owner.level() != mob.level()
+                || BondedSuitService.isRescueGraceActive(owner)
+                || GrabEntityAbility.getGrabber(owner) != null
+                || ability == null
+                || !TakeoverService.canPhysicallyCapture(mob, owner)) {
             finished = true;
             return;
         }
         mob.getNavigation().stop();
-        grabber.applyGrabCooldown(0);
+        ability.getController().forceCooldown(0);
         LatexSocialMemory.beginOrganicEvacuation(
                 mob, owner, WATCHDOG_HOLD_TICKS);
-        extensor.setAllowGrabTransfurred(true);
-        extensor.setSafeModeAuthoritative(true);
+        ChangedAddonCompat.configureFriendlyGrab(ability, true);
         ability.suited = false;
         ability.grabbedHasControl = false;
         ability.grabStrength = 1.0F;
@@ -263,7 +249,7 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
         ability.useDown = false;
         if (!ability.grabEntity(owner)) {
             LatexSocialMemory.endOrganicEvacuation(mob);
-            extensor.setSafeModeAuthoritative(false);
+            ChangedAddonCompat.configureFriendlyGrab(ability, false);
             finished = true;
             return;
         }
@@ -273,7 +259,7 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
         stuckTicks = 0;
         lastProgressPosition = mob.position();
         Changed.PACKET_HANDLER.send(
-                PacketDistributor.TRACKING_ENTITY.with(grabber::asMob),
+                PacketDistributor.TRACKING_ENTITY.with(() -> mob),
                 new GrabEntityPacket(mob, owner, GrabType.ARMS));
         ChangedSynergyNetwork.CHANNEL.send(
                 PacketDistributor.PLAYER.with(() -> owner),
@@ -291,7 +277,7 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
             ability.useDown = false;
             ability.releaseEntity(false);
             Changed.PACKET_HANDLER.send(
-                    PacketDistributor.TRACKING_ENTITY.with(grabber::asMob),
+                    PacketDistributor.TRACKING_ENTITY.with(() -> mob),
                     new GrabEntityPacket(mob, owner, GrabType.RELEASE));
             ChangedSynergyNetwork.CHANNEL.send(
                     PacketDistributor.PLAYER.with(() -> owner),
@@ -301,13 +287,14 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
                 NpcDialogue.trigger(mob, owner, evacuationCue(false));
             }
         }
-        if (ability instanceof GrabEntityAbilityExtensor extensor) {
-            extensor.setSafeModeAuthoritative(false);
-        }
+        ChangedAddonCompat.configureFriendlyGrab(ability, false);
         LatexSocialMemory.endOrganicEvacuation(mob);
+        if (owner != null) {
+            BondedSuitService.markRescueReleased(owner);
+        }
         mob.getPersistentData().putLong(
                 NEXT_RESCUE, mob.level().getGameTime() + 100L);
-        grabber.applyGrabCooldown(40);
+        if (ability != null) ability.getController().forceCooldown(40);
         mob.setSprinting(false);
         mob.getNavigation().stop();
         restoreStepHeight();

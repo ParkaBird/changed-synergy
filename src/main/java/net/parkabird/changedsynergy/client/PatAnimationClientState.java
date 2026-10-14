@@ -3,9 +3,12 @@ package net.parkabird.changedsynergy.client;
 import com.mojang.math.Axis;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import net.ltxprogrammer.changed.client.renderer.model.AdvancedHumanoidModel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -80,6 +83,23 @@ public final class PatAnimationClientState {
             return null;
         }
         return new Pose(state.phase(now), state.blend(now));
+    }
+
+    /** Missing optional model parts must not interrupt the pat interaction. */
+    public static boolean applyModelRightArmPose(
+            int actorId, float partialTick, AdvancedHumanoidModel<?> model) {
+        if (model == null || pose(actorId, partialTick) == null) {
+            return false;
+        }
+        ModelPart arm;
+        try {
+            arm = model.getArm(HumanoidArm.RIGHT);
+        } catch (NullPointerException | IllegalArgumentException
+                | NoSuchElementException | UnsupportedOperationException missingArm) {
+            // Some models throw instead of returning null for an absent limb.
+            return false;
+        }
+        return applyRightArmPose(actorId, partialTick, arm);
     }
 
     /** Applies the shared shoulder-height third-person stroke to any armed model. */

@@ -2,7 +2,6 @@ package net.parkabird.changedsynergy.event;
 
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.ai.LatexAssimilationDecision;
-import net.ltxprogrammer.changed.init.ChangedTags;
 import net.ltxprogrammer.changed.process.TransfurEvents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -54,7 +53,7 @@ public final class AssimilationEcologyEvents {
             return;
         }
 
-        boolean mindless = victim.getType().is(MINDLESS_TARGETS);
+        boolean mindless = isMindless(victim);
         if (mindless) {
             if (!ChangedSynergyConfig.COMMON.allowMindlessMobTransfur.get()
                     && !ChangedVanillaCompat.suppliesDedicatedConversion(
@@ -64,12 +63,9 @@ public final class AssimilationEcologyEvents {
                 event.setDecision(forceAbsorption(decision));
                 decision = event.getDecision();
             }
-        } else if (victim.getType().is(
-                        ChangedTags.EntityTypes.HUMANOIDS)
-                && !victim.getType().is(SENTIENT_TARGETS)) {
-            event.setCanceled(true);
-            return;
         }
+        // Changed's extensible humanoids tag must not require a second
+        // Synergy allowlist entry to use the native grab/transfur flow.
 
         if (decision.method()
                         == LatexAssimilationDecision.Method.ABSORPTION
@@ -91,16 +87,18 @@ public final class AssimilationEcologyEvents {
         if (victim instanceof Player || event.getDecision() == null) {
             return;
         }
-        boolean mindless = victim.getType().is(MINDLESS_TARGETS);
+        boolean mindless = isMindless(victim);
         boolean blockedMindless = mindless
                 && !ChangedSynergyConfig.COMMON
                         .allowMindlessMobTransfur.get();
-        boolean blockedHumanoid = !mindless
-                && victim.getType().is(ChangedTags.EntityTypes.HUMANOIDS)
-                && !victim.getType().is(SENTIENT_TARGETS);
-        if (blockedMindless || blockedHumanoid) {
+        if (blockedMindless) {
             event.setCanceled(true);
         }
+    }
+
+    private static boolean isMindless(LivingEntity victim) {
+        // A datapack can explicitly classify a normally mindless species as sentient.
+        return victim.getType().is(MINDLESS_TARGETS) && !victim.getType().is(SENTIENT_TARGETS);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

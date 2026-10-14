@@ -72,6 +72,8 @@ public final class BondedRevivalService {
         String form = creature.getSelfVariant().getFormId().toString();
         boolean darkMask = HunterFaction.of(creature) == HunterFaction.DARK;
 
+        // Restore any real held meal/equipment before death drops and identity capture.
+        PlayerOutpostMealGoal.cleanup(creature);
         CompoundTag snapshot = creature.saveWithoutId(new CompoundTag());
         snapshot.putString("id", EntityType.getKey(creature.getType()).toString());
         sanitizeSnapshot(snapshot);
@@ -364,7 +366,7 @@ public final class BondedRevivalService {
         }
         if (BondedSuitService.ability(revived) == null) {
             revived.getPersistentData().putBoolean("ChangedSynergyRevivalGrabAbility", true);
-            BondedSuitService.ensureRevivalGrabAbility(revived);
+            BondedSuitService.ensureGrabAbility(revived);
             net.parkabird.changedsynergy.network.ChangedSynergyNetwork.CHANNEL.send(
                     net.minecraftforge.network.PacketDistributor.TRACKING_ENTITY.with(() -> revived),
                     new net.parkabird.changedsynergy.network.RevivalGrabAbilityPacket(revived.getId()));
@@ -604,6 +606,14 @@ public final class BondedRevivalService {
         if (snapshot.contains("ForgeData", Tag.TAG_COMPOUND)) {
             snapshot.getCompound("ForgeData").remove("ChangedSynergyCarriedResource");
             snapshot.getCompound("ForgeData").remove("ChangedSynergyBondedInventory");
+            // Camp cargo drops at death; reviving the identity must not recreate that inventory or seat.
+            for (String key : new String[]{"ChangedSynergyPlayerOutpostCargo", "ChangedSynergyPlayerOutpostWorkBag",
+                    "ChangedSynergyPlayerOutpostWorkOutput", "ChangedSynergyPlayerOutpostFarmBatch", "ChangedSynergyPlayerOutpostHaulBatch", "ChangedSynergyPlayerOutpostOwner",
+                    "ChangedSynergyPlayerOutpostResting", "ChangedSynergyOutpostMealSeat", "ChangedSynergyOutpostMealPlace",
+                    "ChangedSynergyCampMealFood", "ChangedSynergyCampMealOffhand",
+                    "ChangedSynergyCampMealUsing", "ChangedSynergyCampMealFinished"}) {
+                snapshot.getCompound("ForgeData").remove(key);
+            }
         }
     }
 
@@ -616,6 +626,9 @@ public final class BondedRevivalService {
                 continue;
             }
             CompoundTag memory = memories.getCompound(playerId);
+            if (memory.contains("Affection", Tag.TAG_INT)) {
+                memory.putInt("Affection", memory.getInt("Affection") * 4 / 5);
+            }
             for (String key : new String[]{
                     "Encounters", "PatsReceived", "PatsGiven", "GiftFavor",
                     "PlaysTogether", "RescueConcern"}) {

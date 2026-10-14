@@ -245,6 +245,7 @@ public final class PureWhiteReformationGoal extends Goal {
             return;
         }
         ServerPlayer observer = level.players().stream()
+                .filter(player -> !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player))
                 .filter(player -> player.isAlive()
                         && !player.isSpectator()
                         && player.distanceToSqr(mob) <= OBSERVER_RANGE_SQR)

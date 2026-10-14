@@ -16,11 +16,11 @@ Use the same version number, dependency table and release JAR on GitHub, Modrint
 
 ## Short description
 
-Turns Changed creatures into named social NPCs with memory, friendships, voluntary bonds, negotiation, faction reputation, dialogue, roles and world interactions.
+Friendships, factions and camps for Changed, with native latex origins and Instinct-mode roleplay through TrueTransfur.
 
 ## Project introduction
 
-Changed: Synergy turns fierce latex creatures into neighbors you can get along with. Oranges or a friendly pat often work better than fists and blades. Transfur is no longer always the end but a reversible and harmless form of interaction. Just be careful: some may be a little too EXCITED to see you.
+Use [the platform description](PLATFORM_DESCRIPTION.md) for current gameplay, requirements and links to the [player guides](README.md). It can be copied to CurseForge and Modrinth. Synergy 1.1.4 is paired with TrueTransfur 2.0.0; the 1.0.1 integration remains supported with fewer Instinct features.
 
 ## Chinese short description
 
@@ -29,7 +29,10 @@ Changed: Synergy turns fierce latex creatures into neighbors you can get along w
 ## Dependency declarations
 
 - Required: Changed 0.15.7
+- Optional: TrueTransfur 2.0.0, with backward compatibility for 1.0.1
+- Required with TrueTransfur 2.0.0: Mixin Args 1.0 or newer
 - Optional: Changed Addon Plus 2.9.2c
+- Other supported integrations: see [COMPATIBILITY.md](../COMPATIBILITY.md)
 
 Forge itself and Minecraft should use the supported ranges in `mods.toml`.
 
@@ -41,12 +44,13 @@ Use this text where a platform requests an AI disclosure:
 
 ## Current release
 
-- Version: `0.1.2`
+- Version: `1.1.4`
 - Release type: Release
-- Display title: `Changed: Synergy 0.1.2 for Forge 1.20.1`
+- Display title: `Changed: Synergy 1.1.4 for Forge 1.20.1`
 - Upload only the release JAR, not the sources JAR, as the main downloadable mod.
 - Attach the sources JAR to the GitHub release if desired.
-- Copy the relevant section of `CHANGELOG.md` into the file changelog.
+- Use [the 1.1.4 changelog](CHANGELOG-1.1.4.md) for release notes.
+- Coordinate public release with TrueTransfur 2.0.0. Source and player guides can be updated ahead of the simultaneous launch.
 
 ## Gallery and description
 
@@ -58,7 +62,7 @@ The README can be used as the long description. Remove GitHub-only contribution 
 
 1. Push the tagged source to GitHub and create the GitHub release.
 2. Download the release attachment once and compare its SHA-256 checksum with the local candidate.
-3. Create the Modrinth and CurseForge projects with the same metadata.
+3. Update the existing Modrinth and CurseForge projects with matching metadata and the guide links.
 4. Upload the exact same JAR to both platforms.
 5. Add the final Modrinth and CurseForge URLs to `mods.toml` and the README in the next patch release if the first upload has already been signed and tagged.
 

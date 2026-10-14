@@ -82,6 +82,7 @@ public final class LatexCreatureCombatRules {
         if (!(attacker instanceof ChangedEntity changed)) {
             return false;
         }
+        if (isFriendlyPlayerBodyPair(changed, target)) return true;
         if (areCompatriots(changed, target)) {
             return true;
         }
@@ -96,6 +97,19 @@ public final class LatexCreatureCombatRules {
         return owner == null
                 || !BondedOwnerDefenseGoal.allowsConfiguredDefense(
                         changed, owner, target);
+    }
+
+    /** An INSTINCT body retains its player's alliances without acquiring NPC memories. */
+    public static boolean isFriendlyPlayerBodyPair(ChangedEntity first, ChangedEntity second) {
+        ServerPlayer firstOwner = net.parkabird.changedsynergy.compat.TrueTransfurCompat.bodyOwner(first);
+        ServerPlayer secondOwner = net.parkabird.changedsynergy.compat.TrueTransfurCompat.bodyOwner(second);
+        if (firstOwner != null && secondOwner != null)
+            return firstOwner == secondOwner || !firstOwner.server.isPvpAllowed() || !firstOwner.canHarmPlayer(secondOwner);
+        ServerPlayer owner = firstOwner != null ? firstOwner : secondOwner;
+        ChangedEntity npc = firstOwner != null ? second : first;
+        return owner != null && (LatexSocialMemory.isPetOwner(npc, owner)
+                || net.parkabird.changedsynergy.origin.NativeOriginService.protectedMember(npc, owner)
+                || CreaturePersonality.hasTrustedRelationship(npc, owner) && !LatexSocialMemory.isProvoked(npc, owner));
     }
 
     /** Keeps village civilians/protectors and Changed creatures out of mutual combat. */
@@ -203,7 +217,7 @@ public final class LatexCreatureCombatRules {
     }
 
     /** A player's bonded companion and trusted friends are always on one side. */
-    private static boolean sharePlayerAlliance(
+    public static boolean sharePlayerAlliance(
             ChangedEntity first,
             ChangedEntity second) {
         return companionLinksTo(first, second)
@@ -213,17 +227,33 @@ public final class LatexCreatureCombatRules {
     private static boolean companionLinksTo(
             ChangedEntity companion,
             ChangedEntity other) {
-        if (!LatexSocialMemory.hasActiveBond(companion)) {
-            return false;
-        }
-        for (UUID playerId : LatexSocialMemory.bondedPlayerUuids(companion)) {
+        java.util.Set<UUID> owners = companionOwners(companion);
+        java.util.Set<UUID> otherOwners = companionOwners(other);
+        if (!owners.isEmpty() && !otherOwners.isEmpty()
+                && companion.getServer() != null && !companion.getServer().isPvpAllowed()) return true;
+        for (UUID playerId : owners) {
             if (isPersonalAlly(other, playerId)) {
                 return true;
             }
+            ServerPlayer player = companion.getServer() == null ? null : companion.getServer().getPlayerList().getPlayer(playerId);
+            if (player == null) continue;
+            for (UUID otherId : otherOwners) {
+                ServerPlayer otherPlayer = player.server.getPlayerList().getPlayer(otherId);
+                if (otherPlayer != null && (!player.server.isPvpAllowed() || player.isAlliedTo(otherPlayer) || PlayerFriendshipData.friends(player,otherPlayer))) return true;
+            }
         }
-        return LatexSocialMemory.petOwnerUuid(companion)
-                .map(playerId -> isPersonalAlly(other, playerId))
-                .orElse(false);
+        return false;
+    }
+
+    private static java.util.Set<UUID> companionOwners(ChangedEntity creature) {
+        java.util.Set<UUID> owners = new java.util.HashSet<>();
+        ServerPlayer bodyOwner = net.parkabird.changedsynergy.compat.TrueTransfurCompat.bodyOwner(creature);
+        if (bodyOwner != null) owners.add(bodyOwner.getUUID());
+        if (LatexSocialMemory.hasActiveBond(creature)) owners.addAll(LatexSocialMemory.bondedPlayerUuids(creature));
+        LatexSocialMemory.petOwnerUuid(creature).ifPresent(owners::add);
+        CreaturePersonality.socialPartnerUuid(creature).ifPresent(owners::add);
+        PlayerOutpostService.assignedOwner(creature).ifPresent(owners::add);
+        return owners;
     }
 
     private static boolean isPersonalAlly(
@@ -246,10 +276,10 @@ public final class LatexCreatureCombatRules {
         }
         if (mob.getTarget() == opponent) {
             mob.setTarget(null);
+            mob.getNavigation().stop();
         }
         mob.setAggressive(false);
         mob.setSprinting(false);
-        mob.getNavigation().stop();
         if (mob instanceof ChangedEntity changed) {
             HuntMemory.clear(changed);
             LatexSocialMemory.clearPetDefense(changed, opponent);

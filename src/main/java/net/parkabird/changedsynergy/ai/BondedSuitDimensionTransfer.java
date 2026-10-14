@@ -3,6 +3,8 @@ package net.parkabird.changedsynergy.ai;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.minecraft.server.level.ServerLevel;
@@ -11,6 +13,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
@@ -18,26 +22,28 @@ import net.parkabird.changedsynergy.ChangedSynergyMod;
 /** Carries a bonded suit through the player's dimension change. */
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID)
 public final class BondedSuitDimensionTransfer {
-    private static final Map<UUID, UUID> PENDING = new HashMap<>();
+    private record PendingSuit(UUID pet, ResourceKey<Level> destination, long expires) {}
+    private static final Map<UUID, PendingSuit> PENDING = new HashMap<>();
 
     private BondedSuitDimensionTransfer() {}
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void beforeTravel(EntityTravelToDimensionEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         ChangedEntity pet = BondedSuitService.getFriendlySuitPet(player);
         if (pet != null && LatexSocialMemory.isPetOwner(pet, player)) {
-            PENDING.put(player.getUUID(), pet.getUUID());
+            PENDING.put(player.getUUID(), new PendingSuit(pet.getUUID(),
+                    event.getDimension(), player.level().getGameTime() + 400L));
         }
     }
 
     @SubscribeEvent
     public static void afterTravel(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        UUID petId = PENDING.get(player.getUUID());
-        if (petId == null) return;
+        PendingSuit pending = PENDING.get(player.getUUID());
+        if (pending == null || player.level().dimension() != pending.destination()) return;
         player.server.execute(() -> {
-            if (restore(player, petId)) PENDING.remove(player.getUUID(), petId);
+            if (restore(player, pending.pet())) PENDING.remove(player.getUUID(), pending);
         });
     }
 
@@ -46,9 +52,22 @@ public final class BondedSuitDimensionTransfer {
         if (event.phase != TickEvent.Phase.END
                 || !(event.player instanceof ServerPlayer player)
                 || player.tickCount % 20 != 0) return;
-        UUID petId = PENDING.get(player.getUUID());
-        if (petId != null && restore(player, petId))
-            PENDING.remove(player.getUUID(), petId);
+        PendingSuit pending = PENDING.get(player.getUUID());
+        if (pending == null) return;
+        if (player.level().getGameTime() >= pending.expires()
+                || player.level().dimension() == pending.destination()
+                        && restore(player, pending.pet())) {
+            PENDING.remove(player.getUUID(), pending);
+        }
+    }
+
+    public static void cancelRestoration(ServerPlayer player) {
+        PENDING.remove(player.getUUID());
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        PENDING.clear();
     }
 
     @SubscribeEvent

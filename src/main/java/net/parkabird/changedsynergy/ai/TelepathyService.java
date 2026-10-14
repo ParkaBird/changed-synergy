@@ -22,13 +22,17 @@ public final class TelepathyService {
     }
 
     public static boolean canUnderstand(ServerPlayer player) {
-        return data(player).getBoolean(UNLOCKED);
+        return enabled() && data(player).getBoolean(UNLOCKED);
+    }
+
+    public static boolean enabled() {
+        return ChangedSynergyConfig.COMMON.telepathyEnabled.get();
     }
 
     public static void recordCompletedTransfur(
             ServerPlayer player,
             TransfurVariantInstance<?> instance) {
-        if (instance == null || instance.isTemporaryFromSuit()) {
+        if (!enabled() || instance == null || instance.isTemporaryFromSuit()) {
             return;
         }
         CompoundTag data = data(player);

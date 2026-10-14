@@ -44,6 +44,15 @@ public final class FriendlySuitClientState {
             return;
         }
         if (active) {
+            // Only one carrier can own this player. Replaying an older entry
+            // every client tick otherwise makes the two suits fight for control.
+            var previous = ACTIVE_SUITS.values().stream()
+                    .filter(state -> state.ownerId == ownerId && state.grabberId != grabberId)
+                    .toList();
+            for (SuitState state : previous) {
+                ACTIVE_SUITS.remove(state.grabberId);
+                apply(state, false);
+            }
             SuitState state = new SuitState(grabberId, ownerId, clientGameTime());
             ACTIVE_SUITS.put(grabberId, state);
             apply(state, true);
@@ -130,7 +139,12 @@ public final class FriendlySuitClientState {
 
         if (!active) {
             if (ability.grabbedEntity == owner) {
+                LivingEntity nextCarrier = owner instanceof LivingEntityDataExtension extension
+                        && extension.getGrabbedBy() != grabber ? extension.getGrabbedBy() : null;
                 ability.releaseEntity(false);
+                if (nextCarrier != null && owner instanceof LivingEntityDataExtension extension) {
+                    extension.setGrabbedBy(nextCarrier);
+                }
             }
             clearGrabbedReference(owner, state.grabberId);
             grabber.setInvisible(false);

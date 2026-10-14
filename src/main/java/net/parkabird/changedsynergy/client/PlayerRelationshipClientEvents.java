@@ -59,7 +59,10 @@ public final class PlayerRelationshipClientEvents {
 
     @SubscribeEvent
     public static void onMouseScrolled(ScreenEvent.MouseScrolled.Pre event) {
-        if (event.getScrollDelta() == 0.0D) {
+        var player = Minecraft.getInstance().player;
+        // The server forbids relationship menus in spectator mode. Do not close
+        // the native ability wheel for a handoff that it cannot acknowledge.
+        if (event.getScrollDelta() == 0.0D || player == null || player.isSpectator()) {
             return;
         }
 
@@ -96,6 +99,7 @@ public final class PlayerRelationshipClientEvents {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null || minecraft.player.isSpectator()) return;
         Component hint = Component.translatable(
                 "menu.changed_synergy.relationship.switch_to_relationships");
         GuiGraphics graphics = event.getGuiGraphics();

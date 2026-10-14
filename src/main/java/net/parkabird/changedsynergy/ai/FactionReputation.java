@@ -53,6 +53,17 @@ public final class FactionReputation {
         return reputation.getInt(key);
     }
 
+    /** Native players keep their birth faction even while travelling through another territory. */
+    public static int scoreForAccount(ServerPlayer player,String account) {
+        if(!enabled(player))return 0;
+        HunterFaction faction=java.util.Arrays.stream(HunterFaction.values()).filter(value->value.id().equals(account.split(":",2)[0])).findFirst().orElse(null);
+        if(faction==null)return 0;
+        String key="faction:"+account;CompoundTag reputation=data(player);
+        initializeOrdinaryScore(reputation,faction,key,player.level());
+        initializeLightScore(reputation,faction,key,player.level(),player.blockPosition(),player.level());
+        reconcileDiplomacy(player,reputation);return reputation.getInt(key);
+    }
+
     /** Reads faction standing at a territory without needing a sample creature. */
     public static int scoreAt(
             HunterFaction faction,
@@ -218,6 +229,27 @@ public final class FactionReputation {
             ServerPlayer player,
             int value) {
         return adjust(creature, player, value - score(creature, player));
+    }
+
+    /** Citizenship starts at recognition; it does not grant alliance rewards. */
+    public static void initializeOriginStanding(ServerPlayer player, String group) {
+        CompoundTag reputation = data(player);
+        String key = "faction:" + group;
+        reputation.putInt(key, Math.max(RECOGNIZED_THRESHOLD, reputation.getInt(key)));
+    }
+
+    /** A native player is a real faction member, not a spawned sample NPC. */
+    public static void damageNativeMember(ServerPlayer attacker, String group, int amount) {
+        if (!enabled(attacker)) return;
+        CompoundTag reputation = data(attacker);
+        String key = "faction:" + group;
+        int previous = reputation.contains(key) ? reputation.getInt(key)
+                : ChangedSynergyGameRules.initialFactionReputation(attacker.level());
+        int updated = Math.max(MINIMUM, Math.min(MAXIMUM, previous + amount));
+        reputation.putInt(key, updated);
+        if (Standing.forScore(previous) != Standing.forScore(updated)) attacker.sendSystemMessage(Component.translatable(
+                "message.changed_synergy.reputation.changed", nameForAccount(key),
+                Component.translatable(Standing.forScore(updated).translationKey()), updated));
     }
 
     public static void copyPlayerData(

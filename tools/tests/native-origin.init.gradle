@@ -1,0 +1,16 @@
+// gradlew -I tools/tests/native-origin.init.gradle runServer --offline --no-daemon -PtrueTransfurJar=<path>
+gradle.beforeProject { project ->
+    project.layout.buildDirectory.set(project.file('.codex-tmp/native-origin-build'))
+    project.afterEvaluate {
+        project.sourceSets.main.java.srcDir(project.file('tools/tests/native-origin'))
+        def fixtureClasses = project.file('.codex-tmp/native-origin-build/classes/java/main')
+        project.sourceSets.main.java.destinationDirectory.set(fixtureClasses)
+        project.sourceSets.main.output.classesDirs = project.files(fixtureClasses)
+        project.tasks.named('compileJava').configure { destinationDirectory.set(fixtureClasses) }
+        if (project.hasProperty('trueTransfurJar')) {
+            project.dependencies.add('runtimeOnly', project.fg.deobf(project.files(project.property('trueTransfurJar'))))
+        }
+        project.minecraft.runs.server.workingDirectory project.file('.codex-tmp/native-origin-server')
+        project.minecraft.runs.server.property 'forge.logging.console.level', 'info'
+    }
+}

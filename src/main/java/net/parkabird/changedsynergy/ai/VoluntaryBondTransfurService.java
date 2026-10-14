@@ -40,10 +40,26 @@ public final class VoluntaryBondTransfurService {
     public static boolean canOffer(
             ChangedEntity creature,
             ServerPlayer player) {
-        return creature.isAlive()
+        return canTransfur(creature, player) && BondTokenService.ready(creature, player);
+    }
+
+    public static boolean canOfferFriendly(ChangedEntity creature, ServerPlayer player) {
+        return canTransfur(creature, player) && CreaturePersonality.familiarity(creature, player) >= 60
+                && !BondTokenService.canCreateBond(creature, player) && !BondTokenService.reservedElsewhere(creature, player);
+    }
+
+    private static boolean canTransfur(ChangedEntity creature, ServerPlayer player) {
+        return player.isAlive() && !player.isSpectator()
+                && !net.parkabird.changedsynergy.origin.NativeOriginService.pending(player)
+                && creature.isAlive()
                 && !creature.isRemoved()
                 && creature.level() == player.level()
                 && player.distanceToSqr(creature) <= 64.0D
+                && player.hasLineOfSight(creature)
+                && !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
+                && !TakeoverService.active(player) && !TakeoverService.carrying(creature)
+                && net.ltxprogrammer.changed.ability.GrabEntityAbility.getGrabber(player) == null
+                && !LatexSocialMemory.isFriendlySuitActive(creature, player)
                 && LatexSocialMemory.isSocialLatex(creature)
                 && CreatureSocialProfile.allowsSocialWheel(creature)
                 && CreaturePersonality.hasTrustedRelationship(creature, player)
@@ -51,6 +67,7 @@ public final class VoluntaryBondTransfurService {
                         == CreaturePersonality.RelationshipTier.CLOSE
                 && !LatexSocialMemory.isProvoked(creature, player)
                 && !LatexSocialMemory.hasBetrayedPatTruce(creature, player)
+                && !FactionReputation.isHostile(creature, player)
                 && !ProcessTransfur.isPlayerTransfurred(player)
                 && creature.getSelfVariant() != null;
     }
@@ -62,7 +79,11 @@ public final class VoluntaryBondTransfurService {
     public static boolean select(
             ChangedEntity creature,
             ServerPlayer player) {
-        if (!canOffer(creature, player)) {
+        return select(creature, player, false);
+    }
+
+    public static boolean select(ChangedEntity creature, ServerPlayer player, boolean friendlyOnly) {
+        if (!(friendlyOnly ? canOfferFriendly(creature, player) : canOffer(creature, player))) {
             clearConfirmation(player);
             showUnavailableReason(creature, player);
             return false;
@@ -74,15 +95,18 @@ public final class VoluntaryBondTransfurService {
                 ? root.getCompound(CONFIRMATION) : new CompoundTag();
         boolean confirmed = confirmation.hasUUID(TARGET)
                 && creature.getUUID().equals(confirmation.getUUID(TARGET))
+                && confirmation.getBoolean("FriendlyOnly") == friendlyOnly
                 && confirmation.getLong(EXPIRES) >= now;
         if (!confirmed) {
             confirmation.putUUID(TARGET, creature.getUUID());
+            confirmation.putBoolean("FriendlyOnly", friendlyOnly);
             confirmation.putLong(EXPIRES, now + CONFIRMATION_WINDOW);
             root.put(CONFIRMATION, confirmation);
             creature.getNavigation().stop();
             creature.getLookControl().setLookAt(player, 30.0F, 30.0F);
             player.displayClientMessage(Component.translatable(
-                    "message.changed_synergy.social.voluntary_transfur_confirm",
+                    friendlyOnly ? "message.changed_synergy.social.friendly_transfur_confirm"
+                            : "message.changed_synergy.social.voluntary_transfur_confirm",
                     creature.getDisplayName()), true);
             NpcDialogue.trigger(
                     creature, player, Cue.VOLUNTARY_BOND_CONFIRM);
@@ -90,7 +114,7 @@ public final class VoluntaryBondTransfurService {
         }
 
         clearConfirmation(player);
-        return complete(creature, player);
+        return complete(creature, player, friendlyOnly);
     }
 
     /** True only while this exact friend is performing the confirmed transfur. */
@@ -104,10 +128,10 @@ public final class VoluntaryBondTransfurService {
 
     private static boolean complete(
             ChangedEntity creature,
-            ServerPlayer player) {
+            ServerPlayer player, boolean friendlyOnly) {
         // Recheck after the confirmation click. A bond or transfur may have
         // appeared while the wheel was still open.
-        if (!canOffer(creature, player)) {
+        if (!(friendlyOnly ? canOfferFriendly(creature, player) : canOffer(creature, player))) {
             showUnavailableReason(creature, player);
             return false;
         }
@@ -140,11 +164,7 @@ public final class VoluntaryBondTransfurService {
             instance.transfurProgression = progress;
             instance.setTemporaryForSuit(false);
             InvoluntaryTransfurNegotiation.abandonForVoluntaryBond(player);
-            boolean createBond = ChangedSynergyGameRules.enabled(
-                        player.level(), ChangedSynergyGameRules.BOND_SYSTEM)
-                    && !LatexSocialMemory.hasActiveBond(creature)
-                    && (ChangedSynergyConfig.COMMON.allowMultipleBonds.get()
-                            || LatexSocialMemory.bondedCreatureUuids(player).isEmpty());
+            boolean createBond = !friendlyOnly && BondTokenService.canCreateBond(creature, player);
             if (createBond) {
                 LatexSocialMemory.addBond(creature, player);
             }
@@ -186,9 +206,13 @@ public final class VoluntaryBondTransfurService {
         String key;
         if (ProcessTransfur.isPlayerTransfurred(player)) {
             key = "message.changed_synergy.social.voluntary_transfur_human_only";
-        } else if (CreaturePersonality.relationshipTier(creature, player)
-                != CreaturePersonality.RelationshipTier.CLOSE) {
+        } else if (CreaturePersonality.familiarity(creature, player) < 60
+                && (CreaturePersonality.balanced() || ChangedSynergyConfig.COMMON.bondTokensRequired.get())
+                || CreaturePersonality.relationshipTier(creature, player) != CreaturePersonality.RelationshipTier.CLOSE) {
             key = "message.changed_synergy.social.voluntary_transfur_requires_close";
+        } else if (ChangedSynergyConfig.COMMON.bondTokensRequired.get() && BondTokenService.canCreateBond(creature, player)
+                && !CreaturePersonality.recognizesBond(creature, player) && !BondTokenService.reservedFor(creature, player)) {
+            key = "message.changed_synergy.social.voluntary_transfur_requires_token";
         } else {
             key = "message.changed_synergy.social.voluntary_transfur_unavailable";
         }

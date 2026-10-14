@@ -167,7 +167,7 @@ public final class BondedCreatureInventory implements Container {
             if (stack.isEmpty() || !stack.isCorrectToolForDrops(state)) {
                 continue;
             }
-            float speed = stack.getDestroySpeed(state);
+            float speed = net.parkabird.changedsynergy.ai.CompanionToolEffects.toolMiningSpeed(stack, state);
             if (best < 0 || speed > bestSpeed) {
                 best = index;
                 bestSpeed = speed;

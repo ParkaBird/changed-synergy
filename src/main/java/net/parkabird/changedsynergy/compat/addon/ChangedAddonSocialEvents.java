@@ -1,10 +1,7 @@
 package net.parkabird.changedsynergy.compat.addon;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
 import net.foxyas.changedaddon.ChangedAddonMod;
 import net.foxyas.changedaddon.ability.api.GrabEntityAbilityExtensor;
 import net.foxyas.changedaddon.entity.ai.LatexAttackCondition;
@@ -30,10 +27,12 @@ import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket.GrabType;
 import net.ltxprogrammer.changed.init.ChangedSounds;
+import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.BondedOwnerDefenseGoal;
 import net.parkabird.changedsynergy.ai.BondedSuitService;
+import net.parkabird.changedsynergy.ai.OrganicOwnerEvacuationGoal;
 import net.parkabird.changedsynergy.ai.CreaturePersonality;
 import net.parkabird.changedsynergy.ai.CreatureSocialProfile;
 import net.parkabird.changedsynergy.ai.HypnosisProfile;
@@ -52,14 +51,14 @@ import net.parkabird.changedsynergy.network.FriendlySocialHugSyncPacket;
 import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
 import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -68,13 +67,6 @@ import net.minecraftforge.network.PacketDistributor;
 
 /** Loaded reflectively only while Changed Addon is installed. */
 public final class ChangedAddonSocialEvents {
-    private record SuspendedWorkGoal(int priority, Goal goal) {
-    }
-
-    private static final Map<ChangedEntity, List<SuspendedWorkGoal>>
-            SUSPENDED_WORK_GOALS = new WeakHashMap<>();
-    private static final Map<ChangedEntity, Boolean> WORK_GOALS_ENABLED_STATE =
-            new WeakHashMap<>();
     private static final String SYNCED_NATIVE_SUIT_OWNER =
             "ChangedSynergySyncedNativeSuitOwner";
     private static final String SYNCED_NATIVE_SUIT_WAS_BONDED =
@@ -94,6 +86,14 @@ public final class ChangedAddonSocialEvents {
     public static boolean isSocialSystemExcludedBoss(ChangedEntity creature) {
         return creature instanceof AbstractLuminarcticLeopard leopard
                 && leopard.isBoss();
+    }
+
+    /** Run before Addon's own feedback handler so sleeping creatures stay asleep. */
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onSleepingPat(ProcessPatFeature.GlobalPatReactionEvent event) {
+        if ((event.patter instanceof ChangedEntity actor && actor.isSleeping()
+                || event.target instanceof ChangedEntity target && target.isSleeping())
+                && event.isCancelable()) event.setCanceled(true);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -143,7 +143,7 @@ public final class ChangedAddonSocialEvents {
                         .noneMatch(wrapped -> wrapped.getGoal()
                                 instanceof OrganicOwnerEvacuationGoal)) {
                     mob.goalSelector.addGoal(
-                            -5, new OrganicOwnerEvacuationGoal(mob, grabber));
+                            -5, new OrganicOwnerEvacuationGoal(mob));
                 }
                 if (mob.goalSelector.getAvailableGoals().stream()
                         .noneMatch(wrapped -> wrapped.getGoal() instanceof OrganicAssimilationGrabGoal)) {
@@ -161,19 +161,11 @@ public final class ChangedAddonSocialEvents {
         reconcileAddonWorkGoals(mob);
     }
 
-    @SubscribeEvent
-    public static void onEntityLeave(EntityLeaveLevelEvent event) {
-        if (!event.getLevel().isClientSide()
-                && event.getEntity() instanceof ChangedEntity mob) {
-            SUSPENDED_WORK_GOALS.remove(mob);
-            WORK_GOALS_ENABLED_STATE.remove(mob);
-        }
-    }
-
     /** Initializes abilities enabled after construction on both logical sides. */
     @SubscribeEvent
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
-        if (!(event.getEntity() instanceof ChangedEntity mob)) {
+        if (!(event.getEntity() instanceof ChangedEntity mob)
+                || mob.getUnderlyingPlayer() != null) {
             return;
         }
 
@@ -220,7 +212,9 @@ public final class ChangedAddonSocialEvents {
             return;
         }
 
-        if (grabber.getGrabAbilityInstance() == null) {
+        GrabEntityAbilityInstance registered = BondedSuitService.ability(mob);
+        if (grabber.getGrabAbilityInstance() == null
+                || registered != null && registered != grabber.getGrabAbilityInstance()) {
             ensureGrabAbility(mob, grabber);
         }
         if (!mob.level().isClientSide
@@ -231,6 +225,8 @@ public final class ChangedAddonSocialEvents {
                     () -> installSocialGrabGoals(mob, grabber));
         }
         GrabEntityAbilityInstance ability = grabber.getGrabAbilityInstance();
+        if(TakeoverService.carrying(mob)
+                ||mob.level().isClientSide&&mob.getPersistentData().getBoolean("SynergyTakeoverClient"))return;
         if (mob.level().isClientSide) {
             // Changed's SUIT packet does not carry grabbedHasControl. Native
             // dark latex repairs it in its own client tick, while Addon's
@@ -271,6 +267,19 @@ public final class ChangedAddonSocialEvents {
                 if (ability instanceof GrabEntityAbilityExtensor extensor) {
                     extensor.setSafeModeAuthoritative(false);
                 }
+            }
+        }
+
+        if (ability != null && ability.grabbedEntity instanceof ServerPlayer player
+                && LatexSocialMemory.isFriendlySuitActive(mob, player)) {
+            var body = ProcessTransfur.getPlayerTransfurVariant(player);
+            var ownerGrabber = GrabEntityAbility.getGrabber(player);
+            if (body != null && body.isTemporaryFromSuit()
+                    && ownerGrabber != null && ownerGrabber.getEntity() == mob) {
+                // Do not classify a transient control-bit reset as a hostile
+                // grab and release the authoritative friendly suit below.
+                ability.suited = true;
+                ability.grabbedHasControl = true;
             }
         }
 
@@ -338,73 +347,21 @@ public final class ChangedAddonSocialEvents {
         }
     }
 
-    /**
-     * Suspends the exact Addon work-goal instances so native pets retain their
-     * original priorities and parameters when the option is switched back on.
-     */
+    /** Native work keeps one goal instance; the common guard owns runtime switches. */
     private static void reconcileAddonWorkGoals(ChangedEntity mob) {
-        if (!(mob instanceof TamableLatexEntityFavors favors)) {
-            return;
+        if (!(mob instanceof TamableLatexEntityFavors favors)) return;
+        if (!LatexSocialMemory.usesNativePetMenu(mob)) {
+            if (mob.goalSelector.getAvailableGoals().stream().noneMatch(wrapped ->
+                    net.parkabird.changedsynergy.ai.PlayerOutpostService.underlyingCompanionTask(wrapped.getGoal()) instanceof LatexFishingGoal))
+                mob.goalSelector.addGoal(2, new LatexFishingGoal(favors, 0.3, 24, 3));
+            if (mob.goalSelector.getAvailableGoals().stream().noneMatch(wrapped ->
+                    net.parkabird.changedsynergy.ai.PlayerOutpostService.underlyingCompanionTask(wrapped.getGoal()) instanceof LatexCaveHarvestGoal))
+                mob.goalSelector.addGoal(2, new LatexCaveHarvestGoal(favors, 0.3, 24, 3));
+            if (mob.goalSelector.getAvailableGoals().stream().noneMatch(wrapped ->
+                    net.parkabird.changedsynergy.ai.PlayerOutpostService.underlyingCompanionTask(wrapped.getGoal()) instanceof LatexCaveTorchingGoal))
+                mob.goalSelector.addGoal(3, new LatexCaveTorchingGoal(favors, 0.3, 16, 3));
         }
-        boolean enabled = SynergyPerformanceTracker.featureEnabled(
-                Feature.COMPANION_WORK);
-        if (WORK_GOALS_ENABLED_STATE.get(mob) == Boolean.valueOf(enabled)) {
-            return;
-        }
-        if (!enabled) {
-            List<SuspendedWorkGoal> suspended = SUSPENDED_WORK_GOALS
-                    .computeIfAbsent(mob, ignored -> new ArrayList<>());
-            List<WrappedGoal> installed = mob.goalSelector.getAvailableGoals()
-                    .stream()
-                    .filter(wrapped -> isAddonWorkGoal(wrapped.getGoal()))
-                    .toList();
-            for (WrappedGoal wrapped : installed) {
-                boolean alreadySaved = suspended.stream()
-                        .anyMatch(saved -> saved.goal() == wrapped.getGoal());
-                if (!alreadySaved) {
-                    suspended.add(new SuspendedWorkGoal(
-                            wrapped.getPriority(), wrapped.getGoal()));
-                }
-                mob.goalSelector.removeGoal(wrapped.getGoal());
-            }
-            WORK_GOALS_ENABLED_STATE.put(mob, false);
-            return;
-        }
-
-        List<SuspendedWorkGoal> suspended = SUSPENDED_WORK_GOALS.remove(mob);
-        if (suspended != null) {
-            for (SuspendedWorkGoal saved : suspended) {
-                boolean alreadyInstalled = mob.goalSelector.getAvailableGoals()
-                        .stream()
-                        .anyMatch(wrapped -> wrapped.getGoal() == saved.goal());
-                if (!alreadyInstalled) {
-                    mob.goalSelector.addGoal(saved.priority(), saved.goal());
-                }
-            }
-        }
-        if (LatexSocialMemory.usesNativePetMenu(mob)) {
-            WORK_GOALS_ENABLED_STATE.put(mob, true);
-            return;
-        }
-        if (mob.goalSelector.getAvailableGoals().stream()
-                .noneMatch(wrapped -> wrapped.getGoal() instanceof LatexFishingGoal)) {
-            mob.goalSelector.addGoal(2, new LatexFishingGoal(favors, 0.3, 24, 3));
-        }
-        if (mob.goalSelector.getAvailableGoals().stream()
-                .noneMatch(wrapped -> wrapped.getGoal() instanceof LatexCaveHarvestGoal)) {
-            mob.goalSelector.addGoal(2, new LatexCaveHarvestGoal(favors, 0.3, 24, 3));
-        }
-        if (mob.goalSelector.getAvailableGoals().stream()
-                .noneMatch(wrapped -> wrapped.getGoal() instanceof LatexCaveTorchingGoal)) {
-            mob.goalSelector.addGoal(3, new LatexCaveTorchingGoal(favors, 0.3, 16, 3));
-        }
-        WORK_GOALS_ENABLED_STATE.put(mob, true);
-    }
-
-    private static boolean isAddonWorkGoal(Goal goal) {
-        return goal instanceof LatexFishingGoal
-                || goal instanceof LatexCaveHarvestGoal
-                || goal instanceof LatexCaveTorchingGoal;
+        net.parkabird.changedsynergy.ai.PlayerOutpostService.ensureCompanionWorkControls(mob);
     }
 
     public static int[] getBondedMenuState(ChangedEntity pet) {
@@ -422,6 +379,13 @@ public final class ChangedAddonSocialEvents {
                 favors.getAttackCondition().ordinal(),
                 favors.getCurrentFavor().ordinal()
         };
+    }
+
+    public static boolean isNativeTamingFood(ChangedEntity creature, ItemStack stack) {
+        return creature.getUnderlyingPlayer() == null
+                && CreatureSocialProfile.allowsPersonalRelationship(creature)
+                && creature instanceof net.foxyas.changedaddon.entity.defaults.AbstractExp2SnepChangedEntity exp2
+                && !exp2.isTame() && exp2.isTameItem(stack);
     }
 
     public static boolean supportsBondedPetBackend(ChangedEntity pet) {
@@ -526,9 +490,6 @@ public final class ChangedAddonSocialEvents {
     }
 
     public static boolean allowsBondedDefense(ChangedEntity pet, LivingEntity target) {
-        if (LatexSocialMemory.isPetDefenseForced(pet, target)) {
-            return true;
-        }
         ServerPlayer owner = LatexSocialMemory.getPetOwner(pet);
         if (!(pet instanceof TamableLatexEntityFavors favors)) {
             return owner != null
@@ -539,7 +500,8 @@ public final class ChangedAddonSocialEvents {
                         || owner != null
                                 && BondedOwnerDefenseGoal.hasRecentConflict(
                                         pet, owner, target))
-                && favors.getTargetType().test(favors, target);
+                && net.parkabird.changedsynergy.ai.BondedPetSettings.matchesTargetType(
+                        pet, owner, target, favors.getTargetType().ordinal());
     }
 
     public static boolean suppressBondedTransfurAttack(ChangedEntity pet) {
@@ -854,9 +816,6 @@ public final class ChangedAddonSocialEvents {
                                 || LatexCreatureCombatRules.mustRejectTarget(pet, other))) {
             return false;
         }
-        if (LatexSocialMemory.isPetDefenseForced(pet, target)) {
-            return true;
-        }
         if (favors.getAttackCondition() == LatexAttackCondition.NEVER
                 || favors.getAttackCondition() == LatexAttackCondition.OWNER_IS_HOSTILE
                         && !BondedOwnerDefenseGoal.hasRecentConflict(
@@ -1156,7 +1115,11 @@ public final class ChangedAddonSocialEvents {
     }
 
     private static void ensureGrabAbility(ChangedEntity mob, IGrabberEntity grabber) {
-        GrabEntityAbilityInstance preferred = grabber.getGrabAbilityInstance();
+        // Native packets and Synergy use Changed's registered ability. Some
+        // Addon species also create a private instance; both backends must use
+        // the same object, otherwise one can release a suit the other still owns.
+        GrabEntityAbilityInstance preferred = BondedSuitService.ability(mob);
+        if (preferred == null) preferred = grabber.getGrabAbilityInstance();
         try {
             for (Class<?> type = mob.getClass(); type != null; type = type.getSuperclass()) {
                 for (Field field : type.getDeclaredFields()) {
@@ -1167,6 +1130,24 @@ public final class ChangedAddonSocialEvents {
                     Object value = field.get(mob);
                     if (preferred == null && value instanceof GrabEntityAbilityInstance instance) {
                         preferred = instance;
+                    } else if (value instanceof GrabEntityAbilityInstance instance
+                            && instance != preferred && instance.grabbedEntity != null
+                            && preferred.grabbedEntity == null) {
+                        // Preserve an already-loaded native hold while repairing
+                        // the aliases; do not recreate a suit or replay its sounds.
+                        CompoundTag saved = new CompoundTag();
+                        instance.saveData(saved);
+                        preferred.grabbedEntity = instance.grabbedEntity;
+                        preferred.readData(saved);
+                        preferred.grabStrengthO = instance.grabStrengthO;
+                        preferred.suitTransitionO = instance.suitTransitionO;
+                        preferred.currentEscapeKey = instance.currentEscapeKey;
+                        preferred.lastEscapeKey = instance.lastEscapeKey;
+                        preferred.escapeKeyRandom = instance.escapeKeyRandom;
+                        preferred.ticksUnpressed = instance.ticksUnpressed;
+                        preferred.escapeKeys.copyFrom(instance.escapeKeys);
+                        preferred.attackDown = instance.attackDown;
+                        preferred.useDown = instance.useDown;
                     }
                 }
             }
@@ -1233,7 +1214,7 @@ public final class ChangedAddonSocialEvents {
                     .noneMatch(wrapped -> wrapped.getGoal()
                             instanceof OrganicOwnerEvacuationGoal)) {
                 mob.goalSelector.addGoal(
-                        -5, new OrganicOwnerEvacuationGoal(mob, grabber));
+                        -5, new OrganicOwnerEvacuationGoal(mob));
             }
             if (mob.goalSelector.getAvailableGoals().stream()
                     .noneMatch(wrapped -> wrapped.getGoal()

@@ -1,0 +1,31 @@
+// Private dedicated-server checks; fixtures never enter the release JAR.
+// gradlew -I tools/tests/camp-work.init.gradle runServer --offline -PfarmersDelightJar=<optional jar>
+gradle.beforeProject { project ->
+    project.layout.buildDirectory.set(project.file('.codex-tmp/camp-work-build'))
+    project.afterEvaluate {
+        project.sourceSets.main.java.srcDir(project.file('tools/tests/camp-work'))
+        def classes = project.file('.codex-tmp/camp-work-build/classes/java/main')
+        project.sourceSets.main.java.destinationDirectory.set(classes)
+        project.sourceSets.main.output.classesDirs = project.files(classes)
+        project.tasks.named('compileJava').configure { destinationDirectory.set(classes) }
+        if (project.hasProperty('farmersDelightJar')) {
+            // ForgeGradle can remap a module dependency, but not a raw files(...) dependency.
+            project.repositories.flatDir { dirs project.file(project.property('farmersDelightJar')).parentFile }
+            project.dependencies.add('runtimeOnly', project.fg.deobf('local:FarmersDelight:1.20.1-1.3.4'))
+        }
+        if (project.hasProperty('trueTransfurJar')) {
+            def localMods = project.file('.codex-tmp/camp-work-localmods')
+            project.copy { from project.file(project.property('trueTransfurJar')); into localMods; rename { 'truetransfur-2.0.0.jar' } }
+            project.copy { from new File(project.file(project.property('trueTransfurJar')).parentFile, 'mixin_args-1.0.jar'); into localMods }
+            project.repositories.flatDir { dirs localMods }
+            project.dependencies.add('runtimeOnly', project.fg.deobf('camp.compat:truetransfur:2.0.0'))
+            project.dependencies.add('runtimeOnly', project.fg.deobf('camp.compat:mixin_args:1.0'))
+        }
+        project.minecraft.runs.server.workingDirectory project.file(project.findProperty('campTestDirectory') ?: '.codex-tmp/camp-work-server')
+        project.minecraft.runs.server.property 'forge.logging.console.level', 'info'
+        if (project.hasProperty('crewServerLoad')) {
+            project.minecraft.runs.server.property 'changed_synergy.crewServerLoad', 'true'
+        }
+        if (project.hasProperty('nativeRoleplayOnly')) project.minecraft.runs.server.property 'changed_synergy.nativeRoleplayOnly', 'true'
+    }
+}

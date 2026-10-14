@@ -1,5 +1,5 @@
 {
   "type": "forge:remove_spawns",
   "biomes": "changed:dark_latex_plains",
-  "entity_types": "#changed:latexes"
+  "entity_types": "#changed_synergy:dark_territory_spawn_excluded"
 }

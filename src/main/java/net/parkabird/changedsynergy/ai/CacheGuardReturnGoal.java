@@ -70,7 +70,7 @@ public final class CacheGuardReturnGoal extends Goal {
             assignment = null;
             return;
         }
-        if (--repathTicks <= 0 || guard.getNavigation().isDone()) {
+        if (--repathTicks <= 0) {
             repathTicks = 18;
             guard.getNavigation().moveTo(
                     post.x, post.y, post.z, RETURN_SPEED);

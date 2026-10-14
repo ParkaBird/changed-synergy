@@ -3,6 +3,8 @@ package net.parkabird.changedsynergy.ai;
 /** Pure state math for the hypnosis gaze-resistance contest. */
 public final class HypnosisGazeContest {
     public static final int DURATION_TICKS = 160;
+    public static final int PLAYER_DURATION_TICKS = 240;
+    public static final int PLAYER_TAP_INTERVAL_TICKS = 3;
     private static final double FULL_FOCUS_DEGREES = 5.0D;
     private static final double NO_FOCUS_DEGREES = 55.0D;
     private static final float RESISTANCE_START_ALIGNMENT = 0.72F;
@@ -50,6 +52,16 @@ public final class HypnosisGazeContest {
 
     public static boolean isActivelyLookingAway(float alignment) {
         return alignment < RESISTANCE_START_ALIGNMENT;
+    }
+
+    /** The shared player bar measures control: the caster raises it, the human lowers it. */
+    public static float playerTap(float control, boolean hypnotist) {
+        return clamp01(control + (hypnotist ? 0.02F : -0.02F));
+    }
+
+    public static boolean playerControlWins(float control) {
+        // An unanswered or evenly matched attempt does not immobilize another player.
+        return control > 0.5F;
     }
 
     private static float clamp01(float value) {

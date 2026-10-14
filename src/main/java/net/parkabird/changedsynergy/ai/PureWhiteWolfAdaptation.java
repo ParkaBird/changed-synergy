@@ -4,22 +4,31 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.data.AccessorySlots;
+import net.ltxprogrammer.changed.Changed;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.beast.PureWhiteLatexWolf;
 import net.ltxprogrammer.changed.entity.beast.WhiteLatexWolfMale;
 import net.ltxprogrammer.changed.init.ChangedEntities;
+import net.ltxprogrammer.changed.init.ChangedTransfurVariants;
+import net.ltxprogrammer.changed.entity.variant.TransfurVariantInstance;
+import net.ltxprogrammer.changed.network.packet.SyncTransfurPacket;
+import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.PacketDistributor;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
@@ -32,6 +41,9 @@ import net.parkabird.changedsynergy.world.LatexTerritoryBiomes;
 public final class PureWhiteWolfAdaptation {
     public static final String DATA_KEY =
             "ChangedSynergyPureWhiteWolfAdaptation";
+    public static final String PLAYER_DATA_KEY =
+            "SynergyPureWhitePlayerAdaptation";
+    private static final String ADAPTED = "Adapted";
     private static final String ELIGIBLE = "Eligible";
     private static final String HOME_DIMENSION = "HomeDimension";
     private static final String HOME_POSITION = "HomePosition";
@@ -47,6 +59,7 @@ public final class PureWhiteWolfAdaptation {
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
         if (!(event.getEntity() instanceof ChangedEntity creature)
                 || !(creature.level() instanceof ServerLevel level)
+                || creature.getUnderlyingPlayer() != null
                 || !ChangedSynergyConfig.COMMON.pureWhiteWolfAdaptation.get()
                 || !ChangedSynergyGameRules.enabled(
                         level, ChangedSynergyGameRules.CREATURE_LIFE)
@@ -89,6 +102,75 @@ public final class PureWhiteWolfAdaptation {
                 && safeToChange(creature)) {
             queueChange(creature, false);
         }
+    }
+
+    /** Player adaptation never replaces the real variant or its abilities. */
+    @SubscribeEvent
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END
+                || !(event.player instanceof ServerPlayer player)
+                || player.tickCount % CHECK_INTERVAL_TICKS
+                        != Math.floorMod(player.getId(), CHECK_INTERVAL_TICKS)) {
+            return;
+        }
+        var variant = ProcessTransfur.getPlayerTransfurVariant(player);
+        if (variant == null || variant.isTemporaryFromSuit()
+                || !variant.is(ChangedTransfurVariants.PURE_WHITE_LATEX_WOLF)
+                || !(variant instanceof PlayerState holder)) {
+            return;
+        }
+        ServerLevel level = player.serverLevel();
+        CompoundTag data = holder.changedSynergy$getPureWhiteAdaptation();
+        boolean wasAdapted = data.getBoolean(ADAPTED);
+        if (!ChangedSynergyConfig.COMMON.pureWhiteWolfAdaptation.get()
+                || !ChangedSynergyGameRules.enabled(
+                        level, ChangedSynergyGameRules.CREATURE_LIFE)) {
+            data = new CompoundTag();
+        } else if (level.getBiome(player.blockPosition())
+                .is(LatexTerritoryBiomes.WHITE_LATEX_FOREST)) {
+            rememberHome(level, player.blockPosition(), data);
+            data.remove(AWAY_SINCE);
+            data.putBoolean(ADAPTED, false);
+        } else if (!wasAdapted) {
+            if (!farFromRememberedHome(level, player.blockPosition(), data)) {
+                data.remove(AWAY_SINCE);
+            } else {
+                long now = level.getGameTime();
+                if (!data.contains(AWAY_SINCE, Tag.TAG_LONG)) {
+                    data.putLong(AWAY_SINCE, now);
+                } else if (now - data.getLong(AWAY_SINCE)
+                        >= UNANCHORED_GRACE_TICKS) {
+                    data.putBoolean(ADAPTED, true);
+                }
+            }
+        }
+        holder.changedSynergy$setPureWhiteAdaptation(data);
+        if (wasAdapted != data.getBoolean(ADAPTED)) {
+            Changed.PACKET_HANDLER.send(
+                    PacketDistributor.TRACKING_ENTITY_AND_SELF
+                            .with(() -> player),
+                    SyncTransfurPacket.Builder.of(player));
+        }
+    }
+
+    public static boolean isAdaptedPlayer(@Nullable Player player) {
+        return player != null && isAdaptedPlayer(
+                ProcessTransfur.getPlayerTransfurVariant(player));
+    }
+
+    public static boolean isAdaptedPlayer(
+            @Nullable TransfurVariantInstance<?> variant) {
+        return variant != null && !variant.isTemporaryFromSuit()
+                && variant.is(ChangedTransfurVariants.PURE_WHITE_LATEX_WOLF)
+                && variant instanceof PlayerState holder
+                && holder.changedSynergy$getPureWhiteAdaptation()
+                        .getBoolean(ADAPTED);
+    }
+
+    /** Saved and synchronized inside Changed's existing variant payload. */
+    public interface PlayerState {
+        CompoundTag changedSynergy$getPureWhiteAdaptation();
+        void changedSynergy$setPureWhiteAdaptation(CompoundTag data);
     }
 
     private static boolean isSupportedForm(ChangedEntity creature) {

@@ -24,11 +24,15 @@ import net.minecraft.world.item.trading.Merchant;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.wrapper.InvWrapper;
+import net.minecraftforge.items.wrapper.RangedWrapper;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole;
 import net.parkabird.changedsynergy.ai.CreaturePersonality.RelationshipTier;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.ProvisionSource;
+import net.parkabird.changedsynergy.world.inventory.BondedInventoryService;
 
 /** Species-aware barter using Minecraft's complete merchant interaction. */
 public final class ProvisionerTradeService {
@@ -103,8 +107,13 @@ public final class ProvisionerTradeService {
                 && provider.level() == player.level()
                 && !ACTIVE_TRADERS.contains(provider.getUUID())
                 && player.distanceToSqr(provider) <= TRADE_DISTANCE_SQR
+                && provider.getUnderlyingPlayer() == null
+                && CreatureLifeMemory.enabled(provider)
                 && CreatureLifeMemory.role(provider) == GroupRole.PROVISIONER
-                && CreatureCommunityData.snapshot(provider).isPresent()
+                && !PlayerOutpostService.assigned(provider)
+                // Owned provisioners retain their profession without rejoining a wild cache.
+                && (CreatureCommunityData.isPlayerCompanion(provider)
+                        || CreatureCommunityData.snapshot(provider).isPresent())
                 && !LatexSocialMemory.isProvoked(provider, player)
                 && CreaturePersonality.relationshipTier(provider, player)
                         != RelationshipTier.STRAINED;
@@ -220,12 +229,29 @@ public final class ProvisionerTradeService {
             return TradeResult.NEED_PAYMENT;
         }
         player.getInventory().placeItemBackInInventory(withdrawn);
-        CreatureSettlementService.queueTradeReturn(
-                provider, template.payment());
+        acceptPayment(provider, template.payment());
         if (!template.stockBound()) {
             recordUse(provider, template.kind());
         }
         return TradeResult.SUCCESS;
+    }
+
+    private static void acceptPayment(ChangedEntity provider, ItemStack payment) {
+        if (!CreatureCommunityData.isPlayerCompanion(provider)) {
+            CreatureSettlementService.queueTradeReturn(provider, payment);
+            return;
+        }
+        ServerPlayer owner = LatexSocialMemory.getPetOwner(provider);
+        // An absent owner's Addon inventory cannot be initialized safely; retain the real payment as a drop.
+        if (owner == null) {
+            provider.spawnAtLocation(payment.copy());
+            return;
+        }
+        var inventory = BondedInventoryService.inventory(provider, owner);
+        ItemStack remainder = ItemHandlerHelper.insertItemStacked(
+                new RangedWrapper(new InvWrapper(inventory), 0,
+                        Math.min(24, inventory.getContainerSize())), payment.copy(), false);
+        if (!remainder.isEmpty()) provider.spawnAtLocation(remainder);
     }
 
     private static List<Template> templates(
@@ -489,6 +515,7 @@ public final class ProvisionerTradeService {
             return 0;
         }
         int credit = CreatureCommunityData.tradeCredit(provider, stack);
+        if (credit <= 0) return 0;
         int physical;
         if (isConsensus(provider)) {
             physical = credit;
@@ -776,8 +803,7 @@ public final class ProvisionerTradeService {
                 }
                 return false;
             }
-            CreatureSettlementService.queueTradeReturn(
-                    provider, template.payment());
+            acceptPayment(provider, template.payment());
             return true;
         }
     }

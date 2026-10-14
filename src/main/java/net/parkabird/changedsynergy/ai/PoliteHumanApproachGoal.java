@@ -150,7 +150,7 @@ public final class PoliteHumanApproachGoal extends Goal {
                 2.8D);
         if (mob.distanceToSqr(player) > contactDistance * contactDistance) {
             closeTicks = 0;
-            if (--repathTicks <= 0 || mob.getNavigation().isDone()) {
+            if (--repathTicks <= 0) {
                 repathTicks = 10;
                 followNavigation.moveToward(
                         player,
@@ -193,6 +193,7 @@ public final class PoliteHumanApproachGoal extends Goal {
     private boolean movementAvailable() {
         return mob.isAlive()
                 && !mob.isNoAi()
+                && !PlayerOutpostService.assigned(mob)
                 && !mob.isPassenger()
                 && !mob.isLeashed()
                 && !ProvisionerFishingFocus.isFocusedFishing(mob)

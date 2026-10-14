@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
+import net.ltxprogrammer.changed.entity.beast.MilkPudding;
+import net.ltxprogrammer.changed.entity.variant.EntityShape;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -15,6 +17,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
+import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.init.ChangedSynergySoundEvents;
@@ -41,12 +44,19 @@ public final class PatAnimationService {
     private PatAnimationService() {
     }
 
+    /** NPCs need hands and must be awake and free from camp production to pat. */
+    public static boolean canNpcPat(LivingEntity actor) {
+        return !(actor instanceof ChangedEntity mob)
+                || (!mob.isSleeping() && !(mob instanceof MilkPudding) && mob.getEntityShape() != EntityShape.FERAL
+                        && !PlayerOutpostService.isWorking(mob));
+    }
+
     public static void startFixed(
             LivingEntity actor,
             LivingEntity target,
             int strokes) {
         if (actor.level().isClientSide || !actor.isAlive() || !target.isAlive()
-                || invalidDuringTakeover(actor, target)) {
+                || !canNpcPat(actor) || invalidDuringTakeover(actor, target)) {
             return;
         }
         long now = actor.level().getGameTime();
@@ -75,7 +85,7 @@ public final class PatAnimationService {
             LivingEntity target,
             int delayTicks,
             int strokes) {
-        if (!actor.level().isClientSide) {
+        if (!actor.level().isClientSide && canNpcPat(actor)) {
             PENDING.put(actor.getUUID(), new PendingPat(actor, target,
                     actor.level().getGameTime() + Math.max(1, delayTicks), strokes));
         }
@@ -94,6 +104,9 @@ public final class PatAnimationService {
         }
         long now = actor.level().getGameTime();
         Session current = SESSIONS.get(actor.getUUID());
+        if (target instanceof ServerPlayer caster) {
+            HypnosisQteService.reactToPlayerPat(caster, actor);
+        }
         if (current != null
                 && current.continuous
                 && current.target == target) {
@@ -175,7 +188,7 @@ public final class PatAnimationService {
         Iterator<PendingPat> pending = PENDING.values().iterator();
         while (pending.hasNext()) {
             PendingPat pat = pending.next();
-            if (!pat.actor.isAlive() || !pat.target.isAlive()
+            if (!pat.actor.isAlive() || !pat.target.isAlive() || !canNpcPat(pat.actor)
                     || pat.actor.level() != pat.target.level()) {
                 pending.remove();
             } else if (pat.actor.level().getGameTime() >= pat.dueTick) {
@@ -194,6 +207,7 @@ public final class PatAnimationService {
             long now = actor.level().getGameTime();
             if (!actor.isAlive()
                     || !target.isAlive()
+                    || !canNpcPat(actor)
                     || invalidDuringTakeover(actor, target)
                     || actor.level() != target.level()
                     || actor.distanceToSqr(target) > 49.0D
@@ -260,8 +274,13 @@ public final class PatAnimationService {
     private static boolean invalidDuringTakeover(
             LivingEntity actor,
             LivingEntity target) {
-        return target instanceof ServerPlayer player
-                        && TakeoverService.active(player)
+        return actor instanceof ServerPlayer actorPlayer
+                        && (TrueTransfurCompat.isInstinctShell(actorPlayer) || TrueTransfurCompat.isRebirthing(actorPlayer))
+                || target instanceof ServerPlayer targetPlayer
+                        && (TakeoverService.active(targetPlayer) || TrueTransfurCompat.isInstinctShell(targetPlayer)
+                                || TrueTransfurCompat.isRebirthing(targetPlayer))
+                || target instanceof ChangedEntity body && TrueTransfurCompat.isInstinctBody(body)
+                        && TrueTransfurCompat.bodyOwner(body) == null
                 || actor instanceof ChangedEntity changed
                         && TakeoverService.carrying(changed);
     }

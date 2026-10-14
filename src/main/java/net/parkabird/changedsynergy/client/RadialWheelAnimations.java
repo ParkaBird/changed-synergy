@@ -1,6 +1,7 @@
 package net.parkabird.changedsynergy.client;
 
 import net.ltxprogrammer.changed.client.gui.AbilityRadialScreen;
+import net.ltxprogrammer.changed.client.gui.AbstractRadialScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
@@ -81,6 +82,15 @@ public final class RadialWheelAnimations {
                 : 0.0F;
     }
 
+    /** Frames stay in eight fixed slots while the scrolled action indices advance. */
+    public static int viewOffset(Object screen) {
+        return screen instanceof RadialWheelAnimationAccess access ? access.changedSynergy$getViewOffset() : 0;
+    }
+
+    public static boolean isSectionSelected(AbstractRadialScreen<?> screen, int slot, int mouseX, int mouseY) {
+        return screen.getSectionAt(mouseX, mouseY).filter(index -> index == slot + viewOffset(screen)).isPresent();
+    }
+
     /** Consumed once by the newly opened half of a paired wheel switch. */
     public static boolean consumeSwitchArrival(Object screen) {
         if (pendingArrival == WheelKind.NONE) {
@@ -113,6 +123,11 @@ public final class RadialWheelAnimations {
         pendingArrival = WheelKind.NONE;
         pendingEntityId = -1;
         return false;
+    }
+
+    public static void cancelPendingSwitch() {
+        pendingArrival = WheelKind.NONE;
+        pendingEntityId = -1;
     }
 
     private static boolean request(

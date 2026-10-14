@@ -1,5 +1,6 @@
 package net.parkabird.changedsynergy.ai;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
+import net.ltxprogrammer.changed.entity.TamableLatexEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -96,7 +98,33 @@ public final class CreatureCommunityData extends SavedData {
                         level, ChangedSynergyGameRules.CREATURE_LIFE)) {
             return Optional.empty();
         }
+        if (isPlayerCompanion(creature)) {
+            // Existing deliveries may finish, but ownership must never create
+            // another wild community or recruit the pet as one of its members.
+            CreatureCommunityData data = get(level.getServer());
+            Community home = data.communities.get(data.resolveAlias(readCommunityId(creature)));
+            if (home != null && home.dimension.equals(level.dimension().location().toString())
+                    && (CreatureSettlementService.hasCargo(creature)
+                            || CreatureSettlementService.hasTradeReturns(creature))) {
+                if (home.members.remove(creature.getUUID())) data.setDirty();
+                return Optional.of(home.snapshot());
+            }
+            if (readCommunityId(creature) != null
+                    || creature.getPersistentData().contains(FACILITY_AFFINITY)) {
+                detach(creature);
+            }
+            return Optional.empty();
+        }
         return Optional.of(get(level.getServer()).bindInternal(level, creature).snapshot());
+    }
+
+    /** Ownership remains authoritative even while companion behavior is disabled. */
+    public static boolean isPlayerCompanion(ChangedEntity creature) {
+        return creature.getUnderlyingPlayer() != null
+                || creature instanceof TamableLatexEntity pet
+                        && (pet.isTame() || pet.getOwnerUUID() != null)
+                || LatexSocialMemory.petOwnerUuid(creature).isPresent()
+                || !LatexSocialMemory.bondedPlayerUuids(creature).isEmpty();
     }
 
     public static Optional<Snapshot> snapshot(ChangedEntity creature) {
@@ -115,6 +143,19 @@ public final class CreatureCommunityData extends SavedData {
                 .findFirst();
     }
 
+    /** Checks the actual opened inventory, including either half of a double chest. */
+    public static boolean isCacheContainer(ServerLevel level, Container opened) {
+        String dimension = level.dimension().location().toString();
+        for (Community community : get(level.getServer()).communities.values()) {
+            if (community.cache == null || !community.dimension.equals(dimension)
+                    || !level.hasChunkAt(community.cache)) continue;
+            if (level.getBlockEntity(community.cache) instanceof Container cache
+                    && (cache == opened || opened instanceof net.minecraft.world.CompoundContainer pair
+                            && pair.contains(cache))) return true;
+        }
+        return false;
+    }
+
     public static boolean sameCommunity(
             ChangedEntity first,
             ChangedEntity second) {
@@ -126,6 +167,15 @@ public final class CreatureCommunityData extends SavedData {
     }
 
     public static void detach(ChangedEntity creature) {
+        if (creature.level() instanceof ServerLevel level) {
+            CreatureCommunityData data = get(level.getServer());
+            boolean changed = false;
+            // Also repair duplicate membership left by older community moves.
+            for (Community community : data.communities.values()) {
+                changed |= community.members.remove(creature.getUUID());
+            }
+            if (changed) data.setDirty();
+        }
         creature.getPersistentData().remove(COMMUNITY_ID);
         creature.getPersistentData().remove(FACILITY_AFFINITY);
     }
@@ -153,7 +203,8 @@ public final class CreatureCommunityData extends SavedData {
     public static List<BlockPos> nearbyCompatibleCaches(
             ChangedEntity creature,
             double radius) {
-        if (!(creature.level() instanceof ServerLevel level) || radius <= 0.0D) {
+        if (!(creature.level() instanceof ServerLevel level) || radius <= 0.0D
+                || isPlayerCompanion(creature) || PlayerOutpostService.assigned(creature)) {
             return List.of();
         }
         return compatibleCaches(creature, level, radius * radius, true);
@@ -166,7 +217,8 @@ public final class CreatureCommunityData extends SavedData {
      * another local community recorded it outside the ordinary sharing radius.
      */
     public static List<BlockPos> compatibleCaches(ChangedEntity creature) {
-        if (!(creature.level() instanceof ServerLevel level)) {
+        if (!(creature.level() instanceof ServerLevel level)
+                || isPlayerCompanion(creature) || PlayerOutpostService.assigned(creature)) {
             return List.of();
         }
         return compatibleCaches(creature, level, 0.0D, false);
@@ -184,24 +236,25 @@ public final class CreatureCommunityData extends SavedData {
         if (radius <= 0.0D) {
             return false;
         }
+        double radiusSqr = radius * radius;
+        return claimedCachePositions(level).stream()
+                .anyMatch(cache -> horizontalDistanceSqr(cache, position) <= radiusSqr);
+    }
+
+    /** A placement attempt takes one snapshot instead of rescanning every community for each cell. */
+    public static List<BlockPos> claimedCachePositions(ServerLevel level) {
         CreatureCommunityData data = get(level.getServer());
         String dimension = level.dimension().location().toString();
-        double radiusSqr = radius * radius;
-        boolean claimed = false;
+        List<BlockPos> claims = new ArrayList<>();
         boolean changed = false;
         for (Community community : data.communities.values()) {
             if (community.cache == null
-                    || !community.dimension.equals(dimension)
-                    || horizontalDistanceSqr(community.cache, position)
-                            > radiusSqr) {
+                    || !community.dimension.equals(dimension)) {
                 continue;
             }
-            if (!level.hasChunkAt(community.cache)) {
-                claimed = true;
-                continue;
-            }
-            if (level.getBlockEntity(community.cache) instanceof Container) {
-                claimed = true;
+            if (!level.hasChunkAt(community.cache)
+                    || level.getBlockEntity(community.cache) instanceof Container) {
+                claims.add(community.cache);
                 continue;
             }
             community.cache = null;
@@ -210,7 +263,7 @@ public final class CreatureCommunityData extends SavedData {
         if (changed) {
             data.setDirty();
         }
-        return claimed;
+        return claims;
     }
 
     private static double horizontalDistanceSqr(
@@ -301,7 +354,8 @@ public final class CreatureCommunityData extends SavedData {
     }
 
     public static List<TradeStock> tradeStock(ChangedEntity creature) {
-        if (!(creature.level() instanceof ServerLevel level)) {
+        if (!(creature.level() instanceof ServerLevel level)
+                || isPlayerCompanion(creature) || PlayerOutpostService.assigned(creature)) {
             return List.of();
         }
         Community community = get(level.getServer()).bindInternal(level, creature);
@@ -312,7 +366,8 @@ public final class CreatureCommunityData extends SavedData {
     }
 
     public static int tradeCredit(ChangedEntity creature, ItemStack stack) {
-        if (!(creature.level() instanceof ServerLevel level) || stack.isEmpty()) {
+        if (!(creature.level() instanceof ServerLevel level) || stack.isEmpty()
+                || isPlayerCompanion(creature) || PlayerOutpostService.assigned(creature)) {
             return 0;
         }
         return get(level.getServer()).bindInternal(level, creature).tradeStock.stream()
@@ -399,14 +454,16 @@ public final class CreatureCommunityData extends SavedData {
     }
 
     public static boolean hasStoredOrange(ChangedEntity creature) {
-        if (!(creature.level() instanceof ServerLevel level)) {
+        if (!(creature.level() instanceof ServerLevel level)
+                || isPlayerCompanion(creature) || PlayerOutpostService.assigned(creature)) {
             return false;
         }
         return get(level.getServer()).bindInternal(level, creature).orangeStock > 0;
     }
 
     public static boolean consumeStoredOrange(ChangedEntity creature) {
-        if (!(creature.level() instanceof ServerLevel level)) {
+        if (!(creature.level() instanceof ServerLevel level)
+                || isPlayerCompanion(creature) || PlayerOutpostService.assigned(creature)) {
             return false;
         }
         CreatureCommunityData data = get(level.getServer());
@@ -445,7 +502,6 @@ public final class CreatureCommunityData extends SavedData {
     private Community bindInternal(ServerLevel level, ChangedEntity creature) {
         HunterFaction faction = HunterFaction.of(creature);
         String dimension = level.dimension().location().toString();
-        String group = groupKey(level, creature, faction);
         migrateLegacyCommunities(level, dimension);
         BlockPos focus = creature.blockPosition();
         UUID storedId = readCommunityId(creature);
@@ -463,12 +519,13 @@ public final class CreatureCommunityData extends SavedData {
                     creature.getPersistentData().putUUID(COMMUNITY_ID, existing.id);
                 }
                 touch(existing, level.getGameTime());
-                if (existing.members.add(creature.getUUID())) setDirty();
+                updateMember(existing, creature);
                 return existing;
             }
             existing.cache = null;
             setDirty();
         }
+        String group = groupKey(level, creature, faction);
         if (existing != null
                 && compatible(existing, faction, dimension, group)
                 && (faction != HunterFaction.WHITE
@@ -477,9 +534,7 @@ public final class CreatureCommunityData extends SavedData {
                 creature.getPersistentData().putUUID(COMMUNITY_ID, existing.id);
             }
             touch(existing, level.getGameTime());
-            if (existing.members.add(creature.getUUID())) {
-                setDirty();
-            }
+            updateMember(existing, creature);
             return existing;
         }
 
@@ -506,12 +561,19 @@ public final class CreatureCommunityData extends SavedData {
             communities.put(nearest.id, nearest);
             setDirty();
         }
+        if (existing != null && existing != nearest
+                && existing.members.remove(creature.getUUID())) setDirty();
         creature.getPersistentData().putUUID(COMMUNITY_ID, nearest.id);
-        if (nearest.members.add(creature.getUUID())) {
-            setDirty();
-        }
+        updateMember(nearest, creature);
         touch(nearest, level.getGameTime());
         return nearest;
+    }
+
+    private void updateMember(Community community, ChangedEntity creature) {
+        boolean changed = isPlayerCompanion(creature) || PlayerOutpostService.assigned(creature)
+                ? community.members.remove(creature.getUUID())
+                : community.members.add(creature.getUUID());
+        if (changed) setDirty();
     }
 
     private void touch(Community community, long now) {

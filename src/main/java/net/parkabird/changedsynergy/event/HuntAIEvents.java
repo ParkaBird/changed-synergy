@@ -36,6 +36,7 @@ import net.parkabird.changedsynergy.ai.VoluntaryBondTransfurService;
 import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.ChangedExtrasCompat;
+import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
@@ -176,7 +177,7 @@ public final class HuntAIEvents {
                 if (remembered != null
                         && LatexFusionIntent.mayInitiate(mob, remembered)
                         && canReacquire(mob, remembered, true)
-                        && mob.hasLineOfSight(remembered)) {
+                        && NpcDispositionEvents.hasVisualContact(mob, remembered)) {
                     // Native melee/fusion code can briefly clear the target
                     // while changing goals. Keep the same fusion approach
                     // instead of treating that one-tick gap as a lost chase;
@@ -257,6 +258,8 @@ public final class HuntAIEvents {
             return;
         }
 
+        if (net.parkabird.changedsynergy.ai.PlayfulFriendTransfurGoal.isDefense(victim, player)) return;
+        if (net.parkabird.changedsynergy.ai.TakeoverConflictMemory.protectsSelfDefense(victim, player)) return;
         List<ChangedEntity> nearbyKin = level.getEntitiesOfClass(
                         ChangedEntity.class,
                         victim.getBoundingBox().inflate(18.0),
@@ -379,6 +382,7 @@ public final class HuntAIEvents {
                 || isOwnedBy(fallen, player)) {
             return;
         }
+        if (net.parkabird.changedsynergy.ai.TakeoverConflictMemory.protectsSelfDefense(fallen, player)) return;
 
         List<ChangedEntity> nearbyKin = level.getEntitiesOfClass(
                         ChangedEntity.class,
@@ -402,7 +406,8 @@ public final class HuntAIEvents {
             if (!ChangedSynergyConfig.COMMON.bondedKinConfinement.get()
                     || !LatexSocialMemory.isBonded(bond, player)
                     || LatexSocialMemory.isOrganic(bond)
-                    || HunterFaction.of(fallen) != HunterFaction.of(bond)) continue;
+                    || HunterFaction.of(fallen) != HunterFaction.of(bond)
+                    || !bond.hasLineOfSight(fallen) && !bond.hasLineOfSight(player)) continue;
             int limit = ChangedSynergyConfig.COMMON.bondedKinKillBaseLimit.get()
                     + Math.max(0, CreaturePersonality.familiarity(bond, player) - 40) / 10;
             int kills = CreaturePersonality.recordWitnessedKinKill(bond, player);
@@ -503,12 +508,13 @@ public final class HuntAIEvents {
             bond.getPersistentData().remove(BOND_CONFINEMENT_UNTIL);
             return;
         }
-        if (bond.distanceToSqr(owner) <= 9.0D) {
-            if (TakeoverService.beginBondedConfinement(bond, owner)) {
-                bond.getPersistentData().remove(BOND_CONFINEMENT_OWNER);
-                bond.getPersistentData().remove(BOND_CONFINEMENT_UNTIL);
-            }
-        } else if (!TakeoverService.active(owner)) {
+        if (TakeoverService.active(owner) || TrueTransfurCompat.isInstinctShell(owner)
+                || TrueTransfurCompat.isRebirthing(owner)) return;
+        if (TakeoverService.beginBondedConfinement(bond, owner)) {
+            bond.getPersistentData().remove(BOND_CONFINEMENT_OWNER);
+            bond.getPersistentData().remove(BOND_CONFINEMENT_UNTIL);
+        } else {
+            // Nearby does not mean reachable: approach through the actual doorway or stairs.
             bond.getNavigation().moveTo(owner, 1.0D);
         }
     }
@@ -633,7 +639,7 @@ public final class HuntAIEvents {
 
         HuntState oldState = HuntMemory.getState(mob);
         boolean sameTarget = HuntMemory.targets(mob, player);
-        boolean visible = mob.hasLineOfSight(player);
+        boolean visible = NpcDispositionEvents.hasVisualContact(mob, player);
         int previousLostSight = HuntMemory.getLostSightTicks(mob);
         boolean playfulFusion = LatexFusionIntent.mayInitiate(mob, player);
 

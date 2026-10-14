@@ -6,6 +6,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.parkabird.changedsynergy.ai.LatexCreatureCombatRules;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.ai.BondedPetSettings;
+import net.parkabird.changedsynergy.ai.BondedOwnerDefenseGoal;
 import net.parkabird.changedsynergy.ai.TakeoverService;
 import net.parkabird.changedsynergy.event.NpcDispositionEvents;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,6 +34,26 @@ public abstract class SocialTargetGuardMixin {
         if (mob.level().isClientSide) {
             return;
         }
+        if (!net.parkabird.changedsynergy.compat.TrueTransfurPvpGuard.allows(mob, target)) {
+            callback.cancel();
+            return;
+        }
+        if (!net.parkabird.changedsynergy.ai.PlayerOutpostService.mayAttackTarget(mob, target)) {
+            callback.cancel();
+            return;
+        }
+        // Applies to native/excluded creatures too: the INSTINCT shell is not a target.
+        if (target instanceof ServerPlayer player
+                && (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
+                        || TakeoverService.hidesPlayer(player))
+                || net.parkabird.changedsynergy.ai.PlayerSocialService.isFollowLeader(mob, target)) {
+            callback.cancel();
+            return;
+        }
+        if (target instanceof ChangedEntity other && LatexCreatureCombatRules.isFriendlyPlayerBodyPair(mob, other)) {
+            callback.cancel();
+            return;
+        }
         if (target != null
                 && LatexCreatureCombatRules.mustRejectVillageTarget(mob, target)) {
             LatexCreatureCombatRules.disengage(mob, target);
@@ -53,10 +74,13 @@ public abstract class SocialTargetGuardMixin {
             return;
         }
         if (target != null
-                && BondedPetSettings.usesFallbackBackend(mob)
-                && LatexSocialMemory.hasActiveBond(mob)
-                && !BondedPetSettings.isValidConfiguredTarget(
-                        mob, LatexSocialMemory.getPetOwner(mob), target)) {
+                && (LatexSocialMemory.hasActiveBond(mob) || LatexSocialMemory.petOwnerUuid(mob).isPresent())
+                && target != LatexSocialMemory.getPetOwner(mob)
+                && (!BondedOwnerDefenseGoal.allowsConfiguredDefense(
+                        mob, LatexSocialMemory.getPetOwner(mob), target)
+                        || BondedPetSettings.usesFallbackBackend(mob)
+                                && !BondedPetSettings.isValidConfiguredTarget(
+                                        mob, LatexSocialMemory.getPetOwner(mob), target))) {
             callback.cancel();
             return;
         }

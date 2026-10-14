@@ -2,206 +2,157 @@
 
 # Changed: Synergy
 
-Changed: Synergy turns aggressive latex creatures into neighbors you can actually get along with. An orange or a friendly pat will often get you further than fists and blades.
+Changed: Synergy turns aggressive latex creatures into neighbors you can get along with. An orange or a friendly pat can help with first contact; gifts and time turn that first meeting into a friendship.
 
-Transfur is not always the end anymore. Sometimes you can negotiate your way back out of it. In other situations, the creature may decide to keep control for a little while. Just be careful. Some of them may be a little too ~~EXCITED~~ to meet a human again…
+Transfur is not always the end. Sometimes you can negotiate your way back out of it. In other situations, the creature may keep control for a while. Some of them may still be a little too ~~EXCITED~~ to meet a human again…
 
-Changed: Synergy is an unofficial Forge addon for Changed on Minecraft 1.20.1. It gives Changed creatures persistent names, individual personalities, memories, dialogue, communities, and social behavior. You can befriend them, earn their trust, form a bond, and watch them interact with the world and one another. You can also establish an outpost of your own and give trusted creatures a place to live and work together.
+Synergy is an unofficial Forge addon for Changed on Minecraft 1.20.1. Creatures have persistent names, personalities, memories, dialogue and communities. Befriend them, form a companion bond, build a camp or take a working crew on your travels.
 
-Chinese is my native language. Since my experience and English ability are limited, I used generative AI to assist with parts of the English and Chinese text and code. I reviewed, edited, integrated, and tested the results, but you may still encounter awkward wording or bugs. Thank you for your understanding, and please report any problems you find.
+**1.1.4 focuses on integration with TrueTransfur 2.0.0.** Begin as a native latex creature, choose a species through an animated archive and keep your identity while switching between PLAYER and INSTINCT control. TrueTransfur remains optional for Synergy's NPC relationships, camps and companion features.
 
-Want to share feedback, discuss features, report a bug, or follow development? Join the [Changed: Synergy Discord server](https://discord.gg/3yscxe2YgN).
+## Guides and quick links
 
-## Creatures and relationships
+- [All player guides](https://github.com/ParkaBird/changed-synergy/blob/main/docs/README.md)
+- [Social interactions, friends and bonds](https://github.com/ParkaBird/changed-synergy/blob/main/docs/SOCIAL_GUIDE.md)
+- [Player camps and travelling crews](https://github.com/ParkaBird/changed-synergy/blob/main/docs/PLAYER_CAMP_GUIDE.md)
+- [Native origins and the species archive](https://github.com/ParkaBird/changed-synergy/blob/main/docs/NATIVE_ORIGINS.md)
+- [TrueTransfur and Instinct mode](https://github.com/ParkaBird/changed-synergy/blob/main/docs/TRUETRANSFUR_INSTINCT_COMPAT.md)
+- [Server settings and commands](https://github.com/ParkaBird/changed-synergy/blob/main/docs/SERVER_CONFIGURATION.md)
+- [Full settings reference](https://github.com/ParkaBird/changed-synergy/blob/main/docs/SETTINGS_GUIDE.md)
+- [What's new in 1.1.4](https://github.com/ParkaBird/changed-synergy/blob/main/docs/CHANGELOG-1.1.4.md)
 
-*   Persistent names, individual personalities, emotions, and long-term memories
-*   Friendship, affection, faction reputation, and a bond system (one bond by default, with an option to allow more)
-*   Social, relationship, creature-function, and body-control radial menus
-*   Context-aware dialogue in English and Simplified Chinese, with contributed German and Spanish translations for some lines
-*   Feeding, petting, gifting, disguises, and environmental interactions
-*   Creature inventories plus compatible armor and melee weapons for close friends and bonded companions
-*   Friendly wrapping, emergency rescue, and taur riding for supported companions
-*   Rest Together and shore waiting for compatible companions
-*   Revival for bonded latex companions: repair a fallen dark latex companion's mask, or process another supported species' identity-bearing sample in the Latex Infuser
-*   Personality-based protective behavior that may require repeated release requests after several dangerous rescues
-*   Named, befriended, and bonded creatures remain present on Peaceful difficulty
-*   Lost or permanently removed creatures are cleared from contact lists
+The guide directory also links to Chinese social and settings guides. For feedback, discussion and development updates, join the [Changed: Synergy Discord](https://discord.gg/3yscxe2YgN).
 
-## Your own outpost
+## Native origins and TrueTransfur
 
-Claim a bell to establish a player outpost. You can link a nearby chest and a bed or suitable pillow, then invite trusted adult creatures as residents. Assign them to guard the outpost, gather supplies, or follow you as a crew. Suppliers collect resources suited to their species and faction and bring them to the linked chest; the roster shows what each one gathers. Residents can also use linked sleeping places, including hive pillows for latex bees.
+- Choose a human or an eligible native latex species, including supported juvenile and fusion forms.
+- Browse front portraits and species dossiers showing body parameters, faction and rival faction. Rotate or zoom the body preview, choose a random species within a category, or pick fully at random from the available archive records.
+- Native creatures begin with their species' citizenship and Recognized faction standing. Identity and a generated creature name persist through death and rejoining; the name can be changed without changing the account.
+- Use a nearby role-speech mode or ordinary global chat. Players who understand your species see your words; others hear creature sounds. Expressions appear on your visible body.
+- Right-click another player or their Instinct body to greet, pat, transfer a gift or invite them to walk together. Player friendships require mutual consent and are separate from NPC bonds.
+- Instinct bodies remain real players for social interactions, faction reputation and companion following. They do not become duplicate social NPCs or show persistent nameplates.
+- Eligible native Instinct players can pursue hostile humans and temporarily take over after completing transfur under the server's PvP rules. Release, negotiation and escape remain available where permitted.
+- Server owners control origin selection, allowed starting forms, role speech and Instinct-player takeover. A default-off option permits ordinarily transformed human-origin players to use Instinct without granting native or permanent-body features.
 
-Look at your claimed bell and sneak-right-click to manage the outpost. You can also open it from the relationship wheel or use `/changedsynergy outpost`. The management screen lets you see your residents and change their assignments. To get started, `/changedsynergy outpost help` lists the claim, storage, bed, and invitation commands.
+**TrueTransfur 2.0.0 is recommended.** Native origins and direct-player integration remain compatible with 1.0.1; features involving the separate Instinct body require 2.0.0.
 
-Outpost records and residents persist when the area unloads. They do not keep chunks loaded, so work resumes when the area is active again. Server owners can configure whether player outposts are available, how many residents and crew members they allow, and whether suppliers can gather and harvest resources.
+## Creatures, friends and bonds
 
-## Transfur and body control
+- Persistent names, personalities, emotions and remembered encounters.
+- Friendship, personal affection and faction reputation, with one bond by default and an optional multiple-bond setting.
+- Social, relationship, creature-function and body-control radial menus.
+- Patting and direct feeding build initial familiarity. Reaching the stranger limit does not establish friendship by itself: a suitable gift through the social wheel completes acquaintance and gives the creature a name.
+- Care interactions share an affection cooldown. Wheel gifts have their own cooldown and replenish a limited care allowance. Direct feeding can still heal during affection cooldowns.
+- A first bond requires maximum affection and a species-themed token. Humans confirm voluntary transfur; native and permanently transformed TrueTransfur players can bond without changing bodies or factions.
+- Bonds appear in the relationship roster. Ending one preserves friendship and memories, and former companions can reunite without a second token.
+- Playful friends may attempt friendly transfur at lower affection; a light, bare-handed warning can stop the attempt. Playful and Polite are mutually exclusive behavior traits.
+- Creature inventories and compatible armor or melee weapons for trusted friends and companions. Supplied mining and fishing tools are preferred over built-in tools.
+- Friendly wrapping, emergency rescue, Rest Together, shore waiting and riding for supported species. Wrapping and rescue work without Changed Addon Plus.
+- Revival for supported bonded companions through repaired Dark Latex Masks or identity-bearing samples processed in the Latex Infuser.
+- English and Simplified Chinese dialogue, Russian localization, and community German and Spanish translations for some text.
 
-*   Negotiation after involuntary assimilation, absorption, or fusion
-*   Reversible transfur interactions where the situation allows
-*   Organic transformations that can be reversed by sleeping
-*   Configurable absorption takeover during qualifying encounters
-*   Different takeover behavior for competitive creatures and creatures responding to player aggression
-*   Takeover sequences with observation, temporary control, one escape attempt, and outcomes shaped by the creature's motive and your faction standing
-*   A single chance to negotiate during eligible takeovers; hostile encounters can instead end in permanent transformation or fatal loss of consciousness
-*   Server validation for movement, combat, item use, and abilities while the carrier has control
-*   Forced release through `/untf` or `/untransfur`
-*   Exoskeleton takeover support for Benign Wolf and Benign Orca players
-*   Configurable post-transfur ceasefires to prevent immediate repeated attacks
-*   Optional legacy-style transfur progress masks and skin coating, disabled by default
+## Your own camp
 
-When absorption takeover is disabled, qualifying absorptions continue to use the negotiation system.
+Establish a camp around a **placed campfire** through the relationship wheel or `/changedsynergy outpost create`. Look at a suitable functional block and use `/changedsynergy outpost link`; it identifies the facility automatically. Existing bell-founded camps remain supported.
 
-## Hypnosis
+Invite trusted adult creatures at **Close friendship**. Beds are sleeping places; pillows, office chairs and tall cardboard boxes are separate rest points. Link containers, a cooking campfire, a composter and work areas, then assign residents, guards, suppliers or travelling crew through camp management.
 
-Synergy replaces its old hypnosis button prompts with a gaze-based resistance system.
+- **Gathering:** harvest suitable oranges and berries, with an optional marked area.
+- **Hunting:** hunt suitable adult prey and collect real drops, while respecting exclusions and preserving a nearby animal population.
+- **Farming:** harvest and replant mature crops in a marked field. Compost surplus planting material when appropriate and collect the resulting bone meal. Farmer's Delight crops are supported.
+- **Cooking:** take suitable raw food from linked storage, cook several items on the campfire and collect cooked products.
+- **Hauling:** collect missed drops in a marked area, or within 32 blocks of the camp by default. A server item blacklist can exclude particular drops.
+- **Shared meals:** sit around the campfire, prefer nearby rest points, eat carried food or fetch a serving from camp storage, then rest before returning to work.
 
-Hypnotic creatures pull the player's view toward their eyes. Direct eye contact strengthens the effect, while repeatedly forcing your view away builds resistance. Fill the resistance meter in time to break free. Otherwise, the player becomes Mesmerized.
+Farmers and haulers collect batches before unloading and store their products before resting. Work Cargo contains the real items awaiting use or delivery and can be recovered through the creature's inventory when storage is full or unreachable. Linked chests open, close and play their sounds when visited.
 
-Hypnotic creatures can also communicate clearly during hypnosis before permanent telepathy has been unlocked.
+Members respond to follow, wait, return and retreat orders. Multiple beds are assigned separately, and work or orders interrupt idle rest. The roster shows assignments and current or last-known coordinates.
 
-## Factions and reputation
+Camp data survives unloaded areas, but camps do not force chunks to load. Work pauses while the owner is offline by default. Server owners can adjust resident and crew limits, work areas, job switches, search intervals and worker limits. A separate setting controls how far new wild outposts must stay from player camps.
 
-Creatures belong to regional factions with their own relationships and communities.
+## Travelling crews
 
-*   Reputation changes how faction members respond to the player
-*   Peaceful relationships with every faction remain possible
-*   Rival factions affect one another by default; an optional setting makes their reputations independent and allows simultaneous alliances
-*   Linked rivalries connect Dark and White, Mountain and Cave, Aquatic and Desert, Forest and Badlands, Taiga and Jungle, Swamp and Savanna, and Plains and Snowy factions
-*   Factions at minimum reputation may send an optional pursuit squad after the player
-*   Faction-specific dialogue responds to alliances, betrayal, hostility, and pursuit
-*   `/changedsynergy reputation` shows global faction standings and the current regional Light-faction reputation
-*   Server owners can configure initial faction reputation and related systems
+Assign **Combat**, **Mining**, **Gathering** or **Hunting** before setting a member to follow as crew.
 
-## Creature behavior and communities
+Gathering workers follow at a looser distance, finish reachable nearby tasks and then catch up. Miners collect exposed veins rather than digging tunnels; fruit gatherers look for suitable oranges and berries; hunters pursue eligible prey and collect loot. They keep cargo while travelling and unload when they return to linked storage. Supplied tool quality and supported enchantments affect mining or fishing.
 
-*   Improved pathfinding, swimming, grappling, combat, and follower behavior
-*   Shared land and water navigation for compatible companions
-*   Creature gathering, fishing, hunting, and mining
-*   Regional communities, resource storage, and creature-established faction outposts in the wild and suitable ruins
-*   Provisioners that gather supplies and return them to their community
-*   Provisioner trades using oranges, berries, or species-appropriate fish, with special collectibles available as relationships improve
-*   Territory defense, group assistance, and environmental reactions
-*   Persistent community membership and outpost ownership
-*   Configurable minimum spacing between outposts
-*   Flying creatures can slow their fall by using their wings
-*   Aquatic companions can locate shorelines and follow players onto land
-*   Configurable Pure White Latex Wolf adaptation: adults living far from the White Latex Forest take on a male White Latex Wolf form and change back when they return, without losing their identity, relationships, or Pure White faction allegiance
+Danger, recall and changed orders interrupt work safely. Gathering respects `mobGriefing`, loaded chunks, work limits and the server's blocked-ore list. See the [camp guide](https://github.com/ParkaBird/changed-synergy/blob/main/docs/PLAYER_CAMP_GUIDE.md) for setup, search ranges and restrictions.
 
-## Human interactions
+## Transfur, takeover and hypnosis
 
-Human players can use light, bare-handed hits to warn an approaching creature to back away without immediately starting a fight. Weapons, heavy damage, or repeated attacks still count as aggression.
+- Negotiate after eligible involuntary assimilation, absorption or fusion. Transfur and takeover outcomes depend on the encounter, faction standing and server settings.
+- Temporary control, escape attempts and safe release for supported takeover interactions. Reversible organic forms can be removed by sleeping where permitted.
+- Exoskeleton takeover for Benign Wolf and Benign Orca players. During takeover, third-person camera rotation remains available.
+- Protective wrapping, rescue and post-release protection to prevent immediate repeated capture.
+- Native player protection against hostile secondary transfur, with an optional extension to other transformed players.
+- Organic creatures retain low physical swipe damage against humans and ordinary damage against creature players.
+- Superb Warfare vehicle occupants cannot be grabbed or wrapped; pursuit can continue after they enter a vehicle.
+- Ordinary NPC hypnosis uses gaze resistance. Player hypnosis contests use directional resistance controls, with a longer timer and larger meter; human pats briefly interrupt the caster's input.
+- Optional legacy-style transfur masks and skin coating, disabled by default.
 
-Competitive creatures may interpret the warning as a challenge and become even more determined.
+## Factions and wild communities
 
-Patting can calm some approaching creatures. Server owners may disable the pacification effect without disabling ordinary patting or relationship progress.
+Regional factions have their own communities, rivalries and dialogue. Reputation changes greetings, hostility, trades and pursuit. Rival reputations are linked by default; an optional setting permits independent standings and simultaneous alliances.
 
-Voluntary transfur is only available at the highest friendship tier.
+Wild provisioners gather resources and store them at community outposts in suitable outdoor sites, ruins, hives and aquatic locations. Their trades use oranges, berries or appropriate fish, with special items becoming available as relationships improve. Player-owned companions stay outside autonomous wild-community jobs.
 
-## Performance and diagnostics
+Servers can disable new wild outposts while keeping existing ones, tune spacing between wild outposts, and set a separate buffer around player camps. Searches use bounded work and loaded terrain for routine community tasks. Aquatic followers can find shorelines, and Pure White Latex Wolves can adapt away from their home region without losing their identity or allegiance.
 
-Synergy distributes social, community, hunting, and work decisions across server ticks. Distant idle creatures perform optional work less often, while combat, following, and companion safety remain responsive.
+## Settings and multiplayer
 
-The Performance and Diagnostics configuration section shows client FPS, server tick time, latex AI time, active creature count, and deferred work. Server owners can disable expensive optional systems individually or use the soft AI time budget to reduce background work when the server is under load.
+Configuration is divided into **Server Settings**, **World Rules** and **Client Visuals**. Gameplay values come from the server; local visuals do not override them. Operators can use `/changedsynergy config` to inspect or change settings and `/changedsynergy outpost help` for camp commands.
 
-## Configuration
+Relationship balance, telepathy, takeover, origin selection, camp limits, work restrictions, wild outposts and AI scheduling can be tuned separately. Performance diagnostics show server tick time and creature AI activity, and optional background work can be reduced when a server is busy.
 
-Synergy includes in-game Forge configuration screens and gamerules for its main systems.
+The server and every connecting client must use the same Synergy build and the relevant dependencies.
 
-Configurable features include:
-
-*   Absorption takeover
-*   Punitive and personality-based takeovers
-*   Temporary player control and escape attempts
-*   Takeover negotiation and hostile takeover outcomes
-*   Ordinary transfur reversal
-*   Exoskeleton hypnosis, takeover, and unconsciousness
-*   Protective release requests
-*   Post-transfur ceasefire duration
-*   Pat pacification
-*   Player outposts, resident and crew limits, supply work, harvesting, rest, and guard behavior
-*   Mindless mob transfur behavior
-*   Telepathy unlock requirements
-*   Faction pursuit squads
-*   Independent faction reputation and peaceful village relations
-*   Pure White Latex Wolf adaptation
-*   Spacing between creature-established outposts
-*   AI scheduling and performance diagnostics
-*   Dialogue popup and scrolling-text height
-*   Transfur progress masks and skin coating
-
-`/changedsynergy relationship` opens the relationship manager. The remaining command branches include clickable help and can be used to inspect or manage the relevant systems.
-
-Client settings control local presentation. Common configuration and gamerules control server-side gameplay.
-
-## Requirements
+## Requirements and optional integrations
 
 | Component | Supported version | Required |
 | --- | --- | --- |
 | Minecraft | 1.20.1 | Yes |
 | Forge | 47.4.x | Yes |
 | Changed | 0.15.7 | Yes |
+| TrueTransfur | 2.0.0; backward compatibility with 1.0.1 | For native origins and TrueTransfur features |
+| Mixin Args | 1.0 or newer | With TrueTransfur 2.0.0 |
 | Changed Addon Plus | 2.9.2c | No |
 | Changed Vanilla | 1.0.1 | No |
-| Changed Extras | 1.1.4-beta3b | No |
+| Changed Extras | 1.1.8b | No |
+| Farmer's Delight | 1.3.4 | No |
 | Domestication Innovation | 1.7.1 | No |
 
-Synergy uses targeted integration points. Compatibility with newer versions of Changed or its optional integrations is not guaranteed.
+- **Changed Addon Plus:** supported creatures, diets, pet relationships, equipment and Golden Orange interactions.
+- **Changed Additions 0.1.0-V4-Fix:** basic creature and Golden Orange integration.
+- **Changed Vanilla:** creature relationships, communities and companions, preserving its dedicated conversion behavior.
+- **Changed Extras 1.1.8b:** unrelated wild creatures can retain its smart AI. Synergy companions and camp members keep their assigned behavior; automatic bedside cuddling does not interrupt camp work. Artist remains excluded from Synergy social systems.
+- **Farmer's Delight:** camp farmers support cabbage, onions, tomatoes and rice while preserving their appropriate replanting or regrowth behavior.
+- **Domestication Innovation:** companion equipment, beds, recall and owner-alliance features.
+- **Better Combat 1.9.0:** compatible targeting around friendly wrapping.
+- **TaCZ and Superb Warfare:** gunshots can alert nearby creatures; supported vehicle occupancy prevents grabs.
+- **Changed: Survive Protocol 1.2.0:** preserves its ordinary infection rules while supporting authorized Synergy takeover, release and origin re-selection.
+- **Furmutage 0.1:** coexistence only; its creatures are excluded from Synergy systems.
 
-## Optional compatibility
+Optional mods are not bundled. See the [compatibility guide](https://github.com/ParkaBird/changed-synergy/blob/main/COMPATIBILITY.md) for the supported scope.
 
-*   **Changed Addon Plus 2.9.2c:** Adds support for its creatures, grabbing mechanics, equipment, Golden Oranges, and related systems.
-*   **Changed Additions 0.1.0-V4-Fix:** Provides basic creature integration and Golden Orange support.
-*   **Changed Vanilla 1.0.1:** Its natural and converted creatures can participate in Synergy's identity, relationship, community, and companion systems.
-*   **Changed Extras 1.1.4-beta3b:** Its unrelated wild creatures may retain Changed Extras smart AI, while friends, bonded companions, takeover carriers, and pursuit members use Synergy's relationship-aware behavior. Target selection respects Synergy relationships, truces, and creature alliances.
-*   **Domestication Innovation 1.7.1:** Owned companions can use its pet equipment, beds, and recall features. Its owner-alliance checks recognize Synergy companions.
-*   **Better Combat 1.9.0:** Friendly wrapping creatures are excluded from its attack targeting.
-*   **TaCZ and Superb Warfare:** Gunshots can alert nearby creatures.
-*   **Furmutage 0.1:** Coexistence compatibility only. Its creatures are excluded from Synergy systems.
-*   **Changed: Survive Protocol 1.2.0:** Coexistence compatibility only.
+## Installation and support
 
-Optional mods are not bundled with Synergy.
+1. Install Forge 47.4.x for Minecraft 1.20.1.
+2. Put Changed 0.15.7 and one Synergy JAR in `mods`.
+3. Add TrueTransfur 2.0.0 and Mixin Args for native origins and Instinct gameplay, plus any other optional integrations you want.
+4. Install the same Synergy build and relevant dependencies on the server and every client.
 
-## Installation
-
-1.  Install Forge 47.4.x for Minecraft 1.20.1.
-2.  Place Changed 0.15.7 and the Synergy JAR in your `mods` folder.
-3.  Add any supported optional integration mods you want to use.
-4.  Launch the game and check the Forge Mods screen for dependency errors.
-
-Do not install multiple versions of Synergy at the same time.
-
-For multiplayer, the server and every connecting player must use the same Synergy build.
-
-## Support and issue reporting
-
-Please back up important worlds before installing or updating.
-
-When reporting a reproducible problem, include:
-
-*   The crash report or `latest.log`
-*   The exact Forge, Changed, and Synergy versions
-*   A list of relevant optional integration mods
-*   The steps needed to reproduce the problem
-
-When available, bugs can be submitted through the [GitHub issue tracker](https://github.com/ParkaBird/changed-synergy/issues).
-
-Known limitations are documented in [KNOWN\_ISSUES.md](https://github.com/ParkaBird/changed-synergy/blob/main/KNOWN_ISSUES.md).
+Back up important worlds before updating. Do not install multiple Synergy JARs at once. Report reproducible problems through the [GitHub issue tracker](https://github.com/ParkaBird/changed-synergy/issues), with a crash report or `latest.log`, exact versions and reproduction steps. See [known limitations](https://github.com/ParkaBird/changed-synergy/blob/main/KNOWN_ISSUES.md).
 
 ## Content statement
 
-Synergy is intended for a general audience. It focuses on creature personalities, relationships, community life, and reversible interactions.
+Synergy is intended for a general audience. It focuses on creature personalities, relationships, community life and reversible interactions. As a personal creative boundary, I chose not to reproduce or expand the original Changed game's more suggestive material; this describes Synergy's direction rather than judging what others enjoy. The addon does not add content centered on the original game's main characters.
 
-As a personal creative boundary, I chose not to reproduce or expand upon the original Changed game's more suggestive material. This applies only to the direction of Synergy and is not a judgment of what other people should enjoy. The addon also does not introduce content centered on the original game's main characters.
+Synergy does not take a position on controversies surrounding Changed or its creator. Readers are encouraged to consult reliable, first-hand sources and reach their own conclusions.
 
-Changed: Synergy does not take a position on controversies surrounding Changed or its creator. Readers are encouraged to consult reliable, first-hand sources and reach their own conclusions.
+## Credits, AI assistance and license
 
-## Credits, AI assistance, and license
+Changed: Synergy is developed by ParkaBird. Thanks to Nic, Crossader and Sword for dialogue and localization, and to TrueTransfur's author for collaboration, testing and Russian localization. This is an unofficial addon, not affiliated with the creators of Changed or Mojang Studios.
 
-Changed: Synergy is developed by ParkaBird. It is an unofficial addon and is not affiliated with the creators of Changed or Mojang Studios.
+Chinese is my native language. Generative AI assisted with parts of the English and Chinese text and code; I reviewed, edited, integrated and tested the results. Please report awkward wording or reproducible bugs. No generative AI was used for artwork, textures, models, screenshots or promotional images. See [AI disclosure](https://github.com/ParkaBird/changed-synergy/blob/main/AI_DISCLOSURE.md).
 
-Dialogue contributions: Nic, Crossader, and Sword.
-
-Generative AI assisted with parts of the English and Chinese text and code. ParkaBird reviewed, edited, integrated, and tested the resulting work. No generative AI was used for artwork, textures, models, screenshots, or promotional images. See [AI\_DISCLOSURE.md](https://github.com/ParkaBird/changed-synergy/blob/main/AI_DISCLOSURE.md) for details.
-
-Changed: Synergy is licensed under [GPL-3.0-or-later](https://github.com/ParkaBird/changed-synergy/blob/main/LICENSE.txt).
+Licensed under [GPL-3.0-or-later](https://github.com/ParkaBird/changed-synergy/blob/main/LICENSE.txt). Find the project on [Modrinth](https://modrinth.com/mod/changed-synergy), [CurseForge](https://www.curseforge.com/minecraft/mc-mods/changed-synergy) or [GitHub](https://github.com/ParkaBird/changed-synergy).

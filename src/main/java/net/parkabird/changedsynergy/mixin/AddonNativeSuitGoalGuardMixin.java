@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class AddonNativeSuitGoalGuardMixin {
     @Shadow(remap = false) @Final protected ChangedEntity entity;
 
-    @Inject(method = {"canUse", "m_8036_"}, at = @At("HEAD"),
+    @Inject(method = {"canUse", "m_8036_", "canContinueToUse", "m_8045_"}, at = @At("HEAD"),
             cancellable = true, require = 0, remap = false)
     private void changedSynergy$waitForStableOwner(CallbackInfoReturnable<Boolean> callback) {
         ServerPlayer owner = LatexSocialMemory.getPetOwner(entity);

@@ -4,6 +4,8 @@ import java.util.EnumSet;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.ai.DarkLatexAttackCondition;
 import net.ltxprogrammer.changed.entity.beast.AbstractDarkLatexEntity;
+import net.ltxprogrammer.changed.ability.GrabEntityAbility;
+import net.ltxprogrammer.changed.init.ChangedAbilities;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal.Flag;
@@ -37,17 +39,18 @@ public final class BondedOwnerDefenseGoal extends TargetGoal {
     @Override
     public boolean canUse() {
         owner = LatexSocialMemory.getPetOwner(pet);
-        if (owner == null || !owner.isAlive() || owner.isSpectator()) {
+        if (!canProtectOwner(pet, owner)) {
             return false;
         }
 
         int newTimestamp;
+        LivingEntity body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(owner);
         if (mode == Mode.OWNER_HURT_BY) {
-            threat = owner.getLastHurtByMob();
-            newTimestamp = owner.getLastHurtByMobTimestamp();
+            threat = body.getLastHurtByMob();
+            newTimestamp = body.getLastHurtByMobTimestamp();
         } else {
-            threat = owner.getLastHurtMob();
-            newTimestamp = owner.getLastHurtMobTimestamp();
+            threat = body.getLastHurtMob();
+            newTimestamp = body.getLastHurtMobTimestamp();
         }
         return newTimestamp != timestamp && canDefendAgainst(threat);
     }
@@ -56,10 +59,17 @@ public final class BondedOwnerDefenseGoal extends TargetGoal {
     public void start() {
         LatexSocialMemory.authorizePetDefense(pet, threat, 200L);
         pet.setTarget(threat);
+        LivingEntity body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(owner);
         timestamp = mode == Mode.OWNER_HURT_BY
-                ? owner.getLastHurtByMobTimestamp()
-                : owner.getLastHurtMobTimestamp();
+                ? body.getLastHurtByMobTimestamp()
+                : body.getLastHurtMobTimestamp();
         super.start();
+    }
+
+    @Override
+    public boolean canContinueToUse() {
+        return canProtectOwner(pet, owner) && canDefendAgainst(threat)
+                && super.canContinueToUse();
     }
 
     private boolean canDefendAgainst(LivingEntity candidate) {
@@ -74,7 +84,8 @@ public final class BondedOwnerDefenseGoal extends TargetGoal {
         }
         if (candidate instanceof ChangedEntity other
                 && (LatexSocialMemory.hasSamePetOwner(pet, other)
-                        || LatexCreatureCombatRules.areCompatriots(pet, other))) {
+                        || LatexCreatureCombatRules.areCompatriots(pet, other)
+                        || LatexCreatureCombatRules.sharePlayerAlliance(pet, other))) {
             return false;
         }
         return allowsConfiguredDefense(pet, owner, candidate)
@@ -89,12 +100,11 @@ public final class BondedOwnerDefenseGoal extends TargetGoal {
             ChangedEntity pet,
             ServerPlayer owner,
             LivingEntity candidate) {
+        if (!PlayerOutpostService.mayAttackTarget(pet, candidate)) return false;
+        if (candidate instanceof ChangedEntity other && LatexCreatureCombatRules.sharePlayerAlliance(pet, other)) return false;
         if (ChangedSynergyConfig.COMMON.companionMonsterAssistOnly.get()
                 && (!(candidate instanceof Enemy)
                         || !hasRecentConflict(pet, owner, candidate))) return false;
-        if (LatexSocialMemory.isPetDefenseForced(pet, candidate)) {
-            return true;
-        }
         if (pet instanceof AbstractDarkLatexEntity darkLatex) {
             DarkLatexAttackCondition condition = darkLatex.getAttackCondition();
             if (condition == DarkLatexAttackCondition.NEVER
@@ -102,9 +112,21 @@ public final class BondedOwnerDefenseGoal extends TargetGoal {
                             && !hasRecentConflict(pet, owner, candidate)) {
                 return false;
             }
-            return darkLatex.wantsToAttack(candidate, owner);
+            return BondedPetSettings.matchesTargetType(pet, owner, candidate, darkLatex.getTargetType().ordinal());
         }
         return BondedPetSettings.allowsDefense(pet, owner, candidate);
+    }
+
+    /** Automatic protection is local and must not override a wait order. */
+    public static boolean canProtectOwner(ChangedEntity pet, ServerPlayer owner) {
+        if (owner == null) return false;
+        LivingEntity body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(owner);
+        return owner != null && owner.isAlive() && !owner.isSpectator()
+                && body.isAlive() && !body.isRemoved()
+                && !(body == owner && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(owner))
+                && pet.isAlive() && pet.level() == body.level()
+                && LatexSocialMemory.isFollowingOwner(pet)
+                && pet.distanceToSqr(body) <= 20.0D * 20.0D;
     }
 
     /**
@@ -119,8 +141,15 @@ public final class BondedOwnerDefenseGoal extends TargetGoal {
         if (candidate == null) {
             return false;
         }
-        if (LatexSocialMemory.isPetDefenseForced(pet, candidate)) {
-            return true;
+        if (owner != null) {
+            var grabber = GrabEntityAbility.getGrabber(owner);
+            var grab = grabber == null ? null : grabber.getAbilityInstanceSafe(
+                    ChangedAbilities.GRAB_ENTITY_ABILITY.get()).orElse(null);
+            if (grabber != null && grabber.getEntity() == candidate
+                    && grab != null && grab.grabbedEntity == owner && !grab.suited
+                    && !BondedOwnerGrabRescueGoal.isFriendlyGrab(owner, candidate, grab)) {
+                return true;
+            }
         }
         if (owner != null
                 && (owner.getLastHurtMob() == candidate
@@ -128,6 +157,13 @@ public final class BondedOwnerDefenseGoal extends TargetGoal {
                     || owner.getLastHurtByMob() == candidate
                         && owner.tickCount - owner.getLastHurtByMobTimestamp() < 600)) {
             return true;
+        }
+        if (owner != null) {
+            LivingEntity body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(owner);
+            if (body != owner && (body.getLastHurtMob() == candidate
+                    && body.tickCount - body.getLastHurtMobTimestamp() < 600
+                    || body.getLastHurtByMob() == candidate
+                    && body.tickCount - body.getLastHurtByMobTimestamp() < 600)) return true;
         }
         return pet.getLastHurtByMob() == candidate
                 && pet.tickCount - pet.getLastHurtByMobTimestamp() < 600;

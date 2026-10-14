@@ -2,7 +2,6 @@ package net.parkabird.changedsynergy.mixin;
 
 import net.ltxprogrammer.changed.client.renderer.model.AdvancedHumanoidModel;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
-import net.minecraft.world.entity.HumanoidArm;
 import net.parkabird.changedsynergy.client.PatAnimationClientState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,8 +21,12 @@ public abstract class ChangedEntityPatPoseMixin {
             float headPitch, CallbackInfo callback) {
         AdvancedHumanoidModel<?> model =
                 (AdvancedHumanoidModel<?>)(Object)this;
-        PatAnimationClientState.applyRightArmPose(
-                creature.getId(), age - creature.tickCount,
-                model.getArm(HumanoidArm.RIGHT));
+        // A transformed player renders through a separate ChangedEntity; the
+        // synchronized pat session still belongs to the real player ID.
+        var player = creature.getUnderlyingPlayer();
+        PatAnimationClientState.applyModelRightArmPose(
+                player == null ? creature.getId() : player.getId(),
+                age - creature.tickCount,
+                model);
     }
 }

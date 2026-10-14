@@ -52,7 +52,7 @@ public final class BondedRevivalEvents {
         if (event.getEntity() instanceof ChangedEntity creature
                 && !event.getLevel().isClientSide()
                 && creature.getPersistentData().getBoolean("ChangedSynergyRevivalGrabAbility")) {
-            BondedSuitService.ensureRevivalGrabAbility(creature);
+            BondedSuitService.ensureGrabAbility(creature);
         }
         if (event.getEntity() instanceof ItemEntity item
                 && (BondedRevivalService.isRevivalMask(item.getItem())

@@ -24,6 +24,7 @@ public final class SocialMayDropGrabbedEntityGoal extends MayDropGrabbedEntityGo
         GrabEntityAbilityInstance ability = grabber.getGrabAbilityInstance();
         if (ability != null && ability.grabbedEntity instanceof ServerPlayer player
                 && (LatexSocialMemory.isFriendlySuitActive(mob, player)
+                        || net.parkabird.changedsynergy.ai.PlayfulFriendTransfurGoal.active(mob, player)
                         || BondedSuitService.isNativeOwnerSuit(mob, player)
                         || LatexSocialMemory.isSecondaryGrabActive(mob, player)
                         || LatexSocialMemory.isFriendlyArmHoldTarget(mob, player))) {

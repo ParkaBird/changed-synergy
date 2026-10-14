@@ -78,8 +78,7 @@ public final class SmartSearchGoal extends Goal {
             return;
         }
 
-        if (waypoint == null || waypointTicks-- <= 0
-                || mob.getNavigation().isDone() || mob.distanceToSqr(waypoint) < 3.0) {
+        if (waypoint == null || waypointTicks-- <= 0 || mob.distanceToSqr(waypoint) < 3.0) {
             selectNextSearchWaypoint();
         }
 
@@ -114,7 +113,7 @@ public final class SmartSearchGoal extends Goal {
             return;
         }
 
-        if (waypoint == null || waypointTicks-- <= 0 || mob.getNavigation().isDone()) {
+        if (waypoint == null || waypointTicks-- <= 0) {
             waypoint = center;
             double speed = ChangedSynergyConfig.COMMON.huntSearchSpeed.get()
                     * CreaturePersonality.searchSpeedMultiplier(mob);

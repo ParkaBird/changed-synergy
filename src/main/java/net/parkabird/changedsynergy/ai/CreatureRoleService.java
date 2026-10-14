@@ -30,6 +30,7 @@ public final class CreatureRoleService {
     public static void tick(ChangedEntity creature) {
         if (!(creature.level() instanceof ServerLevel level)
                 || PlayerOutpostService.assigned(creature)
+                || CreatureCommunityData.isPlayerCompanion(creature)
                 || !SynergyPerformanceTracker.featureEnabled(Feature.COMMUNITY)
                 || !CreatureLifeMemory.enabled(creature)) {
             return;
@@ -208,6 +209,7 @@ public final class CreatureRoleService {
             return;
         }
         ServerPlayer observer = level.players().stream()
+                .filter(player -> !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player))
                 .filter(player -> player.isAlive()
                         && !player.isSpectator()
                         && player.distanceToSqr(creature) <= 18.0D * 18.0D)

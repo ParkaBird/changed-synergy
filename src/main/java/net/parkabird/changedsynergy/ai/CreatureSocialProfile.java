@@ -39,7 +39,8 @@ public final class CreatureSocialProfile {
     }
 
     public static Kind of(ChangedEntity creature) {
-        if (isPermanentlyExcluded(creature)
+        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(creature)
+                || isPermanentlyExcluded(creature)
                 || creature.getType().is(SOCIAL_INTERACTION_EXCLUDED)) {
             return Kind.NONE;
         }
@@ -110,6 +111,9 @@ public final class CreatureSocialProfile {
         // not attach identity, social, community, AI, or takeover state to
         // their entity namespaces. Namespace checks avoid optional class links.
         if (EXTERNAL_SYSTEM_ONLY_NAMESPACES.contains(id.getNamespace())) {
+            return true;
+        }
+        if ("changedextras".equals(id.getNamespace()) && "latex_artist".equals(id.getPath())) {
             return true;
         }
         if (ChangedAddonCompat.MOD_ID.equals(id.getNamespace())) {

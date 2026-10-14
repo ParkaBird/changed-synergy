@@ -25,7 +25,11 @@ public final class BondReleaseService {
             LatexSocialMemory.queueManualRelease(player, creatureUuid);
             return Result.QUEUED_UNLOADED;
         }
+        finishLoaded(pet, player);
+        return Result.RELEASED_LOADED;
+    }
 
+    static void finishLoaded(ChangedEntity pet, ServerPlayer player) {
         boolean wasWrapping = BondedSuitService.isWrappingOwner(pet, player)
                 || LatexSocialMemory.isFriendlySuitActive(pet, player);
         if (wasWrapping) {
@@ -43,7 +47,7 @@ public final class BondReleaseService {
         NpcDialogue.emoteOnly(pet, cue);
         NpcDialogue.triggerBondFarewell(pet, player, cue);
         LatexSocialMemory.unregisterBond(pet, player);
-        return Result.RELEASED_LOADED;
+        PlayerRelationshipSettings.rememberContact(player, pet, false);
     }
 
     @Nullable

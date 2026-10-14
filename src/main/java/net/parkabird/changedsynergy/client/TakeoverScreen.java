@@ -28,7 +28,7 @@ public final class TakeoverScreen extends AbstractRadialScreen<TakeoverScreen.Ta
     private static final Action NEGOTIATE = icon(TakeoverActionPacket.NEGOTIATE, "idea");
     private static final Action RETURN = icon(TakeoverActionPacket.RETURN_CONTROL, "pause");
     private final UUID session;
-    private final List<Action> actions;
+    private List<Action> actions;
     private boolean escapeConfirmationPending;
 
     public TakeoverScreen() {
@@ -40,10 +40,21 @@ public final class TakeoverScreen extends AbstractRadialScreen<TakeoverScreen.Ta
         super(menu, inventory, TakeoverClientState.text("title"),
                 colors(state).background(), colors(state).foreground(), center(state, inventory.player));
         session = state == null ? null : state.sessionId();
-        boolean negotiationEnabled = state != null && state.negotiationEnabled();
-        actions = state != null && state.phase() == TakeoverStatePacket.BORROWED
-                ? negotiationEnabled ? List.of(RETURN, NEGOTIATE) : List.of(RETURN)
-                : negotiationEnabled ? List.of(BORROW, ESCAPE, NEGOTIATE) : List.of(BORROW, ESCAPE);
+        actions = actions(state);
+    }
+
+    private static List<Action> actions(TakeoverStatePacket state) {
+        var result = new java.util.ArrayList<Action>();
+        if (state == null) return List.of();
+        if (state.phase() == TakeoverStatePacket.BORROWED) result.add(RETURN);
+        else {
+            if (state.kind() == TakeoverStatePacket.NORMAL
+                    && ServerConfigClient.value(net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.takeoverBorrow)) result.add(BORROW);
+            if ((state.kind() == TakeoverStatePacket.NORMAL || state.kind() == TakeoverStatePacket.INSTINCT)
+                    && ServerConfigClient.value(net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.takeoverEscape)) result.add(ESCAPE);
+        }
+        if ((state.kind() == TakeoverStatePacket.NORMAL || state.kind() == TakeoverStatePacket.INSTINCT) && state.negotiationEnabled()) result.add(NEGOTIATE);
+        return List.copyOf(result);
     }
 
     private static Action icon(int action, String emote) {
@@ -164,6 +175,10 @@ public final class TakeoverScreen extends AbstractRadialScreen<TakeoverScreen.Ta
     @Override public void containerTick() {
         super.containerTick();
         if (!valid()) onClose();
+        else {
+            var next = actions(TakeoverClientState.current());
+            if (!actions.equals(next)) { actions = next; escapeConfirmationPending = false; }
+        }
     }
 
     private record Action(int id, ResourceLocation texture) {}

@@ -117,7 +117,7 @@ public final class TerritoryContextEvents {
         String biomeId = biome.displayId() == null
                 ? ""
                 : biome.displayId().toString();
-        BlockPos outpostMarker = ChangedSynergyConfig.COMMON.playerOutposts.get()
+        BlockPos outpostMarker = net.parkabird.changedsynergy.ai.PlayerOutpostService.enabled(level)
                 ? PlayerOutpostData.get(player.server).byOwner(player.getUUID())
                         .filter(outpost -> outpost.active(level))
                         .map(outpost -> outpost.marker)

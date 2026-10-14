@@ -55,6 +55,12 @@ public abstract class RadialScreenAnimationMixin
     @Shadow(remap = false)
     private int tickCount;
 
+    @Shadow(remap = false)
+    private int viewOffset;
+
+    @Shadow(remap = false)
+    private int viewTransitionTicksLeft;
+
     @Unique
     private long changedSynergy$openedAtNanos = System.nanoTime();
     @Unique
@@ -131,7 +137,7 @@ public abstract class RadialScreenAnimationMixin
             int mouseX,
             int mouseY,
             CallbackInfoReturnable<Optional<Integer>> callback) {
-        if (changedSynergy$closing
+        if (changedSynergy$closing || viewTransitionTicksLeft > 0
                 || changedSynergy$openElapsedMs() < INPUT_DELAY_MS) {
             callback.setReturnValue(Optional.empty());
         }
@@ -148,7 +154,7 @@ public abstract class RadialScreenAnimationMixin
             double mouseY,
             int button,
             CallbackInfoReturnable<Boolean> callback) {
-        if (changedSynergy$closing
+        if (changedSynergy$closing || viewTransitionTicksLeft > 0
                 || changedSynergy$openElapsedMs() < INPUT_DELAY_MS) {
             callback.setReturnValue(true);
             return;
@@ -156,7 +162,14 @@ public abstract class RadialScreenAnimationMixin
         AbstractRadialScreen<?> screen = changedSynergy$self();
         changedSynergy$selectedSection = screen
                 .getSectionAt((int)mouseX, (int)mouseY)
-                .orElse(-1);
+                .map(index -> index - viewOffset).orElse(-1);
+    }
+
+    @Inject(method = {"scrollUp", "scrollDown"}, at = @At("HEAD"),
+            cancellable = true, remap = false, require = 2)
+    private void changedSynergy$finishScrollBeforeAnother(CallbackInfo callback) {
+        if (changedSynergy$closing || viewTransitionTicksLeft > 0
+                || changedSynergy$openElapsedMs() < INPUT_DELAY_MS) callback.cancel();
     }
 
     @Inject(
@@ -171,12 +184,19 @@ public abstract class RadialScreenAnimationMixin
             int modifiers,
             CallbackInfoReturnable<Boolean> callback) {
         Minecraft minecraft = Minecraft.getInstance();
+        boolean closeKey = keyCode == 256
+                || minecraft.options.keyInventory.matches(keyCode, scanCode);
         if (changedSynergy$closing) {
+            if (closeKey && changedSynergy$switching && minecraft.player != null) {
+                // A rejected or delayed menu-open packet must not trap the user.
+                changedSynergy$completion = null;
+                changedSynergy$completionRun = true;
+                RadialWheelAnimations.cancelPendingSwitch();
+                minecraft.player.closeContainer();
+            }
             callback.setReturnValue(true);
             return;
         }
-        boolean closeKey = keyCode == 256
-                || minecraft.options.keyInventory.matches(keyCode, scanCode);
         if (closeKey && minecraft.player != null) {
             changedSynergy$startClosing(
                     minecraft.player::closeContainer, false);
@@ -184,7 +204,7 @@ public abstract class RadialScreenAnimationMixin
             return;
         }
         if (keyCode >= 49 && keyCode <= 57
-                && changedSynergy$openElapsedMs() < INPUT_DELAY_MS) {
+                && (viewTransitionTicksLeft > 0 || changedSynergy$openElapsedMs() < INPUT_DELAY_MS)) {
             callback.setReturnValue(true);
         }
     }
@@ -362,6 +382,11 @@ public abstract class RadialScreenAnimationMixin
     }
 
     @Override
+    public int changedSynergy$getViewOffset() {
+        return viewOffset;
+    }
+
+    @Override
     public float changedSynergy$getOverallAlpha() {
         if (changedSynergy$closing) {
             if (changedSynergy$reversingOpening) {
@@ -536,7 +561,8 @@ public abstract class RadialScreenAnimationMixin
     @Unique
     private boolean changedSynergy$hideCenterEntity(LivingEntity entity) {
         AbstractRadialScreen<?> screen = changedSynergy$self();
-        if (screen instanceof PlayerRelationshipScreen) {
+        if (screen instanceof PlayerRelationshipScreen
+                || screen instanceof net.parkabird.changedsynergy.client.NativeEmoteScreen) {
             return false;
         }
         if (screen instanceof BondedLatexScreen bonded
@@ -601,7 +627,7 @@ public abstract class RadialScreenAnimationMixin
 
     @Unique
     private LayerMotion changedSynergy$iconMotion(int section) {
-        int slot = Math.floorMod(section, 8);
+        int slot = Math.floorMod(section - viewOffset, 8);
         if (changedSynergy$closing) {
             if (changedSynergy$reversingOpening) {
                 return changedSynergy$openingIconMotion(

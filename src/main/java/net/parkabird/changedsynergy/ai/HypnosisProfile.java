@@ -1,11 +1,13 @@
 package net.parkabird.changedsynergy.ai;
 
 import net.ltxprogrammer.changed.entity.ChangedEntity;
+import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.registries.ForgeRegistries;
 
 /** Shared species identity, dialogue key and screen color for hypnosis users. */
@@ -38,6 +40,10 @@ public enum HypnosisProfile {
     }
 
     public static HypnosisProfile of(Entity entity) {
+        if (entity instanceof Player player) {
+            var instance = ProcessTransfur.getPlayerTransfurVariant(player);
+            if (instance != null) entity = instance.getChangedEntity();
+        }
         ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
         if (id == null) {
             return GENERIC;

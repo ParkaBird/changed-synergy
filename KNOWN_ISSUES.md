@@ -5,4 +5,4 @@
 - Large modpacks may change pathfinding, spawn rules, UI layout or combat events in ways Synergy cannot predict.
 - Some creature features depend on the species and abilities exposed by Changed. Not every creature supports grabbing, riding, hypnosis, social interaction or work roles.
 - English and Simplified Chinese are the maintained languages. Missing translations fall back to English.
-- There is no automated in-game regression suite yet. Release candidates still require the manual checklist in [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
+- Regression fixtures cover key relationship, camp, Instinct, settings and client paths, but cannot cover every modpack or world layout. Include a reproducible case and relevant logs when reporting an interaction with another mod.

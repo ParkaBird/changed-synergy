@@ -39,7 +39,9 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -169,10 +171,11 @@ public final class TakeoverService {
 
     private static long now(MinecraftServer server) { return server.overworld().getGameTime(); }
 
-    public static boolean active(Player player) { return player != null && ACTIVE.containsKey(player.getUUID()); }
+    public static boolean active(Player player) { return player != null && (ACTIVE.containsKey(player.getUUID()) || InstinctConfinementService.active(player)); }
 
     /** Administrative escape used by Changed's /untf and /untransfur aliases. */
     public static boolean forceReleaseByCommand(ServerPlayer player) {
+        if(InstinctConfinementService.release(player))return true;
         Entry entry = ACTIVE.get(player.getUUID());
         if (entry == null) return false;
         entry.session.emergencyRelease(now(player.server));
@@ -207,12 +210,14 @@ public final class TakeoverService {
 
     /** Safe only on the logical server thread; packet mixins check that precondition. */
     public static boolean blocksPlayerInput(Player player) {
+        if(InstinctConfinementService.active(player))return true;
         Entry e = player == null ? null : ACTIVE.get(player.getUUID());
         return e != null && !e.session.hasPlayerControl();
     }
 
     public static boolean carrying(ChangedEntity carrier) {
         if (carrier == null) return false;
+        if(InstinctConfinementService.carrying(carrier))return true;
         UUID id = carrier.getUUID();
         return ACTIVE.values().stream().anyMatch(e -> id.equals(e.carrierId));
     }
@@ -220,8 +225,31 @@ public final class TakeoverService {
     /** True only for the hidden player currently inside this ordinary carrier. */
     public static boolean contains(ChangedEntity carrier, Player player) {
         if (carrier == null || player == null) return false;
+        if (InstinctConfinementService.carrier(player) == carrier) return true;
         Entry entry = find(carrier);
         return entry != null && entry.playerId.equals(player.getUUID());
+    }
+
+    /** The hidden host is not a second body for native look-at or combat goals. */
+    public static boolean hidesPlayer(Player player) {
+        if (InstinctConfinementService.active(player)) return true;
+        Entry entry = player == null ? null : ACTIVE.get(player.getUUID());
+        return entry != null && entry.session.getKind() == TakeoverSession.Kind.ORDINARY
+                && switch (entry.session.getPhase()) {
+                    case CONTROLLED, STRUGGLE, SLEEPING -> true;
+                    default -> false;
+                };
+    }
+
+    /** Ordinary carriers retain their own AI while the player is inside. */
+    public static boolean autonomousCarrier(ChangedEntity carrier) {
+        if (InstinctConfinementService.carrying(carrier)) return true;
+        Entry entry = carrier == null ? null : find(carrier);
+        return entry != null && entry.session.getKind() == TakeoverSession.Kind.ORDINARY
+                && switch (entry.session.getPhase()) {
+                    case CONTROLLED, STRUGGLE, SLEEPING -> true;
+                    default -> false;
+                };
     }
 
     public static boolean allowsWork(ChangedEntity carrier) {
@@ -231,6 +259,7 @@ public final class TakeoverService {
     }
 
     public static boolean allowsNativeRelease(ChangedEntity carrier) {
+        if (InstinctConfinementService.carrying(carrier)) return false;
         Entry e = find(carrier);
         return e == null || e.recoveryPermit || carrier.getPersistentData().getBoolean(RELEASE);
     }
@@ -319,6 +348,7 @@ public final class TakeoverService {
         if (!ChangedSynergyConfig.COMMON.takeoverEnabled.get() || !Changed.config.server.isGrabEnabled.get()
                 || active(player) || carrying(carrier)
                 || !player.isAlive() || !carrier.isAlive() || player.isCreative() || player.isSpectator()
+                || TrueTransfurCompat.isInstinctShell(player) || TrueTransfurCompat.isRebirthing(player)
                 || carrier.getUnderlyingPlayer() != null || !CreatureSocialProfile.allowsSynergySystems(carrier)
                 || CreatureSocialProfile.isPermanentlyExcluded(carrier)
                 || CreatureSocialProfile.isJuvenile(carrier)
@@ -382,6 +412,8 @@ public final class TakeoverService {
     @Nullable
     public static ChangedEntity controllingCarrier(Player player) {
         if (!(player instanceof ServerPlayer serverPlayer)) return null;
+        ChangedEntity instinct = InstinctConfinementService.carrier(player);
+        if (instinct != null) return instinct;
         Entry entry = ACTIVE.get(player.getUUID());
         return entry == null ? null : carrier(serverPlayer.server, entry);
     }
@@ -416,8 +448,31 @@ public final class TakeoverService {
         return beginOrdinaryAuthorized(carrier, player, true);
     }
 
+    /** Authorization permits an approach; capture still needs unobstructed bodily reach. */
+    public static boolean canPhysicallyCapture(ChangedEntity carrier, LivingEntity player) {
+        if (player instanceof Player rider && net.parkabird.changedsynergy.compat.FirearmCompat.ridingSuperbVehicle(rider) != null) return false;
+        if (carrier.level() != player.level() || carrier.isRemoved() || player.isRemoved()) return false;
+        var body = carrier.getBoundingBox();
+        var target = player.getBoundingBox();
+        double bottom = Math.max(body.minY, target.minY);
+        double top = Math.min(body.maxY, target.maxY);
+        if (top - bottom < 0.25D) return false;
+        double dx = Math.max(0, Math.max(body.minX - target.maxX, target.minX - body.maxX));
+        double dz = Math.max(0, Math.max(body.minZ - target.maxZ, target.minZ - body.maxZ));
+        if (dx * dx + dz * dz > 1.5D * 1.5D) return false;
+        // Eye-level visibility can pass over a wall. Check collision shapes at the shared
+        // torso height instead, so glass, closed doors, walls and floors remain barriers.
+        double contactY = (bottom + top) * 0.5D;
+        Vec3 from = new Vec3(carrier.getX(), contactY, carrier.getZ());
+        Vec3 to = new Vec3(player.getX(), contactY, player.getZ());
+        return carrier.level().clip(new ClipContext(from, to, ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE, carrier)).getType() == HitResult.Type.MISS;
+    }
+
     private static boolean beginOrdinaryAuthorized(ChangedEntity carrier,
             ServerPlayer player, boolean confinement) {
+        // All ordinary capture paths share this commit guard, before old holds or forms change.
+        if (!canPhysicallyCapture(carrier, player)) return false;
         GrabEntityAbilityInstance ability = BondedSuitService.ability(carrier);
         if (ability == null) {
             clearIntent(carrier);
@@ -546,6 +601,7 @@ public final class TakeoverService {
     }
 
     public static void handleAction(ServerPlayer player, UUID sessionId, int action, int key, int sequence) {
+        if(InstinctConfinementService.active(player)){InstinctConfinementService.action(player,sessionId,action,key,sequence);return;}
         Entry e = ACTIVE.get(player.getUUID());
         if (e == null || !e.id.equals(sessionId) || !player.isAlive()) return;
         long tick = now(player.server);
@@ -892,18 +948,14 @@ public final class TakeoverService {
         }
         ability.suited = true;
         ability.grabbedHasControl = e.session.hasPlayerControl();
+        ((GrabAbilityTick)ability).changedSynergy$tickHoldIfNeeded();
         if (!ability.grabbedHasControl) {
             ability.attackDown = false;
             ability.useDown = false;
             ability.grabStrength = 1.0F;
-            Vec3 motion = carrier.getDeltaMovement();
-            if (motion.horizontalDistanceSqr() > 1.0E-4D) {
-                carrier.getLookControl().setLookAt(
-                        carrier.getX() + motion.x * 4.0D,
-                        carrier.getEyeY(),
-                        carrier.getZ() + motion.z * 4.0D,
-                        20.0F, 20.0F);
-            }
+            // Native goals own navigation and looking, just as in TT's instinct body.
+            // Replacing their look target with current velocity every tick makes
+            // melee, wandering and turning fight one another.
         }
     }
 
@@ -1246,6 +1298,9 @@ public final class TakeoverService {
     private static Optional<Vec3> preferredOrdinaryRelease(Entry e, ServerPlayer player,
             @Nullable ChangedEntity carrier, boolean avoidThreats) {
         if (e.session.getKind() != TakeoverSession.Kind.ORDINARY) return Optional.empty();
+        // Finishing confinement while awake is a local release, not an evacuation to a bed/cache.
+        if (e.confinement && !e.session.hasSlept())
+            return findRelease(e, player, localOrigin(e, player), carrier, 8, avoidThreats);
         if (carrier != null && carrier.level() == player.level()) {
             Optional<CreatureCommunityData.Snapshot> community = CreatureCommunityData.snapshot(carrier);
             if (community.isPresent()) {
@@ -1303,6 +1358,8 @@ public final class TakeoverService {
             Optional<Vec3> found = TakeoverSafety.findEmergency(
                     player, anchor, localCarrier, width, height);
             if (found.isPresent()) return found;
+            if (player.serverLevel().dimensionType().hasCeiling()
+                    && player.getY() < player.serverLevel().dimensionType().logicalHeight()) continue;
             BlockPos column = BlockPos.containing(anchor);
             int surfaceY = player.serverLevel().getHeight(
                     Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, column.getX(), column.getZ());
@@ -1317,6 +1374,8 @@ public final class TakeoverService {
         ServerLevel level = player.serverLevel();
         BlockPos at = BlockPos.containing(player.position());
         int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, at.getX(), at.getZ());
+        if (level.dimensionType().hasCeiling() && player.getY() < level.dimensionType().logicalHeight())
+            y = at.getY();
         y = Math.max(level.getMinBuildHeight() + 1, Math.min(level.getMaxBuildHeight() - 2, y));
         return Optional.of(new Vec3(at.getX() + 0.5, y, at.getZ() + 0.5));
     }
@@ -1616,11 +1675,14 @@ public final class TakeoverService {
             ChangedAddonCompat.syncFriendlySuitControl(oldCarrier, player, false);
             Changed.PACKET_HANDLER.send(PacketDistributor.TRACKING_ENTITY.with(() -> oldCarrier),
                     new GrabEntityPacket(oldCarrier, player, GrabType.RELEASE));
-            if (player instanceof LivingEntityDataExtension extension
-                    && extension.getGrabbedBy() == oldCarrier) {
-                extension.setGrabbedBy(null);
-                player.noPhysics = false;
-            }
+        }
+        // The carrier may already have left the loaded world. Only clear this session's
+        // old hold; a newer creature's capture must retain its own grab reference.
+        if (player instanceof LivingEntityDataExtension extension
+                && extension.getGrabbedBy() != null
+                && extension.getGrabbedBy().getUUID().equals(entry.carrierId)) {
+            extension.setGrabbedBy(null);
+            player.noPhysics = false;
         }
         entry.session.interrupt(now(player.server));
         entry.session.finish(now(player.server));

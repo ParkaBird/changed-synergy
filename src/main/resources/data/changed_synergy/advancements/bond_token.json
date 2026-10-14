@@ -1,0 +1,13 @@
+{
+  "parent": "changed_synergy:close_companion",
+  "display": {
+    "icon": { "item": "minecraft:amethyst_shard" },
+    "title": { "translate": "advancement.changed_synergy.bond_token.title" },
+    "description": { "translate": "advancement.changed_synergy.bond_token.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": { "complete": { "trigger": "minecraft:impossible" } }
+}

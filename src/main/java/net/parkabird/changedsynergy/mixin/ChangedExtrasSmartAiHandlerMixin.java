@@ -26,7 +26,6 @@ public abstract class ChangedExtrasSmartAiHandlerMixin {
             EntityJoinLevelEvent event,
             CallbackInfo callback) {
         if (event.getEntity() instanceof ChangedEntity mob
-                && ChangedExtrasCompat.smartAiEnabled(mob)
                 && ChangedExtrasCompat.shouldYieldSmartAi(mob)) {
             callback.cancel();
         }
@@ -42,7 +41,6 @@ public abstract class ChangedExtrasSmartAiHandlerMixin {
             LivingEvent.LivingTickEvent event,
             CallbackInfo callback) {
         if (event.getEntity() instanceof ChangedEntity mob
-                && ChangedExtrasCompat.smartAiEnabled(mob)
                 && ChangedExtrasCompat.shouldYieldSmartAi(mob)) {
             callback.cancel();
         }

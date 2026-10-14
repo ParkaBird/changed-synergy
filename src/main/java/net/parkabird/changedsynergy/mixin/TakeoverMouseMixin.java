@@ -11,13 +11,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MouseHandler.class)
 public abstract class TakeoverMouseMixin {
-    @Inject(method = {"turnPlayer", "m_91523_"}, at = @At("HEAD"),
-            cancellable = true, remap = false)
-    private void takeover$look(CallbackInfo ci) {
-        if (TakeoverClientState.movementLocked()
-                && Minecraft.getInstance().screen == null) ci.cancel();
-    }
-
     @Inject(method = {"onPress", "m_91530_"}, at = @At("HEAD"), cancellable = true, remap = false)
     private void takeover$button(long window, int button, int action, int mods, CallbackInfo ci) {
         var mc = Minecraft.getInstance();

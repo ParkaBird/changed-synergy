@@ -42,6 +42,12 @@ public final class ChangedAddonCompat {
         return ModList.get().isLoaded(MOD_ID);
     }
 
+    /** Preserve Exp2's native food-taming route before Synergy handles ordinary feeding. */
+    public static boolean isNativeTamingFood(ChangedEntity creature, ItemStack stack) {
+        return isLoaded() && Boolean.TRUE.equals(invokeOptional("isNativeTamingFood",
+                new Class<?>[]{ChangedEntity.class, ItemStack.class}, creature, stack));
+    }
+
     public static double alphaRenderScale(ChangedEntity creature) {
         Object scale = invokeOptional(
                 "alphaRenderScale", new Class<?>[]{ChangedEntity.class}, creature);

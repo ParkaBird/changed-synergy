@@ -46,7 +46,8 @@ public final class NpcDispositionEvents {
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END
                 || !(event.player instanceof ServerPlayer player)
-                || player.tickCount % 10 != 0) {
+                || player.tickCount % 10 != 0
+                || net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)) {
             return;
         }
 
@@ -60,7 +61,8 @@ public final class NpcDispositionEvents {
     }
 
     private static void updateCreature(ServerPlayer player, ChangedEntity creature) {
-        boolean survival = player.isAlive() && !player.isCreative() && !player.isSpectator();
+        boolean survival = player.isAlive() && !player.isCreative() && !player.isSpectator()
+                && !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player);
         if (!survival) {
             if (creature.getTarget() == player) {
                 LatexSocialEvents.calmTowards(creature, player);
@@ -221,7 +223,8 @@ public final class NpcDispositionEvents {
     public static boolean canVisuallyAcquire(
             ChangedEntity creature,
             ServerPlayer player) {
-        if (!creature.hasLineOfSight(player)) {
+        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
+                || !hasVisualContact(creature, player)) {
             return false;
         }
 
@@ -234,7 +237,8 @@ public final class NpcDispositionEvents {
             return true;
         }
 
-        Vec3 direction = player.getEyePosition().subtract(creature.getEyePosition());
+        var vehicle = net.parkabird.changedsynergy.compat.FirearmCompat.ridingSuperbVehicle(player);
+        Vec3 direction = (vehicle == null ? player : vehicle).getEyePosition().subtract(creature.getEyePosition());
         if (direction.lengthSqr() < 1.0E-6D) {
             return true;
         }
@@ -243,6 +247,12 @@ public final class NpcDispositionEvents {
                 ? SPRINTING_VIEW_DOT
                 : player.isCrouching() ? SNEAKING_VIEW_DOT : NORMAL_VIEW_DOT;
         return look.dot(direction.normalize()) >= threshold;
+    }
+
+    /** Hidden/scaled passenger models do not hide the visible vehicle from a pursuing creature. */
+    public static boolean hasVisualContact(ChangedEntity creature, ServerPlayer player) {
+        var vehicle = net.parkabird.changedsynergy.compat.FirearmCompat.ridingSuperbVehicle(player);
+        return creature.hasLineOfSight(vehicle == null ? player : vehicle);
     }
 
     public static boolean isWithinPursuitRange(
@@ -275,6 +285,9 @@ public final class NpcDispositionEvents {
      * not depend on enhanced-AI range, line of sight or gamerule state.
      */
     public static boolean mustRejectTarget(ChangedEntity creature, ServerPlayer player) {
+        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)) return true;
+        if (net.parkabird.changedsynergy.origin.NativeOriginService.pending(player)
+                || net.parkabird.changedsynergy.origin.NativeOriginService.protectedMember(creature, player)) return true;
         if (!player.isAlive() || player.isCreative() || player.isSpectator()
                 || HypnosisQteService.shouldPreventTargeting(creature, player)) {
             return true;

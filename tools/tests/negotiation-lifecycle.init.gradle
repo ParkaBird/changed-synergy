@@ -1,0 +1,20 @@
+// Private dedicated-server regression fixtures; excluded from normal release builds.
+gradle.beforeProject { project ->
+    project.layout.buildDirectory.set(project.file('.codex-tmp/negotiation-lifecycle-build'))
+    project.afterEvaluate {
+        project.sourceSets.main.java.srcDir(project.file('tools/tests/negotiation-lifecycle'))
+        project.sourceSets.main.resources.srcDir(project.file('tools/tests/negotiation-lifecycle/resources'))
+        def classes = project.file('.codex-tmp/negotiation-lifecycle-build/classes/java/main')
+        project.sourceSets.main.java.destinationDirectory.set(classes)
+        project.sourceSets.main.output.classesDirs = project.files(classes)
+        project.tasks.named('compileJava').configure { destinationDirectory.set(classes) }
+        if (project.hasProperty('trueTransfurJar')) {
+            def localMods = project.file('.codex-tmp/camp-work-localmods')
+            project.repositories.flatDir { dirs localMods }
+            project.dependencies.add('runtimeOnly', project.fg.deobf('camp.compat:truetransfur:2.0.0'))
+            project.dependencies.add('runtimeOnly', project.fg.deobf('camp.compat:mixin_args:1.0'))
+        }
+        project.minecraft.runs.server.workingDirectory project.file(project.findProperty('negotiationTestDirectory') ?: '.codex-tmp/negotiation-lifecycle-server')
+        project.minecraft.runs.server.property 'forge.logging.console.level', 'info'
+    }
+}

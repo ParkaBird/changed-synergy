@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
+import net.ltxprogrammer.changed.entity.TamableLatexEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -14,6 +15,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 
@@ -36,18 +38,24 @@ public final class CreaturePersonality {
     private static final String LAST_PLAYED = "LastPlayed";
     private static final String HARM = "Harm";
     private static final String AFFECTION_ADJUSTMENT = "AffectionAdjustment";
+    private static final String AFFECTION = "Affection";
+    private static final String CARE_ALLOWANCE = "CareAllowance";
+    private static final String NEXT_CARE = "NextCareGainAt";
+    private static final String NEXT_GIFT = "NextGiftAt";
+    private static final String BOND_RECOGNIZED = "BondRecognized";
     private static final String POSITIVE_GAIN_REMAINDER =
             "PositiveGainRemainder";
     private static final String WITNESSED_KIN_KILLS = "WitnessedKinKills";
     private static final String RELATIONSHIP = "Relationship";
     private static final String RELATIONSHIP_SINCE = "RelationshipSince";
+    private static final String NATIVE_PET_RECOGNIZED = "NativePetRecognized";
     private static final String SOCIAL_PARTNER = "SocialPartner";
     private static final String LAST_COUNTED_ENCOUNTER = "LastCountedEncounter";
     private static final String LAST_INTERACTION = "LastInteraction";
     private static final String RESCUE_CONCERN = "RescueConcern";
     private static final String LAST_RESCUE_CONCERN = "LastRescueConcern";
     private static final String RESCUE_CONCERN_UPDATED = "RescueConcernUpdated";
-    private static final int CURRENT_VERSION = 5;
+    private static final int CURRENT_VERSION = 7;
     private static final int MAX_PLAYER_MEMORIES = 64;
     private static final long ENCOUNTER_INTERVAL = 1200L;
     private static final long RESCUE_CONCERN_INTERVAL = 1200L;
@@ -66,6 +74,8 @@ public final class CreaturePersonality {
         PLAYFUL,
         SENSITIVE,
         POLITE;
+
+        public boolean behaviorOnly() { return this == PLAYFUL || this == POLITE; }
 
         public String dialogueKey() {
             return name().toLowerCase(Locale.ROOT);
@@ -87,7 +97,10 @@ public final class CreaturePersonality {
             int wanted = random.nextFloat() < 0.45F ? 3 : 2;
             mask = 0;
             while (Integer.bitCount(mask) < wanted) {
-                mask |= 1 << random.nextInt(Trait.values().length);
+                Trait candidate = Trait.values()[random.nextInt(Trait.values().length)];
+                if (candidate == Trait.PLAYFUL && (mask & 1 << Trait.POLITE.ordinal()) != 0
+                        || candidate == Trait.POLITE && (mask & 1 << Trait.PLAYFUL.ordinal()) != 0) continue;
+                mask |= 1 << candidate.ordinal();
             }
             personality.putInt(TRAIT_MASK, mask);
         } else if (storedVersion < 3 && (mask & 1 << Trait.POLITE.ordinal()) == 0) {
@@ -95,11 +108,20 @@ public final class CreaturePersonality {
             personality.putInt(TRAIT_MASK, mask);
         }
 
+        int playful = 1 << Trait.PLAYFUL.ordinal(), polite = 1 << Trait.POLITE.ordinal();
+        if ((mask & playful) != 0 && (mask & polite) != 0) {
+            int previous = personality.getInt(DOMINANT_TRAIT);
+            boolean keepPlayful = previous == Trait.PLAYFUL.ordinal()
+                    || previous != Trait.POLITE.ordinal() && (mix64(personalitySeed(mob)) & 1) == 0;
+            mask &= ~(keepPlayful ? polite : playful);
+            if (Integer.bitCount(mask) < 2) mask |= 1 << Trait.CALM.ordinal();
+        }
+        personality.putInt(TRAIT_MASK, mask);
         personality.putInt(DATA_VERSION, CURRENT_VERSION);
         int dominant = personality.getInt(DOMINANT_TRAIT);
         if (!personality.contains(DOMINANT_TRAIT, Tag.TAG_INT)
                 || dominant < 0 || dominant >= Trait.values().length
-                || (mask & 1 << dominant) == 0) {
+                || (mask & 1 << dominant) == 0 || Trait.values()[dominant].behaviorOnly()) {
             personality.putInt(DOMINANT_TRAIT, selectDominantTrait(mob, mask));
         }
     }
@@ -139,17 +161,28 @@ public final class CreaturePersonality {
         return Trait.values()[data(mob).getInt(DOMINANT_TRAIT)];
     }
 
-    /** Selects a visible dominant trait while retaining the generated secondary traits. */
+    /** Commands can set a primary personality or add an exclusive behavior trait. */
     public static void setDominantTrait(ChangedEntity mob, Trait trait) {
         ensure(mob);
         CompoundTag personality = data(mob);
+        int dominant = personality.getInt(DOMINANT_TRAIT);
         int mask = personality.getInt(TRAIT_MASK) | 1 << trait.ordinal();
-        if (Integer.bitCount(mask) > 3) {
-            mask &= ~(1 << personality.getInt(DOMINANT_TRAIT));
+        if (trait.behaviorOnly()) {
+            mask &= ~(1 << (trait == Trait.PLAYFUL ? Trait.POLITE : Trait.PLAYFUL).ordinal());
+            if (Integer.bitCount(mask) > 3) {
+                for (Trait secondary : Trait.values()) {
+                    if (secondary != trait && secondary.ordinal() != dominant && (mask & 1 << secondary.ordinal()) != 0) {
+                        mask &= ~(1 << secondary.ordinal()); break;
+                    }
+                }
+            }
+        } else {
+            if (Integer.bitCount(mask) > 3) mask &= ~(1 << dominant);
+            personality.putInt(DOMINANT_TRAIT, trait.ordinal());
         }
         personality.putInt(TRAIT_MASK, mask);
-        personality.putInt(DOMINANT_TRAIT, trait.ordinal());
         personality.putInt(DATA_VERSION, CURRENT_VERSION);
+        ensure(mob);
     }
 
     /** Alters detection persistence without changing the entity's native melee speed. */
@@ -281,23 +314,24 @@ public final class CreaturePersonality {
         long now = mob.level().getGameTime();
         if (!memory.contains(LAST_COUNTED_ENCOUNTER)
                 || now - memory.getLong(LAST_COUNTED_ENCOUNTER) >= ENCOUNTER_INTERVAL) {
-            int before = familiarity(mob, memory);
+            int oldPositive = legacyPositive(memory);
             memory.putInt(ENCOUNTERS, Math.min(100, memory.getInt(ENCOUNTERS) + 1));
             memory.putLong(LAST_COUNTED_ENCOUNTER, now);
-            scalePositiveGain(mob, player, memory, before, 0);
+            if (!balanced()) grantGain(mob, player, memory, legacyPositive(memory) - oldPositive);
         }
         touchMemory(mob, player, memory, now);
     }
 
-    public static void rememberPatReceived(ChangedEntity mob, ServerPlayer player) {
+    public static int rememberPatReceived(ChangedEntity mob, ServerPlayer player) {
         if (!friendshipEnabled(mob)) {
-            return;
+            return 0;
         }
         CompoundTag memory = memory(mob, player, true);
-        int before = familiarity(mob, memory);
+        int oldPositive = legacyPositive(memory);
         memory.putInt(PATS_RECEIVED, Math.min(100, memory.getInt(PATS_RECEIVED) + 1));
-        scalePositiveGain(mob, player, memory, before, 1);
+        int gain = rewardCare(mob, player, balanced() ? 2 : legacyPositive(memory) - oldPositive);
         touchMemory(mob, player, memory, mob.level().getGameTime());
+        return gain;
     }
 
     public static void rememberPatGiven(ChangedEntity mob, ServerPlayer player) {
@@ -305,26 +339,30 @@ public final class CreaturePersonality {
             return;
         }
         CompoundTag memory = memory(mob, player, true);
-        int before = familiarity(mob, memory);
+        int oldPositive = legacyPositive(memory);
         memory.putInt(PATS_GIVEN, Math.min(100, memory.getInt(PATS_GIVEN) + 1));
-        scalePositiveGain(mob, player, memory, before, 1);
+        if (!balanced()) grantGain(mob, player, memory, legacyPositive(memory) - oldPositive);
         touchMemory(mob, player, memory, mob.level().getGameTime());
     }
 
-    public static void rememberGiftReceived(
+    public static int rememberGiftReceived(
             ChangedEntity mob,
             ServerPlayer player,
             int favor) {
         if (!friendshipEnabled(mob) || favor <= 0) {
-            return;
+            return 0;
         }
         CompoundTag memory = memory(mob, player, true);
-        int before = familiarity(mob, memory);
+        int oldPositive = legacyPositive(memory);
         memory.putInt(GIFT_FAVOR,
                 Math.min(100, memory.getInt(GIFT_FAVOR) + favor));
-        scalePositiveGain(
-                mob, player, memory, before, Math.max(1, favor / 4));
+        int gained = grantGain(mob, player, memory, balanced() ? favor : legacyPositive(memory) - oldPositive);
+        if (balanced()) {
+            memory.putLong(NEXT_GIFT, now(mob) + ChangedSynergyConfig.COMMON.giftCooldownSeconds.get() * 20L);
+            memory.putInt(CARE_ALLOWANCE, ChangedSynergyConfig.COMMON.careAffectionAllowance.get());
+        }
         touchMemory(mob, player, memory, mob.level().getGameTime());
+        return gained;
     }
 
     public static long playCooldownRemaining(
@@ -342,22 +380,23 @@ public final class CreaturePersonality {
         return Math.max(0L, readyAt - mob.level().getGameTime());
     }
 
-    public static void rememberPlayedTogether(
+    public static int rememberPlayedTogether(
             ChangedEntity mob,
             ServerPlayer player) {
         if (!friendshipEnabled(mob)) {
-            return;
+            return 0;
         }
         CompoundTag memory = memory(mob, player, true);
-        int before = familiarity(mob, memory);
+        int oldPositive = legacyPositive(memory);
         memory.putInt(
                 PLAYS_TOGETHER,
                 Math.min(100, memory.getInt(PLAYS_TOGETHER) + 1));
-        scalePositiveGain(mob, player, memory, before, 1);
+        int gain = rewardCare(mob, player, balanced() ? 2 : legacyPositive(memory) - oldPositive);
         long now = mob.level().getGameTime();
         memory.putLong(LAST_PLAYED, now);
         touchMemory(mob, player, memory, now);
         SynergyAdvancements.grant(player, SynergyAdvancements.SHARED_MOMENT);
+        return gain;
     }
 
     public static void rememberHarm(ChangedEntity mob, ServerPlayer player, float damage) {
@@ -365,8 +404,10 @@ public final class CreaturePersonality {
             return;
         }
         CompoundTag memory = memory(mob, player, true);
+        int previousHarm = harmPenalty(mob, memory);
         float cap = Math.max(40.0F, mob.getMaxHealth() * 20.0F);
         memory.putFloat(HARM, Math.min(cap, memory.getFloat(HARM) + damage));
+        memory.putInt(AFFECTION, Mth.clamp(familiarity(mob, memory) - harmPenalty(mob, memory) + previousHarm, -40, 60));
         touchMemory(mob, player, memory, mob.level().getGameTime());
     }
 
@@ -463,73 +504,139 @@ public final class CreaturePersonality {
     }
 
     private static int familiarity(ChangedEntity mob, CompoundTag memory) {
-        int positive = Math.min(16, memory.getInt(ENCOUNTERS) * 2)
+        return Mth.clamp(memory.getInt(AFFECTION), -40, 60);
+    }
+
+    private static int legacyPositive(CompoundTag memory) {
+        return Math.min(16, memory.getInt(ENCOUNTERS) * 2)
                 + Math.min(30, memory.getInt(PATS_RECEIVED) * 5)
                 + Math.min(20, memory.getInt(PATS_GIVEN) * 3)
                 + Math.min(32, memory.getInt(GIFT_FAVOR))
                 + Math.min(18, memory.getInt(PLAYS_TOGETHER) * 3);
-        int harm = Math.round(memory.getFloat(HARM)
-                / Math.max(1.0F, mob.getMaxHealth()) * 12.0F);
+    }
+
+    private static int legacyFamiliarity(ChangedEntity mob, CompoundTag memory) {
         return Mth.clamp(
-                positive - Math.min(50, harm)
+                legacyPositive(memory) - harmPenalty(mob, memory)
                         + memory.getInt(AFFECTION_ADJUSTMENT),
                 -40,
                 60);
     }
 
-    private static void scalePositiveGain(
-            ChangedEntity mob,
-            ServerPlayer player,
-            CompoundTag memory,
-            int before,
-            int continuedRecovery) {
-        int rawGain = familiarity(mob, memory) - before;
-        if (rawGain <= 0) {
-            // Interaction-history fields intentionally have caps. Once one is
-            // full, continued deliberate care must still be able to repair a
-            // damaged relationship instead of leaving it permanently stuck.
-            if (continuedRecovery > 0 && before < 60) {
-                grantScaledAdjustment(
-                        mob, player, memory, continuedRecovery);
-            }
-            return;
-        }
-        int percent = FactionReputation.positiveInteractionPercent(mob, player);
-        if (percent >= 100) {
-            return;
-        }
-        int scaledUnits = rawGain * percent
-                + memory.getInt(POSITIVE_GAIN_REMAINDER);
-        int granted = scaledUnits / 100;
-        memory.putInt(POSITIVE_GAIN_REMAINDER, scaledUnits % 100);
-        memory.putInt(
-                AFFECTION_ADJUSTMENT,
-                Mth.clamp(
-                        memory.getInt(AFFECTION_ADJUSTMENT)
-                                - (rawGain - granted),
-                        -200,
-                        200));
+    private static int harmPenalty(ChangedEntity mob, CompoundTag memory) {
+        return Math.min(50, Math.round(memory.getFloat(HARM) / Math.max(1.0F, mob.getMaxHealth()) * 12.0F));
     }
 
-    private static void grantScaledAdjustment(
-            ChangedEntity mob,
-            ServerPlayer player,
-            CompoundTag memory,
-            int amount) {
+    public static boolean balanced() { return ChangedSynergyConfig.COMMON.balancedRelationships.get(); }
+
+    public static long now(ChangedEntity mob) {
+        return mob.getServer() == null ? mob.level().getGameTime() : mob.getServer().overworld().getGameTime();
+    }
+
+    public static long giftCooldownRemaining(ChangedEntity mob, ServerPlayer player) {
+        CompoundTag memory = memory(mob, player, false);
+        return !balanced() || memory == null ? 0 : Math.max(0, memory.getLong(NEXT_GIFT) - now(mob));
+    }
+
+    public static long careCooldownRemaining(ChangedEntity mob, ServerPlayer player) {
+        CompoundTag memory = memory(mob, player, false);
+        return !balanced() || memory == null ? 0 : Math.max(0, memory.getLong(NEXT_CARE) - now(mob));
+    }
+
+    /** Saved values remain inspectable even while the friendship gamerule pauses their effects. */
+    public static GrowthSnapshot growthSnapshot(ChangedEntity mob, ServerPlayer player) {
+        CompoundTag memory = memory(mob, player, false);
+        if (memory == null) return new GrowthSnapshot(0, false, 0, 0, 0);
+        return new GrowthSnapshot(familiarity(mob, memory), memory.getBoolean(RELATIONSHIP),
+                careAllowance(mob, player), Math.max(0, memory.getLong(NEXT_CARE) - now(mob)),
+                Math.max(0, memory.getLong(NEXT_GIFT) - now(mob)));
+    }
+
+    public record GrowthSnapshot(int affection, boolean established, int careAllowance,
+                                 long careCooldownTicks, long giftCooldownTicks) {}
+
+    /** Operator adjustments affect this pair only, preserving affection and interaction history. */
+    public static void setCareCooldown(ChangedEntity mob, ServerPlayer player, int seconds) {
+        setGrowthCooldown(mob, player, NEXT_CARE, seconds);
+    }
+
+    public static void setGiftCooldown(ChangedEntity mob, ServerPlayer player, int seconds) {
+        setGrowthCooldown(mob, player, NEXT_GIFT, seconds);
+    }
+
+    private static void setGrowthCooldown(ChangedEntity mob, ServerPlayer player, String key, int seconds) {
+        if (!friendshipEnabled(mob)) return;
+        CompoundTag memory = memory(mob, player, true);
+        memory.putLong(key, now(mob) + Mth.clamp(seconds, 0, 7200) * 20L);
+        touchMemory(mob, player, memory, now(mob));
+    }
+
+    public static int careAllowance(ChangedEntity mob, ServerPlayer player) {
+        CompoundTag memory = memory(mob, player, false);
+        return memory == null ? 0 : Math.max(0, Math.min(memory.getInt(CARE_ALLOWANCE), ChangedSynergyConfig.COMMON.careAffectionAllowance.get()));
+    }
+
+    public static int setCareAllowance(ChangedEntity mob, ServerPlayer player, int points) {
+        if (!friendshipEnabled(mob)) return 0;
+        CompoundTag memory = memory(mob, player, true);
+        int actual = Mth.clamp(points, 0, ChangedSynergyConfig.COMMON.careAffectionAllowance.get());
+        memory.putInt(CARE_ALLOWANCE, actual);
+        touchMemory(mob, player, memory, now(mob));
+        return actual;
+    }
+
+    public static void recordTokenGift(ChangedEntity mob, ServerPlayer player) {
+        CompoundTag memory = memory(mob, player, true);
+        memory.putLong(NEXT_GIFT, now(mob) + ChangedSynergyConfig.COMMON.giftCooldownSeconds.get() * 20L);
+        memory.putInt(CARE_ALLOWANCE, ChangedSynergyConfig.COMMON.careAffectionAllowance.get());
+    }
+
+    public static boolean recognizesBond(ChangedEntity mob, ServerPlayer player) {
+        CompoundTag memory = memory(mob, player, false);
+        return memory != null && memory.getBoolean(BOND_RECOGNIZED);
+    }
+
+    public static void recognizeBond(ChangedEntity mob, UUID player) {
+        if (CreatureSocialProfile.allowsPersonalRelationship(mob))
+            memory(mob, player, true).putBoolean(BOND_RECOGNIZED, true);
+    }
+
+    /** Returns the actual award. Failed attempts never advance the cooldown or refill a budget. */
+    public static int rewardCare(ChangedEntity mob, ServerPlayer player, int amount) {
+        if (!friendshipEnabled(mob) || amount <= 0
+                || net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)) return 0;
+        CompoundTag memory = memory(mob, player, true);
+        if (!balanced()) return grantGain(mob, player, memory, amount);
+        if (memory.getLong(NEXT_CARE) > now(mob)) return 0;
+        boolean related = memory.getBoolean(RELATIONSHIP);
+        int cap = related ? 60 : ChangedSynergyConfig.COMMON.strangerAffectionLimit.get();
+        int allowed = Math.min(amount, cap - familiarity(mob, memory));
+        if (related) {
+            memory.putInt(CARE_ALLOWANCE, Math.min(memory.getInt(CARE_ALLOWANCE), ChangedSynergyConfig.COMMON.careAffectionAllowance.get()));
+            allowed = Math.min(allowed, memory.getInt(CARE_ALLOWANCE));
+        }
+        if (allowed <= 0) return 0;
+        int gained = grantGain(mob, player, memory, allowed);
+        // A faction multiplier can yield a fractional reward; it must also be throttled.
+        memory.putLong(NEXT_CARE, now(mob) + ChangedSynergyConfig.COMMON.careAffectionCooldownSeconds.get() * 20L);
+        if (related) memory.putInt(CARE_ALLOWANCE, Math.max(0, memory.getInt(CARE_ALLOWANCE) - gained));
+        touchMemory(mob, player, memory, now(mob));
+        return gained;
+    }
+
+    private static int grantGain(ChangedEntity mob, ServerPlayer player, CompoundTag memory, int amount) {
+        if (amount <= 0) return 0;
         int scaledUnits = amount
                         * FactionReputation.positiveInteractionPercent(mob, player)
                 + memory.getInt(POSITIVE_GAIN_REMAINDER);
         int granted = scaledUnits / 100;
         memory.putInt(POSITIVE_GAIN_REMAINDER, scaledUnits % 100);
         if (granted <= 0) {
-            return;
+            return 0;
         }
-        memory.putInt(
-                AFFECTION_ADJUSTMENT,
-                Mth.clamp(
-                        memory.getInt(AFFECTION_ADJUSTMENT) + granted,
-                        -200,
-                        200));
+        int before = familiarity(mob, memory);
+        memory.putInt(AFFECTION, Mth.clamp(before + granted, -40, 60));
+        return familiarity(mob, memory) - before;
     }
 
     /** Administrative hook that preserves the underlying interaction history. */
@@ -542,14 +649,7 @@ public final class CreaturePersonality {
         }
         int target = Mth.clamp(value, -40, 60);
         CompoundTag memory = memory(mob, player, true);
-        int current = familiarity(mob, player);
-        memory.putInt(
-                AFFECTION_ADJUSTMENT,
-                Mth.clamp(
-                        memory.getInt(AFFECTION_ADJUSTMENT)
-                                + target - current,
-                        -200,
-                        200));
+        memory.putInt(AFFECTION, target);
         touchMemory(mob, player, memory, mob.level().getGameTime());
         return familiarity(mob, player);
     }
@@ -569,22 +669,8 @@ public final class CreaturePersonality {
         if (amount <= 0 || !friendshipEnabled(mob)) {
             return adjustFamiliarity(mob, player, amount);
         }
-        CompoundTag memory = memory(mob, player, true);
-        int scaledUnits = amount
-                        * FactionReputation.positiveInteractionPercent(mob, player)
-                + memory.getInt(POSITIVE_GAIN_REMAINDER);
-        int granted = scaledUnits / 100;
-        memory.putInt(POSITIVE_GAIN_REMAINDER, scaledUnits % 100);
-        if (granted > 0) {
-            memory.putInt(
-                    AFFECTION_ADJUSTMENT,
-                    Mth.clamp(
-                            memory.getInt(AFFECTION_ADJUSTMENT) + granted,
-                            -200,
-                            200));
-            touchMemory(mob, player, memory, mob.level().getGameTime());
-        }
-        return familiarity(mob, memory);
+        rewardCare(mob, player, balanced() ? 2 : amount);
+        return familiarity(mob, player);
     }
 
     public static boolean forgetRelationship(
@@ -642,6 +728,7 @@ public final class CreaturePersonality {
      * can establish a relationship from one player pat.
      */
     public static int relationshipThreshold(ChangedEntity mob) {
+        if (balanced()) return ChangedSynergyConfig.COMMON.strangerAffectionLimit.get();
         int threshold = 15;
         if (has(mob, Trait.CURIOUS)) threshold--;
         if (has(mob, Trait.PLAYFUL)) threshold--;
@@ -666,6 +753,7 @@ public final class CreaturePersonality {
         if (hasEstablishedRelationship(mob, player)) {
             return RelationshipProgress.EXISTING;
         }
+        if (balanced()) return RelationshipProgress.BUILDING;
         if (familiarity(mob, player) < relationshipThreshold(mob)) {
             return RelationshipProgress.BUILDING;
         }
@@ -707,6 +795,30 @@ public final class CreaturePersonality {
             FactionReputation.adjustFromInteraction(mob, player, 12);
         }
         return first;
+    }
+
+    /** Native taming is already an introduction; it does not earn its way through care or gifts. */
+    public static void reconcileNativePetRelationship(ChangedEntity mob) {
+        if (!(mob.level() instanceof ServerLevel level)
+                || mob.getUnderlyingPlayer() != null
+                || !friendshipEnabled(mob)
+                || !(mob instanceof TamableLatexEntity pet)
+                || !pet.isTame() || pet.getOwnerUUID() == null) {
+            return;
+        }
+        ServerPlayer owner = level.getServer().getPlayerList().getPlayer(pet.getOwnerUUID());
+        if (owner == null
+                || net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(owner)
+                    && net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(owner) == owner) {
+            return;
+        }
+        CompoundTag memory = memory(mob, owner, true);
+        if (memory.getBoolean(NATIVE_PET_RECOGNIZED)) return;
+        // Saved per real owner, so reloads and PLAYER/INSTINCT changes cannot refill affection.
+        memory.putBoolean(NATIVE_PET_RECOGNIZED, true);
+        establishRelationship(mob, owner);
+        setFamiliarity(mob, owner, 60);
+        PlayerRelationshipSettings.rememberContact(owner, mob, LatexSocialMemory.isBonded(mob, owner));
     }
 
     public static boolean hasEstablishedRelationship(
@@ -875,6 +987,9 @@ public final class CreaturePersonality {
                 && hasTrustedRelationship(mob, player)
                 && canFriendFollow(mob, player)) {
             personality.putUUID(SOCIAL_PARTNER, player.getUUID());
+            if (mob.getPersistentData().hasUUID("ChangedSynergyRestOwner")) SharedRestGoal.cancel(mob);
+            CreatureComfortGoal.endSeatedActivity(mob);
+            if (mob.isSleeping()) mob.stopSleeping();
             if (ChangedSynergyGameRules.enabled(
                     mob.level(), ChangedSynergyGameRules.CREATURE_LIFE)) {
                 mob.setPersistenceRequired();
@@ -957,7 +1072,7 @@ public final class CreaturePersonality {
     }
 
     private static boolean friendshipEnabled(ChangedEntity mob) {
-        return ChangedSynergyGameRules.enabled(
+        return CreatureSocialProfile.allowsPersonalRelationship(mob) && ChangedSynergyGameRules.enabled(
                 mob.level(), ChangedSynergyGameRules.FRIENDSHIP_SYSTEM);
     }
 
@@ -1038,7 +1153,17 @@ public final class CreaturePersonality {
             }
             memories.put(key, new CompoundTag());
         }
-        return memories.getCompound(key);
+        CompoundTag memory = memories.getCompound(key);
+        if (!memory.contains(AFFECTION, Tag.TAG_INT)) {
+            int score = legacyFamiliarity(mob, memory);
+            boolean oldBond = LatexSocialMemory.bondedPlayerUuids(mob).contains(playerId);
+            if (balanced() && !memory.getBoolean(RELATIONSHIP) && !oldBond)
+                score = Math.min(score, ChangedSynergyConfig.COMMON.strangerAffectionLimit.get());
+            memory.putInt(AFFECTION, score);
+            memory.putInt(CARE_ALLOWANCE, memory.getBoolean(RELATIONSHIP) ? ChangedSynergyConfig.COMMON.careAffectionAllowance.get() : 0);
+            if (oldBond) memory.putBoolean(BOND_RECOGNIZED, true);
+        }
+        return memory;
     }
 
     private static CompoundTag memories(ChangedEntity mob) {
@@ -1062,7 +1187,7 @@ public final class CreaturePersonality {
         int selected = -1;
         long strongestExpression = 0L;
         for (Trait trait : Trait.values()) {
-            if ((mask & 1 << trait.ordinal()) == 0) {
+            if (trait.behaviorOnly() || (mask & 1 << trait.ordinal()) == 0) {
                 continue;
             }
             long expression = mix64(seed

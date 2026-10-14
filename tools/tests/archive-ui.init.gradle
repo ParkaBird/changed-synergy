@@ -1,0 +1,34 @@
+// Isolated UI fixture: gradlew -I tools/tests/archive-ui.init.gradle runClient --offline --no-daemon
+// No TrueTransfur runtime in Mojmap userdev: its production private-field mixins cannot remap there.
+gradle.beforeProject { project ->
+    project.layout.buildDirectory.set(project.file('.codex-tmp/archive-ui-client/build'))
+    project.afterEvaluate {
+        def fixtureRun = project.file('.codex-tmp/archive-ui-client/run')
+        fixtureRun.mkdirs()
+        def fixtureOptions = new File(fixtureRun, 'options.txt')
+        if (!fixtureOptions.exists()) fixtureOptions.setText('onboardAccessibility:false\nlang:en_us\nguiScale:2\nrenderDistance:4\nsimulationDistance:4\nmaxFps:60\npauseOnLostFocus:false\ntutorialStep:none\n', 'UTF-8')
+        if (project.hasProperty('welcomeUiOnly')) fixtureOptions.setText('onboardAccessibility:false\nlang:en_us\nguiScale:2\nrenderDistance:4\nsimulationDistance:4\nmaxFps:30\npauseOnLostFocus:false\ntutorialStep:none\n', 'UTF-8')
+        project.sourceSets.main.java.srcDir(project.file('tools/tests/archive-ui'))
+        project.sourceSets.main.java.srcDir(project.file('tools/tests/player-visual-mechanics'))
+        project.sourceSets.main.java.srcDir(project.file('tools/tests/grab-qte'))
+        // Forge's source-set run configuration can retain the default Java output after buildDirectory changes.
+        def fixtureClasses = project.file('.codex-tmp/archive-ui-client/build/classes/java/main')
+        project.sourceSets.main.java.destinationDirectory.set(fixtureClasses)
+        project.sourceSets.main.output.classesDirs = project.files(fixtureClasses)
+        project.tasks.named('compileJava').configure { destinationDirectory.set(fixtureClasses) }
+        project.minecraft.runs.client.workingDirectory fixtureRun
+        project.minecraft.runs.client.property 'archive.ui.regression', 'true'
+        project.minecraft.runs.client.property 'archive.ui.regression.hidden', 'true'
+        if (project.hasProperty('grabQteOnly')) project.minecraft.runs.client.property 'grab.qte.only', 'true'
+        if (project.hasProperty('campUiOnly')) project.minecraft.runs.client.property 'camp.ui.only', 'true'
+        if (project.hasProperty('settingsUiOnly')) project.minecraft.runs.client.property 'settings.ui.only', 'true'
+        if (project.hasProperty('nativeRoleplayUiOnly')) project.minecraft.runs.client.property 'native.roleplay.ui.only', 'true'
+        if (project.hasProperty('welcomeUiOnly')) project.minecraft.runs.client.property 'archive.ui.welcome.only', 'true'
+        if (project.hasProperty('randomUiOnly')) project.minecraft.runs.client.property 'archive.ui.random.only', 'true'
+        if (project.hasProperty('factionsUiOnly')) project.minecraft.runs.client.property 'archive.ui.factions.only', 'true'
+        if (project.hasProperty('localizationUiOnly')) project.minecraft.runs.client.property 'archive.ui.localization.only', 'true'
+        if (project.hasProperty('campSocialUiOnly')) project.minecraft.runs.client.property 'camp.social.ui.only', 'true'
+        project.minecraft.runs.client.property 'forge.logging.console.level', 'info'
+        project.minecraft.runs.client.args '--width', '1280', '--height', '720'
+    }
+}

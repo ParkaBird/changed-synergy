@@ -21,7 +21,8 @@ public abstract class PlayerPatPoseMixin {
             float headPitch, CallbackInfo callback) {
         PlayerModel<?> model = (PlayerModel<?>)(Object)this;
         if (PatAnimationClientState.applyRightArmPose(
-                player.getId(), age - player.tickCount, model.rightArm)) {
+                player.getId(), age - player.tickCount, model.rightArm)
+                && model.rightSleeve != null) {
             model.rightSleeve.copyFrom(model.rightArm);
         }
     }

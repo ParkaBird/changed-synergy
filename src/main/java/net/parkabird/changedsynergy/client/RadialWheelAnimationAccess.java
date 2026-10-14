@@ -9,4 +9,6 @@ public interface RadialWheelAnimationAccess {
     float changedSynergy$getOverallAlpha();
 
     float changedSynergy$getHorizontalOffset();
+
+    int changedSynergy$getViewOffset();
 }

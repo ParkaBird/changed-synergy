@@ -46,8 +46,10 @@ public final class BondedEmergencySuitGoal extends Goal {
                 && BondedSuitService.needsEmergencyRescue(pet, owner);
         selfRecovery = owner != null && LatexSocialMemory.isPetOwner(pet, owner)
                 && !ownerEmergency
+                && !BondedSuitService.isRescueGraceActive(owner)
                 && needsSelfRecovery(SELF_RECOVERY_TRIGGER_HEALTH);
         return owner != null
+                && mayApproachOwner()
                 && (ownerEmergency || selfRecovery)
                 && (BondedSuitService.canStartSuit(pet, owner)
                         || BondedSuitService.canStartFriendDrowningSuit(pet, owner))
@@ -59,10 +61,12 @@ public final class BondedEmergencySuitGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return owner != null
+                && mayApproachOwner()
                 && (BondedSuitService.canStartSuit(pet, owner)
                         || BondedSuitService.canStartFriendDrowningSuit(pet, owner))
                 && (BondedSuitService.needsEmergencyRescue(pet, owner)
                         || selfRecovery
+                                && !BondedSuitService.isRescueGraceActive(owner)
                                 && needsSelfRecovery(SELF_RECOVERY_STOP_HEALTH))
                 && (LatexSocialMemory.isPetOwner(pet, owner)
                         || BondedSuitService.canStartFriendDrowningSuit(pet, owner))
@@ -82,7 +86,7 @@ public final class BondedEmergencySuitGoal extends Goal {
 
     @Override
     public void tick() {
-        if (owner == null) {
+        if (!canContinueToUse()) {
             return;
         }
         pet.setTarget(null);
@@ -111,17 +115,7 @@ public final class BondedEmergencySuitGoal extends Goal {
                     reason);
             return;
         }
-        if (LatexSocialMemory.isPetOwner(pet, owner)
-                && followNavigation.isStalled()
-                && pet.level() instanceof ServerLevel level) {
-            boolean recovered = BondedTeleportSafety.teleportNearOwner(
-                    level, pet, owner);
-            followNavigation.resetProgress();
-            if (recovered) {
-                return;
-            }
-        }
-        if (--repathTicks <= 0 || pet.getNavigation().isDone()) {
+        if (--repathTicks <= 0) {
             repathTicks = 5;
             double speed = BondedSuitService.isTransfurRescueRequested(
                     pet, owner)
@@ -151,6 +145,13 @@ public final class BondedEmergencySuitGoal extends Goal {
             pet.getPersistentData().remove(SELF_RECOVERY_SUPPRESSED);
         if (pet.getPersistentData().getBoolean(SELF_RECOVERY_SUPPRESSED)) return false;
         return pet.getHealth() <= pet.getMaxHealth() * healthThreshold;
+    }
+
+    private boolean mayApproachOwner() {
+        return LatexSocialMemory.isPetOwner(pet, owner)
+                ? BondedOwnerDefenseGoal.canProtectOwner(pet, owner)
+                : owner != null && pet.level() == owner.level()
+                        && pet.distanceToSqr(owner) <= 20.0D * 20.0D;
     }
 
     public static void suppressSelfRecovery(ChangedEntity pet) {

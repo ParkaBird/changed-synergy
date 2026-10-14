@@ -1,6 +1,7 @@
 package net.parkabird.changedsynergy.client;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.ltxprogrammer.changed.init.ChangedEntities;
@@ -26,6 +27,9 @@ import net.parkabird.changedsynergy.ai.HypnosisProfile;
 import net.parkabird.changedsynergy.ai.HypnosisQteService;
 import net.parkabird.changedsynergy.init.ChangedSynergyMobEffects;
 import net.parkabird.changedsynergy.network.HypnosisQteSyncPacket;
+import net.parkabird.changedsynergy.network.HypnosisTapPacket;
+import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
+import org.lwjgl.glfw.GLFW;
 
 @OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(
@@ -35,6 +39,7 @@ import net.parkabird.changedsynergy.network.HypnosisQteSyncPacket;
 public final class HypnosisQteClientState {
     private static HypnosisQteSyncPacket current;
     private static int localTicksRemaining;
+    private static int localStunTicks;
     private static int localOffGazeTicks;
     private static float smoothedGazeAlignment = 1.0F;
     private static float targetGazeAlignment = 1.0F;
@@ -44,15 +49,18 @@ public final class HypnosisQteClientState {
     private static ResourceKey<Level> lockedDimension;
     private static float lockedYRot;
     private static float lockedXRot;
+    private static int contestKeysDown;
 
     private HypnosisQteClientState() {
     }
 
     public static void receive(HypnosisQteSyncPacket packet) {
         HypnosisQteSyncPacket previous = current;
+        if (previous != null && packet.state() != HypnosisQteSyncPacket.ACTIVE
+                && previous.sessionId() != packet.sessionId()) return;
         HypnosisQteAnimationState.receive(previous, packet);
         if (packet.state() == HypnosisQteSyncPacket.CLEAR) {
-            beginCooldown(packet.hypnotistId());
+            if (!packet.hypnotist()) beginCooldown(packet.hypnotistId());
             clearOverlay();
             clearRestraint();
             return;
@@ -66,22 +74,27 @@ public final class HypnosisQteClientState {
                         || current.sessionId() != packet.sessionId());
         current = packet;
         if (packet.state() == HypnosisQteSyncPacket.ACTIVE) {
-            rememberActiveHypnotist(packet.hypnotistId());
+            if (!packet.hypnotist()) rememberActiveHypnotist(packet.hypnotistId());
             if (newActiveSession) {
-                captureRestraint();
+                contestKeysDown = 0;
+                if (packet.playerDuel()) {
+                    for (KeyMapping key : contestMovementKeys()) key.setDown(false);
+                }
+                if (!packet.hypnotist()) captureRestraint();
                 smoothedGazeAlignment = packet.gazeAlignment();
             }
             targetGazeAlignment = packet.gazeAlignment();
         } else {
-            beginCooldown(packet.hypnotistId());
+            if (!packet.hypnotist()) beginCooldown(packet.hypnotistId());
         }
         cachedThemeColor = resolveThemeColor(packet.hypnotistId(), fallbackColor);
         localTicksRemaining = packet.ticksRemaining();
+        localStunTicks = packet.hypnotistStunTicks();
         localOffGazeTicks = packet.offGazeTicks();
-        if (packet.state() != HypnosisQteSyncPacket.ACTIVE) {
+        if (!packet.hypnotist() && packet.state() != HypnosisQteSyncPacket.ACTIVE) {
             releaseClientMind();
         }
-        if (packet.state() == HypnosisQteSyncPacket.FAILED) {
+        if (!packet.hypnotist() && packet.state() == HypnosisQteSyncPacket.FAILED) {
             captureFrozenView();
         }
         if (packet.state() == HypnosisQteSyncPacket.SUCCESS
@@ -105,16 +118,24 @@ public final class HypnosisQteClientState {
         return Math.max(0, localOffGazeTicks);
     }
 
+    public static boolean hypnotistDistracted() {
+        return current != null && current.hypnotist() && localStunTicks > 0;
+    }
+
     public static float resistance() {
         return current == null ? 0.0F : Mth.clamp(current.resistance(), 0.0F, 1.0F);
     }
 
     public static float gazeAlignment() {
+        // Both players see the same pressure in a shared contest.
+        if (current != null && current.playerDuel()) {
+            return Mth.clamp(current.gazeAlignment(), 0.0F, 1.0F);
+        }
         return Mth.clamp(smoothedGazeAlignment, 0.0F, 1.0F);
     }
 
     public static boolean isControlLocked() {
-        if (current != null
+        if (current != null && !current.hypnotist()
                 && (current.state() == HypnosisQteSyncPacket.ACTIVE
                         || current.state() == HypnosisQteSyncPacket.FAILED
                                 && localTicksRemaining > 0)) {
@@ -127,7 +148,7 @@ public final class HypnosisQteClientState {
 
     /** Mouse look remains available during resistance, then freezes after failure. */
     public static boolean isViewFrozen() {
-        if (current != null
+        if (current != null && !current.hypnotist()
                 && current.state() == HypnosisQteSyncPacket.FAILED
                 && localTicksRemaining > 0) {
             return true;
@@ -145,6 +166,31 @@ public final class HypnosisQteClientState {
         return minecraft.options.keyAttack.matches(keyCode, scanCode)
                 || minecraft.options.keyUse.matches(keyCode, scanCode)
                 || TaczClientInputBlocker.matches(keyCode, scanCode);
+    }
+
+    /** Real press/release edges only; holding a key or OS repeat cannot add progress. */
+    public static boolean handleContestKey(int keyCode, int scanCode, int action) {
+        if (current == null || !current.playerDuel() || current.state() != HypnosisQteSyncPacket.ACTIVE) return false;
+        List<KeyMapping> keys = contestMovementKeys();
+        for (int index = 0; index < keys.size(); index++) {
+            KeyMapping key = keys.get(index);
+            if (!key.matches(keyCode, scanCode)) continue;
+            key.setDown(false);
+            int previous = contestKeysDown;
+            if (action == GLFW.GLFW_PRESS) contestKeysDown |= 1 << index;
+            else if (action == GLFW.GLFW_RELEASE) contestKeysDown &= ~(1 << index);
+            // Overlapping keys form one stroke; release them before tapping again.
+            if ((previous == 0) != (contestKeysDown == 0)) {
+                ChangedSynergyNetwork.CHANNEL.sendToServer(new HypnosisTapPacket(current.sessionId(), contestKeysDown != 0));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public static List<KeyMapping> contestMovementKeys() {
+        var options = Minecraft.getInstance().options;
+        return List.of(options.keyUp, options.keyLeft, options.keyDown, options.keyRight);
     }
 
     public static boolean shouldBlockCameraTug(LivingEntity source) {
@@ -212,6 +258,10 @@ public final class HypnosisQteClientState {
         if (current.state() == HypnosisQteSyncPacket.ACTIVE) {
             return 0.30F + 0.60F * gazeAlignment();
         }
+        // Sharing the contest visuals must not give the caster a mesmerized aftermath.
+        if (current.hypnotist()) {
+            return 0.0F;
+        }
         float fade = Math.min(1.0F, (localTicksRemaining + partialTick) / 30.0F);
         return current.state() == HypnosisQteSyncPacket.FAILED ? 0.8F * fade : 0.35F * fade;
     }
@@ -249,6 +299,7 @@ public final class HypnosisQteClientState {
         if (localTicksRemaining > 0) {
             localTicksRemaining--;
         }
+        if (localStunTicks > 0) localStunTicks--;
         if (current.state() != HypnosisQteSyncPacket.ACTIVE) {
             if (isControlLocked()) {
                 captureRestraint();
@@ -259,6 +310,15 @@ public final class HypnosisQteClientState {
             if (localTicksRemaining <= 0) {
                 clearOverlay();
             }
+            pruneCooldowns(minecraft);
+            return;
+        }
+
+        if (current.playerDuel() && minecraft.screen != null && contestKeysDown != 0) {
+            contestKeysDown = 0;
+            ChangedSynergyNetwork.CHANNEL.sendToServer(new HypnosisTapPacket(current.sessionId(), false));
+        }
+        if (current.hypnotist()) {
             pruneCooldowns(minecraft);
             return;
         }
@@ -403,9 +463,11 @@ public final class HypnosisQteClientState {
 
     private static void clearOverlay() {
         current = null;
+        contestKeysDown = 0;
         HypnosisQteAnimationState.clear();
         cachedThemeColor = HypnosisProfile.GENERIC.color();
         localTicksRemaining = 0;
+        localStunTicks = 0;
         localOffGazeTicks = 0;
         smoothedGazeAlignment = 1.0F;
         targetGazeAlignment = 1.0F;

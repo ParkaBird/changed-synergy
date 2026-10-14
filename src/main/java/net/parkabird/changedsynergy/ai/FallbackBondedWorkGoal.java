@@ -5,7 +5,6 @@ import java.util.List;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -15,6 +14,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.FishingRodItem;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
@@ -26,7 +26,6 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.Tags;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.ChangedVanillaCompat;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.FishingSite;
@@ -62,6 +61,7 @@ public final class FallbackBondedWorkGoal extends Goal {
     @Nullable private BondedCreatureInventory inventory;
     private int toolSlot = -1;
     private int actionTicks;
+    private float miningProgress;
     private int repathTicks;
     private int workTicks;
     private long nextSearchTick;
@@ -74,6 +74,7 @@ public final class FallbackBondedWorkGoal extends Goal {
     @Override
     public boolean canUse() {
         if (!SynergyPerformanceTracker.featureEnabled(Feature.COMPANION_WORK)
+                || !CreatureLifeMemory.enabled(pet)
                 || PlayerOutpostService.assigned(pet)
                 || !(pet.level() instanceof ServerLevel level)
                 || !BondedPetSettings.usesFallbackBackend(pet)
@@ -96,7 +97,8 @@ public final class FallbackBondedWorkGoal extends Goal {
         }
 
         clearTargets();
-        inventory = new BondedCreatureInventory(pet);
+        inventory = currentInventory();
+        if (inventory == null) return false;
         int favor = BondedPetSettings.favor(pet);
         if (favor == BondedPetSettings.FAVOR_FISHING) {
             toolSlot = inventory.findFishingRod();
@@ -131,6 +133,7 @@ public final class FallbackBondedWorkGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return SynergyPerformanceTracker.featureEnabled(Feature.COMPANION_WORK)
+                && CreatureLifeMemory.enabled(pet) && LatexSocialMemory.hasActiveBond(pet)
                 && !PlayerOutpostService.assigned(pet)
                 && work != Work.NONE && destination != null
                 && !CreatureSettlementService.hasCargo(pet)
@@ -144,6 +147,7 @@ public final class FallbackBondedWorkGoal extends Goal {
     @Override
     public void start() {
         actionTicks = 0;
+        miningProgress = 0;
         repathTicks = 0;
         workTicks = 0;
         showTool();
@@ -165,7 +169,7 @@ public final class FallbackBondedWorkGoal extends Goal {
         }
         double arrivalSqr = work == Work.MINING ? 3.2D * 3.2D : 2.0D * 2.0D;
         if (pet.distanceToSqr(destination) > arrivalSqr) {
-            if (--repathTicks <= 0 || pet.getNavigation().isDone()) {
+            if (--repathTicks <= 0) {
                 repathTicks = 12;
                 moveToTarget();
             }
@@ -197,9 +201,10 @@ public final class FallbackBondedWorkGoal extends Goal {
     }
 
     private void tickFishing() {
+        inventory = currentInventory();
         if (!(pet.level() instanceof ServerLevel level)
                 || fishingSite == null || inventory == null
-                || inventory.findFishingRod() < 0
+                || !(inventory.storageItem(toolSlot).getItem() instanceof FishingRodItem)
                 || !level.getBlockState(fishingSite.water()).is(Blocks.WATER)) {
             stopWork();
             return;
@@ -214,10 +219,10 @@ public final class FallbackBondedWorkGoal extends Goal {
             FishingVisualEffects.setRodCastModel(pet, true);
         }
         FishingVisualEffects.tick(level, pet, fishingSite.water(), actionTicks);
-        if (actionTicks < 160) {
+        ItemStack rod = inventory.storageItem(toolSlot);
+        if (actionTicks < CompanionToolEffects.fishingWaitTicks(rod)) {
             return;
         }
-        ItemStack rod = inventory.storageItem(toolSlot);
         int fishingLuck = EnchantmentHelper.getFishingLuckBonus(rod);
         LootParams params = new LootParams.Builder(level)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(fishingSite.water()))
@@ -244,30 +249,30 @@ public final class FallbackBondedWorkGoal extends Goal {
     }
 
     private void tickMining() {
+        inventory = currentInventory();
         if (!(pet.level() instanceof ServerLevel level)
-                || blockTarget == null || inventory == null) {
+                || blockTarget == null || inventory == null || !level.hasChunkAt(blockTarget)) {
             stopWork();
             return;
         }
         BlockState state = level.getBlockState(blockTarget);
         ItemStack tool = inventory.storageItem(toolSlot);
-        if (!state.is(Tags.Blocks.ORES) || !isExposed(level, blockTarget)
+        if (!CreatureSettlementService.isExposedOre(level, blockTarget, state)
                 || tool.isEmpty() || !tool.isCorrectToolForDrops(state)) {
             stopWork();
             return;
         }
         pet.getLookControl().setLookAt(Vec3.atCenterOf(blockTarget));
         actionTicks++;
-        float hardness = Math.max(0.1F, state.getDestroySpeed(level, blockTarget));
-        float speed = Math.max(1.0F, tool.getDestroySpeed(state));
-        int requiredTicks = Math.max(12, Math.min(200,
-                (int)Math.ceil(hardness * 30.0F / speed * 20.0F)));
-        int stage = Math.min(9, actionTicks * 10 / requiredTicks);
+        float hardness = state.getDestroySpeed(level, blockTarget);
+        if (hardness < 0) { stopWork(); return; }
+        miningProgress += hardness == 0 ? 1 : CompanionToolEffects.miningSpeed(pet, tool, state) / hardness / 30;
+        int stage = Math.min(9, (int)(miningProgress * 10));
         level.destroyBlockProgress(pet.getId(), blockTarget, stage);
         if (actionTicks % 8 == 1) {
             pet.swing(InteractionHand.MAIN_HAND);
         }
-        if (actionTicks < requiredTicks) {
+        if (miningProgress < 1) {
             return;
         }
         List<ItemStack> drops = Block.getDrops(
@@ -307,11 +312,10 @@ public final class FallbackBondedWorkGoal extends Goal {
         for (BlockPos candidate : BlockPos.betweenClosed(
                 origin.offset(-SEARCH_RADIUS, -VERTICAL_RADIUS, -SEARCH_RADIUS),
                 origin.offset(SEARCH_RADIUS, VERTICAL_RADIUS, SEARCH_RADIUS))) {
+            if (!level.hasChunkAt(candidate)) continue;
             BlockState state = level.getBlockState(candidate);
-            if (!state.is(Tags.Blocks.ORES)
-                    || state.getDestroySpeed(level, candidate) < 0.0F
-                    || inventory == null || inventory.findMiningTool(state) < 0
-                    || !isExposed(level, candidate)) {
+            if (!CreatureSettlementService.isExposedOre(level, candidate, state)
+                    || inventory == null || inventory.findMiningTool(state) < 0) {
                 continue;
             }
             double distance = candidate.distSqr(origin);
@@ -374,6 +378,12 @@ public final class FallbackBondedWorkGoal extends Goal {
         GatheringToolPresentation.show(pet, visual);
     }
 
+    @Nullable
+    private BondedCreatureInventory currentInventory() {
+        var container = net.parkabird.changedsynergy.world.inventory.BondedInventoryService.inventory(pet, null);
+        return container instanceof BondedCreatureInventory fallback ? fallback : null;
+    }
+
     private void restoreTool() {
         GatheringToolPresentation.restore(pet);
     }
@@ -433,14 +443,4 @@ public final class FallbackBondedWorkGoal extends Goal {
                 && HypnosisQteService.getActiveVictim(pet) == null;
     }
 
-    private static boolean isExposed(ServerLevel level, BlockPos position) {
-        for (Direction direction : Direction.values()) {
-            BlockPos adjacent = position.relative(direction);
-            if (level.isEmptyBlock(adjacent)
-                    || !level.getFluidState(adjacent).isEmpty()) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

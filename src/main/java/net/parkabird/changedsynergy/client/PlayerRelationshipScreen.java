@@ -33,10 +33,12 @@ public final class PlayerRelationshipScreen
         extends AbstractRadialScreen<PlayerRelationshipMenu> {
     private static final Color3 INVENTORY_SHADOW = Color3.fromInt(0x8B8B8B);
     private static final Color3 INVENTORY_FACE = Color3.fromInt(0xC6C6C6);
+    private static final ResourceLocation PLUS_ICON = ResourceLocation.fromNamespaceAndPath(
+            ChangedSynergyMod.MOD_ID, "textures/gui/radial/icons/plus_gray.png");
     private static final List<Action> ACTIONS = List.of(
             new Action("outpost", ResourceLocation.fromNamespaceAndPath(
                     ChangedSynergyMod.MOD_ID,
-                    "textures/gui/radial/icons/bell_gray.png"), 16),
+                    "textures/gui/radial/icons/campfire_gray.png"), 16),
             changedIcon("formation",
                     "textures/gui/tamed_dl_interactions/cycle_follow.png", 16),
             changedIcon("group_follow",
@@ -61,7 +63,7 @@ public final class PlayerRelationshipScreen
         super(menu, inventory, title,
                 colors(menu, inventory).background(),
                 colors(menu, inventory).foreground(),
-                inventory.player);
+                PlayerSocialClient.visibleBody(inventory.player));
     }
 
     private static ColorScheme colors(
@@ -75,7 +77,7 @@ public final class PlayerRelationshipScreen
                 inventory.player));
     }
 
-    private static ColorScheme readableColors(
+    static ColorScheme readableColors(
             net.ltxprogrammer.changed.entity.variant.TransfurVariantInstance<?> variant) {
         ColorScheme source = AbstractRadialScreen.getColors(variant)
                 .setForegroundToBright();
@@ -96,8 +98,10 @@ public final class PlayerRelationshipScreen
 
     @Override
     public int getCount() {
-        return ACTIONS.size();
+        return baseActionCount()+(NativeRoleplayClient.active()?2:0);
     }
+
+    private int baseActionCount() { return ACTIONS.size()-(menu.isTransfurred()?1:0); }
 
     @Override
     public Optional<Integer> getSectionAt(int mouseX, int mouseY) {
@@ -108,17 +112,17 @@ public final class PlayerRelationshipScreen
     @Nullable
     @Override
     public List<Component> tooltipsFor(int section) {
-        if (section < 0 || section >= ACTIONS.size()) {
+        if (section < 0 || section >= getCount()) {
             return null;
         }
         String key = "menu.changed_synergy.relationship.action."
-                + actionFor(section).command();
+                + (section == 0 ? menu.outpostAction() : actionFor(section).command());
         List<Component> tooltip = new ArrayList<>();
         tooltip.add(Component.translatable(key));
         tooltip.add(Component.translatable(key + ".hint"));
-        if (section == 1) {
+        if (actionFor(section).command().equals("formation")) {
             tooltip.add(Component.translatable(menu.getFormation().translationKey()));
-        } else if (section == 7) {
+        } else if (actionFor(section).command().equals("damage_filter")) {
             tooltip.add(Component.translatable(menu.getDamageFilter().translationKey()));
         }
         return tooltip;
@@ -132,10 +136,13 @@ public final class PlayerRelationshipScreen
             float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
         renderManagerCards(graphics, mouseX, mouseY);
+        var hint = Component.empty();
+        if (getCount() > 8) hint.append(Component.translatable("menu.changed_synergy.relationship.more_options"));
         if (menu.isTransfurred()) {
-            renderSwitchHint(graphics, Component.translatable(
-                    "menu.changed_synergy.relationship.switch_to_abilities"));
+            if (!hint.getString().isEmpty()) hint.append(" · ");
+            hint.append(Component.translatable("menu.changed_synergy.relationship.switch_to_abilities"));
         }
+        if (!hint.getString().isEmpty()) renderSwitchHint(graphics, hint, height - 18);
     }
 
     @Override
@@ -150,9 +157,7 @@ public final class PlayerRelationshipScreen
             float red,
             float green,
             float blue) {
-        boolean selected = getSectionAt(mouseX, mouseY)
-                .filter(index -> index == section)
-                .isPresent();
+        boolean selected = RadialWheelAnimations.isSectionSelected(this, section, mouseX, mouseY);
         String style = menu.usesOrganicStyle() ? "organic" : "goo";
         ResourceLocation texture = Changed.modResource(
                 "textures/gui/radial/" + style
@@ -177,13 +182,21 @@ public final class PlayerRelationshipScreen
             float green,
             float blue,
             float alpha) {
-        if (section < 0 || section >= ACTIONS.size()) {
+        if (section < 0 || section >= getCount()) {
             return;
         }
         Action action = actionFor(section);
         ResourceLocation icon = action.texture();
         int centerX = (int)x + leftPos;
         int centerY = (int)y + topPos;
+        if (section == 0 && menu.outpostAction().equals("link_outpost")) {
+            graphics.setColor(0.0F, 0.0F, 0.0F, 0.45F * alpha);
+            blitScaledIcon(graphics, PLUS_ICON, centerX + 2, centerY + 2, 24, 16);
+            graphics.setColor(red, green, blue, alpha);
+            blitScaledIcon(graphics, PLUS_ICON, centerX, centerY, 22, 16);
+            graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+            return;
+        }
         graphics.setColor(0.0F, 0.0F, 0.0F, 0.45F * alpha);
         blitScaledIcon(graphics, icon, centerX + 2, centerY + 2,
                 34, action.textureSize());
@@ -191,13 +204,23 @@ public final class PlayerRelationshipScreen
         blitScaledIcon(graphics, icon, centerX, centerY,
                 32, action.textureSize());
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+        if (section == 0 && (menu.outpostAction().equals("create_outpost")
+                || menu.outpostAction().equals("invite_outpost")))
+            drawPlus(graphics, centerX + 12, centerY - 12, 10, alpha);
+    }
+
+    private static void drawPlus(GuiGraphics graphics, int x, int y, int size, float alpha) {
+        graphics.setColor(1.0F, 1.0F, 1.0F, alpha);
+        blitScaledIcon(graphics, PLUS_ICON, x, y, size, 16);
+        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     @Override
     public boolean handleClicked(int section, SingleRunnable close) {
-        if (section < 0 || section >= ACTIONS.size()) {
+        if (section < 0 || section >= getCount()) {
             return false;
         }
+        if(section>=baseActionCount()) {minecraft.setScreen(section==baseActionCount()?new NativeRoleplayScreen(this):new NativeEmoteScreen(this));return false;}
         playClick();
         if (section == 4 && menu.usesAbsorptionNegotiationSlot()) {
             Runnable open = () -> {
@@ -217,14 +240,14 @@ public final class PlayerRelationshipScreen
             return false;
         }
         CompoundTag payload = new CompoundTag();
-        payload.putString("command", switch (section) {
-            case 1 -> "cycle_formation";
-            case 2 -> "toggle_group_follow";
-            case 3 -> "shared_activity";
-            case 4 -> "social_signal";
-            case 5 -> "request_help";
-            case 6 -> "mediate";
-            case 7 -> "cycle_damage_filter";
+        payload.putString("command", switch (actionFor(section).command()) {
+            case "formation" -> "cycle_formation";
+            case "group_follow" -> "toggle_group_follow";
+            case "activity" -> "shared_activity";
+            case "signal" -> "social_signal";
+            case "help" -> "request_help";
+            case "mediate" -> "mediate";
+            case "damage_filter" -> "cycle_damage_filter";
             default -> "";
         });
         Contact contact = currentContact();
@@ -236,8 +259,10 @@ public final class PlayerRelationshipScreen
     }
 
     private Action actionFor(int section) {
+        if(section>=baseActionCount())return emote(section==baseActionCount()?"role_name":"role_emotes",section==baseActionCount()?"idea":"heart");
+        int index=menu.isTransfurred()&&section>=6?section+1:section;
         return section == 4 && menu.usesAbsorptionNegotiationSlot()
-                ? ABSORPTION_NEGOTIATION : ACTIONS.get(section);
+                ? ABSORPTION_NEGOTIATION : ACTIONS.get(index);
     }
 
     @Override
@@ -337,7 +362,7 @@ public final class PlayerRelationshipScreen
                     contact.name().isBlank()
                             ? Component.translatable(
                                     "menu.changed_synergy.relationship.unknown_contact")
-                            : Component.literal(contact.name())));
+                            : Component.translatable(contact.bonded() ? "menu.changed_synergy.relationship.bonded_name" : contact.typeId().equals("minecraft:player") ? "menu.changed_synergy.relationship.player_name" : "menu.changed_synergy.relationship.contact_name", contact.name())));
             contactLines.add(Component.translatable(
                     "menu.changed_synergy.relationship.info.relation",
                     Component.translatable(contact.bonded()
@@ -429,14 +454,14 @@ public final class PlayerRelationshipScreen
                 && mouseY < contactHeaderY + 18) {
             int offset = mouseX - (contactHeaderX + contactHeaderWidth - 56);
             if (offset >= 0 && offset < 52 && offset % 18 < 16) {
-                String action = switch (offset / 18) {
-                    case 0 -> "previous";
-                    case 1 -> "next";
-                    default -> "remove";
+                String key = switch (offset / 18) {
+                    case 0 -> "menu.changed_synergy.relationship.info.contacts.previous";
+                    case 1 -> "menu.changed_synergy.relationship.info.contacts.next";
+                    default -> currentContact() != null && currentContact().bonded()
+                            ? "menu.changed_synergy.relationship.controls.end_bond"
+                            : "menu.changed_synergy.relationship.info.contacts.remove";
                 };
-                graphics.renderTooltip(font, Component.translatable(
-                        "menu.changed_synergy.relationship.info.contacts." + action),
-                        mouseX, mouseY);
+                graphics.renderTooltip(font, Component.translatable(key), mouseX, mouseY);
             }
         }
     }
@@ -479,7 +504,12 @@ public final class PlayerRelationshipScreen
             return Component.translatable(
                     "menu.changed_synergy.relationship.form.human");
         }
-        return variant.getParent().getEntityType().getDescription();
+        Component name = variant.getParent().getEntityType().getDescription();
+        return net.parkabird.changedsynergy.ai.PureWhiteWolfAdaptation
+                        .isAdaptedPlayer(variant)
+                ? Component.translatable(
+                        "menu.changed_synergy.relationship.form.adapted", name)
+                : name;
     }
 
     @Nullable
@@ -557,15 +587,18 @@ public final class PlayerRelationshipScreen
                 : readableColors(variant).foreground().toInt();
     }
 
-    private void renderSwitchHint(GuiGraphics graphics, Component hint) {
+    private void renderSwitchHint(GuiGraphics graphics, Component hint, int y) {
         int textWidth = font.width(hint);
-        int x = (width - textWidth) / 2;
-        int y = height - 18;
+        float scale = Math.min(1.0F, (width - 20.0F) / Math.max(1,textWidth));
         float alpha = RadialWheelAnimations.overallAlpha(this);
-        graphics.fill(x - 5, y - 3, x + textWidth + 5, y + 11,
+        graphics.pose().pushPose();
+        graphics.pose().translate((width - textWidth * scale) / 2.0F,y,0);
+        graphics.pose().scale(scale,scale,1);
+        graphics.fill(-5, -3, textWidth + 5, 11,
                 Math.round(0x78 * alpha) << 24);
-        graphics.drawString(font, hint, x, y,
+        graphics.drawString(font, hint, 0, 0,
                 Math.round(0xF0 * alpha) << 24 | 0x00FFFFFF, true);
+        graphics.pose().popPose();
     }
 
     private static void blitScaledIcon(

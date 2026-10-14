@@ -5,6 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
+import java.util.Collection;
+import java.util.WeakHashMap;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.block.DroppedOrange;
@@ -81,6 +87,11 @@ import net.parkabird.changedsynergy.world.OrangeLeafRegrowthData;
 
 /** Real item carrying and datapack-driven community cache placement. */
 public final class CreatureSettlementService {
+    private static final int MAX_GATHER_PATH_PROBES = 16;
+    private static final int FISHING_COLUMNS_PER_SEARCH = 256;
+    private static final String FISHING_COLUMN_CURSOR = "ChangedSynergyFishingColumnCursor";
+    private static final String FISHING_PATH_CURSOR = "ChangedSynergyFishingPathCursor";
+    private static final String GLOW_BERRY_PATH_CURSOR = "ChangedSynergyGlowBerryPathCursor";
     private static final String CARGO = "ChangedSynergyCarriedResource";
     private static final String CARGO_STACK = "Stack";
     private static final String CARGO_KIND = "Kind";
@@ -1330,6 +1341,11 @@ public final class CreatureSettlementService {
     public static Optional<AbstractFish> findSeaFish(
             ChangedEntity creature,
             double radius) {
+        return findSeaFish(creature, radius, pos -> true);
+    }
+
+    public static Optional<AbstractFish> findSeaFish(
+            ChangedEntity creature, double radius, Predicate<BlockPos> area) {
         if (!(creature.level() instanceof ServerLevel level)
                 || !usesOpenOceanHarvest(creature)
                 || hasCargo(creature)
@@ -1343,6 +1359,7 @@ public final class CreatureSettlementService {
                         fish -> fish.isAlive()
                                 && !fish.isRemoved()
                                 && fish.isInWater()
+                                && area.test(fish.blockPosition())
                                 && claimAvailable(
                                         fish.getPersistentData(), creature,
                                         level.getGameTime(),
@@ -1410,6 +1427,11 @@ public final class CreatureSettlementService {
             ChangedEntity creature,
             int horizontalRadius,
             int verticalRadius) {
+        return findOrangeLeaves(creature, horizontalRadius, verticalRadius, pos -> true);
+    }
+
+    public static Optional<BlockPos> findOrangeLeaves(
+            ChangedEntity creature, int horizontalRadius, int verticalRadius, Predicate<BlockPos> accepted) {
         if (!(creature.level() instanceof ServerLevel level)) {
             return Optional.empty();
         }
@@ -1429,7 +1451,7 @@ public final class CreatureSettlementService {
             for (BlockPos candidate : BlockPos.betweenClosed(
                     new BlockPos(region.minX(), region.minY(), region.minZ()),
                     new BlockPos(region.maxX(), region.maxY(), region.maxZ()))) {
-                if (level.hasChunkAt(candidate)
+                if (accepted.test(candidate) && level.hasChunkAt(candidate)
                         && level.getBlockState(candidate).is(orangeLeaves)) {
                     candidates.add(candidate.immutable());
                 }
@@ -1457,7 +1479,7 @@ public final class CreatureSettlementService {
         for (BlockPos candidate : BlockPos.betweenClosed(
                 origin.offset(-horizontalRadius, -verticalRadius, -horizontalRadius),
                 origin.offset(horizontalRadius, verticalRadius, horizontalRadius))) {
-            if (!level.hasChunkAt(candidate)
+            if (!accepted.test(candidate) || !level.hasChunkAt(candidate)
                     || !level.getBlockState(candidate).is(orangeLeaves)) {
                 continue;
             }
@@ -1512,6 +1534,12 @@ public final class CreatureSettlementService {
             int horizontalRadius,
             int upwardRadius,
             int downwardRadius) {
+        return findGlowBerrySite(creature, horizontalRadius, upwardRadius, downwardRadius, pos -> true);
+    }
+
+    public static Optional<GlowBerrySite> findGlowBerrySite(
+            ChangedEntity creature, int horizontalRadius, int upwardRadius, int downwardRadius,
+            Predicate<BlockPos> area) {
         if (!(creature.level() instanceof ServerLevel level)
                 || !level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)
                 || !isCaveCommunity(creature)) {
@@ -1522,18 +1550,38 @@ public final class CreatureSettlementService {
         for (BlockPos candidate : BlockPos.betweenClosed(
                 origin.offset(-horizontalRadius, -downwardRadius, -horizontalRadius),
                 origin.offset(horizontalRadius, upwardRadius, horizontalRadius))) {
-            if (level.hasChunkAt(candidate)
+            if (area.test(candidate) && level.hasChunkAt(candidate)
                     && hasRipeGlowBerries(level.getBlockState(candidate))) {
                 candidates.add(candidate.immutable());
             }
         }
         candidates.sort(Comparator.comparingDouble(origin::distSqr));
+        int skip = Math.max(0, creature.getPersistentData().getInt(GLOW_BERRY_PATH_CURSOR));
+        int visited = 0, probes = 0;
+        var stands = new LinkedHashSet<BlockPos>();
         for (BlockPos berries : candidates.stream().limit(48).toList()) {
-            BlockPos stand = findGlowBerryStand(level, creature, berries, 10);
-            if (stand != null) {
-                return Optional.of(new GlowBerrySite(berries, stand));
+            for (int drop = 1; drop <= 10; drop++) {
+                for (int radius = 0; radius <= 2; radius++) {
+                    for (int dx = -radius; dx <= radius; dx++) {
+                        for (int dz = -radius; dz <= radius; dz++) {
+                            if (radius > 0 && Math.max(Math.abs(dx), Math.abs(dz)) != radius) continue;
+                            BlockPos stand = berries.offset(dx, -drop, dz);
+                            if (!isDryStand(level, stand) || !stands.add(stand)) continue;
+                            if (visited++ < skip) continue;
+                            if (isReachableStand(creature, stand)) {
+                                creature.getPersistentData().remove(GLOW_BERRY_PATH_CURSOR);
+                                return Optional.of(new GlowBerrySite(berries, stand));
+                            }
+                            if (++probes >= MAX_GATHER_PATH_PROBES) {
+                                creature.getPersistentData().putInt(GLOW_BERRY_PATH_CURSOR, visited);
+                                return Optional.empty();
+                            }
+                        }
+                    }
+                }
             }
         }
+        creature.getPersistentData().remove(GLOW_BERRY_PATH_CURSOR);
         return Optional.empty();
     }
 
@@ -1576,6 +1624,11 @@ public final class CreatureSettlementService {
             ChangedEntity creature,
             int horizontalRadius,
             int verticalRadius) {
+        return findSweetBerryBush(creature, horizontalRadius, verticalRadius, pos -> true);
+    }
+
+    public static Optional<BlockPos> findSweetBerryBush(
+            ChangedEntity creature, int horizontalRadius, int verticalRadius, Predicate<BlockPos> area) {
         if (!(creature.level() instanceof ServerLevel level)) {
             return Optional.empty();
         }
@@ -1585,6 +1638,7 @@ public final class CreatureSettlementService {
         for (BlockPos candidate : BlockPos.betweenClosed(
                 origin.offset(-horizontalRadius, -verticalRadius, -horizontalRadius),
                 origin.offset(horizontalRadius, verticalRadius, horizontalRadius))) {
+            if (!area.test(candidate) || !level.hasChunkAt(candidate)) continue;
             BlockState state = level.getBlockState(candidate);
             if (!(state.getBlock() instanceof SweetBerryBushBlock)
                     || !state.hasProperty(SweetBerryBushBlock.AGE)
@@ -1649,7 +1703,12 @@ public final class CreatureSettlementService {
             ChangedEntity creature,
             int radius,
             int verticalRadius) {
-        return findFishingSite(creature, radius, verticalRadius, true);
+        return findFishingSite(creature, radius, verticalRadius, true, pos -> true);
+    }
+
+    public static Optional<FishingSite> findFishingSite(
+            ChangedEntity creature, int radius, int verticalRadius, Predicate<BlockPos> area) {
+        return findFishingSite(creature, radius, verticalRadius, true, area);
     }
 
     /** Fishing-site search used by bonded creatures of any body type. */
@@ -1657,14 +1716,15 @@ public final class CreatureSettlementService {
             ChangedEntity creature,
             int radius,
             int verticalRadius) {
-        return findFishingSite(creature, radius, verticalRadius, false);
+        return findFishingSite(creature, radius, verticalRadius, false, pos -> true);
     }
 
     private static Optional<FishingSite> findFishingSite(
             ChangedEntity creature,
             int radius,
             int verticalRadius,
-            boolean requireFishingArchetype) {
+            boolean requireFishingArchetype,
+            Predicate<BlockPos> area) {
         if (!(creature.level() instanceof ServerLevel level)
                 || requireFishingArchetype && !canFish(creature)) {
             return Optional.empty();
@@ -1672,45 +1732,51 @@ public final class CreatureSettlementService {
         BlockPos origin = creature.blockPosition();
         boolean allowIceFishing = level.getGameRules()
                 .getBoolean(GameRules.RULE_MOBGRIEFING);
-        for (int r = 1; r <= radius; r++) {
-            List<FishingSite> ring = new ArrayList<>();
-            for (int x = -r; x <= r; x++) {
-                for (int z = -r; z <= r; z++) {
-                    if (Math.max(Math.abs(x), Math.abs(z)) != r) {
-                        continue;
-                    }
-                    int worldX = origin.getX() + x;
-                    int worldZ = origin.getZ() + z;
-                    BlockPos column = new BlockPos(worldX, origin.getY(), worldZ);
-                    if (!level.hasChunkAt(column)) {
-                        continue;
-                    }
-                    int surfaceY = level.getHeight(
-                            Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                            worldX, worldZ);
-                    addFishingSitesAt(level,
-                            new BlockPos(worldX, surfaceY, worldZ), ring,
-                            allowIceFishing);
-                    for (int step = 0; step <= verticalRadius * 2; step++) {
-                        int magnitude = (step + 1) / 2;
-                        int y = step == 0 ? 0
-                                : step % 2 == 1 ? magnitude : -magnitude;
-                        int candidateY = origin.getY() + y;
-                        if (candidateY != surfaceY) {
-                            addFishingSitesAt(level,
-                                    new BlockPos(worldX, candidateY, worldZ), ring,
-                                    allowIceFishing);
-                        }
-                    }
-                }
+        int total = (radius * 2 + 1) * (radius * 2 + 1) - 1;
+        if (total <= 0) return Optional.empty();
+        CompoundTag memory = creature.getPersistentData();
+        int start = Math.floorMod(memory.getInt(FISHING_COLUMN_CURSOR), total);
+        int end = Math.min(total, start + FISHING_COLUMNS_PER_SEARCH);
+        Collection<FishingSite> sites = new LinkedHashSet<>();
+        for (int index = start; index < end; index++) {
+            BlockPos column = placementColumn(origin, index + 1);
+            if (!level.hasChunkAt(column)) continue;
+            int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                    column.getX(), column.getZ());
+            addFishingSitesAt(level, new BlockPos(column.getX(), surfaceY, column.getZ()), sites, allowIceFishing);
+            for (int step = 0; step <= verticalRadius * 2; step++) {
+                int magnitude = (step + 1) / 2;
+                int y = step == 0 ? 0 : step % 2 == 1 ? magnitude : -magnitude;
+                if (origin.getY() + y != surfaceY)
+                    addFishingSitesAt(level, column.above(y), sites, allowIceFishing);
             }
-            ring.sort(Comparator.comparingDouble(
-                    site -> site.stand().distSqr(origin)));
-            for (FishingSite site : ring) {
-                if (canReachFishingSite(creature, site)) {
-                    return Optional.of(site);
-                }
+        }
+        // Preserve the existing inner-ring preference. Several water faces of
+        // one bank need only one reachability test (also true for water navigation).
+        Map<BlockPos, FishingSite> approaches = new LinkedHashMap<>();
+        sites.stream().filter(site -> area.test(site.water()))
+                .sorted(Comparator.<FishingSite>comparingInt(site -> Math.max(
+                        Math.abs(site.stand().getX() - origin.getX()),
+                        Math.abs(site.stand().getZ() - origin.getZ())))
+                        .thenComparingDouble(site -> site.stand().distSqr(origin)))
+                .forEach(site -> approaches.putIfAbsent(approachesFishingSiteThroughWater(creature)
+                        ? site.water() : site.stand(), site));
+        List<FishingSite> candidates = new ArrayList<>(approaches.values());
+        int pathStart = Math.min(Math.max(0, memory.getInt(FISHING_PATH_CURSOR)), candidates.size());
+        int pathEnd = Math.min(candidates.size(), pathStart + MAX_GATHER_PATH_PROBES);
+        for (int index = pathStart; index < pathEnd; index++) {
+            FishingSite site = candidates.get(index);
+            if (canReachFishingSite(creature, site)) {
+                memory.remove(FISHING_COLUMN_CURSOR);
+                memory.remove(FISHING_PATH_CURSOR);
+                return Optional.of(site);
             }
+        }
+        if (pathEnd < candidates.size()) {
+            memory.putInt(FISHING_PATH_CURSOR, pathEnd);
+        } else {
+            memory.putInt(FISHING_COLUMN_CURSOR, end % total);
+            memory.remove(FISHING_PATH_CURSOR);
         }
         return Optional.empty();
     }
@@ -1736,22 +1802,21 @@ public final class CreatureSettlementService {
     private static void addFishingSitesAt(
             ServerLevel level,
             BlockPos stand,
-            List<FishingSite> output,
+            Collection<FishingSite> output,
             boolean allowIceFishing) {
         if (!isDryStand(level, stand)) {
             return;
         }
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             BlockPos beside = stand.relative(direction);
+            if (!level.hasChunkAt(beside)) continue;
             for (int drop = 0; drop <= 1; drop++) {
                 BlockPos water = beside.below(drop);
                 if (level.getBlockState(water).is(Blocks.WATER)
                         && level.getFluidState(water.above()).isEmpty()) {
                     FishingSite site = new FishingSite(
                             stand.immutable(), water.immutable());
-                    if (!output.contains(site)) {
-                        output.add(site);
-                    }
+                    output.add(site);
                     break;
                 }
             }
@@ -1761,9 +1826,7 @@ public final class CreatureSettlementService {
                         && level.getFluidState(ice.below()).is(FluidTags.WATER)) {
                     FishingSite site = new FishingSite(
                             stand.immutable(), ice.immutable(), true);
-                    if (!output.contains(site)) {
-                        output.add(site);
-                    }
+                    output.add(site);
                 }
             }
         }
@@ -1817,16 +1880,18 @@ public final class CreatureSettlementService {
                 || !level.getBlockState(water).is(Blocks.WATER)) {
             return false;
         }
-        ItemStack rod = new ItemStack(Items.FISHING_ROD);
+        var workingTool = CompanionToolEffects.gatheringRod(creature);
+        ItemStack rod = workingTool.stack();
         LootParams params = new LootParams.Builder(level)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(water))
                 .withParameter(LootContextParams.TOOL, rod)
                 .withParameter(LootContextParams.THIS_ENTITY, creature)
-                .withLuck(0.0F)
+                .withLuck(net.minecraft.world.item.enchantment.EnchantmentHelper.getFishingLuckBonus(rod))
                 .create(LootContextParamSets.FISHING);
         LootTable table = level.getServer().getLootData()
                 .getLootTable(BuiltInLootTables.FISHING);
         List<ItemStack> caught = table.getRandomItems(params);
+        workingTool.damage(creature);
         int carriedIndex = -1;
         ResourceKind carriedKind = null;
         for (int i = 0; i < caught.size(); i++) {
@@ -1864,23 +1929,28 @@ public final class CreatureSettlementService {
             ChangedEntity creature,
             int horizontalRadius,
             int verticalRadius) {
+        return findExposedOre(creature, horizontalRadius, verticalRadius, pos -> true);
+    }
+
+    public static Optional<BlockPos> findExposedOre(
+            ChangedEntity creature, int horizontalRadius, int verticalRadius, Predicate<BlockPos> area) {
         if (!(creature.level() instanceof ServerLevel level)
                 || !isCaveCommunity(creature)
                 || !level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
             return Optional.empty();
         }
-        ItemStack pickaxe = new ItemStack(Items.IRON_PICKAXE);
+        var inventory = net.parkabird.changedsynergy.world.inventory.BondedInventoryService
+                .inventory(creature, LatexSocialMemory.getPetOwner(creature));
         BlockPos origin = creature.blockPosition();
         BlockPos best = null;
         double bestDistance = Double.MAX_VALUE;
         for (BlockPos candidate : BlockPos.betweenClosed(
                 origin.offset(-horizontalRadius, -verticalRadius, -horizontalRadius),
                 origin.offset(horizontalRadius, verticalRadius, horizontalRadius))) {
+            if (!area.test(candidate) || !level.hasChunkAt(candidate)) continue;
             BlockState state = level.getBlockState(candidate);
-            if (!state.is(Tags.Blocks.ORES)
-                    || state.getDestroySpeed(level, candidate) < 0.0F
-                    || !pickaxe.isCorrectToolForDrops(state)
-                    || !isExposed(level, candidate)) {
+            if (!isExposedOre(level, candidate, state)
+                    || !CompanionToolEffects.gatheringPickaxe(creature, inventory, state).stack().isCorrectToolForDrops(state)) {
                 continue;
             }
             double distance = candidate.distSqr(origin);
@@ -1892,19 +1962,30 @@ public final class CreatureSettlementService {
         return Optional.ofNullable(best);
     }
 
+    /** Shared ore eligibility for suppliers, pets and crew; never loads terrain. */
+    static boolean isExposedOre(ServerLevel level, BlockPos position, BlockState state) {
+        return level.hasChunkAt(position) && state.is(Tags.Blocks.ORES)
+                && state.getDestroySpeed(level, position) >= 0.0F && isExposed(level, position);
+    }
+
     public static boolean mineOre(
             ChangedEntity creature,
             BlockPos position) {
+        return mineOre(creature, position, item -> true);
+    }
+
+    public static boolean mineOre(ChangedEntity creature, BlockPos position,
+            java.util.function.Predicate<ItemStack> acceptsCargo) {
         if (!(creature.level() instanceof ServerLevel level)
                 || hasCargo(creature)
+                || !level.hasChunkAt(position)
                 || !level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
             return false;
         }
         BlockState state = level.getBlockState(position);
-        ItemStack pickaxe = new ItemStack(Items.IRON_PICKAXE);
-        if (!state.is(Tags.Blocks.ORES)
-                || !pickaxe.isCorrectToolForDrops(state)
-                || !isExposed(level, position)) {
+        var workingTool = CompanionToolEffects.gatheringPickaxe(creature, state);
+        ItemStack pickaxe = workingTool.stack();
+        if (!isExposedOre(level, position, state) || !pickaxe.isCorrectToolForDrops(state)) {
             return false;
         }
         List<ItemStack> drops = Block.getDrops(
@@ -1914,7 +1995,7 @@ public final class CreatureSettlementService {
                 .findFirst()
                 .map(ItemStack::copy)
                 .orElse(ItemStack.EMPTY);
-        if (carried.isEmpty()) {
+        if (carried.isEmpty() || !acceptsCargo.test(carried)) {
             return false;
         }
         setCargo(creature, carried, ResourceKind.MATERIAL,
@@ -1929,6 +2010,7 @@ public final class CreatureSettlementService {
         }
         level.setBlock(position, state.getFluidState().createLegacyBlock(), Block.UPDATE_ALL);
         level.levelEvent(2001, position, Block.getId(state));
+        workingTool.damage(creature);
         CreatureLifeMemory.incrementRoleStat(creature, 0);
         return true;
     }
@@ -2024,6 +2106,7 @@ public final class CreatureSettlementService {
         if (inserted <= 0) {
             return false;
         }
+        PlayerOutpostStorageAccess.touch(creature, cache.get());
         if (remainder.isEmpty()) {
             clearCargo(creature);
         } else {
@@ -2040,6 +2123,10 @@ public final class CreatureSettlementService {
 
     public static Optional<BlockPos> cachePosition(ChangedEntity creature) {
         if (!(creature.level() instanceof ServerLevel level)) {
+            return Optional.empty();
+        }
+        if (CreatureCommunityData.isPlayerCompanion(creature)
+                && !hasCargo(creature) && !hasTradeReturns(creature)) {
             return Optional.empty();
         }
         Optional<BlockPos> stored = CreatureCommunityData.snapshot(creature)
@@ -2587,6 +2674,7 @@ public final class CreatureSettlementService {
         }
         writeTradeReturns(memory, remaining);
         if (deposited > 0) {
+            cache.ifPresent(position -> PlayerOutpostStorageAccess.touch(creature, position));
             showDepositParticles(
                     level, cache.orElse(creature.blockPosition()));
         }
@@ -2668,11 +2756,68 @@ public final class CreatureSettlementService {
         return false;
     }
 
+    private static final Map<ServerLevel, Long> NEXT_OUTPOST_SEARCH = new WeakHashMap<>();
+
+    /** Per-attempt work cap; saved cursors resume searches instead of restarting at the same cells. */
+    private static final class PlacementSearch {
+        final CompoundTag cursors;
+        final Map<Long, List<BlockPos>> cacheChunks = new HashMap<>();
+        @Nullable Map<Long, List<BlockPos>> claimedCacheChunks;
+        int remaining = 256;
+
+        PlacementSearch(ChangedEntity creature) {
+            var memory = creature.getPersistentData();
+            if (!memory.contains("ChangedSynergyOutpostSearch", Tag.TAG_COMPOUND))
+                memory.put("ChangedSynergyOutpostSearch", new CompoundTag());
+            cursors = memory.getCompound("ChangedSynergyOutpostSearch");
+        }
+
+        SearchSlice slice(String key, int total) {
+            int start = total > 0 ? Math.floorMod(cursors.getInt(key), total) : 0;
+            int count = Math.min(Math.min(64, remaining), Math.max(0, total - start));
+            if (count > 0) cursors.putInt(key, (start + count) % total);
+            remaining -= count;
+            return new SearchSlice(start, count, total);
+        }
+
+        Map<Long, List<BlockPos>> claimedCaches(ServerLevel level) {
+            if (claimedCacheChunks == null) {
+                claimedCacheChunks = new HashMap<>();
+                for (BlockPos cache : CreatureCommunityData.claimedCachePositions(level)) {
+                    claimedCacheChunks.computeIfAbsent(ChunkPos.asLong(
+                            cache.getX() >> 4, cache.getZ() >> 4), ignored -> new ArrayList<>()).add(cache);
+                }
+            }
+            return claimedCacheChunks;
+        }
+    }
+
+    private record SearchSlice(int start, int count, int total) {
+        int index(int offset) { return (start + offset) % total; }
+    }
+
+    /** Centre-first square rings, without iterating entire inner squares for every radius. */
+    private static BlockPos placementColumn(BlockPos center, int index) {
+        if (index == 0) return center;
+        int radius = (int)Math.ceil((Math.sqrt(index + 1.0D) - 1.0D) / 2.0D);
+        int offset = index - (2 * radius - 1) * (2 * radius - 1);
+        int side = 2 * radius;
+        int dx, dz;
+        if (offset < side) { dx = -radius + offset; dz = -radius; }
+        else if (offset < side * 2) { dx = radius; dz = -radius + offset - side; }
+        else if (offset < side * 3) { dx = radius - offset + side * 2; dz = radius; }
+        else { dx = -radius; dz = radius - offset + side * 3; }
+        return center.offset(dx, 0, dz);
+    }
+
     public static Optional<BlockPos> ensureCachePosition(ChangedEntity creature) {
         if (!(creature.level() instanceof ServerLevel level)
                 || !ChangedSynergyGameRules.enabled(
                         level, ChangedSynergyGameRules.CREATURE_LIFE)) {
             return Optional.empty();
+        }
+        if (CreatureCommunityData.isPlayerCompanion(creature)) {
+            return cachePosition(creature);
         }
 
         Optional<BlockPos> boundOutpost = CreatureCommunityData.snapshot(creature)
@@ -2709,9 +2854,19 @@ public final class CreatureSettlementService {
             return storage;
         }
 
+        if (!ChangedSynergyConfig.COMMON.creatureOutposts.get()) return Optional.empty();
+        long now = level.getGameTime();
+        var memory = creature.getPersistentData();
+        if (memory.getLong("ChangedSynergyNextOutpostSearch") > now
+                || NEXT_OUTPOST_SEARCH.getOrDefault(level, Long.MIN_VALUE) > now) return Optional.empty();
+        // Construction searches are optional: at most one per second in each level.
+        NEXT_OUTPOST_SEARCH.put(level, now + 20L);
+        memory.putLong("ChangedSynergyNextOutpostSearch", now + 200L);
+        PlacementSearch search = new PlacementSearch(creature);
+
         if (CreatureLifeMemory.role(creature)
                 == CreatureLifeMemory.GroupRole.PROVISIONER) {
-            Optional<BlockPos> claimed = tryClaimChangedStructure(creature, level);
+            Optional<BlockPos> claimed = tryClaimChangedStructure(creature, level, search);
             if (claimed.isPresent()) {
                 return claimed;
             }
@@ -2737,11 +2892,7 @@ public final class CreatureSettlementService {
                 .orElse(creature.blockPosition());
         BlockPos offshoreAnchor = null;
         if (aquatic && aquaticMode == AquaticProvisionMode.OPEN_OCEAN) {
-            offshoreAnchor = level.findNearestMapStructure(
-                    AQUATIC_CACHE_ANCHORS,
-                    center,
-                    OFFSHORE_STRUCTURE_RADIUS_CHUNKS,
-                    false);
+            offshoreAnchor = findLoadedAquaticAnchor(level, center);
             if (offshoreAnchor == null) {
                 return Optional.empty();
             }
@@ -2798,29 +2949,29 @@ public final class CreatureSettlementService {
         if (aquatic && aquaticMode == AquaticProvisionMode.NEARSHORE) {
             base = findShorePlacement(
                     level, center, creature, blueprint.get(),
-                    AQUATIC_SHORE_PLACEMENT_RADIUS, true);
+                    AQUATIC_SHORE_PLACEMENT_RADIUS, true, search);
             if (base.isEmpty()) {
                 base = findShorePlacement(
                         level, center, creature, blueprint.get(),
-                        AQUATIC_NEARBY_SHORE_RADIUS, false);
+                        AQUATIC_NEARBY_SHORE_RADIUS, false, search);
             }
         } else if (aquatic) {
             base = findOceanFloorPlacement(
                     level, offshoreAnchor, creature, blueprint.get(),
-                    OFFSHORE_CACHE_SEARCH_RADIUS, true);
+                    OFFSHORE_CACHE_SEARCH_RADIUS, true, search);
             if (base.isEmpty()) {
                 base = findOceanFloorPlacement(
                         level, offshoreAnchor, creature, blueprint.get(),
-                        OFFSHORE_CACHE_SEARCH_RADIUS, false);
+                        OFFSHORE_CACHE_SEARCH_RADIUS, false, search);
             }
         } else {
             base = findPlacement(
                     level, center, creature, blueprint.get(), false,
-                    TERRITORY_CACHE_SEARCH_RADIUS, true);
+                    TERRITORY_CACHE_SEARCH_RADIUS, true, search);
             if (base.isEmpty()) {
                 base = findPlacement(
                         level, center, creature, blueprint.get(), false,
-                        NEARBY_CACHE_SEARCH_RADIUS, false);
+                        NEARBY_CACHE_SEARCH_RADIUS, false, search);
             }
         }
         if (base.isEmpty()) {
@@ -2866,7 +3017,8 @@ public final class CreatureSettlementService {
      * can therefore never enter this path. */
     private static Optional<BlockPos> tryClaimChangedStructure(
             ChangedEntity creature,
-            ServerLevel level) {
+            ServerLevel level,
+            PlacementSearch search) {
         boolean ruinsEnabled = ChangedSynergyConfig.COMMON
                 .useChangedStructureOutposts.get();
         boolean beeEnabled = ChangedSynergyConfig.COMMON
@@ -2900,12 +3052,10 @@ public final class CreatureSettlementService {
             for (int dz = -radius; dz <= radius; dz++) {
                 int chunkX = centerChunkX + dx;
                 int chunkZ = centerChunkZ + dz;
-                if (level.getChunkSource().getChunkNow(chunkX, chunkZ) == null) {
-                    continue;
-                }
-                for (StructureStart start : level.structureManager()
-                        .startsForStructure(new ChunkPos(chunkX, chunkZ), accepted)) {
-                    if (!start.isValid()) {
+                LevelChunk loaded = level.getChunkSource().getChunkNow(chunkX, chunkZ);
+                if (loaded == null) continue;
+                for (StructureStart start : loaded.getAllStarts().values()) {
+                    if (!start.isValid() || !accepted.test(start.getStructure())) {
                         continue;
                     }
                     ResourceLocation structureId = structures.getKey(
@@ -2936,9 +3086,12 @@ public final class CreatureSettlementService {
         }
         candidates.sort(Comparator.comparingDouble(candidate ->
                 candidate.anchor().distSqr(center)));
-        for (StructureOutpost candidate : candidates) {
+        if (!candidates.isEmpty()) {
+            int next = Math.floorMod(search.cursors.getInt("structures"), candidates.size());
+            search.cursors.putInt("structures", (next + 1) % candidates.size());
+            StructureOutpost candidate = candidates.get(next);
             Optional<BlockPos> claimed = establishStructureOutpost(
-                    level, creature, candidate);
+                    level, creature, candidate, search);
             if (claimed.isPresent()) {
                 memory.remove(NEXT_STRUCTURE_OUTPOST_SEARCH);
                 return claimed;
@@ -2946,7 +3099,7 @@ public final class CreatureSettlementService {
         }
         memory.putLong(
                 NEXT_STRUCTURE_OUTPOST_SEARCH,
-                now + STRUCTURE_SEARCH_RETRY_TICKS);
+                now + (candidates.isEmpty() ? STRUCTURE_SEARCH_RETRY_TICKS : 200L));
         return Optional.empty();
     }
 
@@ -2977,7 +3130,8 @@ public final class CreatureSettlementService {
     private static Optional<BlockPos> establishStructureOutpost(
             ServerLevel level,
             ChangedEntity creature,
-            StructureOutpost outpost) {
+            StructureOutpost outpost,
+            PlacementSearch search) {
         Optional<BlockPos> shared = CreatureCommunityData.compatibleCaches(creature)
                 .stream()
                 .filter(position -> cacheBelongsToStructure(
@@ -3000,7 +3154,7 @@ public final class CreatureSettlementService {
             return Optional.empty();
         }
         Optional<BlockPos> base = findStructurePlacement(
-                level, creature, outpost, blueprint.get());
+                level, creature, outpost, blueprint.get(), search);
         if (base.isEmpty()) {
             return Optional.empty();
         }
@@ -3036,7 +3190,8 @@ public final class CreatureSettlementService {
             ServerLevel level,
             ChangedEntity creature,
             StructureOutpost outpost,
-            Blueprint blueprint) {
+            Blueprint blueprint,
+            PlacementSearch search) {
         BoundingBox bounds = outpost.bounds();
         AABB occupied = new AABB(
                 bounds.minX() - 2.0D,
@@ -3051,94 +3206,68 @@ public final class CreatureSettlementService {
         }
         if (!outpost.outside()) {
             Optional<BlockPos> inside = findInsideStructurePlacement(
-                    level, creature, outpost.bounds(), blueprint);
+                    level, creature, outpost.bounds(), blueprint, search);
             if (inside.isPresent()) {
                 return inside;
             }
+            // A partial interior search is not proof that this ruin has no room.
+            if (search.cursors.getInt("inside_" + bounds.minX() + "_" + bounds.minZ()) != 0)
+                return Optional.empty();
         }
         return findBesideStructurePlacement(
                 level, creature, outpost.bounds(), blueprint,
                 outpost.outside() ? 3 : 1,
-                outpost.outside() ? 7 : 4);
+                outpost.outside() ? 7 : 4, search);
     }
 
     private static Optional<BlockPos> findInsideStructurePlacement(
-            ServerLevel level,
-            ChangedEntity creature,
-            BoundingBox bounds,
-            Blueprint blueprint) {
-        BlockPos center = new BlockPos(
-                (bounds.minX() + bounds.maxX()) / 2,
-                (bounds.minY() + bounds.maxY()) / 2,
-                (bounds.minZ() + bounds.maxZ()) / 2);
-        BlockPos best = null;
-        double bestDistance = Double.MAX_VALUE;
-        for (int y = bounds.minY() + 1; y < bounds.maxY(); y++) {
-            for (int x = bounds.minX() + 2; x <= bounds.maxX() - 2; x++) {
-                for (int z = bounds.minZ() + 2; z <= bounds.maxZ() - 2; z++) {
-                    BlockPos base = new BlockPos(x, y, z);
-                    double distance = base.distSqr(center);
-                    if (distance >= bestDistance
-                            || playerIsUsingArea(level, base)
-                            || !canPlace(level, base, blueprint, false)) {
-                        continue;
-                    }
-                    best = base.immutable();
-                    bestDistance = distance;
-                }
-            }
-        }
-        return Optional.ofNullable(best);
-    }
-
-    private static Optional<BlockPos> findBesideStructurePlacement(
-            ServerLevel level,
-            ChangedEntity creature,
-            BoundingBox bounds,
-            Blueprint blueprint,
-            int minimumRadius,
-            int maximumRadius) {
-        int centerX = (bounds.minX() + bounds.maxX()) / 2;
-        int centerZ = (bounds.minZ() + bounds.maxZ()) / 2;
-        int halfWidth = Math.max(1, (bounds.maxX() - bounds.minX()) / 2);
-        int halfDepth = Math.max(1, (bounds.maxZ() - bounds.minZ()) / 2);
-        for (int radius = minimumRadius; radius <= maximumRadius; radius++) {
-            int edgeX = halfWidth + radius;
-            int edgeZ = halfDepth + radius;
-            for (int dx = -edgeX; dx <= edgeX; dx++) {
-                for (int dz = -edgeZ; dz <= edgeZ; dz++) {
-                    if (Math.abs(dx) != edgeX && Math.abs(dz) != edgeZ) {
-                        continue;
-                    }
-                    int x = centerX + dx;
-                    int z = centerZ + dz;
-                    BlockPos column = new BlockPos(x, bounds.minY(), z);
-                    if (!level.hasChunkAt(column)) {
-                        continue;
-                    }
-                    BlockPos base = new BlockPos(
-                            x,
-                            level.getHeight(
-                                    Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                                    x, z),
-                            z);
-                    if (!playerIsUsingArea(level, base)
-                            && canPlace(level, base, blueprint, false)) {
-                        return Optional.of(base.immutable());
-                    }
-                }
-            }
+            ServerLevel level, ChangedEntity creature, BoundingBox bounds,
+            Blueprint blueprint, PlacementSearch search) {
+        int width = bounds.maxX() - bounds.minX() - 3;
+        int depth = bounds.maxZ() - bounds.minZ() - 3;
+        int height = bounds.maxY() - bounds.minY() - 1;
+        if (width <= 0 || depth <= 0 || height <= 0) return Optional.empty();
+        long total = (long)width * depth * height;
+        if (total > Integer.MAX_VALUE) return Optional.empty();
+        SearchSlice cells = search.slice("inside_" + bounds.minX() + "_" + bounds.minZ(), (int)total);
+        for (int offset = 0; offset < cells.count(); offset++) {
+            int index = cells.index(offset);
+            BlockPos base = new BlockPos(bounds.minX() + 2 + index % width,
+                    bounds.minY() + 1 + index / (width * depth),
+                    bounds.minZ() + 2 + index / width % depth);
+            if (!playerIsUsingArea(level, base) && canPlace(level, base, blueprint, false, search))
+                return Optional.of(base);
         }
         return Optional.empty();
     }
 
-    private static boolean playerIsUsingArea(
-            ServerLevel level,
-            BlockPos position) {
-        return level.players().stream().anyMatch(player ->
-                !player.isSpectator()
-                        && player.distanceToSqr(Vec3.atCenterOf(position))
-                                < 6.0D * 6.0D);
+    private static Optional<BlockPos> findBesideStructurePlacement(
+            ServerLevel level, ChangedEntity creature, BoundingBox bounds,
+            Blueprint blueprint, int minimumRadius, int maximumRadius, PlacementSearch search) {
+        int halfWidth = Math.max(1, (bounds.maxX() - bounds.minX()) / 2);
+        int halfDepth = Math.max(1, (bounds.maxZ() - bounds.minZ()) / 2);
+        int edgeX = halfWidth + maximumRadius, edgeZ = halfDepth + maximumRadius;
+        int width = edgeX * 2 + 1, depth = edgeZ * 2 + 1;
+        BlockPos center = new BlockPos((bounds.minX() + bounds.maxX()) / 2, bounds.minY(),
+                (bounds.minZ() + bounds.maxZ()) / 2);
+        SearchSlice cells = search.slice("beside_" + bounds.minX() + "_" + bounds.minZ(), width * depth);
+        for (int offset = 0; offset < cells.count(); offset++) {
+            int index = cells.index(offset);
+            int dx = index % width - edgeX, dz = index / width - edgeZ;
+            if (Math.abs(dx) < halfWidth + minimumRadius && Math.abs(dz) < halfDepth + minimumRadius) continue;
+            BlockPos column = center.offset(dx, 0, dz);
+            if (!level.hasChunkAt(column)) continue;
+            BlockPos base = new BlockPos(column.getX(), level.getHeight(
+                    Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, column.getX(), column.getZ()), column.getZ());
+            if (!playerIsUsingArea(level, base) && canPlace(level, base, blueprint, false, search))
+                return Optional.of(base);
+        }
+        return Optional.empty();
+    }
+
+    private static boolean playerIsUsingArea(ServerLevel level, BlockPos position) {
+        return level.players().stream().anyMatch(player -> !player.isSpectator()
+                && player.distanceToSqr(Vec3.atCenterOf(position)) < 6.0D * 6.0D);
     }
 
     private static Optional<BlockPos> findReusableCache(
@@ -3314,24 +3443,27 @@ public final class CreatureSettlementService {
         }
         CompoundTag persistent = blockEntity.getPersistentData();
         Optional<Blueprint> selected = blueprintFor(creature, position);
+        boolean changed = false;
         ResourceLocation previousId = ResourceLocation.tryParse(
                 persistent.getString(CACHE_BLUEPRINT));
         Optional<Blueprint> previous = previousId == null
                 ? Optional.empty()
                 : CreatureSettlementBlueprints.INSTANCE.byId(previousId);
-        selected.ifPresent(blueprint -> {
-            if (!blueprint.id().toString().equals(
-                    persistent.getString(CACHE_BLUEPRINT))) {
-                previous.ifPresent(old -> clearBlueprintCells(
-                        level, position, old));
-                persistent.putString(CACHE_BLUEPRINT, blueprint.id().toString());
-                persistent.putInt(CACHE_DECORATED, 0);
-            }
-        });
+        if (selected.isPresent() && !selected.get().id().toString().equals(
+                persistent.getString(CACHE_BLUEPRINT))) {
+            previous.ifPresent(old -> clearBlueprintCells(level, position, old));
+            persistent.putString(CACHE_BLUEPRINT, selected.get().id().toString());
+            persistent.putInt(CACHE_DECORATED, 0);
+            changed = true;
+        }
         boolean hasOrangePile = selected
                 .map(blueprint -> supportsOrangePile(level, position, blueprint))
                 .orElse(persistent.getBoolean(CACHE_HAS_ORANGE_PILE));
-        persistent.putBoolean(CACHE_HAS_ORANGE_PILE, hasOrangePile);
+        if (!persistent.contains(CACHE_HAS_ORANGE_PILE, Tag.TAG_BYTE)
+                || persistent.getBoolean(CACHE_HAS_ORANGE_PILE) != hasOrangePile) {
+            persistent.putBoolean(CACHE_HAS_ORANGE_PILE, hasOrangePile);
+            changed = true;
+        }
         if (!persistent.getBoolean(CACHE_INITIALIZED)) {
             if (container.isEmpty()) {
                 seedInitialSupplies(
@@ -3344,19 +3476,43 @@ public final class CreatureSettlementService {
             recordContainerTradeStock(creature, container);
             persistent.putBoolean(CACHE_INITIALIZED, true);
             persistent.putInt(CACHE_TRADE_STOCK_VERSION, TRADE_STOCK_VERSION);
+            changed = true;
         } else if (persistent.getInt(CACHE_TRADE_STOCK_VERSION)
                 < TRADE_STOCK_VERSION) {
             recordContainerTradeStock(creature, container);
             persistent.putInt(CACHE_TRADE_STOCK_VERSION, TRADE_STOCK_VERSION);
+            changed = true;
         }
         if (selected.isPresent()
-                && persistent.getInt(CACHE_DECORATED) < CACHE_DECORATION_VERSION) {
+                && persistent.getInt(CACHE_DECORATED) < CACHE_DECORATION_VERSION
+                && cacheLayoutLoaded(level, position, selected.get())) {
             migrateCacheLayout(level, creature, position, selected.get());
             decorateCache(
                     level, creature, position, selected.get(), hasOrangePile);
             persistent.putInt(CACHE_DECORATED, CACHE_DECORATION_VERSION);
+            changed = true;
         }
-        blockEntity.setChanged();
+        if (changed) blockEntity.setChanged();
+    }
+
+    /** Defer migration at a chunk edge; finish it when its whole footprint is loaded. */
+    private static boolean cacheLayoutLoaded(ServerLevel level, BlockPos cache, Blueprint blueprint) {
+        BlockPos base = cache.subtract(blueprint.cacheOffset());
+        int minX = cache.getX() - 4, maxX = cache.getX() + 4;
+        int minZ = cache.getZ() - 4, maxZ = cache.getZ() + 4;
+        for (Cell cell : blueprint.blocks()) {
+            BlockPos position = base.offset(cell.offset());
+            minX = Math.min(minX, position.getX() - 1); maxX = Math.max(maxX, position.getX() + 1);
+            minZ = Math.min(minZ, position.getZ() - 1); maxZ = Math.max(maxZ, position.getZ() + 1);
+        }
+        for (Display display : blueprint.displays()) {
+            BlockPos position = base.offset(display.offset());
+            minX = Math.min(minX, position.getX() - 1); maxX = Math.max(maxX, position.getX() + 1);
+            minZ = Math.min(minZ, position.getZ() - 1); maxZ = Math.max(maxZ, position.getZ() + 1);
+        }
+        for (int x = minX >> 4; x <= maxX >> 4; x++) for (int z = minZ >> 4; z <= maxZ >> 4; z++)
+            if (level.getChunkSource().getChunkNow(x, z) == null) return false;
+        return true;
     }
 
     /** Removes only blocks that still match the previous generated layout. */
@@ -3370,7 +3526,7 @@ public final class CreatureSettlementService {
             if (position.equals(cache)) {
                 continue;
             }
-            if (level.getBlockState(position).equals(cell.state())) {
+            if (level.hasChunkAt(position) && level.getBlockState(position).equals(cell.state())) {
                 level.setBlock(
                         position, Blocks.AIR.defaultBlockState(),
                         Block.UPDATE_ALL);
@@ -3676,6 +3832,7 @@ public final class CreatureSettlementService {
         for (BlockPos candidate : BlockPos.betweenClosed(
                 position.offset(-4, -6, -4),
                 position.offset(4, 6, 4))) {
+            if (!level.hasChunkAt(candidate)) continue;
             Block leaves = leavesForLog(level.getBlockState(candidate).getBlock());
             if (leaves == null) {
                 continue;
@@ -3779,115 +3936,71 @@ public final class CreatureSettlementService {
     }
 
     private static Optional<BlockPos> findShorePlacement(
-            ServerLevel level,
-            BlockPos center,
-            ChangedEntity creature,
-            Blueprint blueprint,
-            int searchRadius,
-            boolean requireOwnTerritory) {
-        for (int radius = 1; radius <= searchRadius; radius++) {
-            for (int dx = -radius; dx <= radius; dx++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
-                        continue;
-                    }
-                    int x = center.getX() + dx;
-                    int z = center.getZ() + dz;
-                    BlockPos column = new BlockPos(x, center.getY(), z);
-                    if (!level.hasChunkAt(column)) {
-                        continue;
-                    }
-                    BlockPos base = new BlockPos(
-                            x,
-                            level.getHeight(
-                                    Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                                    x, z),
-                            z);
-                    if (isOpenNaturalShore(level, base)
-                            && canPlace(level, base, blueprint, true)
-                            && (!requireOwnTerritory
-                                    || isOwnTerritory(level, base, creature))) {
-                        return Optional.of(base.immutable());
-                    }
-                }
-            }
+            ServerLevel level, BlockPos center, ChangedEntity creature, Blueprint blueprint,
+            int searchRadius, boolean requireOwnTerritory, PlacementSearch search) {
+        int width = searchRadius * 2 + 1;
+        SearchSlice cells = search.slice("shore_" + requireOwnTerritory, width * width);
+        for (int offset = 0; offset < cells.count(); offset++) {
+            BlockPos column = placementColumn(center, cells.index(offset));
+            if (!level.hasChunkAt(column)) continue;
+            BlockPos base = new BlockPos(column.getX(), level.getHeight(
+                    Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, column.getX(), column.getZ()), column.getZ());
+            if ((!requireOwnTerritory || isOwnTerritory(level, base, creature))
+                    && isOpenNaturalShore(level, base) && canPlace(level, base, blueprint, true, search))
+                return Optional.of(base);
         }
         return Optional.empty();
     }
 
     private static Optional<BlockPos> findOceanFloorPlacement(
-            ServerLevel level,
-            BlockPos structure,
-            ChangedEntity creature,
-            Blueprint blueprint,
-            int searchRadius,
-            boolean requireOwnTerritory) {
-        for (int radius = 4; radius <= searchRadius; radius++) {
-            for (int dx = -radius; dx <= radius; dx++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
-                        continue;
-                    }
-                    int x = structure.getX() + dx;
-                    int z = structure.getZ() + dz;
-                    BlockPos column = new BlockPos(x, structure.getY(), z);
-                    if (!level.hasChunkAt(column)) {
-                        continue;
-                    }
-                    BlockPos base = new BlockPos(
-                            x,
-                            level.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z),
-                            z);
-                    if (!level.getFluidState(base).is(FluidTags.WATER)
-                            || !level.getFluidState(base.above()).is(FluidTags.WATER)
-                            || !canPlace(level, base, blueprint, false)
-                            || requireOwnTerritory
-                                    && !isOwnTerritory(level, base, creature)) {
-                        continue;
-                    }
-                    return Optional.of(base.immutable());
-                }
-            }
+            ServerLevel level, BlockPos structure, ChangedEntity creature, Blueprint blueprint,
+            int searchRadius, boolean requireOwnTerritory, PlacementSearch search) {
+        int width = searchRadius * 2 + 1;
+        SearchSlice cells = search.slice("ocean_" + requireOwnTerritory, width * width - 49);
+        for (int offset = 0; offset < cells.count(); offset++) {
+            int index = cells.index(offset) + 49; // Keep the existing four-block structure clearance.
+            BlockPos column = placementColumn(structure, index);
+            if (!level.hasChunkAt(column)) continue;
+            BlockPos base = new BlockPos(column.getX(), level.getHeight(
+                    Heightmap.Types.OCEAN_FLOOR, column.getX(), column.getZ()), column.getZ());
+            if (level.getFluidState(base).is(FluidTags.WATER) && level.getFluidState(base.above()).is(FluidTags.WATER)
+                    && (!requireOwnTerritory || isOwnTerritory(level, base, creature))
+                    && canPlace(level, base, blueprint, false, search)) return Optional.of(base);
         }
         return Optional.empty();
     }
 
     private static Optional<BlockPos> findPlacement(
-            ServerLevel level,
-            BlockPos center,
-            ChangedEntity creature,
-            Blueprint blueprint,
-            boolean requireShore,
-            int searchRadius,
-            boolean requireOwnTerritory) {
-        for (int radius = 2; radius <= searchRadius; radius++) {
-            for (int dx = -radius; dx <= radius; dx++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (radius > 0 && Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
-                        continue;
-                    }
-                    for (int dy = 0; dy <= CACHE_VERTICAL_SEARCH; dy++) {
-                        BlockPos below = center.offset(dx, -dy, dz);
-                        if (matchesSettlementHabitat(level, below, creature)
-                                && canPlace(level, below, blueprint, requireShore)
-                                && (!requireOwnTerritory
-                                        || isOwnTerritory(level, below, creature))) {
-                            return Optional.of(below);
-                        }
-                        if (dy > 0) {
-                            BlockPos above = center.offset(dx, dy, dz);
-                            if (matchesSettlementHabitat(level, above, creature)
-                                    && canPlace(level, above, blueprint, requireShore)
-                                    && (!requireOwnTerritory
-                                            || isOwnTerritory(level, above, creature))) {
-                                return Optional.of(above);
-                            }
-                        }
-                    }
+            ServerLevel level, BlockPos center, ChangedEntity creature, Blueprint blueprint,
+            boolean requireShore, int searchRadius, boolean requireOwnTerritory, PlacementSearch search) {
+        int width = searchRadius * 2 + 1, heights = CACHE_VERTICAL_SEARCH * 2 + 1;
+        SearchSlice cells = search.slice("land_" + requireOwnTerritory, (width * width - 9) * heights);
+        for (int offset = 0; offset < cells.count(); offset++) {
+            int index = cells.index(offset), columnIndex = index / heights + 9, heightIndex = index % heights;
+            int dy = heightIndex == 0 ? 0 : (heightIndex + 1) / 2 * (heightIndex % 2 == 1 ? -1 : 1);
+            BlockPos base = placementColumn(center, columnIndex).above(dy);
+            if (level.hasChunkAt(base) && matchesSettlementHabitat(level, base, creature)
+                    && (!requireOwnTerritory || isOwnTerritory(level, base, creature))
+                    && canPlace(level, base, blueprint, requireShore, search)) return Optional.of(base);
+        }
+        return Optional.empty();
+    }
+
+    private static BlockPos findLoadedAquaticAnchor(ServerLevel level, BlockPos center) {
+        var registry = level.registryAccess().registryOrThrow(Registries.STRUCTURE);
+        BlockPos nearest = null;
+        for (int dx = -OFFSHORE_STRUCTURE_RADIUS_CHUNKS; dx <= OFFSHORE_STRUCTURE_RADIUS_CHUNKS; dx++) {
+            for (int dz = -OFFSHORE_STRUCTURE_RADIUS_CHUNKS; dz <= OFFSHORE_STRUCTURE_RADIUS_CHUNKS; dz++) {
+                var loaded = level.getChunkSource().getChunkNow((center.getX() >> 4) + dx, (center.getZ() >> 4) + dz);
+                if (loaded == null) continue;
+                for (var start : loaded.getAllStarts().values()) {
+                    if (!start.isValid() || !registry.wrapAsHolder(start.getStructure()).is(AQUATIC_CACHE_ANCHORS)) continue;
+                    BlockPos anchor = start.getChunkPos().getMiddleBlockPosition(0);
+                    if (nearest == null || horizontalDistanceSqr(anchor, center) < horizontalDistanceSqr(nearest, center)) nearest = anchor;
                 }
             }
         }
-        return Optional.empty();
+        return nearest;
     }
 
     /**
@@ -3927,12 +4040,12 @@ public final class CreatureSettlementService {
             ServerLevel level,
             BlockPos base,
             Blueprint blueprint,
-            boolean requireShore) {
+            boolean requireShore,
+            PlacementSearch search) {
         BlockPos cache = base.offset(blueprint.cacheOffset());
         BlockPos support = cache.below();
         if (!level.hasChunkAt(base)
                 || !level.getWorldBorder().isWithinBounds(base)
-                || isSettlementAreaOccupied(level, cache)
                 || !level.getBlockState(support)
                         .isFaceSturdy(level, support, Direction.UP)
                 || requireShore && !isNearWater(level, cache, 5)
@@ -3963,18 +4076,17 @@ public final class CreatureSettlementService {
                 return false;
             }
         }
-        return true;
+        return !isSettlementAreaOccupied(level, cache, search);
     }
 
     private static boolean isSettlementAreaOccupied(
             ServerLevel level,
-            BlockPos candidateCache) {
+            BlockPos candidateCache,
+            PlacementSearch search) {
         int minimumSpacing = ChangedSynergyConfig.COMMON
                 .settlementMinimumSpacing.get();
-        if (CreatureCommunityData.isCacheAreaClaimed(
-                level, candidateCache, minimumSpacing)
-                || PlayerOutpostData.isAreaClaimed(
-                        level, candidateCache, PlayerOutpostData.RADIUS + 16)) {
+        if (PlayerOutpostData.isAreaClaimed(
+                        level, candidateCache, ChangedSynergyConfig.COMMON.playerWildOutpostMinimumSpacing.get())) {
             return true;
         }
 
@@ -3982,22 +4094,20 @@ public final class CreatureSettlementService {
         int centerChunkX = candidateCache.getX() >> 4;
         int centerChunkZ = candidateCache.getZ() >> 4;
         double radiusSqr = (double) minimumSpacing * minimumSpacing;
+        Map<Long, List<BlockPos>> claims = search.claimedCaches(level);
         for (int dx = -chunkRadius; dx <= chunkRadius; dx++) {
             for (int dz = -chunkRadius; dz <= chunkRadius; dz++) {
-                LevelChunk chunk = level.getChunkSource().getChunkNow(
-                        centerChunkX + dx, centerChunkZ + dz);
-                if (chunk == null) {
-                    continue;
-                }
-                for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
-                    CompoundTag persistent = blockEntity.getPersistentData();
-                    if (persistent.contains(CACHE_BLUEPRINT, Tag.TAG_STRING)
-                            && horizontalDistanceSqr(
-                                    blockEntity.getBlockPos(), candidateCache)
-                                    <= radiusSqr) {
-                        return true;
-                    }
-                }
+                long chunkKey = ChunkPos.asLong(centerChunkX + dx, centerChunkZ + dz);
+                if (claims.getOrDefault(chunkKey, List.of()).stream()
+                        .anyMatch(cache -> horizontalDistanceSqr(cache, candidateCache) <= radiusSqr)) return true;
+                List<BlockPos> caches = search.cacheChunks.computeIfAbsent(chunkKey, ignored -> {
+                    LevelChunk chunk = level.getChunkSource().getChunkNow(ChunkPos.getX(chunkKey), ChunkPos.getZ(chunkKey));
+                    if (chunk == null) return List.of();
+                    return chunk.getBlockEntities().values().stream()
+                            .filter(block -> block.getPersistentData().contains(CACHE_BLUEPRINT, Tag.TAG_STRING))
+                            .map(BlockEntity::getBlockPos).toList();
+                });
+                if (caches.stream().anyMatch(cache -> horizontalDistanceSqr(cache, candidateCache) <= radiusSqr)) return true;
             }
         }
         return false;
@@ -4012,11 +4122,11 @@ public final class CreatureSettlementService {
     }
 
     private static boolean isDryStand(ServerLevel level, BlockPos stand) {
+        if (!level.hasChunkAt(stand)) return false;
         BlockPos support = stand.below();
         BlockState feet = level.getBlockState(stand);
         BlockState head = level.getBlockState(stand.above());
-        return level.hasChunkAt(stand)
-                && level.getFluidState(stand).isEmpty()
+        return level.getFluidState(stand).isEmpty()
                 && level.getFluidState(stand.above()).isEmpty()
                 && feet.getCollisionShape(level, stand).isEmpty()
                 && head.getCollisionShape(level, stand.above()).isEmpty()
@@ -4080,32 +4190,6 @@ public final class CreatureSettlementService {
         return path != null && path.canReach();
     }
 
-    @Nullable
-    private static BlockPos findGlowBerryStand(
-            ServerLevel level,
-            ChangedEntity creature,
-            BlockPos berries,
-            int maximumReach) {
-        for (int drop = 1; drop <= maximumReach; drop++) {
-            for (int radius = 0; radius <= 2; radius++) {
-                for (int dx = -radius; dx <= radius; dx++) {
-                    for (int dz = -radius; dz <= radius; dz++) {
-                        if (radius > 0
-                                && Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
-                            continue;
-                        }
-                        BlockPos stand = berries.offset(dx, -drop, dz);
-                        if (isDryStand(level, stand)
-                                && isReachableStand(creature, stand)) {
-                            return stand.immutable();
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
     private static boolean hasRipeGlowBerries(BlockState state) {
         return (state.is(Blocks.CAVE_VINES)
                         || state.is(Blocks.CAVE_VINES_PLANT))
@@ -4113,11 +4197,11 @@ public final class CreatureSettlementService {
                 && state.getValue(CaveVines.BERRIES);
     }
 
-    private static boolean isExposed(ServerLevel level, BlockPos position) {
+    static boolean isExposed(ServerLevel level, BlockPos position) {
         for (Direction direction : Direction.values()) {
             BlockPos adjacent = position.relative(direction);
-            if (level.isEmptyBlock(adjacent)
-                    || !level.getFluidState(adjacent).isEmpty()) {
+            if (level.hasChunkAt(adjacent) && (level.isEmptyBlock(adjacent)
+                    || !level.getFluidState(adjacent).isEmpty())) {
                 return true;
             }
         }
@@ -4131,7 +4215,7 @@ public final class CreatureSettlementService {
         for (BlockPos candidate : BlockPos.betweenClosed(
                 position.offset(-radius, -2, -radius),
                 position.offset(radius, 2, radius))) {
-            if (level.getBlockState(candidate).is(Blocks.WATER)) {
+            if (level.hasChunkAt(candidate) && level.getBlockState(candidate).is(Blocks.WATER)) {
                 return true;
             }
         }
