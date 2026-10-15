@@ -1,5 +1,6 @@
 # Changed: Synergy 1.1.4-hotfix
 
+- Added a compatibility workaround for JEI 15.70.0.221 mouse hit-testing, preventing its interface-mapping crash when entering worlds or opening JEI-enabled screens. JEI remains optional.
 - Fixed "Invalid player data" disconnects when transformed players rejoin existing worlds. Saved forms and valid absorption-negotiation state are preserved.
 - Fixed Superb Warfare suppressors being ignored by latex hearing. Suppressed shots have a shorter detection range and reduced alert reactions; nearby creatures can still hear them.
 - Fixed organic latex retaining obsolete hostility after transforming a player, while preserving normal damage against valid transformed opponents.

@@ -101,6 +101,7 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 - **Self-Defense Penalty Protection**, enabled by default, exempts legitimate self-defense from faction and bonded-kin penalties. Relationship debugging defaults to the creature under the crosshair and the executing player, with explicit administrator targets; `relationship establish` creates a maximum-affection friendship.
 - Added Russian localization from TrueTransfur's author, the community White-faction rewrite and the Organic dialogue pack in English, Spanish and Simplified Chinese. Corrected Chinese Black/White latex terminology and updated English and Chinese social and settings guides.
 - Improved server behavior around wild communities, outpost placement, blocked routes and resource searches. Exp009 lightning and aquatic-outpost searches avoid forcing unvisited chunks to load; large searches are spread across bounded batches.
+- Added a compatibility workaround for JEI 15.70.0.221 mouse hit-testing, preventing its interface-mapping crash when entering worlds or opening JEI-enabled screens. JEI remains optional.
 - Fixed "Invalid player data" disconnects when transformed players rejoin existing worlds, preserving their saved form and valid absorption-negotiation state.
 - Addressed dedicated-server Exp009 and biome failures, startup compatibility without Addon Plus, grab/QTE crashes, repeated transfur cleanup and spectator wheel lockups. Relationship wheels support left/right navigation when more options are available.
 
