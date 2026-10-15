@@ -40,6 +40,7 @@ public final class NegotiationLifecycleRegression {
             ChangedSynergyConfig.SPEC.setConfig(com.electronwill.nightconfig.core.CommentedConfig.inMemory());
             ChangedSynergyConfig.COMMON.takeoverEnabled.set(false);
             event.getServer().overworld().getGameRules().getRule(ChangedSynergyGameRules.NATIVE_ORIGINS).set(true, event.getServer());
+            loginBeforeConnection(event.getServer());
             lifecycle(event.getServer());
             humanoidGrab(event.getServer());
             if (ModList.get().isLoaded("true_transfur")) permanentBody(event.getServer());
@@ -49,6 +50,45 @@ public final class NegotiationLifecycleRegression {
         } catch (Throwable failure) {
             System.err.println("NEGOTIATION_LIFECYCLE_REGRESSION_FAIL"); failure.printStackTrace();
         } finally { event.getServer().halt(false); }
+    }
+
+    private static void loginBeforeConnection(MinecraftServer server) throws Exception {
+        ServerPlayer savedPlayer = player(server, UUID.randomUUID());
+        var variant = ChangedTransfurVariants.DARK_LATEX_WOLF_MALE.get();
+        ProcessTransfur.setPlayerTransfurVariant(savedPlayer, variant, null, 1F, false);
+        CompoundTag claim = new CompoundTag();
+        claim.putString("Mode", "ABSORPTION");
+        claim.putUUID("SourceUuid", UUID.randomUUID());
+        claim.putString("ResultPlayerForm", variant.getFormId().toString());
+        for (String scenario : List.of("pending", "mismatched", "absorption", "none")) {
+            CompoundTag expected = claim.copy();
+            expected.putBoolean("CapturePending", scenario.equals("pending"));
+            if (scenario.equals("mismatched")) expected.putString("ResultPlayerForm",
+                    ChangedTransfurVariants.DARK_LATEX_WOLF_FEMALE.get().getFormId().toString());
+            set(savedPlayer, expected);
+            if (scenario.equals("none")) savedPlayer.getPersistentData()
+                    .getCompound(Player.PERSISTED_NBT_TAG).remove(ROOT);
+            CompoundTag saved = savedPlayer.saveWithoutId(new CompoundTag());
+            ServerPlayer loading = new ServerPlayer(server, server.overworld(), savedPlayer.getGameProfile());
+            check(loading.connection == null, "Login fixture starts before the connection exists: " + scenario);
+            loading.load(saved);
+            check(ProcessTransfur.getPlayerTransfurVariantSafe(loading).orElseThrow().getParent() == variant,
+                    "Saved Changed form restores before login without sending through a missing connection: " + scenario);
+            check(scenario.equals("none") ? data(loading) == null : expected.equals(data(loading)),
+                    "Saved negotiation is not validated against a partially loaded player: " + scenario);
+            if (scenario.equals("none")) {
+                InvoluntaryTransfurNegotiation.abandonForSecondaryTransfur(loading);
+                check(data(loading) == null, "Shared claim cleanup also tolerates an absent connection");
+            }
+            loading.connection = new ServerGamePacketListenerImpl(server, new Connection(PacketFlow.SERVERBOUND), loading);
+            InvoluntaryTransfurNegotiation.onPlayerReady(loading);
+            check(scenario.equals("absorption") ? expected.equals(data(loading)) : data(loading) == null,
+                    "Post-login validation preserves valid absorption and retires stale claims: " + scenario);
+            check(ProcessTransfur.getPlayerTransfurVariantSafe(loading).orElseThrow().getParent() == variant,
+                    "Post-login validation does not erase the saved Changed form: " + scenario);
+            loading.discard();
+        }
+        savedPlayer.discard();
     }
 
     private static void lifecycle(MinecraftServer server) throws Exception {

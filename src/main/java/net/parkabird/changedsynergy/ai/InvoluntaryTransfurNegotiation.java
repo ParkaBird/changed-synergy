@@ -1319,6 +1319,9 @@ public final class InvoluntaryTransfurNegotiation {
 
     /** Called after the common Changed setter, including direct command/mod reversals. */
     public static void onFormAssigned(ServerPlayer player) {
+        // Saved forms load before the connection and full variant data exist.
+        // The existing login/respawn callback validates them in onPlayerReady.
+        if (player.connection == null) return;
         CompoundTag data = existingPlayerData(player);
         if (data == null) {
             if (currentForm(player) == null) player.getPersistentData().remove(CSP_EXPOSURE);
@@ -2743,6 +2746,7 @@ public final class InvoluntaryTransfurNegotiation {
     private static void syncAbsorptionState(
             ServerPlayer player,
             boolean active) {
+        if (player.connection == null) return;
         ChangedSynergyNetwork.CHANNEL.send(
                 PacketDistributor.PLAYER.with(() -> player),
                 new AbsorptionNegotiationStatePacket(active));

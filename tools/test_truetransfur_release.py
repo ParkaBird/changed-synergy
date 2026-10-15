@@ -29,7 +29,7 @@ def main():
     parser.add_argument('--extras', type=Path)
     parser.add_argument('--extra-mod', type=Path, action='append', default=[])
     parser.add_argument('--fixture', type=Path)
-    parser.add_argument('--suite', choices=['tt', 'camp', 'social', 'settings', 'community', 'crew-load', 'community-load', 'protection', 'pets'], default='tt')
+    parser.add_argument('--suite', choices=['tt', 'camp', 'social', 'settings', 'community', 'crew-load', 'community-load', 'protection', 'pets', 'negotiation'], default='tt')
     parser.add_argument('--without-addon', action='store_true')
     parser.add_argument('--check-command-state', action='store_true')
     args = parser.parse_args()
@@ -119,6 +119,7 @@ def main():
             'community': 'COMMUNITY_REGRESSION_PASS', 'crew-load': 'CAMP_CREW_SERVER_LOAD_PASS',
             'community-load': 'SERVER_LOAD_REGRESSION_PASS:', 'protection': 'COMPANION_PROTECTION_REGRESSION_PASS:',
             'pets': 'PET_RELATIONSHIP_REGRESSION_PASS:',
+            'negotiation': 'NEGOTIATION_LIFECYCLE_REGRESSION_PASS:',
         }[args.suite]
         assert code == 0 and marker in log and 'REGRESSION_FAIL' not in log and '_SERVER_LOAD_FAIL' not in log, f'Failed; inspect {log_path}'
         if args.suite == 'tt': assert ('backend=' + args.backend) in log
