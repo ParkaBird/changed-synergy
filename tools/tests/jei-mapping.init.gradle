@@ -1,5 +1,6 @@
 // Private production-client assertions; never included in the normal release.
-// Enable in an isolated game directory with -Dchanged_synergy.jeiRegression=true.
+// Enable in an isolated game directory with -Dchanged_synergy.jeiRegression=true
+// -Dmixin.debug.export=true -Dmixin.debug.export.filter=mezz.jei.**.
 gradle.beforeProject { project ->
     project.layout.buildDirectory.set(project.file('.codex-tmp/jei-mapping-build'))
     project.afterEvaluate {

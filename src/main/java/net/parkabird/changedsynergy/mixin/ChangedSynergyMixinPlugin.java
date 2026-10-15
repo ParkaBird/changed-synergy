@@ -28,22 +28,26 @@ public final class ChangedSynergyMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void postApply(String target, ClassNode node, String mixin, IMixinInfo info) {
-        if (mixin.endsWith(".JeiMouseOverMappingMixin")) {
-            // JEI 15.70.0.221 remapped these implementations, but not its own
-            // IMouseOverable interface. Preserve the original hit-test logic.
-            if (node.methods.stream().anyMatch(method -> method.name.equals("isMouseOver")
+        boolean jeiInterface = mixin.endsWith(".JeiMouseOverInterfaceMixin");
+        if (jeiInterface || mixin.endsWith(".JeiMouseOverMappingMixin")) {
+            // JEI 221 mixes both names in its implementations AND call sites.
+            // Concrete aliases serve rendering; the interface alias serves input.
+            String alias = jeiInterface ? "m_5953_" : "isMouseOver";
+            String original = jeiInterface ? "isMouseOver" : "m_5953_";
+            if (node.methods.stream().anyMatch(method -> method.name.equals(alias)
                     && method.desc.equals("(DD)Z"))) return;
-            if (node.methods.stream().noneMatch(method -> method.name.equals("m_5953_")
+            if (node.methods.stream().noneMatch(method -> method.name.equals(original)
                     && method.desc.equals("(DD)Z")
-                    && (method.access & (Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_ABSTRACT))
-                            == Opcodes.ACC_PUBLIC)) return;
+                    && (method.access & (Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)) == Opcodes.ACC_PUBLIC
+                    && (jeiInterface || (method.access & Opcodes.ACC_ABSTRACT) == 0))) return;
             MethodNode bridge = new MethodNode(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC,
-                    "isMouseOver", "(DD)Z", null, null);
+                    alias, "(DD)Z", null, null);
             bridge.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
             bridge.instructions.add(new VarInsnNode(Opcodes.DLOAD, 1));
             bridge.instructions.add(new VarInsnNode(Opcodes.DLOAD, 3));
-            bridge.instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL,
-                    node.name, "m_5953_", "(DD)Z", false));
+            bridge.instructions.add(new MethodInsnNode(
+                    jeiInterface ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL,
+                    node.name, original, "(DD)Z", jeiInterface));
             bridge.instructions.add(new InsnNode(Opcodes.IRETURN));
             bridge.maxStack = 5;
             bridge.maxLocals = 5;
