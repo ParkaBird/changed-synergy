@@ -85,6 +85,7 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 - Creature players can manually release wrapped creatures through Changed's grab controls. Human takeover releases stay near the carrier rather than unexpectedly returning to spawn. Organic creatures retain low physical swipe damage against humans and ordinary damage against creature players.
 - Organic creatures no longer continue attacking friendly kin after completing transfur. Accepted peace and negotiated release consistently end the current pursuit, including wild cache guards. Fresh player aggression can renew temporary grudges; the creature's own attacks cannot. Calming one player does not cancel a separate fight with another.
 - Superb Warfare vehicle occupants cannot be grabbed or wrapped, while pursuit can continue after they enter a vehicle.
+- Superb Warfare suppressors reduce the distance at which latex creatures hear gunshots and use the same reduced-alert behavior as suppressed TaCZ shots.
 - Placed soup cans and Addon's stackable drinks, including Snepsi and Foxta, can be taken one at a time with an empty hand.
 - Ordinary Synergy creatures remain on Peaceful difficulty; bosses and excluded species keep their existing behavior. Dark and White territories spawn their intended adult species as well as pups, and Latex Pup Crystals retain their faction-aware contact transfur damage.
 - Tamed and bonded companions remain outside autonomous wild communities. **Mysterious Foraging Spot** is earned by opening a container at any wild outpost.
