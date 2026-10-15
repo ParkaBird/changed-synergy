@@ -40,7 +40,6 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.common.ForgeMod;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.FactionDiplomacy;
-import net.parkabird.changedsynergy.ai.HunterFaction;
 import net.parkabird.changedsynergy.origin.NativeOriginCatalog.Entry;
 import org.joml.Quaternionf;
 import org.joml.Matrix4f;

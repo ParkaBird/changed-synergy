@@ -40,11 +40,9 @@ import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData;
 import net.parkabird.changedsynergy.command.PlayerOutpostCommand;
 import net.minecraft.core.BlockPos;
-import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings.Contact;
 import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings.Formation;
 import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings.DamageFilter;
-import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.event.NpcDispositionEvents;
 import net.parkabird.changedsynergy.init.ChangedSynergyMenus;
 

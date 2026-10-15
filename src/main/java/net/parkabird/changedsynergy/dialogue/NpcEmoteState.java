@@ -1,7 +1,6 @@
 package net.parkabird.changedsynergy.dialogue;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.Emote;
 import net.ltxprogrammer.changed.init.ChangedParticles;
 import net.minecraft.nbt.CompoundTag;

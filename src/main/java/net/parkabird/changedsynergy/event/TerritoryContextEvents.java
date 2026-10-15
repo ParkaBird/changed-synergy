@@ -28,7 +28,6 @@ import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.HunterFaction;
 import net.parkabird.changedsynergy.ai.FactionReputation;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData;
-import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.dialogue.LatexTerritory;
 import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.network.TerritorySyncPacket;

@@ -867,14 +867,6 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         };
     }
 
-    private Cue patCue(ServerPlayer origin) {
-        return switch (CreaturePersonality.relationshipTier(creature, origin)) {
-            case CLOSE -> Cue.SOCIAL_PAT_CLOSE;
-            case FAMILIAR -> Cue.SOCIAL_PAT_FAMILIAR;
-            default -> Cue.SOCIAL_PAT_NEW;
-        };
-    }
-
     private void playTogether(ServerPlayer origin) {
         if (!bonded && !CreaturePersonality.hasTrustedRelationship(creature, origin)) return;
         long remaining = CreaturePersonality.playCooldownRemaining(

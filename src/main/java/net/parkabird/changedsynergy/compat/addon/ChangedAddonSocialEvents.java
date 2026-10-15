@@ -48,8 +48,6 @@ import net.parkabird.changedsynergy.ai.TakeoverService;
 import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.network.FriendlySocialHugSyncPacket;
-import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
-import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;

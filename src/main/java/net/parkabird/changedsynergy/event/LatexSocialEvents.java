@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.Emote;
 import net.ltxprogrammer.changed.entity.TamableLatexEntity;
@@ -59,7 +58,6 @@ import net.parkabird.changedsynergy.ai.FactionReputation;
 import net.parkabird.changedsynergy.ai.FactionHostilityGrace;
 import net.parkabird.changedsynergy.ai.FlyingLatexGlideService;
 import net.parkabird.changedsynergy.ai.HypnosisQteService;
-import net.parkabird.changedsynergy.ai.HumanIntent;
 import net.parkabird.changedsynergy.ai.HuntMemory;
 import net.parkabird.changedsynergy.ai.HunterFaction;
 import net.parkabird.changedsynergy.ai.InvoluntaryTransfurNegotiation;
@@ -106,8 +104,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.decoration.ItemFrame;
-import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
@@ -1429,38 +1425,32 @@ public final class LatexSocialEvents {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onBondedOwnerTransfurDamage(
             TransfurEvents.LatexAssimilationDecisionEvent event) {
-        LivingEntity attacker = event.getSourceEntity();
-        if (!(event.getEntity() instanceof ServerPlayer owner)
-                || owner.level().isClientSide
-                || event.getDecision() == null
-                || event.getDecision().transfurProgress() <= 0.0F) {
-            return;
-        }
-        if (attacker != null) {
-            BondedOwnerGrabRescueGoal.alertBondedCreatures(owner, attacker);
-        }
-        if (BondedSuitService.protectOrRequestTransfurRescue(
-                owner, event.getDecision().transfurProgress())) {
-            event.setCanceled(true);
-        }
+        protectBondedOwnerTransfur(event,
+                event.getDecision() == null ? 0.0F : event.getDecision().transfurProgress());
     }
 
     /** Non-latex assimilation can also push a reverted owner over the threshold. */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onBondedOwnerNonLatexTransfurDamage(
             TransfurEvents.NonLatexAssimilationDecisionEvent event) {
+        protectBondedOwnerTransfur(event,
+                event.getDecision() == null ? 0.0F : event.getDecision().transfurProgress());
+    }
+
+    private static void protectBondedOwnerTransfur(
+            TransfurEvents.AssimilationDecisionEvent event,
+            float incomingProgress) {
         LivingEntity attacker = event.getSourceEntity();
         if (!(event.getEntity() instanceof ServerPlayer owner)
                 || owner.level().isClientSide
-                || event.getDecision() == null
-                || event.getDecision().transfurProgress() <= 0.0F) {
+                || incomingProgress <= 0.0F) {
             return;
         }
         if (attacker != null) {
             BondedOwnerGrabRescueGoal.alertBondedCreatures(owner, attacker);
         }
         if (BondedSuitService.protectOrRequestTransfurRescue(
-                owner, event.getDecision().transfurProgress())) {
+                owner, incomingProgress)) {
             event.setCanceled(true);
         }
     }

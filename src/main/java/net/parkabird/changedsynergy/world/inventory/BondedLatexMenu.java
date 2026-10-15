@@ -5,7 +5,6 @@ import net.ltxprogrammer.changed.entity.ai.DarkLatexFavor;
 import net.ltxprogrammer.changed.entity.beast.AbstractDarkLatexEntity;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
-import net.ltxprogrammer.changed.world.inventory.TamedDarkLatexInventoryMenu;
 import net.ltxprogrammer.changed.world.inventory.UpdateableMenu;
 import net.parkabird.changedsynergy.ai.BondedSuitService;
 import net.parkabird.changedsynergy.ai.BondedPetSettings;
@@ -18,14 +17,12 @@ import net.parkabird.changedsynergy.init.ChangedSynergyMenus;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkHooks;
 
 /** Full Changed/Exp2-style radial menu for ordinary bonded latex creatures. */
 public final class BondedLatexMenu extends AbstractContainerMenu implements UpdateableMenu {

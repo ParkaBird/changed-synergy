@@ -13,7 +13,6 @@ import net.minecraftforge.network.PacketDistributor;
 import net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
-import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.network.ScoutTargetPacket;
 import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;

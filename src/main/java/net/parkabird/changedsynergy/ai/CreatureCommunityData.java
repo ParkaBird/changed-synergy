@@ -44,9 +44,7 @@ public final class CreatureCommunityData extends SavedData {
     private static final double JOIN_DISTANCE_SQR = 56.0D * 56.0D;
     private static final double WHITE_REBIND_DISTANCE_SQR = 72.0D * 72.0D;
     private static final long TOUCH_INTERVAL = 200L;
-    private static final long MIN_MIGRATION_AGE = 24000L;
     private static final long MIGRATION_COOLDOWN = 48000L;
-    private static final int MIGRATION_FAILURE_THRESHOLD = 6;
 
     private final Map<UUID, Community> communities = new LinkedHashMap<>();
     /** Retains old entity references after duplicate cache communities merge. */

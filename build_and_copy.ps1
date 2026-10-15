@@ -41,48 +41,12 @@ try {
     }
 
     New-Item -ItemType Directory -Force -Path $modsDirectory | Out-Null
-    $destination = Join-Path $modsDirectory $artifacts[0].Name
-    $sourceHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $artifacts[0].FullName).Hash
-
-    # Never rewrite a jar in place. Forge keeps an open archive index while the
-    # game is running; mutating that file can make it read a mixture of old and
-    # new classes. Stage the complete artifact and replace the directory entry
-    # in one operation instead.
-    $deployId = [Guid]::NewGuid().ToString("N")
-    $staged = Join-Path $modsDirectory ($artifacts[0].Name + ".$deployId.staged")
-    $backup = Join-Path $modsDirectory ($artifacts[0].Name + ".$deployId.backup")
-    try {
-        Copy-Item -LiteralPath $artifacts[0].FullName -Destination $staged -Force
-        $stagedHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $staged).Hash
-        if ($sourceHash -ne $stagedHash) {
-            throw "Staged jar hash does not match the build artifact."
-        }
-
-        if (Test-Path -LiteralPath $destination) {
-            [System.IO.File]::Replace($staged, $destination, $backup, $true)
-        }
-        else {
-            [System.IO.File]::Move($staged, $destination)
-        }
-    }
-    finally {
-        if (Test-Path -LiteralPath $staged) {
-            Remove-Item -LiteralPath $staged -Force
-        }
-        if (Test-Path -LiteralPath $backup) {
-            Remove-Item -LiteralPath $backup -Force
-        }
-    }
-
-    $installedHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $destination).Hash
-    if ($sourceHash -ne $installedHash) {
-        throw "Installed jar hash does not match the build artifact."
-    }
+    & (Join-Path $projectRoot 'tools/install_test_build.ps1') `
+        -JarPath $artifacts[0].FullName -ModsDirectory $ModsDirectory -SkipBackup
 
     Write-Host "Build and copy successful."
     Write-Host "Artifact: $($artifacts[0].FullName)"
-    Write-Host "Installed: $destination"
-    Write-Host "SHA-256: $sourceHash"
+    Write-Host "SHA-256: $((Get-FileHash -Algorithm SHA256 -LiteralPath $artifacts[0].FullName).Hash)"
 }
 finally {
     Pop-Location

@@ -14,6 +14,23 @@ gradlew.bat clean build
 The distributable JAR is written to `build/libs/`. The `-all.jar` file is the
 release artifact; the `-sources.jar` file contains the generated source JAR.
 
+To build and install into a local test profile, close Minecraft and run:
+
+```powershell
+./build_and_copy.ps1 -ModsDirectory '<profile>/mods' -JavaHome '<Java 17 directory>'
+```
+
+The build wrapper uses `tools/install_test_build.ps1` for checksum verification,
+atomic replacement and removal of obsolete Synergy JARs. It skips backups; when
+installing an already built JAR, invoke the installer directly to keep a backup:
+
+```powershell
+./tools/install_test_build.ps1 -JarPath '<release-all.jar>' -ModsDirectory '<profile>/mods'
+```
+
+Run `./tools/tests/Test-InstallBuild.ps1` in PowerShell 7 to check installation in
+an isolated temporary directory without building the mod or changing a game profile.
+
 Use `--offline` when the Gradle and Minecraft dependencies are already cached:
 
 ```text

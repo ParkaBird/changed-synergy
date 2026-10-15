@@ -1,6 +1,5 @@
 package net.parkabird.changedsynergy.ai;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.data.AccessorySlots;

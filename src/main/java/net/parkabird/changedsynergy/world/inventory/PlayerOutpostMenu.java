@@ -21,7 +21,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkHooks;
-import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Member;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Outpost;

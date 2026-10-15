@@ -18,7 +18,6 @@ import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.event.LatexSocialEvents;
-import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 
 /**
  * Turns an established friendship into a bond through a deliberate, confirmed

@@ -14,9 +14,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -37,10 +35,6 @@ public enum LatexTerritory {
     private static final long BIOME_DOMINANCE_MARGIN = 5L;
     private static final TagKey<Block> WHITE_TERRITORY_BLOCKS = blockTag("white_territory_blocks");
     private static final TagKey<Block> DARK_TERRITORY_BLOCKS = blockTag("dark_territory_blocks");
-    private static final TagKey<EntityType<?>> WHITE_TERRITORY_SPAWNS =
-            entityTypeTag("white_territory_spawns");
-    private static final TagKey<EntityType<?>> DARK_TERRITORY_SPAWNS =
-            entityTypeTag("dark_territory_spawns");
     private static final ResourceLocation WHITE_LATEX_FOREST =
             ResourceLocation.fromNamespaceAndPath(
                     "changed", "white_latex_forest");
@@ -407,11 +401,6 @@ public enum LatexTerritory {
 
     private static TagKey<Block> blockTag(String path) {
         return TagKey.create(Registries.BLOCK,
-                ResourceLocation.fromNamespaceAndPath("changed_synergy", path));
-    }
-
-    private static TagKey<EntityType<?>> entityTypeTag(String path) {
-        return TagKey.create(Registries.ENTITY_TYPE,
                 ResourceLocation.fromNamespaceAndPath("changed_synergy", path));
     }
 

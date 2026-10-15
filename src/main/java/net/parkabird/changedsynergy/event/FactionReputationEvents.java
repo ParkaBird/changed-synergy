@@ -276,34 +276,23 @@ public final class FactionReputationEvents {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLatexEnvironmentalHazard(
             TransfurEvents.LatexAssimilationDecisionEvent event) {
-        if (event.getEntity() instanceof Player player
-                && event.getTransfurVariant() != null
-                && isEnvironmental(event.getTransfurCause())
-                && shouldCancelEnvironmentalHazard(
-                        player,
-                        event.getTransfurCause(),
-                        event.getTransfurVariant().getEntityType())) {
-            event.setCanceled(true);
-        }
+        cancelProtectedEnvironmentalHazard(event);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onNonLatexEnvironmentalHazard(
             TransfurEvents.NonLatexAssimilationDecisionEvent event) {
-        if (event.getEntity() instanceof Player player
-                && event.getTransfurVariant() != null
-                && isEnvironmental(event.getTransfurCause())
-                && shouldCancelEnvironmentalHazard(
-                        player,
-                        event.getTransfurCause(),
-                        event.getTransfurVariant().getEntityType())) {
-            event.setCanceled(true);
-        }
+        cancelProtectedEnvironmentalHazard(event);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onImmediateEnvironmentalHazard(
             TransfurEvents.ImmediateTransfurDecisionEvent event) {
+        cancelProtectedEnvironmentalHazard(event);
+    }
+
+    private static void cancelProtectedEnvironmentalHazard(
+            TransfurEvents.AssimilationDecisionEvent event) {
         if (event.getEntity() instanceof Player player
                 && event.getTransfurVariant() != null
                 && isEnvironmental(event.getTransfurCause())

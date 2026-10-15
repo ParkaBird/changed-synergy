@@ -3427,10 +3427,6 @@ public final class CreatureSettlementService {
         return existingOffshore == desiredOffshore;
     }
 
-    private static ServerLevel levelOf(ChangedEntity creature) {
-        return (ServerLevel)creature.level();
-    }
-
     /** Seeds and decorates a cache exactly once, including old empty caches. */
     private static void prepareCache(
             ServerLevel level,

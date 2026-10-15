@@ -8,7 +8,6 @@ import net.ltxprogrammer.changed.entity.ai.LatexAssimilationDecision;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.parkabird.changedsynergy.ai.TakeoverAssimilationBehavior;
-import net.parkabird.changedsynergy.ai.TakeoverService;
 import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

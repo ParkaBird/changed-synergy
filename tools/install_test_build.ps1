@@ -20,18 +20,29 @@ if ($taskRunning) { throw 'Minecraft may still be running. Close it before repla
 
 $taskTarget = Join-Path $taskMods ([IO.Path]::GetFileName($taskSource))
 $taskPending = Join-Path $taskMods ([IO.Path]::GetFileName($taskSource) + '.' + [guid]::NewGuid() + '.pending')
-Copy-Item -LiteralPath $taskSource -Destination $taskPending
-if (Test-Path -LiteralPath $taskTarget) {
-    if ($SkipBackup) {
-        [IO.File]::Move($taskPending, $taskTarget, $true)
-    } else {
-        $taskBackup = Join-Path $taskMods ('.changed-synergy-backups\' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
-        New-Item -ItemType Directory -Path $taskBackup | Out-Null
-        $taskPrevious = Join-Path $taskBackup ([IO.Path]::GetFileName($taskSource))
-        [IO.File]::Replace($taskPending, $taskTarget, $taskPrevious)
+$taskSourceHash = (Get-FileHash -LiteralPath $taskSource).Hash
+$taskBackup = $null
+try {
+    Copy-Item -LiteralPath $taskSource -Destination $taskPending
+    if ((Get-FileHash -LiteralPath $taskPending).Hash -ne $taskSourceHash) {
+        throw 'Staged JAR checksum does not match the source.'
     }
-} else { [IO.File]::Move($taskPending, $taskTarget) }
-if ((Get-FileHash -LiteralPath $taskSource).Hash -ne (Get-FileHash -LiteralPath $taskTarget).Hash) {
+    # Promote a complete archive atomically; never rewrite Forge's open archive in place.
+    if (Test-Path -LiteralPath $taskTarget) {
+        if ($SkipBackup) {
+            # PowerShell otherwise converts $null to an empty backup path.
+            [IO.File]::Replace($taskPending, $taskTarget, [NullString]::Value)
+        } else {
+            $taskBackup = Join-Path $taskMods ('.changed-synergy-backups\' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
+            New-Item -ItemType Directory -Path $taskBackup | Out-Null
+            $taskPrevious = Join-Path $taskBackup ([IO.Path]::GetFileName($taskSource))
+            [IO.File]::Replace($taskPending, $taskTarget, $taskPrevious)
+        }
+    } else { [IO.File]::Move($taskPending, $taskTarget) }
+} finally {
+    if (Test-Path -LiteralPath $taskPending) { Remove-Item -LiteralPath $taskPending }
+}
+if ((Get-FileHash -LiteralPath $taskTarget).Hash -ne $taskSourceHash) {
     throw 'Installed JAR checksum does not match the source.'
 }
 # A promoted release can have a different filename; leave only one Synergy mod ID.

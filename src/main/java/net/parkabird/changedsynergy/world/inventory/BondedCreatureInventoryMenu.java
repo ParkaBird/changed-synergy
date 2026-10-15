@@ -9,7 +9,6 @@ import net.ltxprogrammer.changed.data.AccessorySlots;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.init.ChangedRegistry;
 import net.parkabird.changedsynergy.ai.CreatureArmorService;
-import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.compat.curios.CuriosCompat;
 import net.parkabird.changedsynergy.init.ChangedSynergyMenus;
 import net.minecraft.core.NonNullList;
@@ -35,7 +34,6 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
  */
 public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
     public static final int PET_INVENTORY_SIZE = 29;
-    private static final int ARMOR_MENU_START = 0;
     private static final int ARMOR_MENU_END = 4;
     private static final int PLAYER_MENU_START = 4;
     private static final int PLAYER_MENU_END = 40;
