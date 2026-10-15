@@ -8,7 +8,6 @@ import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.CreaturePersonality;
 import net.parkabird.changedsynergy.ai.CreatureCacheGuardService;
 import net.parkabird.changedsynergy.ai.FactionReputation;
-import net.parkabird.changedsynergy.ai.DarkLatexDisguise;
 import net.parkabird.changedsynergy.ai.HuntMemory;
 import net.parkabird.changedsynergy.ai.HumanIntent;
 import net.parkabird.changedsynergy.ai.HypnosisQteService;
@@ -94,11 +93,9 @@ public final class NpcDispositionEvents {
 
         boolean organicTransformedTarget = LatexSocialMemory.isOrganic(creature)
                 && ProcessTransfur.isPlayerTransfurred(player);
-        boolean disguisedDarkRival = DarkLatexDisguise.appearsAsDarkRivalToWhite(creature, player);
         if (!socialFusion && creature.isAlliedTo(player)
                 && !LatexSocialMemory.isProvoked(creature, player)
-                && !organicTransformedTarget
-                && !disguisedDarkRival) {
+                && !organicTransformedTarget) {
             return;
         }
 
@@ -156,11 +153,9 @@ public final class NpcDispositionEvents {
 
         boolean transformedOrganicTarget = LatexSocialMemory.isOrganic(creature)
                 && ProcessTransfur.isPlayerTransfurred(player);
-        boolean disguisedDarkRival = DarkLatexDisguise.appearsAsDarkRivalToWhite(creature, player);
         if (creature.isAlliedTo(player)
                 && !LatexSocialMemory.isProvoked(creature, player)
-                && !transformedOrganicTarget
-                && !disguisedDarkRival) {
+                && !transformedOrganicTarget) {
             return false;
         }
 
@@ -180,7 +175,7 @@ public final class NpcDispositionEvents {
         if (FactionReputation.isHostile(creature, player)) {
             return true;
         }
-        if (disguisedDarkRival || LatexSocialMemory.isProvoked(creature, player)) {
+        if (LatexSocialMemory.isProvoked(creature, player)) {
             return true;
         }
         if (LatexSocialMemory.isOrganic(creature)) {
@@ -309,12 +304,9 @@ public final class NpcDispositionEvents {
 
         boolean transformedOrganicTarget = LatexSocialMemory.isOrganic(creature)
                 && ProcessTransfur.isPlayerTransfurred(player);
-        boolean disguisedDarkRival =
-                DarkLatexDisguise.appearsAsDarkRivalToWhite(creature, player);
         return creature.isAlliedTo(player)
                 && !LatexSocialMemory.isProvoked(creature, player)
-                && !transformedOrganicTarget
-                && !disguisedDarkRival;
+                && !transformedOrganicTarget;
     }
 
     private static void maintainNativeCompanion(ChangedEntity companion) {

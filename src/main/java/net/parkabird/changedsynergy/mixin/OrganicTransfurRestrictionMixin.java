@@ -4,6 +4,7 @@ import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.TransfurCause;
 import net.ltxprogrammer.changed.entity.ai.LatexAssimilationDecision;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
+import net.parkabird.changedsynergy.ai.LatexCreatureCombatRules;
 import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import net.parkabird.changedsynergy.ai.BondedPetSettings;
 import net.parkabird.changedsynergy.ai.CreatureCacheGuardService;
@@ -17,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** Gates organic swipe transfur so social protection and grapple-only combat remain authoritative. */
+/** Keeps peaceful encounters and organic grapple-only combat authoritative during native swipes. */
 @Mixin(value = ChangedEntity.class, remap = false)
 public abstract class OrganicTransfurRestrictionMixin {
     /** Restores the ordinary Changed swipe amount before shield blocking is calculated. */
@@ -54,6 +55,20 @@ public abstract class OrganicTransfurRestrictionMixin {
             Entity target,
             CallbackInfoReturnable<Boolean> callback) {
         ChangedEntity self = (ChangedEntity)(Object)this;
+        if (!self.level().isClientSide && target instanceof LivingEntity living
+                && (LatexCreatureCombatRules.rejectsPeacefulCompetitorTarget(self, living)
+                        || living instanceof ServerPlayer player
+                                && LatexSocialMemory.isSocialLatex(self)
+                                && LatexCreatureCombatRules.arePeacefulCompetitors(self, player)
+                                && !LatexSocialMemory.isSecondaryGrabActive(self, player)
+                                && !CreatureCacheGuardService.isDefendingAgainst(self, player)
+                                && !LatexFusionIntent.mayInitiate(self, player)
+                                && LatexSocialMemory.shouldRemainNeutral(self, player))) {
+            // A stale melee tick must not bypass peace through direct assimilation,
+            // nor fall back to physical damage after its transfur was rejected.
+            callback.setReturnValue(true);
+            return;
+        }
         if (target instanceof ServerPlayer player && net.parkabird.changedsynergy.ai.TakeoverService.hidesPlayer(player)) {
             // Consume the attempted swipe without falling back to health damage.
             callback.setReturnValue(true);return;

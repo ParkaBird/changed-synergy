@@ -46,7 +46,14 @@ def check(source, target):
             errors.append({"key": key, "type": "non_string"})
         elif key not in reference:
             warnings.append({"key": key, "type": "unknown_key"})
-        elif placeholders(value) != placeholders(reference[key]):
+        elif placeholders(value) != placeholders(reference[key]) and not (
+            key in {"name.changed_synergy.generated.localized_choice",
+                    "name.changed_synergy.generated.localized_choice.base"}
+            and placeholders(reference[key]) == Counter({(1, "s"): 1})
+            and placeholders(value) == Counter({(2, "s"): 1})
+        ):
+            # Both name arguments exist: each locale deliberately chooses the
+            # legacy name (1) or the standard localized name (2).
             errors.append({"key": key, "type": "placeholder_mismatch",
                            "source": reference[key], "translation": value})
         elif "\ufffd" in value:

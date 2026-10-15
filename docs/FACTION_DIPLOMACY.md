@@ -4,6 +4,8 @@ Faction standing is separate from personal friendship and creature bonds. **Resp
 
 ## Rival factions
 
+Rivalry describes political competition, not an automatic reason to attack. Dark and White latex are neutral toward one another by default, including NPCs, transformed players, native players and visible TrueTransfur Instinct bodies. They keep separate factions, territories and wild communities. Actual aggression, theft, betrayal and hostile reputation still follow the usual defense and reconciliation rules. Peace does not grant friendship or access to another community's supplies.
+
 By default, allying with one faction can reduce your standing with its rival:
 
 | Faction | Rival |

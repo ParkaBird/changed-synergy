@@ -13,8 +13,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import javax.annotation.Nullable;
 
 /**
- * Broad social factions. WHITE is the original pure-white latex opposed to
- * DARK; LIGHT contains its improved, generally neutral variants.
+ * Broad social factions. WHITE and DARK are peaceful political competitors;
+ * LIGHT contains the regional variant groups.
  */
 public enum HunterFaction {
     WHITE("white"),

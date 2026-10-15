@@ -62,14 +62,6 @@ public final class DarkLatexDisguiseEvents {
                 continue;
             }
 
-            if (impersonating
-                    && DarkLatexDisguise.appearsAsDarkRivalToWhite(mob, player)
-                    && NpcDispositionEvents.canTarget(mob, player)) {
-                if (DarkLatexDisguise.shouldNoticeWhiteRival(mob, player)) {
-                    NpcDialogue.trigger(mob, player, Cue.DISGUISE_WHITE_RIVAL);
-                }
-                mob.setTarget(player);
-            }
         }
     }
 

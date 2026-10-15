@@ -212,10 +212,15 @@ public final class BondedPetSettings {
             @Nullable ServerPlayer owner,
             LivingEntity target,
             int targetType) {
+        if (LatexCreatureCombatRules.rejectsPeacefulCompetitorTarget(pet, target)) return false;
         LatexType petType = LatexType.getEntityLatexType(pet);
         LatexType targetTypeValue = LatexType.getEntityLatexType(target);
         boolean hostileLatex = petType != null && targetTypeValue != null
-                && petType.isHostileTo(targetTypeValue);
+                && petType.isHostileTo(targetTypeValue)
+                && !(target instanceof ChangedEntity other
+                        && LatexCreatureCombatRules.arePeacefulCompetitors(pet, other))
+                && !(target instanceof ServerPlayer player
+                        && LatexCreatureCombatRules.arePeacefulCompetitors(pet, player));
         return switch (targetType) {
             case TARGET_MONSTERS -> hostileLatex
                     || isHostileMonster(target, owner)

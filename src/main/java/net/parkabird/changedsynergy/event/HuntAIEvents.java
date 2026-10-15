@@ -609,8 +609,6 @@ public final class HuntAIEvents {
         }
         boolean organicTransformedTarget = LatexSocialMemory.isOrganic(mob)
                 && ProcessTransfur.isPlayerTransfurred(player);
-        boolean disguisedDarkRival =
-                DarkLatexDisguise.appearsAsDarkRivalToWhite(mob, player);
         boolean playfulFusion = LatexFusionIntent.mayInitiate(mob, player);
         if (!isEligibleHunter(mob) || !player.isAlive() || player.isCreative() || player.isSpectator()
                 || HypnosisQteService.shouldPreventTargeting(mob, player)
@@ -618,7 +616,6 @@ public final class HuntAIEvents {
                 || !playfulFusion && mob.isAlliedTo(player)
                         && !LatexSocialMemory.isProvoked(mob, player)
                         && !organicTransformedTarget
-                        && !disguisedDarkRival
                 || !playfulFusion && LatexSocialMemory.shouldRemainNeutral(mob, player)) {
             return false;
         }
@@ -769,8 +766,7 @@ public final class HuntAIEvents {
 
     private static boolean canJoinSharedAlert(ChangedEntity ally, ServerPlayer target) {
         return !LatexSocialMemory.shouldRemainNeutral(ally, target)
-                && (isHostilePlayerRelation(ally, target)
-                        || DarkLatexDisguise.appearsAsDarkRivalToWhite(ally, target));
+                && isHostilePlayerRelation(ally, target);
     }
 
     private static void alertByNoise(ServerPlayer player, Vec3 position, double radius) {
@@ -867,9 +863,6 @@ public final class HuntAIEvents {
     private static Cue acquisitionCue(ChangedEntity mob, ServerPlayer player) {
         if (DarkLatexDisguise.foolsDarkObserver(mob, player)) {
             return Cue.DISGUISE_DARK_ACCEPTED;
-        }
-        if (DarkLatexDisguise.appearsAsDarkRivalToWhite(mob, player)) {
-            return Cue.DISGUISE_WHITE_RIVAL;
         }
         if (LatexSocialMemory.isProvoked(mob, player)) {
             return Cue.REACQUIRED;

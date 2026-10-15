@@ -12,6 +12,10 @@ TrueTransfur **2.0.0** supports native roleplay and interactions with a player's
 
 A creature's willingness to approach or talk depends on its species, personality, faction standing and recent experiences with you. Patting may calm an approaching creature or answer a greeting. It does not guarantee safety after aggression, and some creatures cannot form Synergy relationships at all.
 
+Dark and White latex are peaceful competitors. They do not attack each other, or players in the opposite latex form, simply because of their colour or faction. This includes native players and TrueTransfur's visible Instinct bodies. Visiting the other faction's territory is safe from racial aggression, but attacks, theft, betrayal or genuinely hostile faction standing can still provoke a response. Peace does not grant friendship, kinship or permission to take community supplies. Dark-latex disguises no longer provoke White observers merely by their appearance.
+
+Their factions and communities remain separate. The usual [rival-alliance reputation rules](FACTION_DIPLOMACY.md) still apply, and mixed-species player camps remain available.
+
 Once a stranger is calm enough to interact, use its social wheel for **Talk**, **Pat** or **Gift**. Suitable food held in your main hand can be fed directly by right-clicking. Sneak-right-click with food to open the wheel instead.
 
 Without telepathy, many reactions are species-based sounds. Ordinary conversation and repeated encounters still matter to dialogue and memories, but do not award affection.

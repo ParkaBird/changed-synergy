@@ -80,6 +80,8 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 
 ### Abilities, takeover and creature ecology
 
+- Dark and White latex are now peaceful competitors. NPCs and players in opposite latex forms, including TrueTransfur Instinct bodies, no longer become enemies on sight. Faction-alliance competition remains, and genuine aggression, theft or hostile standing can still provoke a response.
+
 - Hypnotic creature players and human players share a PvP hypnosis QTE, with the same presentation and movement-key controls on both sides. Player contests last longer than NPC contests; a human's pat prevents the hypnotist from adding control for three seconds.
 - Pure White players adapt their appearance and vision outside their territory while retaining their species, abilities and faction. The existing regional-adaptation setting controls this behavior.
 - Transformed players have third-person pat animations where their model supports them. Models without usable arms safely skip the animation; feral NPCs, Milk Puddings and quadrupedal pups do not pat players back.
@@ -92,6 +94,8 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 - Tamed and bonded companions remain outside autonomous wild communities. **Mysterious Foraging Spot** is earned by opening a container at any wild outpost.
 
 ### Settings, localization and server support
+
+- Applied the latest Russian localization contributed by TrueTransfur's author, including updated interface text and localized creature names.
 
 - Updated compatibility with **Changed Extras 1.1.8b**: unrelated wild creatures retain its smart AI, while camp members, companions and TrueTransfur Instinct players retain their own behavior and orders. Camp members keep their jobs and assigned beds when their owner sleeps; idle pets outside camps retain Extras' normal cuddling. **Artist** is excluded from Synergy social systems, camp recruitment and origin selection like other bosses.
 

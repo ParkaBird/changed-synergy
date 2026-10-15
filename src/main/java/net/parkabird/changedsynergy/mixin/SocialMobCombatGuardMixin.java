@@ -24,10 +24,15 @@ public abstract class SocialMobCombatGuardMixin {
             CallbackInfoReturnable<Boolean> callback) {
         LivingEntity attacker = (LivingEntity)(Object)this;
         if (!(attacker instanceof ChangedEntity changed)
-                || changed.level().isClientSide
-                || !LatexSocialMemory.isSocialLatex(changed)) {
+                || changed.level().isClientSide) {
             return;
         }
+        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(changed)) {
+            if (LatexCreatureCombatRules.rejectsPeacefulCompetitorTarget(changed, target))
+                callback.setReturnValue(false);
+            return;
+        }
+        if (!LatexSocialMemory.isSocialLatex(changed)) return;
         // Friendly/native pairs are normally rejected before Changed can
         // consult its fusion table. A valid, non-polite fusion approach is a
         // social action rather than combat, so let the original pipeline run.
