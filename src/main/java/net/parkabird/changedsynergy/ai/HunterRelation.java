@@ -20,9 +20,6 @@ public enum HunterRelation {
         }
 
         ChangedEntity playerForm = variant.getChangedEntity();
-        if (LatexCreatureCombatRules.arePeacefulCompetitors(speaker, playerForm)) {
-            return OUTSIDER;
-        }
         LatexType speakerType = LatexType.getEntityLatexType(speaker);
         LatexType playerType = LatexType.getEntityLatexType(playerForm);
         if (speakerType != null && playerType != null

@@ -4363,7 +4363,7 @@
   "origin.changed_synergy.archive.preparing": "Preparing your arrival",
   "origin.changed_synergy.archive.faction": "Faction",
   "origin.changed_synergy.archive.human_faction": "Human",
-  "origin.changed_synergy.archive.opposition": "Rival faction",
+  "origin.changed_synergy.archive.opposition": "Opposing faction",
   "origin.changed_synergy.archive.none": "None",
   "origin.changed_synergy.archive.step_height": "Step height",
   "origin.changed_synergy.archive.breathing": "Breathing",
@@ -4783,11 +4783,5 @@
   "menu.changed_synergy.roleplay.emote_back": "Esc: back to relationships",
   "config.changed_synergy.option.human_origin_instinct": "Instinct mode for human origins",
   "config.changed_synergy.option.human_origin_instinct.description": "Allow transformed human-origin players to use TrueTransfur 2.0 Instinct while starting origins are enabled. Default off; does not enable permanent transfur, lethal reversal or native rebirth.",
-  "menu.changed_synergy.relationship.more_options": "Left / right arrows: more options",
-  "dialogue.changed_synergy.competition.white.0": "Different colours can share the same ground peacefully.",
-  "dialogue.changed_synergy.competition.white.1": "We can compete without fighting.",
-  "dialogue.changed_synergy.competition.white.2": "You're welcome to visit. Let's see whose camp does better.",
-  "dialogue.changed_synergy.competition.dark.0": "White latex, huh? No trouble from me if there's none from you.",
-  "dialogue.changed_synergy.competition.dark.1": "Different pack, same road. Let's keep it friendly.",
-  "dialogue.changed_synergy.competition.dark.2": "We can find out who does it better without throwing punches."
+  "menu.changed_synergy.relationship.more_options": "Left / right arrows: more options"
 }

@@ -1840,7 +1840,6 @@ public final class LatexSocialMemory {
             // Replicating a human makes them kin, not a new combat target.
             // Genuine faction hostility, betrayal and provocation remain authoritative.
             return (relation.isFriendlyTransformed()
-                    || LatexCreatureCombatRules.arePeacefulCompetitors(mob, player)
                     || relation == LatexSocialRelation.FORMER_RESPECTED
                     || relation == LatexSocialRelation.FRIEND_RESPECTED)
                     && !isProvoked(mob, player);

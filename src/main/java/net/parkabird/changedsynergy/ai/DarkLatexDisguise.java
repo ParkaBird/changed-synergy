@@ -24,6 +24,7 @@ public final class DarkLatexDisguise {
     private static final String FIRST_SEEN = "FirstSeen";
     private static final String INSPECTED = "Inspected";
     private static final String REVEALED = "Revealed";
+    private static final String WHITE_NOTICE = "WhiteNotice";
     private static final double INSPECTION_DISTANCE_SQR = 3.25D * 3.25D;
     private static final long INSPECTION_DELAY = 60L;
 
@@ -69,12 +70,11 @@ public final class DarkLatexDisguise {
                 && !isNativeOwner(mob, player);
     }
 
-    /** White latex sees an unfamiliar competitor, not an automatic enemy. */
-    public static boolean appearsAsDarkToWhite(
+    /** White latex reacts to the identity being presented by the coat. */
+    public static boolean appearsAsDarkRivalToWhite(
             ChangedEntity mob,
             ServerPlayer player) {
-        return LatexSocialMemory.isSocialLatex(mob)
-                && isWhiteLatex(mob)
+        return isWhiteLatex(mob)
                 && isImpersonatingDarkLatex(player)
                 && !LatexSocialMemory.isBonded(mob, player)
                 && !LatexSocialMemory.isPetOwner(mob, player)
@@ -136,6 +136,20 @@ public final class DarkLatexDisguise {
         observation.putBoolean(INSPECTED, true);
         observation.putBoolean(REVEALED, true);
         return first;
+    }
+
+    public static boolean shouldNoticeWhiteRival(
+            ChangedEntity mob,
+            ServerPlayer player) {
+        if (!appearsAsDarkRivalToWhite(mob, player)) {
+            return false;
+        }
+        CompoundTag observation = observation(mob, player);
+        if (observation.getBoolean(WHITE_NOTICE)) {
+            return false;
+        }
+        observation.putBoolean(WHITE_NOTICE, true);
+        return true;
     }
 
     private static Observation inspect(

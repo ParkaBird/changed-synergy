@@ -76,7 +76,6 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 
 ### Abilities, takeover and creature ecology
 
-- Dark and White latex are now peaceful competitors. NPCs and players in opposite latex forms, including TrueTransfur Instinct bodies, no longer become enemies on sight. Faction-alliance competition remains, and genuine aggression, theft or hostile standing can still provoke a response.
 
 - Hypnotic creature players and human players share a PvP hypnosis QTE, with the same presentation and movement-key controls on both sides. Player contests last longer than NPC contests; a human's pat prevents the hypnotist from adding control for three seconds.
 - Pure White players adapt their appearance and vision outside their territory while retaining their species, abilities and faction. The existing regional-adaptation setting controls this behavior.

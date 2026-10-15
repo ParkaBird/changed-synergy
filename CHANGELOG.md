@@ -2,6 +2,16 @@
 
 This project follows semantic versioning while it is practical. Beta releases may still change saved-data details or interaction balance.
 
+## 1.1.4-hotfix
+
+- Fixed "Invalid player data" disconnects when transformed players rejoin existing worlds. Saved forms and valid absorption-negotiation state are preserved.
+- Fixed Superb Warfare suppressors being ignored by latex hearing. Suppressed shots have a shorter detection range and reduced alert reactions; nearby creatures can still hear them.
+- Fixed organic latex retaining obsolete hostility after transforming a player, while preserving normal damage against valid transformed opponents.
+- Applied the latest community Russian localization.
+
+**Faction behavior:** This hotfix keeps the original hostility between Dark and White latex. The peaceful-competition rework is not included.
+
+
 ## 1.1.4
 
 **TrueTransfur integration:** Changed: Synergy 1.1.4 pairs with **TrueTransfur 2.0.0** for native latex origins, roleplay and Instinct-mode social interactions. Backward compatibility with **1.0.1** is retained; the expanded Instinct features require 2.0.0. TrueTransfur remains optional for other Synergy features.
@@ -80,7 +90,6 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 
 ### Abilities, takeover and creature ecology
 
-- Dark and White latex are now peaceful competitors. NPCs and players in opposite latex forms, including TrueTransfur Instinct bodies, no longer become enemies on sight. Faction-alliance competition remains, and genuine aggression, theft or hostile standing can still provoke a response.
 
 - Hypnotic creature players and human players share a PvP hypnosis QTE, with the same presentation and movement-key controls on both sides. Player contests last longer than NPC contests; a human's pat prevents the hypnotist from adding control for three seconds.
 - Pure White players adapt their appearance and vision outside their territory while retaining their species, abilities and faction. The existing regional-adaptation setting controls this behavior.

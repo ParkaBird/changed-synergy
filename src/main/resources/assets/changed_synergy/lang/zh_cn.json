@@ -4363,7 +4363,7 @@
   "origin.changed_synergy.archive.preparing": "正在安排你的出生地点",
   "origin.changed_synergy.archive.faction": "所属阵营",
   "origin.changed_synergy.archive.human_faction": "人类",
-  "origin.changed_synergy.archive.opposition": "竞争阵营",
+  "origin.changed_synergy.archive.opposition": "对立阵营",
   "origin.changed_synergy.archive.none": "无",
   "origin.changed_synergy.archive.step_height": "跨越高度",
   "origin.changed_synergy.archive.breathing": "呼吸方式",
@@ -4783,11 +4783,5 @@
   "menu.changed_synergy.roleplay.emote_back": "Esc：返回关系轮盘",
   "config.changed_synergy.option.human_origin_instinct": "人类出身可使用本能模式",
   "config.changed_synergy.option.human_origin_instinct.description": "开局身份选择开启时，允许已兽化的人类出身玩家使用TrueTransfur 2.0本能模式。默认关闭；不启用永久兽化、致命逆转或原生重生机制。",
-  "menu.changed_synergy.relationship.more_options": "左右方向键：展示更多选项",
-  "dialogue.changed_synergy.competition.white.0": "颜色不同，也能好好相处。",
-  "dialogue.changed_synergy.competition.white.1": "我们可以较量本事，不必动手。",
-  "dialogue.changed_synergy.competition.white.2": "欢迎来做客。看看谁把营地经营得更好吧。",
-  "dialogue.changed_synergy.competition.dark.0": "白胶啊？只要你不惹事，咱们就能相安无事。",
-  "dialogue.changed_synergy.competition.dark.1": "族群不同，也能走同一条路。",
-  "dialogue.changed_synergy.competition.dark.2": "谁更有本事，比一比就知道，没必要打架。"
+  "menu.changed_synergy.relationship.more_options": "左右方向键：展示更多选项"
 }

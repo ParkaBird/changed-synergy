@@ -1,6 +1,8 @@
 package net.parkabird.changedsynergy.compat;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.FirearmThreatService;
 import net.parkabird.changedsynergy.ai.HypnosisQteService;
@@ -33,6 +35,9 @@ public final class FirearmCompat {
     private static Method fastutilPairRight;
     private static Method superbGetData;
     private static Method superbIsBarrelSilenced;
+    private static Field superbAttachments;
+    private static Method superbAttachmentGet;
+    private static Object superbBarrel;
     private static Class<?> superbGunItem;
     private static boolean registered;
     private static final ClassValue<Boolean> SUPERB_VEHICLES = new ClassValue<>() {
@@ -137,9 +142,18 @@ public final class FirearmCompat {
                     Class<?> gunData = Class.forName(
                             "com.atsuishio.superbwarfare.data.gun.GunData", false, loader);
                     superbGetData = eventClass.getMethod("getData");
-                    superbIsBarrelSilenced = Class.forName(
-                            "com.atsuishio.superbwarfare.data.gun.GunDataKt", false, loader)
-                            .getMethod("isBarrelSilenced", gunData);
+                    try {
+                        superbIsBarrelSilenced = Class.forName(
+                                "com.atsuishio.superbwarfare.data.gun.GunDataKt", false, loader)
+                                .getMethod("isBarrelSilenced", gunData);
+                    } catch (ClassNotFoundException | NoSuchMethodException ignored) {
+                        // 0.8.9 uses the same BARREL == 2 check in its own firing sounds.
+                        Class<?> attachmentType = Class.forName(
+                                "com.atsuishio.superbwarfare.data.gun.value.AttachmentType", false, loader);
+                        superbAttachments = gunData.getField("attachment");
+                        superbAttachmentGet = superbAttachments.getType().getMethod("get", attachmentType);
+                        superbBarrel = attachmentType.getField("BARREL").get(null);
+                    }
                 } catch (ReflectiveOperationException | LinkageError ignored) {
                     // Older Superb Warfare releases have no compatible accessor.
                 }
@@ -298,11 +312,16 @@ public final class FirearmCompat {
     }
 
     private static TaczSoundProfile readSuperbSoundProfile(Event event) {
-        if (superbGetData == null || superbIsBarrelSilenced == null) return null;
+        if (superbGetData == null
+                || superbIsBarrelSilenced == null && superbAttachmentGet == null) return null;
         try {
             Object data = superbGetData.invoke(event);
-            return new TaczSoundProfile(Double.NaN,
-                    Boolean.TRUE.equals(superbIsBarrelSilenced.invoke(null, data)));
+            boolean suppressed = superbIsBarrelSilenced != null
+                    ? Boolean.TRUE.equals(superbIsBarrelSilenced.invoke(null, data))
+                    : ((Number)superbAttachmentGet.invoke(superbAttachments.get(data), superbBarrel)).intValue() == 2;
+            // Match Superb's default silencer factor; retain the server's hearing-radius setting.
+            double radius = ChangedSynergyConfig.COMMON.firearmGunshotRadius.get();
+            return new TaczSoundProfile(suppressed ? radius * 0.6D : radius, suppressed);
         } catch (ReflectiveOperationException | LinkageError | RuntimeException exception) {
             ChangedSynergyMod.LOGGER.debug("Could not read Superb Warfare's barrel attachment", exception);
             return null;

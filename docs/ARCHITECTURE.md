@@ -37,8 +37,6 @@ Ordinary factions share a sighting locally. White latex uses the same safety gat
 
 Political affiliation and biological construction are separate. The reputation factions are White, Dark, Aquatic and Light. Organic creatures do not have a shared faction merely because they are organic.
 
-White/Dark political rivalry does not authorize automatic combat. `LatexCreatureCombatRules` shares their peaceful-competitor identity across player disposition, creature target guards, companion policies and visible Instinct bodies; actual grievances and recent owner-defense conflicts are evaluated separately. The upstream latex-material hostility table remains intact for its non-social uses. Instinct bodies never receive NPC relationship or hunt data during target rejection or disengagement.
-
 An organic type declares its political affiliation through the normal faction entity tags. The mapping is derived from that species' natural spawn region, never from the place where an individual happens to be standing. Dark dragons and both crystal-wolf types are explicitly Dark. Mirror white tigers inherit the Light affiliation of their native taiga population, while retaining their taiga community identity. The beach-native pooltoy wolf belongs politically to the Aquatic population. The other naturally spawning organic species from Changed are mapped the same way from their spawn tables. A form with no natural spawn-region record uses neutral Light as a documented fallback. Travel, teleporting and commands cannot change the result. Organic combat rules, visuals, radial style and dialogue voice continue to use the biological organic classification.
 
 ## Runtime switches

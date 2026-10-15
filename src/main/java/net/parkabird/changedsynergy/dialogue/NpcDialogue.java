@@ -20,8 +20,6 @@ import net.parkabird.changedsynergy.ai.HypnosisProfile;
 import net.parkabird.changedsynergy.ai.HumanIntent;
 import net.parkabird.changedsynergy.ai.InvoluntaryTransfurNegotiation;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
-import net.parkabird.changedsynergy.ai.LatexCreatureCombatRules;
-import net.parkabird.changedsynergy.ai.DarkLatexDisguise;
 import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import net.parkabird.changedsynergy.ai.TelepathyService;
 import net.parkabird.changedsynergy.ai.TakeoverService;
@@ -189,8 +187,7 @@ public final class NpcDialogue {
                 ? -1 : speaker.getRandom().nextInt(PERSONALITY_LINES_PER_CONTEXT);
         String personalityKey = personalityTrait == null
                 ? null : personalityLineKey(personalityTrait, personalityContext, personalityIndex);
-        if (lineKey.startsWith("dialogue.changed_synergy.native.")
-                || lineKey.startsWith("dialogue.changed_synergy.competition.")) personalityKey = null;
+        if (lineKey.startsWith("dialogue.changed_synergy.native.")) personalityKey = null;
         String lineIdentity = lineIdentity(lineKey, personalityKey);
         String previous = speaker.getPersistentData().getString(LAST_LINE);
         if (lineIdentity.equals(previous)) {
@@ -507,11 +504,6 @@ public final class NpcDialogue {
             return "dialogue.changed_synergy.juvenile_voice."
                     + juvenileVoice(speaker) + "." + juvenileMood(cue)
                     + "." + index;
-        }
-        if (cue == Cue.MEET_OUTSIDER
-                && LatexCreatureCombatRules.arePeacefulCompetitors(speaker, focus)) {
-            return "dialogue.changed_synergy.competition."
-                    + (DarkLatexDisguise.isWhiteLatex(speaker) ? "white" : "dark") + "." + index;
         }
         if (isPatSpeedCue(cue)) {
             return "dialogue.changed_synergy.pat_speed."

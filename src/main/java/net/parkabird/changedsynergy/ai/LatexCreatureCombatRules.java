@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.UUID;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.latex.LatexType;
-import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -23,8 +22,8 @@ import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 
 /**
- * Shared creature combat policy. Political competition does not by itself
- * authorize combat, including against a player's visible creature body.
+ * Creature-to-creature combat rules. These deliberately do not participate in
+ * player-form disposition, so a transformed player can still be a valid rival.
  */
 public final class LatexCreatureCombatRules {
     public static final float BONDED_SAFETY_HEALTH_RATIO = 0.35F;
@@ -45,31 +44,12 @@ public final class LatexCreatureCombatRules {
                         || LatexSocialRelation.sameCategory(first, second));
     }
 
-    /** Identity only: this grants neither compatriot status nor personal friendship. */
-    public static boolean arePeacefulCompetitors(ChangedEntity first, ChangedEntity second) {
-        boolean firstPlayer = first.getUnderlyingPlayer() != null || TrueTransfurCompat.isInstinctBody(first);
-        boolean secondPlayer = second.getUnderlyingPlayer() != null || TrueTransfurCompat.isInstinctBody(second);
-        return first != second
-                && (firstPlayer || CreatureSocialProfile.allowsSynergySystems(first))
-                && (secondPlayer || CreatureSocialProfile.allowsSynergySystems(second))
-                && (DarkLatexDisguise.isWhiteLatex(first) && DarkLatexDisguise.isDarkLatex(second)
-                        || DarkLatexDisguise.isDarkLatex(first) && DarkLatexDisguise.isWhiteLatex(second));
-    }
-
-    public static boolean arePeacefulCompetitors(ChangedEntity creature, ServerPlayer player) {
-        return DarkLatexDisguise.appearsAsDarkToWhite(creature, player)
-                || ProcessTransfur.getPlayerTransfurVariantSafe(player)
-                        .map(form -> arePeacefulCompetitors(creature, form.getChangedEntity()))
-                        .orElse(false);
-    }
-
-    /** True only for an actual hostile latex pairing, not diplomatic competition. */
+    /** True only for an actual latex/faction rivalry, not merely two unlike species. */
     public static boolean areRivals(ChangedEntity first, ChangedEntity second) {
         if (first == second
                 || !LatexSocialMemory.isSocialLatex(first)
                 || !LatexSocialMemory.isSocialLatex(second)
-                || areCompatriots(first, second)
-                || arePeacefulCompetitors(first, second)) {
+                || areCompatriots(first, second)) {
             return false;
         }
         LatexType firstType = LatexType.getEntityLatexType(first);
@@ -79,7 +59,12 @@ public final class LatexCreatureCombatRules {
                         || secondType.isHostileTo(firstType))) {
             return true;
         }
-        return false;
+        // Some Addon entities expose their faction through tags but have no
+        // useful LatexType. Preserve Changed's white/dark rivalry for them.
+        HunterFaction firstFaction = HunterFaction.of(first);
+        HunterFaction secondFaction = HunterFaction.of(second);
+        return firstFaction == HunterFaction.WHITE && secondFaction == HunterFaction.DARK
+                || firstFaction == HunterFaction.DARK && secondFaction == HunterFaction.WHITE;
     }
 
     public static boolean isProtectedLowHealthBond(ChangedEntity creature) {
@@ -105,9 +90,6 @@ public final class LatexCreatureCombatRules {
         if (sharePlayerAlliance(changed, target)) {
             return true;
         }
-        if (rejectsPeacefulCompetitorTarget(changed, target)) {
-            return true;
-        }
         if (!isBondedCompanion(changed)) {
             return false;
         }
@@ -116,39 +98,6 @@ public final class LatexCreatureCombatRules {
         return owner == null
                 || !BondedOwnerDefenseGoal.allowsConfiguredDefense(
                         changed, owner, target);
-    }
-
-    /** A real recent conflict can override neutrality; merely selecting a target cannot. */
-    public static boolean rejectsPeacefulCompetitorTarget(ChangedEntity attacker, LivingEntity candidate) {
-        if (candidate instanceof ServerPlayer player) {
-            if (!TrueTransfurCompat.isInstinctBody(attacker)
-                    || !arePeacefulCompetitors(attacker, player)) return false;
-            ServerPlayer owner = TrueTransfurCompat.bodyOwner(attacker);
-            return owner == null || !BondedOwnerDefenseGoal.hasRecentConflict(attacker, owner, player);
-        }
-        if (!(candidate instanceof ChangedEntity target)) return false;
-        if (!arePeacefulCompetitors(attacker, target)) return false;
-        boolean attackerBody = TrueTransfurCompat.isInstinctBody(attacker);
-        boolean targetBody = TrueTransfurCompat.isInstinctBody(target);
-        ServerPlayer attackerOwner = attackerBody ? TrueTransfurCompat.bodyOwner(attacker) : null;
-        ServerPlayer targetOwner = targetBody ? TrueTransfurCompat.bodyOwner(target) : null;
-        if (attackerBody && attackerOwner == null || targetBody && targetOwner == null) return true;
-        if (!attackerBody && !LatexSocialMemory.isSocialLatex(attacker)
-                || !targetBody && !LatexSocialMemory.isSocialLatex(target)) return false;
-        if (attackerBody != targetBody) {
-            ChangedEntity npc = attackerBody ? target : attacker;
-            ChangedEntity body = attackerBody ? attacker : target;
-            ServerPlayer player = attackerBody ? attackerOwner : targetOwner;
-            // Do not ask whether the technical player is targetable. Its visible
-            // body carries the real player's existing reputation and grievances.
-            if (LatexSocialMemory.isProvoked(npc, player)
-                    || FactionReputation.isHostile(npc, player)
-                    || CreatureCacheGuardService.isDefendingAgainst(npc, player)
-                    || LatexSocialMemory.isPetDefenseAuthorized(npc, body)
-                    || LatexSocialMemory.isPetDefenseAuthorized(npc, player)) return false;
-        }
-        ServerPlayer owner = attackerBody ? attackerOwner : LatexSocialMemory.getPetOwner(attacker);
-        return !BondedOwnerDefenseGoal.hasRecentConflict(attacker, owner, target);
     }
 
     /** An INSTINCT body retains its player's alliances without acquiring NPC memories. */

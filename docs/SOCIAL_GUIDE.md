@@ -2,7 +2,7 @@
 
 [中文版](SOCIAL_GUIDE.zh-CN.md)
 
-These rules describe the default settings in Changed: Synergy 1.1.4. Servers can change relationship growth, bond requirements and other interaction settings. The configuration screen has **Server Settings**, **World Rules** and **Client Visuals** tabs. On multiplayer servers, gameplay values are shown read-only; operators use `/changedsynergy config` to change them and can edit world rules in their own tab. See the [settings guide](SETTINGS_GUIDE.md) for the current categories and dependencies.
+These rules describe the default settings in Changed: Synergy 1.1.4-hotfix. Servers can change relationship growth, bond requirements and other interaction settings. The configuration screen has **Server Settings**, **World Rules** and **Client Visuals** tabs. On multiplayer servers, gameplay values are shown read-only; operators use `/changedsynergy config` to change them and can edit world rules in their own tab. See the [settings guide](SETTINGS_GUIDE.md) for the current categories and dependencies.
 
 Spectator mode keeps Changed's ability wheel available but does not open Synergy's relationship wheel. Escape closes the wheel, including during an interrupted switch.
 
@@ -11,10 +11,6 @@ TrueTransfur **2.0.0** supports native roleplay and interactions with a player's
 ## First contact
 
 A creature's willingness to approach or talk depends on its species, personality, faction standing and recent experiences with you. Patting may calm an approaching creature or answer a greeting. It does not guarantee safety after aggression, and some creatures cannot form Synergy relationships at all.
-
-Dark and White latex are peaceful competitors. They do not attack each other, or players in the opposite latex form, simply because of their colour or faction. This includes native players and TrueTransfur's visible Instinct bodies. Visiting the other faction's territory is safe from racial aggression, but attacks, theft, betrayal or genuinely hostile faction standing can still provoke a response. Peace does not grant friendship, kinship or permission to take community supplies. Dark-latex disguises no longer provoke White observers merely by their appearance.
-
-Their factions and communities remain separate. The usual [rival-alliance reputation rules](FACTION_DIPLOMACY.md) still apply, and mixed-species player camps remain available.
 
 Once a stranger is calm enough to interact, use its social wheel for **Talk**, **Pat** or **Gift**. Suitable food held in your main hand can be fed directly by right-clicking. Sneak-right-click with food to open the wheel instead.
 

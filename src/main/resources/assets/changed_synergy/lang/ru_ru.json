@@ -4361,7 +4361,7 @@
   "origin.changed_synergy.archive.preparing": "Подготавливаем ваше появление",
   "origin.changed_synergy.archive.faction": "Фракция",
   "origin.changed_synergy.archive.human_faction": "Человек",
-  "origin.changed_synergy.archive.opposition": "Соперничающая фракция",
+  "origin.changed_synergy.archive.opposition": "Враждующая фракция",
   "origin.changed_synergy.archive.none": "Нет",
   "origin.changed_synergy.archive.step_height": "Высота шага",
   "origin.changed_synergy.archive.breathing": "Дыхание",
@@ -4783,11 +4783,5 @@
   "config.changed_synergy.option.human_origin_instinct": "Инстинкт для людских происхождений",
   "config.changed_synergy.option.human_origin_instinct.description": "Разрешает трансфурмированным игрокам с человеческим происхождением использовать Инстинкт TrueTransfur 2.0, пока включены стартовые происхождения. По умолчанию отключено; не включает окончательный трансфур, летальный откат или коренное возрождение.",
   "config.changed_synergy.option.self_defense_penalty_protection": "Защита самообороны от штрафов отношений",
-  "config.changed_synergy.option.self_defense_penalty_protection.description": "Бой с существом, напавшим первым, не снижает репутацию фракции и не вызывает штрафов отношений и удержания у свидетелей. За начатый вами бой это правило не действует.",
-  "dialogue.changed_synergy.competition.white.0": "Разный цвет не мешает нам жить мирно.",
-  "dialogue.changed_synergy.competition.white.1": "Мы можем соперничать, не прибегая к драке.",
-  "dialogue.changed_synergy.competition.white.2": "Заходи в гости. Посмотрим, чей лагерь лучше устроен.",
-  "dialogue.changed_synergy.competition.dark.0": "Белый латекс? Если ты не ищешь неприятностей, я тоже.",
-  "dialogue.changed_synergy.competition.dark.1": "Разные стаи, одна дорога. Давай без ссор.",
-  "dialogue.changed_synergy.competition.dark.2": "Кто лучше — выясним без кулаков."
+  "config.changed_synergy.option.self_defense_penalty_protection.description": "Бой с существом, напавшим первым, не снижает репутацию фракции и не вызывает штрафов отношений и удержания у свидетелей. За начатый вами бой это правило не действует."
 }

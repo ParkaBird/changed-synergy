@@ -417,6 +417,7 @@ public final class LatexSocialEvents {
     public static void onCreatureDeathForgetContacts(LivingDeathEvent event) {
         if (!(event.getEntity() instanceof ChangedEntity mob)
                 || !(mob.level() instanceof ServerLevel level)
+                || net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(mob)
                 || !LatexSocialMemory.isSocialLatex(mob)) {
             return;
         }
@@ -438,6 +439,7 @@ public final class LatexSocialEvents {
                 || mob.getRemovalReason() == null
                 || !mob.getRemovalReason().shouldDestroy()
                 || BondedRevivalService.isProvisional(mob)
+                || net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(mob)
                 || !LatexSocialMemory.isSocialLatex(mob)) {
             return;
         }
@@ -664,17 +666,11 @@ public final class LatexSocialEvents {
     public static void onSocialCreatureAttacksPlayer(LivingAttackEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)
                 || !(event.getSource().getEntity() instanceof ChangedEntity mob)
-                || mob.level().isClientSide) {
+                || mob.level().isClientSide
+                || net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(mob)
+                || !LatexSocialMemory.isSocialLatex(mob)) {
             return;
         }
-        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(mob)) {
-            if (LatexCreatureCombatRules.rejectsPeacefulCompetitorTarget(mob, player)) {
-                event.setCanceled(true);
-                LatexCreatureCombatRules.disengage(mob, player);
-            }
-            return;
-        }
-        if (!LatexSocialMemory.isSocialLatex(mob)) return;
         if (CreatureCacheGuardService.isDefendingAgainst(mob, player)) {
             return;
         }
@@ -1291,6 +1287,7 @@ public final class LatexSocialEvents {
                 || !(event.getSource().getEntity() instanceof ServerPlayer player)
                 || mob.level().isClientSide
                 || event.getAmount() <= 0.0F
+                || net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(mob)
                 || !LatexSocialMemory.isSocialLatex(mob)) {
             return;
         }
@@ -1476,12 +1473,8 @@ public final class LatexSocialEvents {
                 || mob.level().isClientSide) {
             return;
         }
-        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(mob)) {
-            if (LatexCreatureCombatRules.rejectsPeacefulCompetitorTarget(mob, mob.getTarget()))
-                LatexCreatureCombatRules.disengage(mob, mob.getTarget());
-            return;
-        }
-        if (!LatexSocialMemory.isSocialLatex(mob)
+        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(mob)
+                || !LatexSocialMemory.isSocialLatex(mob)
                 || !CreatureSocialProfile.allowsSynergySystems(mob)) {
             return;
         }
@@ -1778,6 +1771,14 @@ public final class LatexSocialEvents {
             return;
         }
 
+        if (!personallyProtected
+                && DarkLatexDisguise.appearsAsDarkRivalToWhite(mob, player)) {
+            applyPatPacification(
+                    mob, player,
+                    Math.max(20L, BASE_PAT_TRUCE / 4L), wasHostile);
+            NpcDialogue.trigger(mob, player, Cue.PAT_DISGUISED_WHITE_RIVAL);
+            return;
+        }
         if (!personallyProtected
                 && DarkLatexDisguise.isDarkLatex(mob)
                 && DarkLatexDisguise.isImpersonatingDarkLatex(player)) {

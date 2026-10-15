@@ -41,7 +41,8 @@ public final class CompanionProtectionRegression {
             AuthorFeedbackChecks.run(event.getServer());
             HostilityChecks.run(event.getServer());
             EventPolicyChecks.run(event.getServer());
-            PeacefulCompetitionChecks.run(event.getServer());
+            FirearmSuppressionChecks.run(event.getServer());
+            LegacyRivalryChecks.run(event.getServer());
             checkProtection(event.getServer());
             System.out.println("COMPANION_PROTECTION_REGRESSION_PASS: " + checks + " checks");
         } catch (Throwable failure) {

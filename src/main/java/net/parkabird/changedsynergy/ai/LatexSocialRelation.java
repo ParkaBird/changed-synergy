@@ -47,8 +47,8 @@ public enum LatexSocialRelation {
         if (DarkLatexDisguise.foolsDarkObserver(mob, player)) {
             return SAME_CATEGORY;
         }
-        if (DarkLatexDisguise.appearsAsDarkToWhite(mob, player)) {
-            return OUTSIDER;
+        if (DarkLatexDisguise.appearsAsDarkRivalToWhite(mob, player)) {
+            return RIVAL;
         }
 
         TransfurVariantInstance<?> variant = ProcessTransfur.getPlayerTransfurVariant(player);
@@ -88,10 +88,6 @@ public enum LatexSocialRelation {
         if (net.parkabird.changedsynergy.origin.NativeOriginService.sameFaction(mob, player)
                 || sharesLightSpawnBiome(mob, playerForm)) {
             return SAME_CATEGORY;
-        }
-
-        if (LatexCreatureCombatRules.arePeacefulCompetitors(mob, playerForm)) {
-            return OUTSIDER;
         }
 
         LatexType mobType = LatexType.getEntityLatexType(mob);

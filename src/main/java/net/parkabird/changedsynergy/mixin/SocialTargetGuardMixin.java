@@ -54,11 +54,6 @@ public abstract class SocialTargetGuardMixin {
             callback.cancel();
             return;
         }
-        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(mob)
-                && LatexCreatureCombatRules.rejectsPeacefulCompetitorTarget(mob, target)) {
-            callback.cancel();
-            return;
-        }
         if (target != null
                 && LatexCreatureCombatRules.mustRejectVillageTarget(mob, target)) {
             LatexCreatureCombatRules.disengage(mob, target);
