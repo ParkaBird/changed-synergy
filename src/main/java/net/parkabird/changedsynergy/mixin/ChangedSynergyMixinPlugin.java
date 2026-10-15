@@ -9,11 +9,13 @@ import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
-/** Bounds Addon's optional key hint after its generated handler has been merged. */
+/** Optional compatibility repairs that need the final, merged method names. */
 public final class ChangedSynergyMixinPlugin implements IMixinConfigPlugin {
     @Override public void onLoad(String mixinPackage) {}
     @Override public String getRefMapperConfig() { return null; }
@@ -26,6 +28,28 @@ public final class ChangedSynergyMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void postApply(String target, ClassNode node, String mixin, IMixinInfo info) {
+        if (mixin.endsWith(".JeiMouseOverMappingMixin")) {
+            // JEI 15.70.0.221 remapped these implementations, but not its own
+            // IMouseOverable interface. Preserve the original hit-test logic.
+            if (node.methods.stream().anyMatch(method -> method.name.equals("isMouseOver")
+                    && method.desc.equals("(DD)Z"))) return;
+            if (node.methods.stream().noneMatch(method -> method.name.equals("m_5953_")
+                    && method.desc.equals("(DD)Z")
+                    && (method.access & (Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_ABSTRACT))
+                            == Opcodes.ACC_PUBLIC)) return;
+            MethodNode bridge = new MethodNode(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC,
+                    "isMouseOver", "(DD)Z", null, null);
+            bridge.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
+            bridge.instructions.add(new VarInsnNode(Opcodes.DLOAD, 1));
+            bridge.instructions.add(new VarInsnNode(Opcodes.DLOAD, 3));
+            bridge.instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL,
+                    node.name, "m_5953_", "(DD)Z", false));
+            bridge.instructions.add(new InsnNode(Opcodes.IRETURN));
+            bridge.maxStack = 5;
+            bridge.maxLocals = 5;
+            node.methods.add(bridge);
+            return;
+        }
         if (!mixin.endsWith(".GrabQteSyncMixin")) return;
         for (var method : node.methods) {
             if (!method.name.endsWith("$tickSendKeyBindInfo")

@@ -83,6 +83,7 @@
     "VariantAbilityActivateMixin"
   ],
   "client": [
+    "JeiMouseOverMappingMixin",
     "PureWhitePlayerFormRenderMixin",
     "TrueTransfurOriginClientMixin",
     "TrueTransfurOriginNameTagMixin",
