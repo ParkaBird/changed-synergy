@@ -16,6 +16,11 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.inventory.MerchantMenu;
+import net.minecraft.world.inventory.MerchantContainer;
+import net.minecraft.world.inventory.MerchantResultSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -29,6 +34,7 @@ import net.minecraftforge.items.wrapper.InvWrapper;
 import net.minecraftforge.items.wrapper.RangedWrapper;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
+import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole;
 import net.parkabird.changedsynergy.ai.CreaturePersonality.RelationshipTier;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.ProvisionSource;
@@ -101,11 +107,19 @@ public final class ProvisionerTradeService {
     }
 
     public static boolean canOpen(ChangedEntity provider, ServerPlayer player) {
+        return !ACTIVE_TRADERS.contains(provider.getUUID()) && canAccess(provider, player);
+    }
+
+    private static boolean canAccess(ChangedEntity provider, ServerPlayer player) {
         return ChangedSynergyConfig.COMMON.provisionerTrading.get()
+                && player.isAlive() && !player.isSpectator()
+                && !TakeoverService.active(player)
+                && !(((net.minecraft.world.entity.LivingEntity)player)
+                        instanceof net.ltxprogrammer.changed.entity.LivingEntityDataExtension data
+                        && data.getGrabbedBy() != null)
                 && provider.isAlive() && !provider.isRemoved()
                 && CreatureSocialProfile.allowsSocialWheel(provider)
                 && provider.level() == player.level()
-                && !ACTIVE_TRADERS.contains(provider.getUUID())
                 && player.distanceToSqr(provider) <= TRADE_DISTANCE_SQR
                 && provider.getUnderlyingPlayer() == null
                 && CreatureLifeMemory.enabled(provider)
@@ -120,7 +134,10 @@ public final class ProvisionerTradeService {
     }
 
     public static boolean isBusy(ChangedEntity provider) {
-        return provider.getTarget() != null && provider.getTarget().isAlive()
+        var grab = BondedSuitService.ability(provider);
+        return grab != null && grab.grabbedEntity != null
+                || ChangedAddonCompat.isGrabberBusy(provider)
+                || provider.getTarget() != null && provider.getTarget().isAlive()
                 || provider.getLastHurtByMob() != null
                         && provider.tickCount
                                 - provider.getLastHurtByMobTimestamp() <= 100;
@@ -155,12 +172,12 @@ public final class ProvisionerTradeService {
                     provider.getDisplayName()), false);
             return;
         }
-        merchant.openTradingScreen(
-                player,
-                Component.translatable(
-                        "menu.changed_synergy.trade.title",
-                        provider.getDisplayName()),
-                0);
+        var menuId = player.openMenu(new SimpleMenuProvider(
+                (id, inventory, viewer) -> new SettlementMerchantMenu(id, inventory, merchant),
+                Component.translatable("menu.changed_synergy.trade.title", provider.getDisplayName())));
+        if (menuId.isPresent()) player.sendMerchantOffers(
+                menuId.getAsInt(), merchant.getOffers(), 0, 0, false, false);
+        else merchant.setTradingPlayer(null);
         if (player.containerMenu instanceof net.parkabird.changedsynergy.api.SynergyMerchantMenuMarker menu)
             menu.changedSynergy$skipTradeSound();
     }
@@ -679,6 +696,10 @@ public final class ProvisionerTradeService {
             provider.getNavigation().stop();
         }
 
+        private boolean valid() {
+            return tradingPlayer == customer && canAccess(provider, customer) && !isBusy(provider);
+        }
+
         @Override
         public void setTradingPlayer(@Nullable Player player) {
             if (player == null) {
@@ -763,6 +784,39 @@ public final class ProvisionerTradeService {
         }
     }
 
+    /** Vanilla transfers the result before calling offer.take; reject before that transfer. */
+    private static final class SettlementMerchantMenu extends MerchantMenu {
+        private final SynergyMerchant merchant;
+
+        private SettlementMerchantMenu(int id, Inventory inventory, SynergyMerchant merchant) {
+            super(id, inventory, merchant);
+            this.merchant = merchant;
+            var container = (MerchantContainer) getSlot(2).container;
+            var result = new MerchantResultSlot(inventory.player, merchant, container, 2, 220, 37) {
+                @Override public boolean mayPickup(Player player) {
+                    return canTakeResult() && super.mayPickup(player);
+                }
+            };
+            result.index = 2;
+            slots.set(2, result);
+        }
+
+        private boolean canTakeResult() {
+            if (!merchant.valid()) return false;
+            var container = (MerchantContainer) getSlot(2).container;
+            return container.getActiveOffer() instanceof SettlementMerchantOffer offer
+                    && offer.canTake(getSlot(0).getItem(), getSlot(1).getItem());
+        }
+
+        @Override public ItemStack quickMoveStack(Player player, int index) {
+            return index == 2 && !canTakeResult() ? ItemStack.EMPTY : super.quickMoveStack(player, index);
+        }
+
+        @Override public boolean stillValid(Player player) {
+            return merchant.valid() && super.stillValid(player);
+        }
+    }
+
     private static MerchantOffers merchantOffers(
             ChangedEntity provider, List<Template> templates) {
         MerchantOffers offers = new MerchantOffers();
@@ -786,9 +840,7 @@ public final class ProvisionerTradeService {
 
         @Override
         public boolean take(ItemStack first, ItemStack second) {
-            if (!satisfiedBy(first, second)
-                    || !provider.isAlive()
-                    || isBusy(provider)) {
+            if (!satisfiedBy(first, second) || !canTake(first, second)) {
                 return false;
             }
             ItemStack withdrawn = template.stockBound()
@@ -805,6 +857,13 @@ public final class ProvisionerTradeService {
             }
             acceptPayment(provider, template.payment());
             return true;
+        }
+
+        private boolean canTake(ItemStack first, ItemStack second) {
+            return !isOutOfStock() && provider.isAlive() && !isBusy(provider)
+                    && (satisfiedBy(first, second) || satisfiedBy(second, first))
+                    && (!template.stockBound()
+                            || availableUnits(provider, template.result()) >= template.result().getCount());
         }
     }
 }

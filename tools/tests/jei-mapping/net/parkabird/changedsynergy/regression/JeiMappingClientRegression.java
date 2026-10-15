@@ -69,7 +69,7 @@ public final class JeiMappingClientRegression {
                 var rules = new GameRules();
                 rules.getRule(ChangedSynergyGameRules.NATIVE_ORIGINS).set(false, null);
                 rules.getRule(GameRules.RULE_DOMOBSPAWNING).set(false, null);
-                var settings = new LevelSettings("jei-regression", GameType.CREATIVE, false,
+                var settings = new LevelSettings("jei-regression", GameType.SURVIVAL, false,
                         Difficulty.NORMAL, true, rules, WorldDataConfiguration.DEFAULT);
                 mc.createWorldOpenFlows().createFreshLevel("jei-regression", settings,
                         new WorldOptions(73451L, false, false), registry -> registry
@@ -83,8 +83,15 @@ public final class JeiMappingClientRegression {
             if (stage > 1 && mc.screen != null) exerciseInput(mc);
             if (stage == 1) {
                 checkInterfaceImplementations();
+                var serverChecks = new java.util.concurrent.CompletableFuture<Void>();
+                mc.getSingleplayerServer().execute(() -> {
+                    try { TradeDoorRegression.run(mc.getSingleplayerServer()); serverChecks.complete(null); }
+                    catch (Throwable failure) { serverChecks.completeExceptionally(failure); }
+                });
+                serverChecks.get(45, java.util.concurrent.TimeUnit.SECONDS);
                 mc.setScreen(new InventoryScreen(mc.player));
             } else if (stage == 2) {
+                checkItemArea(mc);
                 mc.setScreen(new CraftingScreen(new CraftingMenu(1, mc.player.getInventory()),
                         mc.player.getInventory(), Component.literal("JEI crafting regression")));
             } else if (stage == 3) {
@@ -143,6 +150,10 @@ public final class JeiMappingClientRegression {
                 ClassNode node = new ClassNode();
                 new ClassReader(zip.getInputStream(entry)).accept(node, 0);
                 classes.put(node.name, node);
+                if (node.methods.stream().anyMatch(m -> java.util.stream.StreamSupport.stream(
+                        m.instructions.spliterator(), false).anyMatch(i -> i instanceof InvokeDynamicInsnNode f
+                                && f.desc.endsWith(")Lmezz/jei/common/input/IMouseOverable;"))))
+                    Class.forName(node.name.replace('/', '.'), false, JeiMappingClientRegression.class.getClassLoader());
                 if ((node.access & (Modifier.ABSTRACT | Modifier.INTERFACE)) != 0
                         || node.methods.stream().noneMatch(m -> m.name.equals("m_5953_") && m.desc.equals("(DD)Z"))) continue;
                 Class<?> type = Class.forName(node.name.replace('/', '.'), false,
@@ -170,19 +181,62 @@ public final class JeiMappingClientRegression {
         if (classes.get("mezz/jei/common/input/IMouseOverable").methods.stream()
                 .noneMatch(m -> m.name.equals("m_5953_") && m.desc.equals("(DD)Z")))
             throw new AssertionError("Actual exported JEI interface alias missing");
+        int factories = 0;
         for (ClassNode node : List.copyOf(classes.values())) {
             for (var method : node.methods) for (var instruction : method.instructions) {
                 if (instruction instanceof MethodInsnNode call)
                     checkJeiMember(classes, call.owner, call.name, call.desc, false, checkedCalls);
                 if (instruction instanceof FieldInsnNode field)
                     checkJeiMember(classes, field.owner, field.name, field.desc, true, checkedCalls);
-                if (instruction instanceof InvokeDynamicInsnNode dynamic) for (Object argument : dynamic.bsmArgs)
-                    if (argument instanceof Handle handle)
+                if (instruction instanceof InvokeDynamicInsnNode dynamic) {
+                    if (dynamic.desc.endsWith(")Lmezz/jei/common/input/IMouseOverable;")) {
+                        if (!dynamic.name.equals("isMouseOver"))
+                            throw new AssertionError("Invalid JEI lambda SAM: " + node.name + '.' + dynamic.name);
+                        factories++;
+                    }
+                    for (Object argument : dynamic.bsmArgs) if (argument instanceof Handle handle)
                         checkJeiMember(classes, handle.getOwner(), handle.getName(), handle.getDesc(), handle.getTag() <= 4, checkedCalls);
+                }
             }
         }
         System.out.println("JEI_MAPPING_INTERFACE_PASS: " + found + " actual release implementations");
         System.out.println("JEI_INTERNAL_MEMBER_LINKAGE_PASS: " + checkedCalls.size() + " unique method/field references");
+        if (version.equals("15.70.0.221") && factories != 31)
+            throw new AssertionError("Expected 31 real JEI mouse lambda factories, found " + factories);
+        System.out.println("JEI_LAMBDA_SAM_PASS: " + factories + " actual release factories");
+    }
+
+    private static void checkItemArea(Minecraft mc) throws Exception {
+        if (!ModList.get().isLoaded("jei")) return;
+        Class<?> internal = Class.forName("mezz.jei.common.Internal");
+        Object runtime = internal.getMethod("getJeiRuntime").invoke(null);
+        Object overlay = Class.forName("mezz.jei.api.runtime.IJeiRuntime")
+                .getMethod("getIngredientListOverlay").invoke(runtime);
+        var source = Class.forName("mezz.jei.gui.input.IRecipeFocusSource");
+        var hover = source.getMethod("getIngredientUnderMouse", double.class, double.class);
+        double x = -1, y = -1;
+        for (int px = 0; px < mc.screen.width && x < 0; px += 5)
+            for (int py = 15; py < mc.screen.height - 25; py += 5) {
+                try (var stream = (java.util.stream.Stream<?>)hover.invoke(overlay, (double)px, (double)py)) {
+                    if (stream.findFirst().isPresent()) { x = px; y = py; break; }
+                }
+            }
+        if (x < 0) throw new AssertionError("No visible JEI ingredient slot");
+        Object toggle = internal.getMethod("getClientToggleState").invoke(null);
+        var setCheat = Class.forName("mezz.jei.common.config.IClientToggleState")
+                .getMethod("setCheatItemsEnabled", boolean.class);
+        setCheat.invoke(toggle, true);
+        try {
+            mc.player.containerMenu.setCarried(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND, 7));
+            ForgeHooksClient.onScreenMouseClickedPre(mc.screen, x, y, 0);
+            MinecraftForge.EVENT_BUS.post(new ScreenEvent.MouseDragged.Pre(mc.screen, x + 1, y + 1, 0, 1, 1));
+            ForgeHooksClient.onScreenMouseReleasedPre(mc.screen, x, y, 0);
+            if (!mc.player.containerMenu.getCarried().isEmpty())
+                throw new AssertionError("JEI item-area delete did not consume the carried stack");
+            ForgeHooksClient.onScreenMouseClickedPre(mc.screen, x, y, 0);
+            ForgeHooksClient.onScreenMouseReleasedPre(mc.screen, x, y, 0);
+            System.out.println("JEI_ITEM_AREA_INTERACTION_PASS: carried item, click, drag, release and empty-cursor click");
+        } finally { mc.player.containerMenu.setCarried(net.minecraft.world.item.ItemStack.EMPTY); setCheat.invoke(toggle, false); }
     }
 
     private static void checkJeiMember(Map<String, ClassNode> classes, String owner, String name, String descriptor,

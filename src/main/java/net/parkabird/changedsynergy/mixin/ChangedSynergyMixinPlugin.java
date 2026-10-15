@@ -3,10 +3,13 @@ package net.parkabird.changedsynergy.mixin;
 import java.util.List;
 import java.util.Set;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
@@ -30,6 +33,16 @@ public final class ChangedSynergyMixinPlugin implements IMixinConfigPlugin {
     public void postApply(String target, ClassNode node, String mixin, IMixinInfo info) {
         boolean jeiInterface = mixin.endsWith(".JeiMouseOverInterfaceMixin");
         if (jeiInterface || mixin.endsWith(".JeiMouseOverMappingMixin")) {
+            // Lambda classes are generated after Mixin. Their factory's SAM name
+            // must name the abstract method, not the SRG default alias.
+            if (!jeiInterface && jeiHasCanonicalMouseSam()) for (var method : node.methods) for (var instruction : method.instructions) {
+                if (instruction instanceof InvokeDynamicInsnNode factory
+                        && factory.name.equals("m_5953_")
+                        && factory.bsm.getOwner().equals("java/lang/invoke/LambdaMetafactory")
+                        && factory.desc.endsWith(")Lmezz/jei/common/input/IMouseOverable;")
+                        && factory.bsmArgs.length > 0 && factory.bsmArgs[0] instanceof Type sam
+                        && sam.getDescriptor().equals("(DD)Z")) factory.name = "isMouseOver";
+            }
             // JEI 221 mixes both names in its implementations AND call sites.
             // Concrete aliases serve rendering; the interface alias serves input.
             String alias = jeiInterface ? "m_5953_" : "isMouseOver";
@@ -75,6 +88,20 @@ public final class ChangedSynergyMixinPlugin implements IMixinConfigPlugin {
             guard.add(new InsnNode(Opcodes.RETURN));
             guard.add(present);
             method.instructions.insert(guard);
+        }
+    }
+
+    private static boolean jeiHasCanonicalMouseSam() {
+        try (var bytes = ChangedSynergyMixinPlugin.class.getClassLoader()
+                .getResourceAsStream("mezz/jei/common/input/IMouseOverable.class")) {
+            if (bytes == null) return false;
+            ClassNode contract = new ClassNode();
+            new ClassReader(bytes).accept(contract, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+            return contract.methods.stream()
+                    .anyMatch(method -> method.name.equals("isMouseOver") && method.desc.equals("(DD)Z")
+                            && (method.access & Opcodes.ACC_ABSTRACT) != 0);
+        } catch (java.io.IOException unavailable) {
+            return false;
         }
     }
 }

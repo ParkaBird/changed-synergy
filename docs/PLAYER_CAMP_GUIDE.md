@@ -112,7 +112,7 @@ Hover over a member's name to see their work status, dimension and coordinates. 
 
 With TrueTransfur's physical Instinct mode, the crew follows the owner's visible creature body. Ownership and orders still belong to the real player account. Entering or leaving Instinct updates the movement target; an unavailable body or offline owner pauses following. Without a separate Instinct body, the crew follows the player normally.
 
-Movement orders interrupt idle sitting and sleep. Wider bodies can move away from open door and trapdoor edges when the passage fits them. Doors remain open while they cross; trapdoors are left in their existing state. Narrow passages still need enough space for the selected species.
+Movement orders interrupt idle sitting and sleep. Companions can plan routes through powered facility doors that their species is allowed to open; locked or unpowered doors still block them. They briefly crouch under low door frames when their body fits, then stand again after crossing. Wider bodies can move away from open door and trapdoor edges when the passage fits them. Doors remain open while they cross; trapdoors are left in their existing state. Narrow passages still need enough space for the selected species.
 
 Members belonging to scoreboard-allied owners, or to players on a server with PvP disabled, do not attack each other because of opposing factions. A guard's proactive combat respects the owner's hostility and target settings; unprovoked neutral monsters are not automatic targets.
 
