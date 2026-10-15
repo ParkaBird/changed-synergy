@@ -84,6 +84,7 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 - Creature players can manually release wrapped creatures through Changed's grab controls. Human takeover releases stay near the carrier rather than unexpectedly returning to spawn. Organic creatures retain low physical swipe damage against humans and ordinary damage against creature players.
 - Organic creatures no longer continue attacking friendly kin after completing transfur. Accepted peace and negotiated release consistently end the current pursuit, including wild cache guards. Fresh player aggression can renew temporary grudges; the creature's own attacks cannot. Calming one player does not cancel a separate fight with another.
 - Superb Warfare vehicle occupants cannot be grabbed or wrapped, while pursuit can continue after they enter a vehicle.
+- Superb Warfare suppressors reduce the distance at which latex creatures hear gunshots and use the same reduced-alert behavior as suppressed TaCZ shots.
 - Placed soup cans and Addon's stackable drinks, including Snepsi and Foxta, can be taken one at a time with an empty hand.
 - Ordinary Synergy creatures remain on Peaceful difficulty; bosses and excluded species keep their existing behavior. Dark and White territories spawn their intended adult species as well as pups, and Latex Pup Crystals retain their faction-aware contact transfur damage.
 - Tamed and bonded companions remain outside autonomous wild communities. **Mysterious Foraging Spot** is earned by opening a container at any wild outpost.
@@ -101,7 +102,9 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 - **Self-Defense Penalty Protection**, enabled by default, exempts legitimate self-defense from faction and bonded-kin penalties. Relationship debugging defaults to the creature under the crosshair and the executing player, with explicit administrator targets; `relationship establish` creates a maximum-affection friendship.
 - Added Russian localization from TrueTransfur's author, the community White-faction rewrite and the Organic dialogue pack in English, Spanish and Simplified Chinese. Corrected Chinese Black/White latex terminology and updated English and Chinese social and settings guides.
 - Improved server behavior around wild communities, outpost placement, blocked routes and resource searches. Exp009 lightning and aquatic-outpost searches avoid forcing unvisited chunks to load; large searches are spread across bounded batches.
-- Added a compatibility workaround for JEI 15.70.0.221 mouse hit-testing, covering both screen rendering and keyboard/mouse input, including chat and recipe screens. JEI remains optional.
+- Added compatibility for JEI 15.70.0.221 screen rendering, keyboard/mouse input and item-display interactions, including clicking, dragging and releasing carried items. JEI remains optional.
+- Fixed provisioner bulk trades producing unpaid goods when combat, grabbing or takeover interrupted a transaction. Invalid purchases are rejected before goods leave the result slot, and unused payment is returned when trading closes.
+- Companions can navigate powered facility doors and briefly crouch under low frames when their body fits. Normal power and creature-access restrictions are preserved.
 - Fixed "Invalid player data" disconnects when transformed players rejoin existing worlds, preserving their saved form and valid absorption-negotiation state.
 - Addressed dedicated-server Exp009 and biome failures, startup compatibility without Addon Plus, grab/QTE crashes, repeated transfur cleanup and spectator wheel lockups. Relationship wheels support left/right navigation when more options are available.
 

@@ -1,6 +1,8 @@
 # Changed: Synergy 1.1.4-hotfix
 
-- Added a compatibility workaround for JEI 15.70.0.221 mouse hit-testing, covering both screen rendering and keyboard/mouse input, including chat and recipe screens. JEI remains optional.
+- Added compatibility for JEI 15.70.0.221 screen rendering, keyboard/mouse input and item-display interactions, including clicking, dragging and releasing carried items. JEI remains optional.
+- Fixed provisioner bulk trades producing unpaid goods when combat, grabbing or takeover interrupted a transaction. Invalid purchases are rejected before goods leave the result slot, and unused payment is returned when trading closes.
+- Companions can navigate powered facility doors and briefly crouch under low frames when their body fits. Normal power and creature-access restrictions are preserved.
 - Fixed "Invalid player data" disconnects when transformed players rejoin existing worlds. Saved forms and valid absorption-negotiation state are preserved.
 - Fixed Superb Warfare suppressors being ignored by latex hearing. Suppressed shots have a shorter detection range and reduced alert reactions; nearby creatures can still hear them.
 - Fixed organic latex retaining obsolete hostility after transforming a player, while preserving normal damage against valid transformed opponents.
