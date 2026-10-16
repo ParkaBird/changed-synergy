@@ -99,6 +99,8 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 
 ### Settings, localization and server support
 
+- Fixed unresolved relationship-dialogue placeholders when introducing a creature through wheel gifting. Applied Goldfinder's English dialogue corrections from PR #12 and corrected additional scent-related typos.
+
 - Applied the latest Russian localization contributed by TrueTransfur's author, including updated interface text and localized creature names.
 
 - Updated compatibility with **Changed Extras 1.1.8b**: unrelated wild creatures retain its smart AI, while camp members, companions and TrueTransfur Instinct players retain their own behavior and orders. Camp members keep their jobs and assigned beds when their owner sleeps; idle pets outside camps retain Extras' normal cuddling. **Artist** is excluded from Synergy social systems, camp recruitment and origin selection like other bosses.
