@@ -135,6 +135,7 @@ public final class DialogueOutpostRegression {
                 }
             }
             System.out.println("DIALOGUE_PLACEHOLDERS_PASS: " + formatted);
+            checkKeepConsciousRule(event.getServer(), mob);
             var data = PlayerOutpostData.get(event.getServer());
             BlockPos marker = new BlockPos(0, 80, 0);
             data.all().stream().filter(existing -> existing.marker.equals(marker))
@@ -233,6 +234,42 @@ public final class DialogueOutpostRegression {
         } finally {
             Language.inject(original);
             event.getServer().halt(false);
+        }
+    }
+
+    private static void checkKeepConsciousRule(net.minecraft.server.MinecraftServer server,
+            ChangedEntity creature) {
+        var rules = server.overworld().getGameRules();
+        var key = net.ltxprogrammer.changed.init.ChangedGameRules.RULE_KEEP_BRAIN;
+        var animation = net.ltxprogrammer.changed.init.ChangedGameRules.RULE_DO_TRANSFUR_ANIMATION;
+        boolean saved = rules.getBoolean(key), savedAnimation = rules.getBoolean(animation);
+        try {
+            check(new net.minecraft.world.level.GameRules().getBoolean(key),
+                    "Synergy changes only the new-world keep-conscious default");
+            rules.getRule(animation).set(true, server);
+            for (boolean enabled : new boolean[]{false, true, false}) {
+                rules.getRule(key).set(enabled, server);
+                var player = new ServerPlayer(server, server.overworld(),
+                        new GameProfile(UUID.randomUUID(), "ConsciousCheck"));
+                player.connection = new ServerGamePacketListenerImpl(server,
+                        new Connection(PacketFlow.SERVERBOUND), player);
+                var form = creature.getSelfVariant();
+                check(form != null, "Normal test creature has a native form");
+                net.ltxprogrammer.changed.process.ProcessTransfur.transfur(player,
+                        net.ltxprogrammer.changed.entity.ai.ImmediateTransfurDecision.unsafe(form,
+                                net.ltxprogrammer.changed.entity.TransfurCause.ATTACK_REPLICATE_LEFT));
+                var instance = net.ltxprogrammer.changed.process.ProcessTransfur
+                        .getPlayerTransfurVariantSafe(player).orElseThrow();
+                check(instance.willSurviveTransfur == enabled,
+                        "Ordinary Changed transfur respects keepConscious=" + enabled);
+                check(rules.createTag().getString("changed:keepConscious").equals(Boolean.toString(enabled)),
+                        "Explicit keep-conscious values are saved without being forced on");
+                net.ltxprogrammer.changed.process.ProcessTransfur.removePlayerTransfurVariant(player);
+            }
+            System.out.println("KEEP_CONSCIOUS_RULE_PASS: default, explicit false/true/false, ordinary transfur and save values");
+        } finally {
+            rules.getRule(key).set(saved, server);
+            rules.getRule(animation).set(savedAnimation, server);
         }
     }
 
