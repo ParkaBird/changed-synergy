@@ -51,6 +51,7 @@ import net.parkabird.changedsynergy.ai.CreatureSocialProfile;
 import net.parkabird.changedsynergy.ai.HunterFaction;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.ai.LightFactionGroup;
+import net.parkabird.changedsynergy.ai.TakeoverService;
 import net.parkabird.changedsynergy.dialogue.LatexTerritory;
 
 /** Reputation loss, persistence and source-based faction hazard protection. */
@@ -364,8 +365,11 @@ public final class FactionReputationEvents {
         if (player.level().isClientSide) {
             return true;
         }
+        // Temporary suit forms still accept exposure decisions; the hidden host
+        // must not acquire a second form while the takeover owns their body.
         if (!(player instanceof ServerPlayer serverPlayer)
-                || !protectedFromEnvironmentalHazard(
+                || !TakeoverService.active(serverPlayer)
+                        && !protectedFromEnvironmentalHazard(
                         serverPlayer, cause, hazardType)) {
             return false;
         }

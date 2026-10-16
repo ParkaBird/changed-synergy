@@ -85,7 +85,7 @@ public final class JeiMappingClientRegression {
                 checkInterfaceImplementations();
                 var serverChecks = new java.util.concurrent.CompletableFuture<Void>();
                 mc.getSingleplayerServer().execute(() -> {
-                    try { SocialContinuityRegression.run(mc.getSingleplayerServer()); TradeDoorRegression.run(mc.getSingleplayerServer()); serverChecks.complete(null); }
+                    try { SocialContinuityRegression.run(mc.getSingleplayerServer()); TradeDoorRegression.run(mc.getSingleplayerServer()); TakeoverHazardRegression.run(mc.getSingleplayerServer()); serverChecks.complete(null); }
                     catch (Throwable failure) { serverChecks.completeExceptionally(failure); }
                 });
                 serverChecks.get(45, java.util.concurrent.TimeUnit.SECONDS);

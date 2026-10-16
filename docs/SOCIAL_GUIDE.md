@@ -153,6 +153,8 @@ When an ordinary confinement countdown ends while you are awake, release occurs 
 
 A creature carrying a player during an ordinary takeover retains its original navigation, movement speed and permitted combat behavior. Voluntary companion wrapping keeps its owner-control rules.
 
+During takeover, latex puddles, dropped syringes and other environmental transfur hazards cannot add transfur progress or change the host's form, including while borrowing control. After release, normal environmental rules apply again. This protection does not prevent the takeover's own permanent-transfur or consciousness-loss outcome.
+
 During takeover you can turn the camera in either third-person view to look around without steering the carrier. First-person view continues to follow the carrier. Borrowed control and release restore ordinary input.
 
 A controlling exoskeleton walks over terrain, falls normally and can jump onto a one-block step.
