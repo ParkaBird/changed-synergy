@@ -85,6 +85,8 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 
 ### Abilities, takeover and creature ecology
 
+- Fixed environmental transfur affecting players inside a takeover, including latex puddles and dropped syringes. Borrowed control, normal release and the takeover's own final outcome remain intact.
+
 
 - Hypnotic creature players and human players share a PvP hypnosis QTE, with the same presentation and movement-key controls on both sides. Player contests last longer than NPC contests; a human's pat prevents the hypnotist from adding control for three seconds.
 - Pure White players adapt their appearance and vision outside their territory while retaining their species, abilities and faction. The existing regional-adaptation setting controls this behavior.
