@@ -37,7 +37,8 @@ public final class NativeOriginCatalog {
         if (entityId == null) return false;
         boolean original = "changed".equals(variant.getFormId().getNamespace()) && "changed".equals(entityId.getNamespace());
         return (original || ChangedSynergyConfig.COMMON.includeModdedOriginSpecies.get())
-                && (!path.contains("partial") || variant.getFormId().toString().equals("changed:form_dark_latex_wolf_partial"))
+                && (!path.contains("partial") || Set.of("changed:form_dark_latex_wolf_partial",
+                        "changed_addon:form_latex_snow_leopard_partial").contains(variant.getFormId().toString()))
                 && !path.contains("custom")
                 && !path.contains("benign") && !path.contains("special") && !path.contains("boss")
                 && !entityId.getPath().contains("boss")
