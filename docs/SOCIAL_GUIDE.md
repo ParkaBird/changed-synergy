@@ -115,6 +115,8 @@ Stasis-chamber modifications, growth and absorption-related form changes preserv
 
 **Travel together** invites available loaded contacts to follow. Distant followers can return to a safe spot near you even when their current area is not running creature AI. It does not search arbitrary unloaded terrain or summon dead creatures; confirmed deaths are removed from the roster. Busy companions and members assigned to stationary camp duties keep their current commitments.
 
+Following friends, bonded companions, pets and travelling camp members can still return when a combat target would otherwise keep them behind. Once you move beyond their normal teleport distance, they regroup at a safe spot near you and stop pursuing the old target. Nearby fights continue normally; waiting, stationed, restrained and wrapping companions are not recalled this way.
+
 ## Protection and takeovers
 
 Automatic companion protection respects following or waiting orders and the creature's attack settings. Waiting or distant companions do not teleport in to intervene. **Never attack** prevents defensive attacks while still allowing local, nonviolent emergency shelter. A peaceful grab by a friend or another player is not treated as an assault.

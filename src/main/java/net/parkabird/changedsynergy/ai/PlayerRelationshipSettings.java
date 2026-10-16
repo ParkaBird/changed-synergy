@@ -14,6 +14,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 
@@ -277,23 +278,35 @@ public final class PlayerRelationshipSettings {
         return result;
     }
 
-    /** Explicit invitations also reach loaded companions outside the entity-ticking distance. */
+    /** Shared by invitations and combat recovery, even when the follow goal cannot run. */
     public static void recallFollowingContact(ServerPlayer player, ChangedEntity creature) {
         var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player);
         boolean bonded = LatexSocialMemory.isPetOwner(creature, player) || LatexSocialMemory.isBonded(creature, player);
-        if (!creature.isAlive() || !body.isAlive() || body.isRemoved() || player.isSpectator()
+        if (!creature.isAlive() || !player.isAlive() || !body.isAlive() || body.isRemoved() || player.isSpectator()
                 || body == player && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
-                || creature.level() != body.level() || creature.isNoAi()
-                || creature.getTarget() != null || creature.isPassenger() || creature.isLeashed()
+                || creature.level() != body.level() || creature.isNoAi() || creature.isSleeping()
+                || creature.isPassenger() || creature.isVehicle() || creature.isLeashed()
+                || net.ltxprogrammer.changed.ability.GrabEntityAbility.getGrabber(creature) != null
                 || ChangedAddonCompat.isGrabberBusy(creature)
+                || HypnosisQteService.getActiveVictim(creature) != null
                 || BondedSuitService.ability(creature) != null && BondedSuitService.ability(creature).grabbedEntity != null
+                || !bonded && LatexSocialMemory.isProvoked(creature, player)
                 || !(bonded ? LatexSocialMemory.isFollowingOwner(creature) : CreaturePersonality.isSocialFollowing(creature, player))
-                || creature.distanceToSqr(body) < (bonded ? 24 * 24 : 28 * 28)) return;
+                || creature.distanceToSqr(body) < 24 * 24) return;
+        boolean crew = false;
         if (PlayerOutpostService.assigned(creature)) {
             var home = PlayerOutpostData.get(player.server).byMember(creature.getUUID()).orElse(null);
-            if (home == null || home.members.get(creature.getUUID()).role != PlayerOutpostData.Role.CREW) return;
+            var member = home == null ? null : home.members.get(creature.getUUID());
+            if (member == null || member.role != PlayerOutpostData.Role.CREW) return;
+            crew = true;
         }
-        BondedTeleportSafety.teleportNearOwner((net.minecraft.server.level.ServerLevel)creature.level(), creature, player);
+        if (!bonded && !crew && creature.distanceToSqr(body) < 28 * 28) return;
+        LivingEntity target = creature.getTarget();
+        if (BondedTeleportSafety.teleportNearOwner((net.minecraft.server.level.ServerLevel)creature.level(), creature, player)
+                && target != null) {
+            // Do not abandon a fight unless a safe recall actually succeeds.
+            LatexSocialMemory.clearRejectedFollowingTarget(creature, target);
+        }
     }
 
 
