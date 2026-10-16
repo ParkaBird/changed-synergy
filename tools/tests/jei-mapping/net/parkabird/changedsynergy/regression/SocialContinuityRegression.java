@@ -32,10 +32,24 @@ final class SocialContinuityRegression {
                         + " | " + v.getEntityType().getDescription().getString()));
         boolean modded = net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.includeModdedOriginSpecies.get();
         net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.includeModdedOriginSpecies.set(true);
+        var snowId = net.minecraft.resources.ResourceLocation.parse("changed_addon:form_latex_snow_leopard_partial");
+        var snow = ChangedRegistry.TRANSFUR_VARIANT.get().getValue(snowId);
+        if (snow != null) {
+            check(NativeOriginCatalog.allowed(snow) && NativeOriginCatalog.find(level.registryAccess(), snowId) != null,
+                    "Partial Snow Leopard is selectable when modded origins are enabled");
+            var disabled = net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.disabledOriginForms;
+            var previous = disabled.get();
+            try {
+                disabled.set(java.util.List.of(snowId.toString()));
+                check(!NativeOriginCatalog.allowed(snow), "Partial Snow Leopard still respects the server form denylist");
+            } finally { disabled.set(previous); }
+        }
         ChangedRegistry.TRANSFUR_VARIANT.get().getValues().stream().filter(v -> !NativeOriginCatalog.allowed(v))
                 .forEach(v -> System.out.println("ORIGIN_ALWAYS_EXCLUDED: " + v.getFormId()
                         + " | " + v.getEntityType().getDescription().getString()));
         net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.includeModdedOriginSpecies.set(modded);
+        if (snow != null && !modded) check(!NativeOriginCatalog.allowed(snow),
+                "Partial Snow Leopard remains hidden while modded origins are disabled");
         ServerPlayer player = new ServerPlayer(server, level, new GameProfile(UUID.randomUUID(), "ContinuityCheck"));
         player.connection = new ServerGamePacketListenerImpl(server, new Connection(PacketFlow.SERVERBOUND), player);
         var players = (Map<UUID, ServerPlayer>)ObfuscationReflectionHelper.findField(PlayerList.class, "f_11197_")

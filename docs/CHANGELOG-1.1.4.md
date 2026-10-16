@@ -8,7 +8,7 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 
 ### Native latex origins and TrueTransfur
 
-- Restored Partial Dark Latex Wolf as a selectable starting origin.
+- Restored Partial Dark Latex Wolf as a selectable starting origin. Partial Snow Leopard is also available with Changed Addon Plus when modded starting species are enabled.
 
 - Begin as a human or a native latex creature with TrueTransfur, including eligible juvenile and fusion forms. Supports TrueTransfur **2.0.0**, with backward compatibility for **1.0.1**; TrueTransfur remains optional for other Synergy features.
 - Native players belong to their species' faction, begin at Recognized standing and receive greetings from compatriots. Their origin, citizenship and permanent creature identity persist through death and rejoining.

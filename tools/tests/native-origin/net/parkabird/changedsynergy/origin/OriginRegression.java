@@ -100,7 +100,8 @@ public final class OriginRegression {
                 disabled.set(java.util.List.of(modded.form().toString()));
                 check(NativeOriginCatalog.find(level.registryAccess(), modded.form()) == null, "Denylist also excludes other mods' forms");
                 disabled.set(previousDisabled);
-                check(expanded.stream().noneMatch(entry -> !entry.form().toString().equals("changed:form_dark_latex_wolf_partial")
+                check(expanded.stream().noneMatch(entry -> !java.util.Set.of("changed:form_dark_latex_wolf_partial",
+                        "changed_addon:form_latex_snow_leopard_partial").contains(entry.form().toString())
                         && entry.form().getPath().matches(".*(partial|custom|benign|special|boss).*")),
                         "Expanded catalog still rejects boss and restricted forms");
                 check(String.join(".", ChangedSynergyConfig.COMMON.includeModdedOriginSpecies.getPath()).equals("BEHAVIOUR.IncludeModdedOriginSpecies"),
