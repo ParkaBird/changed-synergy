@@ -1044,11 +1044,7 @@ public final class LatexSocialEvents {
             NpcDialogue.trigger(
                     creature,
                     player,
-                    foodCue,
-                    foodCue == Cue.RELATIONSHIP_ESTABLISHED
-                                    || foodCue == Cue.RELATIONSHIP_DIET_ESTABLISHED
-                            ? CreatureIdentity.introductionName(creature)
-                            : creature.getDisplayName());
+                    foodCue);
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
             return;
@@ -1840,10 +1836,7 @@ public final class LatexSocialEvents {
             NpcDialogue.trigger(
                     mob,
                     player,
-                    responseCue,
-                    responseCue == Cue.RELATIONSHIP_ESTABLISHED
-                            ? CreatureIdentity.introductionName(mob)
-                            : mob.getDisplayName());
+                    responseCue);
             return;
         }
 

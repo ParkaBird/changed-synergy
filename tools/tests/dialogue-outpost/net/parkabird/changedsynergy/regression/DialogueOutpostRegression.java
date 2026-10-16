@@ -46,9 +46,11 @@ import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData;
 import net.parkabird.changedsynergy.ai.PlayerOutpostService;
 import net.parkabird.changedsynergy.ai.PlayerOutpostSupplyType;
+import net.parkabird.changedsynergy.ai.CreatureIdentity;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.event.PlayerOrangeHarvestEvents;
+import net.parkabird.changedsynergy.network.TelepathyDialoguePacket;
 import net.parkabird.changedsynergy.world.inventory.PlayerOutpostMenu;
 
 /** Dedicated-server regression entry point; only included by dialogue-outpost.init.gradle. */
@@ -66,11 +68,12 @@ public final class DialogueOutpostRegression {
             var usesAddress = NpcDialogue.class.getDeclaredMethod("usesSocialAddress", Cue.class);
             usesAddress.setAccessible(true);
             var address = NpcDialogue.class.getDeclaredMethod("withSocialAddress",
-                    ChangedEntity.class, ServerPlayer.class, Object[].class);
+                    ChangedEntity.class, ServerPlayer.class, Cue.class, Object[].class);
             address.setAccessible(true);
+            mob.setCustomName(Component.literal("Drift"));
             Pattern placeholder = Pattern.compile("%(?:[0-9]+\\$)?[a-zA-Z]");
             int formatted = 0;
-            for (String locale : new String[]{"en_us", "zh_cn", "de_de", "es_es"}) {
+            for (String locale : new String[]{"en_us", "zh_cn", "ru_ru", "de_de", "es_es"}) {
                 Map<String, String> text = new HashMap<>();
                 try (var stream = NpcDialogue.class.getResourceAsStream(
                         "/assets/changed_synergy/lang/" + locale + ".json")) {
@@ -94,8 +97,7 @@ public final class DialogueOutpostRegression {
                             .max(java.util.Comparator.comparingInt(value -> value.name().length())).orElseThrow();
                     boolean addressed = (boolean) usesAddress.invoke(null, cue);
                     Object[] extra = switch (cue) {
-                        case RELATIONSHIP_ESTABLISHED, RELATIONSHIP_DIET_ESTABLISHED,
-                                BOND_WITNESS_COMPATRIOT_ATTACK, FRIEND_WITNESS_COMPATRIOT_ATTACK,
+                        case BOND_WITNESS_COMPATRIOT_ATTACK, FRIEND_WITNESS_COMPATRIOT_ATTACK,
                                 FRIEND_KIN_KILL_WARNING, FRIEND_KIN_KILL_BETRAYAL,
                                 COMPATRIOT_DEFENSE, FACTION_COMBAT_ASSIST, TAKEOVER_BYSTANDER,
                                 ROLE_PROVISIONER_GIFT_RESPECTED, ROLE_PROVISIONER_GIFT_ALLIED,
@@ -103,9 +105,32 @@ public final class DialogueOutpostRegression {
                                 ROLE_PROVISIONER_GIFT_BONDED -> new Object[]{Component.literal("SpecificArgument")};
                         default -> new Object[0];
                     };
-                    Object[] args = addressed ? (Object[]) address.invoke(null, mob, owner, extra) : extra;
-                    String rendered = Component.translatable(entry.getKey(), args).getString();
+                    // Introduction callers deliberately supply no name, just like wheel gifting.
+                    Object[] args = addressed ? (Object[]) address.invoke(null, mob, owner, cue, extra) : extra;
+                    Component line = Component.translatable(entry.getKey(), args);
+                    String rendered = line.getString();
                     check(!placeholder.matcher(rendered).find(), locale + ": " + entry.getKey() + " -> " + rendered);
+                    if (cue == Cue.RELATIONSHIP_ESTABLISHED || cue == Cue.RELATIONSHIP_DIET_ESTABLISHED) {
+                        check(args.length == 3 && args[0] instanceof Component && args[1] instanceof Component,
+                                "Introductions retain relationship address and player identity");
+                        check(((Component)args[1]).getString().equals(owner.getDisplayName().getString())
+                                        && ((Component)args[2]).getString().equals(CreatureIdentity.introductionName(mob).getString())
+                                        && rendered.contains("Drift"),
+                                locale + ": introduction uses the speaker's name: " + entry.getKey());
+                    }
+                    var packet = new TelepathyDialoguePacket(Component.translatable(
+                            "message.changed_synergy.npc_dialogue", mob.getDisplayName(), line),
+                            mob.getDisplayName(), line, 0x33AAFF);
+                    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+                    try {
+                        TelepathyDialoguePacket.encode(packet, buffer);
+                        var decoded = TelepathyDialoguePacket.decode(buffer);
+                        check(decoded.dialogue().getString().equals(rendered)
+                                        && decoded.message().getString().equals(packet.message().getString()),
+                                locale + ": network preserves translated arguments: " + entry.getKey());
+                    } finally {
+                        buffer.release();
+                    }
                     formatted++;
                 }
             }

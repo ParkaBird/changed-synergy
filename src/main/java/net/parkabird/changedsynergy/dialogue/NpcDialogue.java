@@ -132,7 +132,7 @@ public final class NpcDialogue {
         boolean humanIntentCue = cue == Cue.SPOTTED
                 && !ProcessTransfur.isPlayerTransfurred(focus);
         Object[] visibleArguments = usesSocialAddress(cue)
-                ? withSocialAddress(speaker, focus, lineArguments)
+                ? withSocialAddress(speaker, focus, cue, lineArguments)
                 : lineArguments;
         PersonalityContext personalityContext = personalityContext(speaker, focus, cue);
         boolean juvenileCue = CreatureSocialProfile.isJuvenile(speaker);
@@ -792,12 +792,18 @@ public final class NpcDialogue {
     /**
      * Social lines receive the relationship title as %1$s, the player's ID as
      * %2$s, then any cue-specific arguments. Relationship-establishment lines
-     * therefore use %3$s for the creature's own generated name.
+     * therefore use %3$s for the creature's own generated name, supplied here
+     * so every introduction path uses the same argument contract.
      */
     private static Object[] withSocialAddress(
             ChangedEntity speaker,
             ServerPlayer focus,
+            Cue cue,
             Object[] lineArguments) {
+        if (cue == Cue.RELATIONSHIP_ESTABLISHED
+                || cue == Cue.RELATIONSHIP_DIET_ESTABLISHED) {
+            lineArguments = new Object[]{CreatureIdentity.introductionName(speaker)};
+        }
         Object[] addressed = new Object[lineArguments.length + 2];
         String addressKey;
         if (LatexSocialMemory.isPetOwner(speaker, focus)
