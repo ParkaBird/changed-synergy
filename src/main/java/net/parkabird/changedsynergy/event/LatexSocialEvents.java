@@ -1536,6 +1536,14 @@ public final class LatexSocialEvents {
         if (owner != null && LatexSocialMemory.hasHostilityToward(mob, owner)) {
             LatexSocialMemory.clearOwnerHostility(mob, owner);
         }
+        // Combat suspends MOVE/follow goals, so their teleport fallback cannot
+        // recover a companion chasing an inaccessible enemy. Check only that
+        // companion, with the same bounded retry interval as ordinary following.
+        if (mob.getTarget() != null
+                && mob.tickCount % 60 == Math.floorMod(mob.getId(), 60)) {
+            ServerPlayer followed = owner != null ? owner : CreaturePersonality.socialPartner(mob);
+            if (followed != null) PlayerRelationshipSettings.recallFollowingContact(followed, mob);
+        }
         if (owner != null) {
             // Addon entities can install goals after joining. Reconcile every
             // second; the actual selector mutation remains deferred and

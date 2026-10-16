@@ -48,6 +48,8 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 
 ### Friends and bonds
 
+- Following companions can regroup at their normal teleport distance even during combat, preventing inaccessible enemies from leaving friends, bonded pets or travelling camp members behind. Nearby combat, waiting and stationary duties, and active grabs remain respected.
+
 - Friendship now progresses through initial familiarity, a deliberate first gift and continued interaction. Before acquaintance, ordinary affection stops at **8**; a suitable wheel gift at that point establishes the relationship and gives the creature a name.
 - Patting, direct feeding and shared activities gain affection through a shared **60-second cooldown**. After acquaintance, each accepted wheel gift refills an **8-point care allowance**. Talking, repeated encounters and return pats retain their reactions and memories without granting affection.
 - Wheel gifts have an independent **five-minute cooldown** and accept one item: ordinary gifts grant +2, preferred gifts +4 and Golden Oranges +6. Direct feeding remains separate and can heal during affection cooldowns. Rejected gifts are not consumed.

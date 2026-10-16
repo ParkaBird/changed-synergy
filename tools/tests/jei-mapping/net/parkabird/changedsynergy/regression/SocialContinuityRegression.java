@@ -110,6 +110,7 @@ final class SocialContinuityRegression {
             check(net.minecraft.world.item.ItemStack.of(replacement.getPersistentData().getCompound("ChangedSynergyPlayerOutpostCargo")).getCount() == 7,
                     "Replacement retains real work cargo");
             camps.remove(camp, replacement.getUUID()); PlayerOutpostService.clearAssignment(replacement);
+            checkCombatRecall(player, camp);
             checkFriendlyHolds(player, replacement);
             checkRescue(player, replacement);
             checkYufengAndGrowth(player);
@@ -118,6 +119,113 @@ final class SocialContinuityRegression {
         } finally {
             squid.discard(); wolf.discard(); players.remove(player.getUUID());
         }
+    }
+
+    private static void checkCombatRecall(ServerPlayer player, PlayerOutpostData.Outpost camp) {
+        var level = player.serverLevel();
+        var origin = player.position();
+        var mob = ChangedEntities.DARK_LATEX_WOLF_MALE.get().create(level);
+        var enemy = net.minecraft.world.entity.EntityType.ZOMBIE.create(level);
+        var grabber = ChangedEntities.DARK_LATEX_WOLF_MALE.get().create(level);
+        level.addFreshEntity(mob); level.addFreshEntity(enemy); level.addFreshEntity(grabber);
+        enemy.setPos(origin.x + 12, origin.y, origin.z);
+        var camps = PlayerOutpostData.get(player.server);
+        try {
+            CreaturePersonality.establishRelationship(mob, player);
+            CreaturePersonality.setFamiliarity(mob, player, 60);
+            CreaturePersonality.setSocialFollowing(mob, player, true);
+            mob.setPos(origin.x + 3, origin.y, origin.z); mob.setTarget(enemy);
+            combatRecallTick(mob);
+            check(mob.getTarget() == enemy && mob.distanceToSqr(player) < 16,
+                    "Nearby combat is not interrupted by follower recall");
+            mob.setPos(origin.x + 40, origin.y, origin.z); mob.setTarget(enemy);
+            combatRecallTick(mob);
+            check(mob.distanceToSqr(player) < 144 && mob.getTarget() == null,
+                    "A fighting friend regroups even though its follow goal cannot run");
+            mob.setPos(origin.x + 40, origin.y, origin.z); mob.setTarget(enemy);
+            var ability = BondedSuitService.ability(mob);
+            ability.grabbedEntity = enemy;
+            combatRecallTick(mob);
+            check(mob.distanceToSqr(player) > 28 * 28, "Recall does not interrupt an active grab");
+            ability.grabbedEntity = null;
+            BondedSuitService.ability(grabber).grabbedEntity = mob;
+            ((net.ltxprogrammer.changed.entity.LivingEntityDataExtension)mob).setGrabbedBy(grabber);
+            combatRecallTick(mob);
+            check(mob.distanceToSqr(player) > 28 * 28, "A restrained companion is not teleported");
+            ((net.ltxprogrammer.changed.entity.LivingEntityDataExtension)mob).setGrabbedBy(null);
+            BondedSuitService.ability(grabber).grabbedEntity = null;
+            mob.setLeashedTo(player, false);
+            combatRecallTick(mob);
+            check(mob.distanceToSqr(player) > 28 * 28, "Recall respects a leash");
+            mob.dropLeash(false, false);
+            CreaturePersonality.setSocialFollowing(mob, player, false);
+            combatRecallTick(mob);
+            check(mob.distanceToSqr(player) > 28 * 28, "Waiting friends are not recalled from combat");
+            CreaturePersonality.setSocialFollowing(mob, player, true);
+            mob.setTarget(enemy);
+            player.setPos(origin.x, level.getMaxBuildHeight() - 10, origin.z);
+            check(BondedTeleportSafety.findSafeLanding(level, mob, player).isEmpty(),
+                    "Flying-owner fixture has no safe landing");
+            combatRecallTick(mob);
+            check(mob.getTarget() == enemy && mob.getX() == origin.x + 40,
+                    "Failed safe placement retains the fight and position");
+            player.setPos(origin);
+            PlayerRelationshipSettings.recallFollowingContact(player, mob);
+            check(mob.distanceToSqr(player) < 144 && mob.getTarget() == null,
+                    "Explicit travel invitations can also recall fighting loaded contacts");
+            LatexSocialMemory.addBond(mob, player);
+            LatexSocialMemory.setFollowingOwner(mob, true);
+            mob.setLastHurtByMob(enemy);
+            mob.setPos(origin.x + 26, origin.y, origin.z); mob.setTarget(enemy);
+            check(mob.getTarget() == enemy, "Bonded recall fixture represents permitted self-defense");
+            combatRecallTick(mob);
+            check(mob.distanceToSqr(player) < 144 && mob.getTarget() == null,
+                    "Bonded pets retain their shorter combat-recall distance");
+            LatexSocialMemory.setFollowingOwner(mob, false);
+            mob.setLastHurtByMob(enemy);
+            mob.setPos(origin.x + 40, origin.y, origin.z); mob.setTarget(enemy);
+            combatRecallTick(mob);
+            check(mob.distanceToSqr(player) > 24 * 24, "Waiting bonded pets stay at their post");
+            camps.add(camp, mob.getUUID(), mob.getDisplayName().getString(),
+                    level.dimension().location().toString(), mob.blockPosition(), PlayerOutpostSupplyType.of(mob));
+            camps.role(camp, mob.getUUID(), PlayerOutpostData.Role.CREW, mob.blockPosition());
+            PlayerOutpostService.applyRole(mob, player, PlayerOutpostData.Role.CREW);
+            mob.setLastHurtByMob(enemy);
+            mob.setTarget(enemy);
+            combatRecallTick(mob);
+            check(mob.distanceToSqr(player) < 144 && mob.getTarget() == null,
+                    "Travelling camp members are not stranded by combat");
+            camps.role(camp, mob.getUUID(), PlayerOutpostData.Role.GUARD, mob.blockPosition());
+            PlayerOutpostService.applyRole(mob, player, PlayerOutpostData.Role.GUARD);
+            mob.setLastHurtByMob(enemy);
+            mob.setPos(origin.x + 40, origin.y, origin.z); mob.setTarget(enemy);
+            combatRecallTick(mob);
+            check(mob.distanceToSqr(player) > 24 * 24, "Camp guards keep their stationary assignment");
+            CreaturePersonality.establishRelationship(grabber, player);
+            CreaturePersonality.setFamiliarity(grabber, player, 60);
+            camps.add(camp, grabber.getUUID(), grabber.getDisplayName().getString(),
+                    level.dimension().location().toString(), grabber.blockPosition(), PlayerOutpostSupplyType.of(grabber));
+            camps.role(camp, grabber.getUUID(), PlayerOutpostData.Role.CREW, grabber.blockPosition());
+            PlayerOutpostService.applyRole(grabber, player, PlayerOutpostData.Role.CREW);
+            grabber.setPos(origin.x + 26, origin.y, origin.z); grabber.setTarget(enemy);
+            combatRecallTick(grabber);
+            check(grabber.distanceToSqr(player) < 144 && grabber.getTarget() == null,
+                    "An unbonded camp crew member uses the crew's normal teleport distance");
+            System.out.println("COMPANION_COMBAT_RECALL_PASS");
+        } finally {
+            player.setPos(origin);
+            camps.remove(camp, mob.getUUID());
+            camps.remove(camp, grabber.getUUID());
+            PlayerOutpostService.clearAssignment(mob);
+            PlayerOutpostService.clearAssignment(grabber);
+            mob.discard(); enemy.discard(); grabber.discard();
+        }
+    }
+
+    private static void combatRecallTick(ChangedEntity mob) {
+        mob.tickCount = 60 + Math.floorMod(mob.getId(), 60);
+        net.parkabird.changedsynergy.event.LatexSocialEvents.onLivingTick(
+                new net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent(mob));
     }
 
     private static void checkFriendlyHolds(ServerPlayer player, ChangedEntity mob) throws Exception {
