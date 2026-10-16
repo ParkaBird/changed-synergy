@@ -1,5 +1,6 @@
 # Changed: Synergy 1.1.4-hotfix
 
+- Fixed unresolved introduction-dialogue placeholders after wheel gifting. Applied Goldfinder's English dialogue corrections from PR #12 and corrected additional scent-related typos.
 - Restored Partial Dark Latex Wolf to starting-origin selection. Partial Snow Leopard is also available with Changed Addon Plus when modded starting species are enabled.
 - Friendly arm holds now allow harmless WASD escape, retain escape progress and reliably clear expired or interrupted hugs without hurting or stunning the creature.
 - Travel invitations can recall distant, loaded followers to a safe nearby position even when their current area is not ticking creature AI.
