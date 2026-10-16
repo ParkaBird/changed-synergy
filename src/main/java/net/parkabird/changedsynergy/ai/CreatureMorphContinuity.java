@@ -71,9 +71,13 @@ public final class CreatureMorphContinuity {
             ChangedEntity previous,
             ChangedEntity replacement,
             ServerLevel level) {
-
+        if (previous.getUnderlyingPlayer() != null || replacement.getUnderlyingPlayer() != null
+                || net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(previous)
+                || net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(replacement)) return;
         UUID previousId = previous.getUUID();
         UUID replacementId = replacement.getUUID();
+        // Fusion events and the common replacement hook can observe the same morph.
+        if (CreatureMorphAliasData.get(level.getServer()).resolveAlias(previousId).equals(replacementId)) return;
         Set<UUID> bondedPlayers = LatexSocialMemory.bondedPlayerUuids(previous);
         if (!bondedPlayers.isEmpty()) {
             BondedCreatureLifecycle.untrack(previous);
@@ -95,6 +99,11 @@ public final class CreatureMorphContinuity {
         copyTag(source, target, FACILITY_ORANGE_ROOM);
         copyTag(source, target, FACILITY_STORAGE_POS);
         copyCompound(source, target, BONDED_INVENTORY);
+        for (String key : java.util.List.of("ChangedSynergyPlayerOutpostWorkBag",
+                "ChangedSynergyPlayerOutpostCargo", "ChangedSynergyPlayerOutpostWorkOutput",
+                "ChangedSynergyPlayerOutpostFarmBatch", "ChangedSynergyPlayerOutpostHaulBatch")) {
+            copyTag(source, target, key);
+        }
         ProvisionerTradeService.copyProfile(previous, replacement);
         InvoluntaryTransfurNegotiation.copySourceMarker(previous, replacement);
         if (source.hasUUID(COMMUNITY)) {
@@ -105,6 +114,7 @@ public final class CreatureMorphContinuity {
             replacement.setCustomName(previous.getCustomName());
             replacement.setCustomNameVisible(previous.isCustomNameVisible());
         }
+        PlayerOutpostData.get(level.getServer()).replaceMember(previousId, replacement);
         if (previous.isPersistenceRequired()
                 || hasStoredRelationship(source)
                 || !bondedPlayers.isEmpty()) {

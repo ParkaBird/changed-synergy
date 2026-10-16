@@ -15,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 
 /** Player-owned settings and contact index used by the relationship wheel. */
 public final class PlayerRelationshipSettings {
@@ -244,6 +245,7 @@ public final class PlayerRelationshipSettings {
 
     @Nullable
     public static ChangedEntity findLoaded(ServerPlayer player, UUID uuid) {
+        uuid = CreatureMorphAliasData.get(player.server).resolveAlias(uuid);
         if (BondedCreatureDeathData.get(player.server).isDead(player.getUUID(), uuid)) {
             forgetContact(player, uuid);
             return null;
@@ -273,6 +275,25 @@ public final class PlayerRelationshipSettings {
             }
         }
         return result;
+    }
+
+    /** Explicit invitations also reach loaded companions outside the entity-ticking distance. */
+    public static void recallFollowingContact(ServerPlayer player, ChangedEntity creature) {
+        var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player);
+        boolean bonded = LatexSocialMemory.isPetOwner(creature, player) || LatexSocialMemory.isBonded(creature, player);
+        if (!creature.isAlive() || !body.isAlive() || body.isRemoved() || player.isSpectator()
+                || body == player && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
+                || creature.level() != body.level() || creature.isNoAi()
+                || creature.getTarget() != null || creature.isPassenger() || creature.isLeashed()
+                || ChangedAddonCompat.isGrabberBusy(creature)
+                || BondedSuitService.ability(creature) != null && BondedSuitService.ability(creature).grabbedEntity != null
+                || !(bonded ? LatexSocialMemory.isFollowingOwner(creature) : CreaturePersonality.isSocialFollowing(creature, player))
+                || creature.distanceToSqr(body) < (bonded ? 24 * 24 : 28 * 28)) return;
+        if (PlayerOutpostService.assigned(creature)) {
+            var home = PlayerOutpostData.get(player.server).byMember(creature.getUUID()).orElse(null);
+            if (home == null || home.members.get(creature.getUUID()).role != PlayerOutpostData.Role.CREW) return;
+        }
+        BondedTeleportSafety.teleportNearOwner((net.minecraft.server.level.ServerLevel)creature.level(), creature, player);
     }
 
 

@@ -115,6 +115,10 @@ You can also end a bond while the companion is unloaded. Former companions can r
 
 **Remove relationship** for an ordinary friend is a separate action that clears the contact. Ending a bond does not automatically forget the creature.
 
+Stasis-chamber modifications, growth and absorption-related form changes preserve the creature's name, friendship, affection and bond. Camp assignments and carried work cargo follow the new body too.
+
+**Travel together** invites available loaded contacts to follow. Distant followers can return to a safe spot near you even when their current area is not running creature AI. It does not search arbitrary unloaded terrain or summon dead creatures; confirmed deaths are removed from the roster. Busy companions and members assigned to stationary camp duties keep their current commitments.
+
 ## Protection and takeovers
 
 Automatic companion protection respects following or waiting orders and the creature's attack settings. Waiting or distant companions do not teleport in to intervene. **Never attack** prevents defensive attacks while still allowing local, nonviolent emergency shelter. A peaceful grab by a friend or another player is not treated as an assault.
@@ -126,6 +130,8 @@ The **Monsters** target filter excludes neutral creatures such as unprovoked zom
 Bonded emergency wrapping and organic evacuation can be disabled separately from manual wrapping and ordinary defense. Aquatic friends offer drowning shelter only after actual drowning damage, with aquatic friend rescue also enabled. After release, automatic shelter has a short grace period and waits for the same emergency to subside before trying again. You can still request manual wrapping. With protective release requests enabled, a concerned companion may ask you to request release again before letting go.
 
 Companion wrapping and rescue work without Changed Addon Plus. Organic companions carry their wounded owner out of danger rather than assimilating them; this also preserves an already transformed owner's body. Species excluded from grabbing and juvenile pets retain their restrictions.
+
+Friendly arm holds also allow the normal WASD escape. Escaping a friendly hold does not hurt or stun the creature or apply escape debuffs to you. Ordinary social hugs end automatically; protective wrapping still uses its own release controls.
 
 When using Changed's own grab ability as a creature player, hold its assigned ability key to unwrap a suited creature into an arm hold, then hold it again to release. This is separate from the locked NPC takeover interface.
 

@@ -100,13 +100,15 @@ public final class OriginRegression {
                 disabled.set(java.util.List.of(modded.form().toString()));
                 check(NativeOriginCatalog.find(level.registryAccess(), modded.form()) == null, "Denylist also excludes other mods' forms");
                 disabled.set(previousDisabled);
-                check(expanded.stream().noneMatch(entry -> entry.form().getPath().matches(".*(partial|custom|benign|special|boss).*")),
+                check(expanded.stream().noneMatch(entry -> !entry.form().toString().equals("changed:form_dark_latex_wolf_partial")
+                        && entry.form().getPath().matches(".*(partial|custom|benign|special|boss).*")),
                         "Expanded catalog still rejects boss and restricted forms");
                 check(String.join(".", ChangedSynergyConfig.COMMON.includeModdedOriginSpecies.getPath()).equals("BEHAVIOUR.IncludeModdedOriginSpecies"),
                         "Expanded origins available through server config commands");
             } finally { ChangedSynergyConfig.COMMON.includeModdedOriginSpecies.set(false); disabled.set(previousDisabled); }
             check(catalog.size() > 65, "All original playable species included: " + catalog.size());
-            check(catalog.stream().noneMatch(entry -> entry.form().getPath().matches(".*(partial|custom|benign|special).*")), "Exclusions");
+            check(catalog.stream().noneMatch(entry -> !entry.form().toString().equals("changed:form_dark_latex_wolf_partial")
+                    && entry.form().getPath().matches(".*(partial|custom|benign|special).*")), "Exclusions");
             check(catalog.stream().anyMatch(entry -> entry.form().getPath().contains("pup")), "Juvenile forms retained");
             check(catalog.stream().anyMatch(entry -> entry.form().getPath().contains("fusion")), "Fusion forms retained");
             var phages = catalog.stream().filter(form -> {

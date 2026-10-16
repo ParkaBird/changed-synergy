@@ -21,6 +21,8 @@ Wild creature outposts are separate from player camps. A server can disable new 
 
 ## Command Reference
 
+Members retain their camp assignment, travelling job and work cargo when a stasis chamber, growth or absorption changes their body. You do not need to befriend or recruit them again.
+
 Add `/changedsynergy outpost` before each command below. Replace text in `<angle brackets>` with an actual value. Square brackets indicate an optional argument; do not type the brackets themselves.
 
 | Command | What it does |
