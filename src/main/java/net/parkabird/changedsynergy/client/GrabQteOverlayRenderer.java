@@ -14,7 +14,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
-import net.parkabird.changedsynergy.network.FriendlySocialHugState;
 import java.util.UUID;
 
 /** Animated presentation for the hostile player-side grab escape QTE. */
@@ -437,9 +436,6 @@ public final class GrabQteOverlayRenderer {
         }
         LivingEntity grabber = extension.getGrabbedBy();
         if (grabber == null) {
-            return null;
-        }
-        if (FriendlySocialHugState.isLocked(grabber.getId(), minecraft.player.getId())) {
             return null;
         }
         GrabEntityAbilityInstance ability = AbstractAbility.getAbilityInstance(

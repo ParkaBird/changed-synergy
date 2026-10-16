@@ -173,7 +173,8 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
                 && (LatexSocialMemory.isBonded(other, owner)
                         || LatexSocialMemory.isPetOwner(other, owner)
                         || LatexSocialMemory.hasSamePetOwner(pet, other)
-                        || LatexCreatureCombatRules.areCompatriots(pet, other))) {
+                        || LatexCreatureCombatRules.areCompatriots(pet, other)
+                                && !BondedOwnerDefenseGoal.hasRecentConflict(pet, owner, other))) {
             return false;
         }
         return true;

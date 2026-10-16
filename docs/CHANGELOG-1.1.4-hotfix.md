@@ -1,5 +1,11 @@
 # Changed: Synergy 1.1.4-hotfix
 
+- Restored Partial Dark Latex Wolf to starting-origin selection.
+- Friendly arm holds now allow harmless WASD escape, retain escape progress and reliably clear expired or interrupted hugs without hurting or stunning the creature.
+- Travel invitations can recall distant, loaded followers to a safe nearby position even when their current area is not ticking creature AI.
+- Stasis-chamber modification, growth and absorption retain names, affection, friendship, bonds, camp assignments and carried work cargo across form changes.
+- Improved emergency rescue when a companion is resting or the hostile grabber belongs to the same faction. Waiting orders and attack settings remain respected, and automatic wrapping requires unobstructed bodily contact.
+
 - Added compatibility for JEI 15.70.0.221 screen rendering, keyboard/mouse input and item-display interactions, including clicking, dragging and releasing carried items. JEI remains optional.
 - Fixed provisioner bulk trades producing unpaid goods when combat, grabbing or takeover interrupted a transaction. Invalid purchases are rejected before goods leave the result slot, and unused payment is returned when trading closes.
 - Companions can navigate powered facility doors and briefly crouch under low frames when their body fits. Normal power and creature-access restrictions are preserved.

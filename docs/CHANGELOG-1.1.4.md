@@ -8,6 +8,8 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 
 ### Native latex origins and TrueTransfur
 
+- Restored Partial Dark Latex Wolf as a selectable starting origin.
+
 - Begin as a human or a native latex creature with TrueTransfur, including eligible juvenile and fusion forms. Supports TrueTransfur **2.0.0**, with backward compatibility for **1.0.1**; TrueTransfur remains optional for other Synergy features.
 - Native players belong to their species' faction, begin at Recognized standing and receive greetings from compatriots. Their origin, citizenship and permanent creature identity persist through death and rejoining.
 - Birth placement searches for safe territory suited to the chosen species, including previously unloaded terrain. If no suitable home is found, choose another species or approve a safe birthplace near world spawn.
@@ -19,6 +21,11 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 - A default-off option adds eligible playable forms from other installed mods. Servers can disable individual starting forms; bosses and unsuitable special forms remain excluded, and existing origins are preserved.
 
 ### Native identity, player friendship and roleplay
+
+- Friendly arm holds allow harmless WASD escape and reliably end when their social-hug timer expires.
+- Explicit travel invitations can recall distant, loaded followers to a safe nearby position even when their current chunks are not ticking creature AI.
+- Stasis-chamber modification, growth and absorption preserve names, affection, friendship, bonds, camp jobs and carried work cargo across form changes.
+- Improved emergency rescue when a companion is resting or the hostile grabber belongs to the same faction. Waiting orders and attack settings remain respected; automatic wrapping requires unobstructed physical contact.
 
 - Native players receive a persistent creature name from their species' naming pool. Change it through the relationship wheel or `/changedsynergy social name`; account names, UUIDs and permissions remain unchanged.
 - A six-expression wheel lets native players show short-lived expressions on their visible body in either control mode. Relationship-wheel navigation hints share one line, and the chat-mode switch stays beneath command suggestions.

@@ -411,9 +411,7 @@ public final class BondedSuitService {
                 && (isRescueGraceActive(owner)
                         || LatexSocialMemory.isPetOwner(pet, owner)
                                 && !BondedOwnerDefenseGoal.canProtectOwner(pet, owner)
-                        || pet.distanceToSqr(owner) > 2.5D * 2.5D
-                                && !pet.getBoundingBox().inflate(0.75D)
-                                        .intersects(owner.getBoundingBox()))) {
+                        || !TakeoverService.canPhysicallyCapture(pet, owner))) {
             clearTransfurRescueRequest(pet);
             return false;
         }
@@ -958,6 +956,27 @@ public final class BondedSuitService {
     public static void tickFriendlySuit(ServerPlayer owner) {
         if(TakeoverService.active(owner))return;
         IAbstractChangedEntity grabber = GrabEntityAbility.getGrabber(owner);
+        if (grabber != null && grabber.getEntity() instanceof ChangedEntity carrier
+                && carrier.getUnderlyingPlayer() == null
+                && !TrueTransfurCompat.isInstinctBody(carrier)) {
+            var hold = ability(carrier);
+            if ((hold == null || !hold.suited)
+                    && (LatexSocialMemory.isFriendlyArmHoldTarget(carrier, owner) || ChangedAddonCompat.isSafeGrab(hold))) {
+                if (hold != null && hold.grabbedEntity == owner) {
+                    if (!carrier.isAlive() || carrier.isRemoved() || carrier.level() != owner.level()) hold.releaseEntity(false);
+                    else ((GrabAbilityTick)hold).changedSynergy$tickHoldIfNeeded();
+                } else if (owner instanceof LivingEntityDataExtension extension && extension.getGrabbedBy() == carrier) {
+                    extension.setGrabbedBy(null);
+                    owner.noPhysics = false;
+                    LatexSocialMemory.endFriendlySocialHug(carrier);
+                    Changed.PACKET_HANDLER.send(PacketDistributor.PLAYER.with(() -> owner),
+                            new GrabEntityPacket(carrier, owner, GrabType.RELEASE));
+                    ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> owner),
+                            new net.parkabird.changedsynergy.network.FriendlySocialHugSyncPacket(carrier.getId(), owner.getId(), false, 0));
+                }
+                return;
+            }
+        }
         if (grabber == null || !(grabber.getEntity() instanceof ChangedEntity pet)
                 || !LatexSocialMemory.isFriendlySuitActive(pet, owner)) {
             return;

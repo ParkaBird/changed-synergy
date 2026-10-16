@@ -354,6 +354,27 @@ public final class PlayerOutpostData extends SavedData {
         return true;
     }
 
+    /** A new body is still the same worker, including its assignments and carried inventory. */
+    public void replaceMember(UUID previousId, net.ltxprogrammer.changed.entity.ChangedEntity replacement) {
+        Outpost outpost = membership.get(previousId);
+        if (outpost == null || previousId.equals(replacement.getUUID())) return;
+        Member previous = outpost.members.get(previousId);
+        Member next = new Member(replacement.getUUID(), replacement.getDisplayName().getString(),
+                previous.role, replacement.level().dimension().location().toString(), replacement.blockPosition());
+        next.holdPosition = previous.holdPosition;
+        next.supplyType = PlayerOutpostSupplyType.of(replacement);
+        next.work = previous.work;
+        next.backupWork = previous.backupWork;
+        next.crewJob = previous.crewJob;
+        outpost.members.remove(previousId);
+        membership.remove(previousId);
+        outpost.members.put(next.id, next);
+        membership.put(next.id, outpost);
+        replacement.getPersistentData().putUUID("ChangedSynergyPlayerOutpostOwner", outpost.owner);
+        setDirty();
+        PlayerOutpostService.ensureGoal(replacement);
+    }
+
     public boolean disband(UUID owner) {
         Outpost outpost = outposts.remove(owner);
         if (outpost == null) return false;

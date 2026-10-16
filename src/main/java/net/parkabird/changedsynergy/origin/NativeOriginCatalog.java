@@ -37,7 +37,8 @@ public final class NativeOriginCatalog {
         if (entityId == null) return false;
         boolean original = "changed".equals(variant.getFormId().getNamespace()) && "changed".equals(entityId.getNamespace());
         return (original || ChangedSynergyConfig.COMMON.includeModdedOriginSpecies.get())
-                && !path.contains("partial") && !path.contains("custom")
+                && (!path.contains("partial") || variant.getFormId().toString().equals("changed:form_dark_latex_wolf_partial"))
+                && !path.contains("custom")
                 && !path.contains("benign") && !path.contains("special") && !path.contains("boss")
                 && !entityId.getPath().contains("boss")
                 && !variant.getEntityType().is(TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.parse("forge:bosses")))

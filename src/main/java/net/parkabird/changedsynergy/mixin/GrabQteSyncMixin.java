@@ -66,6 +66,50 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
     @Shadow(remap = false)
     public boolean suited;
 
+    @Unique private boolean changedSynergy$harmlessRelease;
+    @Unique private int changedSynergy$friendlyHoldTicks;
+    @Unique private int changedSynergy$lastFriendlyHoldTick = Integer.MIN_VALUE;
+    @Unique private LivingEntity changedSynergy$friendlyPassenger;
+
+    @Unique
+    private boolean changedSynergy$harmlessArmHold() {
+        if (suited || grabbedEntity == null || !(entity.getEntity() instanceof ChangedEntity mob)
+                || mob.getUnderlyingPlayer() != null
+                || net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(mob)) return false;
+        return entity.getLevel().isClientSide()
+                ? FriendlySocialHugState.isActive(mob.getId(), grabbedEntity.getId())
+                        || net.parkabird.changedsynergy.compat.ChangedAddonCompat.isSafeGrab(this)
+                : LatexSocialMemory.isFriendlyArmHoldTarget(mob, grabbedEntity)
+                        || net.parkabird.changedsynergy.compat.ChangedAddonCompat.isSafeGrab(this);
+    }
+
+    /** A safe social hold must expire even if Addon's grab-AI flag is disabled mid-hug. */
+    @Inject(method = "tickIdle", at = @At("HEAD"), cancellable = true)
+    private void changedSynergy$limitFriendlyHold(CallbackInfo callback) {
+        if (entity.getLevel().isClientSide()) return;
+        if (!changedSynergy$harmlessArmHold()) {
+            changedSynergy$friendlyPassenger = null;
+            changedSynergy$friendlyHoldTicks = 0;
+            return;
+        }
+        if (changedSynergy$friendlyPassenger != grabbedEntity) {
+            changedSynergy$friendlyPassenger = grabbedEntity;
+            changedSynergy$friendlyHoldTicks = 0;
+        }
+        if (changedSynergy$lastFriendlyHoldTick != entity.getEntity().tickCount) {
+            changedSynergy$lastFriendlyHoldTick = entity.getEntity().tickCount;
+            changedSynergy$friendlyHoldTicks++;
+        }
+        var mob = (ChangedEntity)entity.getEntity();
+        boolean timedHug = LatexSocialMemory.isFriendlySocialHugTarget(mob, grabbedEntity);
+        boolean expired = timedHug && !LatexSocialMemory.isFriendlySocialHugActive(mob, grabbedEntity);
+        boolean ordinaryHug = !LatexSocialMemory.isFriendlyArmHoldTarget(mob, grabbedEntity) || timedHug;
+        if (expired || ordinaryHug && changedSynergy$friendlyHoldTicks >= 200) {
+            ((GrabEntityAbilityInstance)(Object)this).releaseEntity(false);
+            callback.cancel();
+        }
+    }
+
     @Unique
     @Nullable
     private KeyReference changedSynergy$lastSentCurrent;
@@ -191,50 +235,6 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
         }
     }
 
-    /** Scripted safety holds keep their lock; social play hugs allow QTE. */
-    @Inject(
-            method = "handleEscape",
-            at = @At("HEAD"),
-            cancellable = true,
-            remap = false)
-    private void changedSynergy$suppressFriendlyHugEscape(CallbackInfo callback) {
-        if (grabbedEntity != null && entity.getEntity() instanceof ChangedEntity mob
-                && (entity.getLevel().isClientSide()
-                        ? FriendlySocialHugState.isLocked(mob.getId(), grabbedEntity.getId())
-                        : SharedRestGoal.isCarryTarget(mob, grabbedEntity))) {
-            grabStrength = 1.0F;
-            ticksUnpressed = 0;
-            currentEscapeKey = lastEscapeKey = null;
-            callback.cancel();
-            return;
-        }
-        boolean friendlyHug =
-                entity.getLevel().isClientSide()
-                        ? grabbedEntity != null
-                                && FriendlySocialHugState.isActive(
-                                        entity.getEntity().getId(),
-                                        grabbedEntity.getId())
-                        : entity.getEntity() instanceof ChangedEntity mob
-                                && grabbedEntity != null
-                                && LatexSocialMemory.isFriendlyArmHoldTarget(
-                                        mob, grabbedEntity);
-        if (friendlyHug
-                && !(entity.getEntity() instanceof ChangedEntity mob
-                        && grabbedEntity != null
-                        && !entity.getLevel().isClientSide()
-                        && LatexSocialMemory.isFriendlySocialHugTarget(mob, grabbedEntity))
-                && (entity.getLevel().isClientSide()
-                        ? grabbedEntity == null || !FriendlySocialHugState.isActive(
-                                entity.getEntity().getId(), grabbedEntity.getId())
-                        : true)) {
-            grabStrength = 1.0F;
-            ticksUnpressed = 0;
-            currentEscapeKey = null;
-            lastEscapeKey = null;
-            callback.cancel();
-        }
-    }
-
     @Inject(method = "grabEntity", at = @At("RETURN"), remap = false)
     private void changedSynergy$beginQteSession(
             LivingEntity target,
@@ -321,6 +321,26 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
         changedSynergy$lastSentPrevious = null;
         ServerPlayer releasedOwner = changedSynergy$releasedSuitOwner;
         changedSynergy$releasedSuitOwner = null;
+        boolean harmless = changedSynergy$harmlessRelease;
+        changedSynergy$harmlessRelease = false;
+        if (grabbedEntity == null && harmless) {
+            changedSynergy$friendlyPassenger = null;
+            changedSynergy$friendlyHoldTicks = 0;
+            if (entity.getEntity() instanceof ChangedEntity mob) {
+                if (releasedOwner != null) {
+                    // Preserve friendly markers until native debuffs have been decided.
+                    LatexSocialMemory.blockGrabAgainst(mob, releasedOwner, 60);
+                    ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> releasedOwner),
+                            new net.parkabird.changedsynergy.network.FriendlySocialHugSyncPacket(mob.getId(), releasedOwner.getId(), false, 0));
+                    net.ltxprogrammer.changed.Changed.PACKET_HANDLER.send(PacketDistributor.TRACKING_ENTITY.with(() -> mob),
+                            new net.ltxprogrammer.changed.network.packet.GrabEntityPacket(mob, releasedOwner,
+                                    net.ltxprogrammer.changed.network.packet.GrabEntityPacket.GrabType.RELEASE));
+                }
+                LatexSocialMemory.endFriendlySocialHug(mob);
+                if (releasedOwner != null && SharedRestGoal.isCarryTarget(mob, releasedOwner)) SharedRestGoal.cancel(mob);
+                net.parkabird.changedsynergy.compat.ChangedAddonCompat.configureFriendlyGrab(this, false);
+            }
+        }
         ChangedEntity nextCarrier = changedSynergy$nextSuitCarrier;
         changedSynergy$nextSuitCarrier = null;
         boolean friendlySuit = changedSynergy$friendlySuitReleased;
@@ -345,6 +365,7 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
     private void changedSynergy$stunGrabberAfterEscape(
             boolean applyDebuffs,
             CallbackInfo callback) {
+        changedSynergy$harmlessRelease = changedSynergy$harmlessArmHold();
         changedSynergy$releasedSuitOwner = !entity.getLevel().isClientSide()
                 && entity.getEntity() instanceof ChangedEntity
                 && grabbedEntity instanceof ServerPlayer owner
@@ -374,8 +395,7 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
                 && grabStrength <= 0.0F
                 && grabbedEntity instanceof ServerPlayer player
                 && entity.getEntity() instanceof Mob mob) {
-            if (mob instanceof ChangedEntity changed
-                    && LatexSocialMemory.isFriendlySocialHugTarget(changed, player)) {
+            if (changedSynergy$harmlessArmHold()) {
                 return;
             }
             GrabEscapeStunService.stun(mob, player);
@@ -385,9 +405,7 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance {
     @ModifyVariable(method = "releaseEntity", at = @At("HEAD"), argsOnly = true,
             ordinal = 0, remap = false)
     private boolean changedSynergy$noFriendlyEscapeDebuffs(boolean applyDebuffs) {
-        return applyDebuffs && !(entity.getEntity() instanceof ChangedEntity mob
-                && grabbedEntity != null
-                && LatexSocialMemory.isFriendlySocialHugTarget(mob, grabbedEntity));
+        return applyDebuffs && !changedSynergy$harmlessArmHold();
     }
 
     @Unique

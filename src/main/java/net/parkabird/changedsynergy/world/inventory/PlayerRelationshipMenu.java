@@ -339,6 +339,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                 || LatexSocialMemory.isBonded(creature, origin)) {
             LatexSocialMemory.setFollowingOwner(
                     creature, !LatexSocialMemory.isFollowingOwner(creature));
+            PlayerRelationshipSettings.recallFollowingContact(origin, creature);
             return;
         }
         if (!CreaturePersonality.hasTrustedRelationship(creature, origin)
@@ -351,6 +352,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                 creature,
                 origin,
                 !CreaturePersonality.isSocialFollowing(creature, origin));
+        PlayerRelationshipSettings.recallFollowingContact(origin, creature);
     }
 
     private void toggleGroupFollow(ServerPlayer origin) {
@@ -375,6 +377,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                         creature, origin, shouldFollow);
                 changed++;
             }
+            if (shouldFollow) PlayerRelationshipSettings.recallFollowingContact(origin, creature);
         }
         origin.displayClientMessage(Component.translatable(
                 shouldFollow

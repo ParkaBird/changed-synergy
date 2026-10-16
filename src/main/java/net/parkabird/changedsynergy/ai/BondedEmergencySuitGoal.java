@@ -11,7 +11,6 @@ import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 /** A bonded creature reaches its reverted owner to shelter either partner. */
 public final class BondedEmergencySuitGoal extends Goal {
     private static final String SELF_RECOVERY_SUPPRESSED = "SynergySelfRecoverySuppressed";
-    private static final double SUIT_REACH_SQR = 2.5 * 2.5;
     private static final double NORMAL_RUN_SPEED = 0.35D;
     private static final double URGENT_RESCUE_SPEED = 1.0D;
     private static final float SELF_RECOVERY_TRIGGER_HEALTH =
@@ -76,6 +75,9 @@ public final class BondedEmergencySuitGoal extends Goal {
     @Override
     public void start() {
         repathTicks = 0;
+        SharedRestGoal.cancel(pet);
+        CreatureComfortGoal.endSeatedActivity(pet);
+        if (pet.isSleeping()) pet.stopSleeping();
         pet.setTarget(null);
         pet.setLastHurtByMob(null);
         LatexSocialMemory.clearPetDefense(pet, null);
@@ -92,12 +94,9 @@ public final class BondedEmergencySuitGoal extends Goal {
         pet.setTarget(null);
         pet.getLookControl().setLookAt(owner, 30.0F, 30.0F);
         boolean drowningRescue = BondedSuitService.needsDrowningRescue(pet, owner);
-        boolean outOfReach = !pet.getBoundingBox().inflate(0.75)
-                .intersects(owner.getBoundingBox())
-                && pet.distanceToSqr(owner) > SUIT_REACH_SQR;
+        boolean outOfReach = !TakeoverService.canPhysicallyCapture(pet, owner);
         followNavigation.tickProgress(outOfReach);
-        if (pet.getBoundingBox().inflate(0.75).intersects(owner.getBoundingBox())
-                || pet.distanceToSqr(owner) <= SUIT_REACH_SQR) {
+        if (!outOfReach) {
             pet.getNavigation().stop();
             BondedSuitService.SuitReason reason;
             if (BondedSuitService.isTransfurRescueRequested(pet, owner)) {

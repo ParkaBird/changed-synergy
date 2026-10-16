@@ -27,8 +27,6 @@ import net.ltxprogrammer.changed.util.EntityUtil;
 import net.ltxprogrammer.changed.entity.beast.LatexBenignWolf;
 import net.ltxprogrammer.changed.entity.beast.LatexBenignOrca;
 import net.parkabird.changedsynergy.network.TakeoverStatePacket;
-import net.parkabird.changedsynergy.network.FriendlySocialHugState;
-import net.ltxprogrammer.changed.entity.LivingEntityDataExtension;
 
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID, value = Dist.CLIENT,
         bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -44,15 +42,6 @@ public final class TakeoverOverlay {
     @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID, value = Dist.CLIENT)
     public static final class OverlayGuard {
         @SubscribeEvent public static void before(RenderGuiOverlayEvent.Pre event) {
-            var player = Minecraft.getInstance().player;
-            if (event.getOverlay().id().toString().equals("changed:grabbed")
-                    && player instanceof LivingEntityDataExtension extension
-                    && extension.getGrabbedBy() != null
-                    && FriendlySocialHugState.isLocked(
-                            extension.getGrabbedBy().getId(), player.getId())) {
-                event.setCanceled(true);
-                return;
-            }
             if (!TakeoverClientState.active()) return;
             String id = event.getOverlay().id().toString();
             if (id.equals("changed:grabbed") || id.equals("changed:ability")

@@ -183,6 +183,11 @@ public final class ChangedAddonSocialEvents {
             return;
         }
 
+        if (!mob.level().isClientSide && LatexSocialMemory.hasFriendlySocialHug(mob)) {
+            tickFriendlySocialHug(mob, grabber, BondedSuitService.ability(mob));
+            return;
+        }
+
         if (!mob.level().isClientSide
                 && InvoluntaryTransfurNegotiation.hasReleaseHold(mob)) {
             grabber.setCanUseGrab(true);
@@ -242,11 +247,6 @@ public final class ChangedAddonSocialEvents {
 
         if (LatexSocialMemory.hasOrganicEvacuation(mob)
                 && tickOrganicEvacuationHold(mob, grabber, ability)) {
-            return;
-        }
-
-        if (LatexSocialMemory.hasFriendlySocialHug(mob)) {
-            tickFriendlySocialHug(mob, grabber, ability);
             return;
         }
 
@@ -922,14 +922,14 @@ public final class ChangedAddonSocialEvents {
                         ? held : LatexSocialMemory.friendlySocialHugPlayer(mob);
         if (!(ability instanceof GrabEntityAbilityExtensor extensor)
                 || player == null
+                || ability.grabbedEntity != player
                 || !LatexSocialMemory.isFriendlySocialHugActive(mob, player)
                 || !mob.isAlive()
                 || !player.isAlive()
                 || mob.level() != player.level()) {
             if (player != null) {
-                ability.attackDown = false;
-                ability.useDown = false;
-                if (ability.grabbedEntity == player) {
+                if (ability != null) ability.attackDown = ability.useDown = false;
+                if (ability != null && ability.grabbedEntity == player) {
                     ability.releaseEntity(false);
                 }
                 Changed.PACKET_HANDLER.send(
@@ -1021,7 +1021,6 @@ public final class ChangedAddonSocialEvents {
         extensor.setSafeModeAuthoritative(true);
         ability.suited = false;
         ability.grabbedHasControl = false;
-        ability.grabStrength = 1.0F;
         ability.attackDown = false;
         ability.useDown = false;
         grabber.applyGrabCooldown(0);
@@ -1099,7 +1098,6 @@ public final class ChangedAddonSocialEvents {
         extensor.setSafeModeAuthoritative(true);
         ability.suited = false;
         ability.grabbedHasControl = false;
-        ability.grabStrength = 1.0F;
         ability.attackDown = false;
         ability.useDown = false;
         mob.setTarget(null);
