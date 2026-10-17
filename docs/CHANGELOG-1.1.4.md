@@ -106,7 +106,7 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 ### Settings, localization and server support
 
 - Integrated revised community English and Spanish dialogue, expanded White and Organic Spanish translations, and updated the corresponding Simplified Chinese lines with consistent terminology and valid placeholders.
-- Fixed unresolved relationship-dialogue placeholders when introducing a creature through wheel gifting. Applied Goldfinder's English dialogue corrections from PR #12 and corrected additional scent-related typos.
+- Fixed unresolved relationship-dialogue placeholders when introducing a creature through wheel gifting. Applied Goldfinder's English dialogue corrections from PR #12 and PR #13 and corrected additional scent-related typos.
 
 - Applied the latest Russian localization contributed by TrueTransfur's author, including updated interface text and localized creature names.
 
