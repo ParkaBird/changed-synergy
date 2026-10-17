@@ -1,7 +1,7 @@
 package net.parkabird.changedsynergy.ai;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -36,11 +36,15 @@ public final class BondedCreatureDeathData extends SavedData {
     }
 
     public void markDead(UUID owner, UUID creature) {
+        markDead(owner, creature, new CompoundTag());
+    }
+
+    public void markDead(UUID owner, UUID creature, CompoundTag notice) {
         String ownerKey = owner.toString();
         CompoundTag creatures = pending.contains(ownerKey, Tag.TAG_COMPOUND)
                 ? pending.getCompound(ownerKey)
                 : new CompoundTag();
-        creatures.putBoolean(creature.toString(), true);
+        creatures.put(creature.toString(), notice.copy());
         pending.put(ownerKey, creatures);
         setDirty();
     }
@@ -64,19 +68,20 @@ public final class BondedCreatureDeathData extends SavedData {
     public boolean isDead(UUID owner, UUID creature) {
         String ownerKey = owner.toString();
         return pending.contains(ownerKey, Tag.TAG_COMPOUND)
-                && pending.getCompound(ownerKey).getBoolean(creature.toString());
+                && pending.getCompound(ownerKey).contains(creature.toString());
     }
 
-    public Set<UUID> consume(UUID owner) {
+    public Map<UUID, CompoundTag> consume(UUID owner) {
         String ownerKey = owner.toString();
         if (!pending.contains(ownerKey, Tag.TAG_COMPOUND)) {
-            return Set.of();
+            return Map.of();
         }
         CompoundTag creatures = pending.getCompound(ownerKey);
-        Set<UUID> result = new LinkedHashSet<>();
+        Map<UUID, CompoundTag> result = new LinkedHashMap<>();
         for (String key : creatures.getAllKeys()) {
             try {
-                result.add(UUID.fromString(key));
+                result.put(UUID.fromString(key), creatures.contains(key, Tag.TAG_COMPOUND)
+                        ? creatures.getCompound(key).copy() : new CompoundTag());
             } catch (IllegalArgumentException ignored) {
                 // Ignore malformed legacy data rather than retaining it forever.
             }

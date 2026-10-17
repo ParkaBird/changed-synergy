@@ -1160,7 +1160,7 @@ public final class InvoluntaryTransfurNegotiation {
         LatexSocialMemory.settleAfterNegotiatedRelease(source, player);
         FactionHostilityGrace.begin(source, player);
         LatexSocialEvents.clearPendingCombatReactions(source, player);
-        if (!CreaturePersonality.balanced()) CreaturePersonality.establishRelationship(source, player);
+        CreaturePersonality.establishRelationship(source, player);
         source.setPersistenceRequired();
         if (fusionSplit) {
             LatexFusionIntent.beginReleaseCooldown(source, player);
@@ -1757,8 +1757,8 @@ public final class InvoluntaryTransfurNegotiation {
         FactionHostilityGrace.begin(released, player);
         LatexSocialEvents.clearPendingCombatReactions(released, player);
         LatexSocialEvents.calmTowards(released, player);
+        CreaturePersonality.establishRelationship(released, player);
         if (!CreaturePersonality.balanced()) {
-            CreaturePersonality.establishRelationship(released, player);
             CreaturePersonality.setFamiliarity(
                 released,
                 player,

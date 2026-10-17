@@ -5,6 +5,7 @@
   "plugin": "net.parkabird.changedsynergy.mixin.ChangedSynergyMixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "ChangedEntityAppearanceAccessor",
     "SurvivalProtocolTakeoverMixin",
     "CampfireFoodRecipeMixin",
     "CompanionFishingSpeedMixin",

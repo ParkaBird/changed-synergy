@@ -4783,5 +4783,6 @@
   "config.changed_synergy.option.human_origin_instinct": "Инстинкт для людских происхождений",
   "config.changed_synergy.option.human_origin_instinct.description": "Разрешает трансфурмированным игрокам с человеческим происхождением использовать Инстинкт TrueTransfur 2.0, пока включены стартовые происхождения. По умолчанию отключено; не включает окончательный трансфур, летальный откат или коренное возрождение.",
   "config.changed_synergy.option.self_defense_penalty_protection": "Защита самообороны от штрафов отношений",
-  "config.changed_synergy.option.self_defense_penalty_protection.description": "Бой с существом, напавшим первым, не снижает репутацию фракции и не вызывает штрафов отношений и удержания у свидетелей. За начатый вами бой это правило не действует."
+  "config.changed_synergy.option.self_defense_penalty_protection.description": "Бой с существом, напавшим первым, не снижает репутацию фракции и не вызывает штрафов отношений и удержания у свидетелей. За начатый вами бой это правило не действует.",
+  "message.changed_synergy.bond.death_location": "Место гибели %1$s: %2$s, координаты %3$s, %4$s, %5$s."
 }

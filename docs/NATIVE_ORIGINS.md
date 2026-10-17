@@ -24,7 +24,7 @@ Native players begin at **Recognized faction standing (20)**. Their birth factio
 
 Your creature name persists through death and reconnecting. Edit it through the relationship wheel or `/changedsynergy social name <name>`. The wheel also offers expressions. Your account name and permissions remain unchanged. See the [social guide](SOCIAL_GUIDE.md) for role speech, player friendship and language understanding.
 
-Native players are protected from hostile secondary transfur. This does not prevent voluntary interactions or eligible fusion. Pure White players can adapt their appearance and vision outside their home territory without changing their actual species or faction.
+Native players are protected from hostile secondary transfur. This does not prevent voluntary interactions or eligible fusion. Pure White players can adapt their appearance and vision outside their home territory without changing their actual species or faction. White latex coverings on ordinary blocks also count as home territory. Adapted eyes retain their individual colours and style.
 
 With native origins enabled, your permanent creature form is retained after death. Normal respawn points take priority; a safe birthplace can serve as a fallback. Ordinary reversal cannot restore a human origin that you never had.
 

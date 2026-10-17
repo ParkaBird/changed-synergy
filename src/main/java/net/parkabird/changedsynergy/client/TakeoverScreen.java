@@ -116,7 +116,7 @@ public final class TakeoverScreen extends AbstractRadialScreen<TakeoverScreen.Ta
             String warning = TakeoverClientState.current().outcome() == 2
                     ? "warning_punitive_fatal"
                     : TakeoverClientState.current().outcome() == 1
-                            ? "warning_punitive_permanent" : "warning";
+                            ? "warning_direct" : "warning";
             return List.of(TakeoverClientState.text(
                             escapeConfirmationPending ? "confirm" : "escape"),
                     TakeoverClientState.text(TakeoverClientState.current().escapeUsed()

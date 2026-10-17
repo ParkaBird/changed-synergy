@@ -470,8 +470,8 @@ public final class GrabQteOverlayRenderer {
                 : Math.round(Mth.sin(QteAnimationUtil.now() * 0.034F)
                         * Math.max(0.0F, pressure - 0.72F) * 3.0F);
         int argb = QteAnimationUtil.withAlpha(color, alpha * entry);
-        drawBracket(graphics, barX - 9 - approach + shake, barY + 2, true, argb);
-        drawBracket(graphics, barX + 207 + approach - shake, barY + 2, false, argb);
+        drawBracket(graphics, barX - 9 - approach + shake, barY - 1, true, argb);
+        drawBracket(graphics, barX + 207 + approach - shake, barY - 1, false, argb);
     }
 
     private static void renderExitBrackets(
@@ -482,8 +482,8 @@ public final class GrabQteOverlayRenderer {
             int color,
             float alpha) {
         int argb = QteAnimationUtil.withAlpha(color, alpha);
-        drawBracket(graphics, barX - 9 - movement, barY + 2, true, argb);
-        drawBracket(graphics, barX + 207 + movement, barY + 2, false, argb);
+        drawBracket(graphics, barX - 9 - movement, barY - 1, true, argb);
+        drawBracket(graphics, barX + 207 + movement, barY - 1, false, argb);
         int lineColor = QteAnimationUtil.withAlpha(color, alpha * 0.35F);
         int width = Math.round(196.0F * Mth.clamp(exitStrength, 0.0F, 1.0F));
         graphics.fill(barX + 2, barY + 29, barX + 2 + width, barY + 31, lineColor);
@@ -534,8 +534,16 @@ public final class GrabQteOverlayRenderer {
         graphics.pose().translate(x + 8.0F, y + 8.0F, 0.0F);
         graphics.pose().scale(scale, scale, 1.0F);
         graphics.pose().translate(-(x + 8.0F), -(y + 8.0F), 0.0F);
-        GrabOverlay.renderEscapeKeyAt(
-                gui, graphics, x, y, key, QteAnimationUtil.clamp(alpha));
+        int u = key == KeyReference.MOVE_RIGHT || key == KeyReference.MOVE_BACKWARD ? 16 : 0;
+        int v = key == KeyReference.MOVE_LEFT || key == KeyReference.MOVE_BACKWARD ? 16 : 0;
+        graphics.setColor(1, 1, 1, QteAnimationUtil.clamp(alpha));
+        graphics.blit(net.ltxprogrammer.changed.Changed.modResource("textures/gui/grab_escape_keys.png"),
+                x, y, u, v, 16, 16, 32, 32);
+        var font = gui.getFont();
+        String label = key.getName(Minecraft.getInstance().level).getString().toUpperCase(java.util.Locale.ROOT);
+        graphics.drawString(font, label, x + (16 - font.width(label)) / 2,
+                y + (16 - font.lineHeight) / 2,
+                QteAnimationUtil.withAlpha(0xFFFFFF, QteAnimationUtil.clamp(alpha)), true);
         graphics.pose().popPose();
     }
 

@@ -732,10 +732,16 @@ public final class LatexSocialMemory {
 
         BondedCreatureLifecycle.untrack(mob);
         BondedCreatureDeathData deaths = BondedCreatureDeathData.get(level.getServer());
+        CompoundTag notice = new CompoundTag();
+        notice.putString("Name", mob.getDisplayName().getString());
+        notice.putString("Dimension", level.dimension().location().toString());
+        notice.putLong("Position", mob.blockPosition().asLong());
         for (UUID playerUuid : bondedPlayers) {
-            deaths.markDead(playerUuid, mob.getUUID());
             ServerPlayer online = level.getServer().getPlayerList().getPlayer(playerUuid);
+            notice.putBoolean("Notified", online != null);
+            deaths.markDead(playerUuid, mob.getUUID(), notice);
             if (online != null) {
+                sendBondDeathLocation(online, notice);
                 playerBondData(online).remove(mob.getUUID().toString());
                 BondedCreatureLifecycle.forget(online, mob.getUUID());
                 PlayerRelationshipSettings.forgetContact(online, mob.getUUID());
@@ -756,12 +762,22 @@ public final class LatexSocialMemory {
 
     /** Applies death records that accumulated while this player was offline. */
     public static void applyPendingBondDeaths(ServerPlayer player) {
-        for (UUID creature : BondedCreatureDeathData.get(player.server)
-                .consume(player.getUUID())) {
+        for (var entry : BondedCreatureDeathData.get(player.server)
+                .consume(player.getUUID()).entrySet()) {
+            UUID creature = entry.getKey();
+            if (!entry.getValue().getBoolean("Notified")) sendBondDeathLocation(player, entry.getValue());
             playerBondData(player).remove(creature.toString());
             BondedCreatureLifecycle.forget(player, creature);
             PlayerRelationshipSettings.forgetContact(player, creature);
         }
+    }
+
+    private static void sendBondDeathLocation(ServerPlayer player, CompoundTag notice) {
+        if (!notice.contains("Position", Tag.TAG_LONG) || notice.getString("Dimension").isEmpty()) return;
+        var pos = net.minecraft.core.BlockPos.of(notice.getLong("Position"));
+        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                "message.changed_synergy.bond.death_location", notice.getString("Name"),
+                notice.getString("Dimension"), pos.getX(), pos.getY(), pos.getZ()));
     }
 
     /** Removes a player-side bond after its forced chunk has repeatedly loaded without the entity. */

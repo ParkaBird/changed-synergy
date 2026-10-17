@@ -4783,5 +4783,6 @@
   "menu.changed_synergy.roleplay.emote_back": "Esc: back to relationships",
   "config.changed_synergy.option.human_origin_instinct": "Instinct mode for human origins",
   "config.changed_synergy.option.human_origin_instinct.description": "Allow transformed human-origin players to use TrueTransfur 2.0 Instinct while starting origins are enabled. Default off; does not enable permanent transfur, lethal reversal or native rebirth.",
-  "menu.changed_synergy.relationship.more_options": "Left / right arrows: more options"
+  "menu.changed_synergy.relationship.more_options": "Left / right arrows: more options",
+  "message.changed_synergy.bond.death_location": "%1$s died in %2$s at %3$s, %4$s, %5$s."
 }

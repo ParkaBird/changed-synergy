@@ -4783,5 +4783,6 @@
   "menu.changed_synergy.roleplay.emote_back": "Esc：返回关系轮盘",
   "config.changed_synergy.option.human_origin_instinct": "人类出身可使用本能模式",
   "config.changed_synergy.option.human_origin_instinct.description": "开局身份选择开启时，允许已兽化的人类出身玩家使用TrueTransfur 2.0本能模式。默认关闭；不启用永久兽化、致命逆转或原生重生机制。",
-  "menu.changed_synergy.relationship.more_options": "左右方向键：展示更多选项"
+  "menu.changed_synergy.relationship.more_options": "左右方向键：展示更多选项",
+  "message.changed_synergy.bond.death_location": "%1$s的死亡地点：%2$s（%3$s，%4$s，%5$s）。"
 }

@@ -42,6 +42,7 @@ public final class NegotiationLifecycleRegression {
             event.getServer().overworld().getGameRules().getRule(ChangedSynergyGameRules.NATIVE_ORIGINS).set(true, event.getServer());
             MountedArmorRegression.run(event.getServer());
             KeepConsciousRegression.run(event.getServer());
+            October18FeedbackRegression.run(event.getServer());
             loginBeforeConnection(event.getServer());
             lifecycle(event.getServer());
             humanoidGrab(event.getServer());
@@ -197,6 +198,8 @@ public final class NegotiationLifecycleRegression {
             InvoluntaryTransfurNegotiation.finishReleaseHold(nextSource, clone);
         }
         check(!ProcessTransfur.isPlayerTransfurred(clone) && data(clone) == null, "Successful negotiation still releases and clears its own claim");
+        check(net.parkabird.changedsynergy.ai.CreaturePersonality.hasEstablishedRelationship(nextSource, clone),
+                "Successful negotiated restoration introduces both participants in balanced social mode");
 
         var former = stage(clone, nextSource, other, false);
         ProcessTransfur.setPlayerTransfurVariant(clone, other);
