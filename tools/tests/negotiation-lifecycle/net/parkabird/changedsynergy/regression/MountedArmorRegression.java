@@ -25,6 +25,8 @@ final class MountedArmorRegression {
         var level = server.overworld();
         var player = new ServerPlayer(server, level, new GameProfile(UUID.randomUUID(), "MountedArmor"));
         player.connection = new ServerGamePacketListenerImpl(server, new Connection(PacketFlow.SERVERBOUND), player);
+        var identity = new net.parkabird.changedsynergy.origin.NativeOriginData.Identity(); identity.state = "human";
+        net.parkabird.changedsynergy.origin.NativeOriginData.get(server).players.put(player.getUUID(), identity);
         var mount = ChangedEntities.WHITE_LATEX_CENTAUR.get().create(level);
         try {
             player.setPos(180.5, 160, 180.5); mount.setPos(player.position()); level.addFreshEntity(mount);
