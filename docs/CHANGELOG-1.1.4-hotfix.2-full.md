@@ -1,23 +1,22 @@
 # Changed: Synergy 1.1.4-hotfix.2
 
-**TrueTransfur integration:** Changed: Synergy 1.1.4 pairs with **TrueTransfur 2.0.0** for native latex origins, roleplay and Instinct-mode social interactions. Backward compatibility with **1.0.1** is retained; the expanded Instinct features require 2.0.0. TrueTransfur remains optional for other Synergy features.
+- Fixed creatures continuing to attack or pursue a player during the transfur animation. The creature responsible now ends the completed conflict without erasing faction reputation.
+- Fixed stationary, non-interactive creatures with the player's name appearing after transfur death or respawn, including human-origin players using TrueTransfur.
+- Fixed successful transfur negotiation leaving the restored player a stranger to the negotiating creature. Successful restoration now establishes an initial acquaintance.
+- Fixed White latex coverings on ordinary blocks being ignored as home territory by Pure White adaptation.
+- Fixed adapted White Latex Wolves losing their individual eye colours and styles, including player render models and multiplayer synchronization.
+- Fixed alignment of the grab-escape QTE, contact-roster header controls and icons inside radial-wheel frames.
+- Fixed the permanent-outcome escape warning displaying a translation key instead of its description.
+- Added the bonded companion's death dimension and coordinates to death notifications, including notifications received after logging back in.
+- Fixed forced transfur bypassing Changed's Keep Conscious rule. With the rule disabled, involuntary transfur causes death instead of takeover; confirmed voluntary transfur and protective wrapping remain safe.
+- Fixed quadrupedal armour duplication when human riders right-click leggings or boots, including Creative mode and full inventories.
+- Fixed Diffusion Syringes creating an extra creature instead of separating the player from the original carrier, including borrowed takeover control and double-headed Yufeng wrapping.
+- Fixed repeated firework boosts failing while wrapped by a flying companion, including Red Dragons.
+- Fixed environmental transfur affecting players inside a takeover, including latex puddles and dropped syringes.
+- Fixed following companions refusing to teleport while targeting distant or unreachable enemies.
+- Corrected dialogue spelling, punctuation and placeholders, including community revisions and Goldfinder's PR #13.
 
-Full cumulative changes since **1.1.3**, including **1.1.4**, the earlier hotfix and **hotfix.2**.
-
-Thank you to everyone who tested the mod, reported problems and shared ideas after 1.1.3. Special thanks to Nic, Crossader and Sword for their dialogue and localization contributions, and to TrueTransfur's author for collaboration, testing and Russian localization!
-
-### Hotfix.2
-
-- With Changed's Keep Conscious rule disabled, forced transfur now causes death instead of takeover, including Instinct-player attacks and hostile secondary transfur. Confirmed voluntary transfur, chosen origins and protective wrapping remain safe.
-- Fixed quadrupedal armour duplication when a human right-clicks it while riding, including Creative mode and full inventories. Compatible creature bodies and ordinary human armour retain normal equipment use.
-
-- Diffusion Syringes now release wrapped players from the original creature without creating an extra latex. This also covers borrowed takeover control and double-headed Yufeng wrapping.
-- Fixed firework propulsion while wrapped by a flying companion, including Red Dragons. Repeated rockets keep their normal boost duration instead of hitting the wrapping creature and disappearing early.
-- Updated community English and Spanish dialogue, including Goldfinder's PR #13 English corrections; expanded White and Organic Spanish translations, and aligned the corresponding Simplified Chinese lines. Corrected spelling, punctuation and placeholder errors without restoring previously fixed mistakes.
-- Fixed environmental transfur affecting players inside a takeover, including latex puddles and dropped syringes. Borrowed control, normal release and the takeover's own final outcome remain intact.
-- Fixed following companions refusing to teleport while targeting an enemy, including enemies they cannot reach or hit. Following friends, bonded companions, pets and travelling camp members now regroup safely once you move beyond their normal teleport distance. Nearby combat, waiting orders, stationary camp duties and active grabs or wraps remain respected.
-
-**Faction behavior:** This build retains the original hostility between Dark and White latex. The peaceful-competition rework is not included.
+# Changed: Synergy 1.1.4
 
 ### Native latex origins and TrueTransfur
 

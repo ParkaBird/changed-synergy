@@ -292,6 +292,9 @@ public abstract class RadialScreenAnimationMixin
         changedSynergy$layerAlpha = visibleAlpha;
         graphics.setColor(1.0F, 1.0F, 1.0F, visibleAlpha);
         float wheelOffset = changedSynergy$getHorizontalOffset();
+        graphics.pose().pushPose();
+        graphics.pose().translate(RadialWheelAnimations.iconOffset(screen, section, false),
+                RadialWheelAnimations.iconOffset(screen, section, true), 0);
         screen.renderSectionForeground(
                 graphics,
                 section,
@@ -304,6 +307,7 @@ public abstract class RadialScreenAnimationMixin
                 green,
                 blue,
                 alpha * visibleAlpha);
+        graphics.pose().popPose();
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         changedSynergy$layerAlpha = 1.0F;
     }

@@ -215,6 +215,8 @@ With player hypnosis enabled, a player in a suitable hypnotic species can contes
 
 Server owners can disable **Enable Telepathy** under Dialogue. This pauses new unlock progress and replaces telepathic speech with species vocalizations, including for players who already unlocked telepathy, transformed players, hypnosis and takeover. Saved progress returns when the setting is enabled again. A supported, enabled Addon Translator can still translate when its separate support option is enabled. This does not disable hypnosis or takeover gameplay.
 
+Successful transfur negotiation introduces you to the creature once you have been restored. This starts an acquaintance, not a bond or an automatic friendship. Bonded-companion death notifications include the dimension and coordinates where the companion died; if you were offline, the recorded location is shown when you return.
+
 ## Social advancements
 
 The existing acquaintance, Familiar friendship, Close friendship and first-bond advancements follow your relationship progress. Three additional milestones recognise the new interactions:

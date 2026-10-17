@@ -83,6 +83,7 @@ public final class TrueTransfurCameraRegression {
                 switchTask.join();
                 if((boolean)Class.forName("com.lugert.true_transfur.client.TransfurClientState").getMethod("isInstinct").invoke(null))return;
                 TakeoverGuiClientRegression.run(mc);
+                October18UiRegression.run(mc);
                 System.out.println("TT_CAMERA_REGRESSION_PASS: actual TT camera arguments preserved and takeover observation retained");
                 finished=true;mc.stop();
             }

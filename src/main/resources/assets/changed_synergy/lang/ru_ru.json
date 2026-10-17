@@ -4789,5 +4789,6 @@
   "dialogue.changed_synergy.competition.white.2": "Заходи в гости. Посмотрим, чей лагерь лучше устроен.",
   "dialogue.changed_synergy.competition.dark.0": "Белый латекс? Если ты не ищешь неприятностей, я тоже.",
   "dialogue.changed_synergy.competition.dark.1": "Разные стаи, одна дорога. Давай без ссор.",
-  "dialogue.changed_synergy.competition.dark.2": "Кто лучше — выясним без кулаков."
+  "dialogue.changed_synergy.competition.dark.2": "Кто лучше — выясним без кулаков.",
+  "message.changed_synergy.bond.death_location": "Место гибели %1$s: %2$s, координаты %3$s, %4$s, %5$s."
 }

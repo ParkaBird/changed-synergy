@@ -4789,5 +4789,6 @@
   "dialogue.changed_synergy.competition.white.2": "欢迎来做客。看看谁把营地经营得更好吧。",
   "dialogue.changed_synergy.competition.dark.0": "白胶啊？只要你不惹事，咱们就能相安无事。",
   "dialogue.changed_synergy.competition.dark.1": "族群不同，也能走同一条路。",
-  "dialogue.changed_synergy.competition.dark.2": "谁更有本事，比一比就知道，没必要打架。"
+  "dialogue.changed_synergy.competition.dark.2": "谁更有本事，比一比就知道，没必要打架。",
+  "message.changed_synergy.bond.death_location": "%1$s的死亡地点：%2$s（%3$s，%4$s，%5$s）。"
 }

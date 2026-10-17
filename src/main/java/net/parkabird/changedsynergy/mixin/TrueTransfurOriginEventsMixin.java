@@ -1,10 +1,8 @@
 package net.parkabird.changedsynergy.mixin;
 
-import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.parkabird.changedsynergy.origin.NativeOriginPolicy;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,10 +31,5 @@ public abstract class TrueTransfurOriginEventsMixin {
     @Inject(method = "nameFormat", at = @At("HEAD"), cancellable = true, remap = false)
     private static void changedSynergy$keepHumanName(PlayerEvent.NameFormat event, CallbackInfo callback) {
         if (!NativeOriginPolicy.allows(event.getEntity())) callback.cancel();
-    }
-    @Inject(method = "preventPhysicalChangedPlayerBodies", at = @At("HEAD"), cancellable = true, remap = false)
-    private static void changedSynergy$normalHumanBody(EntityJoinLevelEvent event, CallbackInfo callback) {
-        if (event.getEntity() instanceof ChangedEntity form && form.getUnderlyingPlayer() != null
-                && !NativeOriginPolicy.allowsInstinct(form.getUnderlyingPlayer())) callback.cancel();
     }
 }

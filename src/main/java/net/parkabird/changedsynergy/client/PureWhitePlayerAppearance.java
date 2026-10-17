@@ -40,6 +40,7 @@ public final class PureWhitePlayerAppearance {
         }
         TransfurVariantInstance.syncEntityAndPlayer(visual, player);
         TransfurVariantInstance.syncInventory(visual, player, false);
+        visual.getBasicPlayerInfo().copyFrom(original.getBasicPlayerInfo());
         visual.setInvisible(original.isInvisible());
         visual.setCustomName(original.getCustomName());
         visual.setCustomNameVisible(original.isCustomNameVisible());

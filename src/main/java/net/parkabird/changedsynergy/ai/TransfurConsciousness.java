@@ -9,6 +9,10 @@ import net.ltxprogrammer.changed.init.ChangedGameRules;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.ltxprogrammer.changed.process.TransfurEvents;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -22,6 +26,61 @@ public final class TransfurConsciousness {
 
     public static boolean isKept(Player player) {
         return player.level().getGameRules().getBoolean(ChangedGameRules.RULE_KEEP_BRAIN);
+    }
+
+    public static boolean isTransforming(Player player) {
+        var form = ProcessTransfur.getPlayerTransfurVariant(player);
+        return form != null && !form.isTemporaryFromSuit() && form.isTransfurring();
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onConversionStarted(TransfurEvents.PreProcessTransfurVariantInstanceEvent event) {
+        if (!(event.player instanceof ServerPlayer player) || event.temporaryFromSuit
+                || event.transfurContext == null || event.transfurContext.source() == null) return;
+        var source = event.transfurContext.source().map(
+                net.ltxprogrammer.changed.ability.IAbstractChangedEntity::getEntity,
+                net.ltxprogrammer.changed.ability.ILatexAssimilatedEntity::getEntity);
+        if (source instanceof ChangedEntity creature && LatexSocialMemory.isSocialLatex(creature)
+                && !TrueTransfurCompat.isInstinctBody(creature)) {
+            LatexSocialMemory.settleAfterSecondaryTransfur(creature, player);
+            FactionHostilityGrace.beginGlobal(player);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onAnimationAttack(LivingAttackEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player && isTransforming(player)
+                && event.getSource().getEntity() instanceof ChangedEntity creature
+                && event.getAmount() != Float.MAX_VALUE) {
+            event.setCanceled(true);
+            LatexSocialMemory.clearHostilityToward(creature, player);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onAnimationTarget(LivingChangeTargetEvent event) {
+        if (event.getNewTarget() instanceof ServerPlayer player && isTransforming(player)
+                && event.getEntity() instanceof ChangedEntity) event.setCanceled(true);
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onProjectionJoin(EntityJoinLevelEvent event) {
+        // Changed's render-only body has no AI or independent identity. It must
+        // never become a world NPC, including after its human host has died.
+        if (!event.getLevel().isClientSide() && event.getEntity() instanceof ChangedEntity body
+                && body.getUnderlyingPlayer() != null && !TrueTransfurCompat.isInstinctBody(body))
+            event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void onStaleProjection(net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent event) {
+        if (!(event.getEntity() instanceof ChangedEntity body)
+                || !(body.level() instanceof net.minecraft.server.level.ServerLevel level)
+                || body.getUnderlyingPlayer() == null || TrueTransfurCompat.isInstinctBody(body)) return;
+        Player owner = body.getUnderlyingPlayer();
+        if (level.getEntity(body.getUUID()) == body && (!owner.isAlive() || owner.isRemoved()
+                || ProcessTransfur.getPlayerTransfurVariantSafe(owner)
+                        .map(form -> form.getChangedEntity() != body).orElse(true))) body.discard();
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

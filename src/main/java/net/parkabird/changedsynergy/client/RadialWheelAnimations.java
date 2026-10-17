@@ -8,6 +8,9 @@ import net.minecraft.sounds.SoundEvents;
 
 /** Public helpers used by Synergy screens without coupling them to the mixin. */
 public final class RadialWheelAnimations {
+    // Optical centres of Changed's eight asymmetric frame interiors, excluding drips.
+    private static final int[][] GOO_CENTRES = {{-5,4},{-4,5},{-5,-4},{-5,-3},{4,-3},{4,-5},{4,6},{6,5}};
+    private static final int[][] ORGANIC_CENTRES = {{-7,4},{-4,7},{-4,-7},{-7,-4},{7,-4},{4,-7},{4,7},{7,4}};
     private static final long SWITCH_HANDOFF_TIMEOUT_NANOS = 3_000_000_000L;
     private static WheelKind pendingArrival = WheelKind.NONE;
     private static long pendingArrivalNanos;
@@ -85,6 +88,21 @@ public final class RadialWheelAnimations {
     /** Frames stay in eight fixed slots while the scrolled action indices advance. */
     public static int viewOffset(Object screen) {
         return screen instanceof RadialWheelAnimationAccess access ? access.changedSynergy$getViewOffset() : 0;
+    }
+
+    public static int iconOffset(AbstractRadialScreen<?> screen, int section, boolean vertical) {
+        boolean organic;
+        if (screen instanceof SocialInteractionScreen social) organic = social.menu.isOrganic();
+        else if (screen instanceof PlayerRelationshipScreen relationships) organic = relationships.menu.usesOrganicStyle();
+        else if (screen instanceof BondedLatexScreen bonded) organic = bonded.menu.isOrganicPet();
+        else if (screen instanceof TakeoverScreen || screen instanceof NativeEmoteScreen) organic = false;
+        else {
+            var form = screen.centerEntity instanceof net.minecraft.world.entity.player.Player player
+                    ? net.ltxprogrammer.changed.process.ProcessTransfur.getPlayerTransfurVariant(player) : null;
+            organic = form != null && !form.getParent().getEntityType().is(net.ltxprogrammer.changed.init.ChangedTags.EntityTypes.LATEX);
+        }
+        int slot = Math.floorMod(section - viewOffset(screen), 8);
+        return (organic ? ORGANIC_CENTRES : GOO_CENTRES)[slot][vertical ? 1 : 0];
     }
 
     public static boolean isSectionSelected(AbstractRadialScreen<?> screen, int slot, int mouseX, int mouseY) {

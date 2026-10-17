@@ -125,8 +125,7 @@ public final class PureWhiteWolfAdaptation {
                 || !ChangedSynergyGameRules.enabled(
                         level, ChangedSynergyGameRules.CREATURE_LIFE)) {
             data = new CompoundTag();
-        } else if (level.getBiome(player.blockPosition())
-                .is(LatexTerritoryBiomes.WHITE_LATEX_FOREST)) {
+        } else if (inHomeTerritory(level, player.blockPosition())) {
             rememberHome(level, player.blockPosition(), data);
             data.remove(AWAY_SINCE);
             data.putBoolean(ADAPTED, false);
@@ -194,8 +193,21 @@ public final class PureWhiteWolfAdaptation {
     }
 
     private static boolean inHomeBiome(ChangedEntity creature) {
-        return creature.level().getBiome(creature.blockPosition())
-                .is(LatexTerritoryBiomes.WHITE_LATEX_FOREST);
+        return inHomeTerritory(creature.level(), creature.blockPosition());
+    }
+
+    public static boolean inHomeTerritory(net.minecraft.world.level.Level level, BlockPos position) {
+        if (level.getBiome(position).is(LatexTerritoryBiomes.WHITE_LATEX_FOREST)) return true;
+        var covers = net.ltxprogrammer.changed.world.LatexCoverGetter.extendDefault(level);
+        for (BlockPos nearby : BlockPos.betweenClosed(position.offset(-1, -1, -1), position.offset(1, 1, 1))) {
+            if (!level.hasChunkAt(nearby)) continue;
+            if (covers.getLatexCover(nearby).is(net.ltxprogrammer.changed.init.ChangedLatexTypes.WHITE_LATEX.get()))
+                return true;
+            if (level.getBlockState(nearby).getBlock() instanceof net.ltxprogrammer.changed.block.LatexCoveringSource source
+                    && source.getLatexCoverState(level.getBlockState(nearby), nearby)
+                            .is(net.ltxprogrammer.changed.init.ChangedLatexTypes.WHITE_LATEX.get())) return true;
+        }
+        return false;
     }
 
     private static void rememberHome(
@@ -278,7 +290,9 @@ public final class PureWhiteWolfAdaptation {
 
         replacement.getPersistentData().put(DATA_KEY, adaptation);
         CreatureMorphContinuity.transferForced(source, replacement);
-        replacement.getBasicPlayerInfo().copyFrom(source.getBasicPlayerInfo());
+        var appearance = new net.ltxprogrammer.changed.entity.BasicPlayerInfo();
+        appearance.copyFrom(source.getBasicPlayerInfo());
+        replacement.getEntityData().set(net.parkabird.changedsynergy.mixin.ChangedEntityAppearanceAccessor.changedSynergy$appearanceData(), appearance);
         if (accessories != null) {
             AccessorySlots.getForEntity(replacement)
                     .ifPresent(slots -> slots.load(accessories));
