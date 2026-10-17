@@ -162,6 +162,7 @@ public final class VoluntaryBondTransfurService {
             instance.transfurProgressionO = progress;
             instance.transfurProgression = progress;
             instance.setTemporaryForSuit(false);
+            instance.willSurviveTransfur = true;
             InvoluntaryTransfurNegotiation.abandonForVoluntaryBond(player);
             boolean createBond = !friendlyOnly && BondTokenService.canCreateBond(creature, player);
             if (createBond) {

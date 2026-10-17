@@ -43,8 +43,22 @@ public final class TakeoverAssimilationBehavior implements AssimilationBehavior 
         if (completed.get() || TakeoverService.active(player) || TakeoverService.carrying(carrier)) {
             return;
         }
+        if (instinctPlayer && !InstinctConfinementService.canTarget(carrier, player)) return;
+        if (!TransfurConsciousness.isKept(player)) {
+            if (instinctPlayer && original.willAssimilate() && carrier.getSelfVariant() != null) {
+                // A cached absorption created before the rule changed must not
+                // discard the other player's TT body on completion either.
+                net.ltxprogrammer.changed.process.ProcessTransfur.progressTransfur(player,
+                        net.ltxprogrammer.changed.entity.ai.LatexAssimilationDecision.strongReplication(
+                                carrier.getSelfVariant(), net.ltxprogrammer.changed.entity.TransfurContext.npcLatexHazard(
+                                        carrier, net.ltxprogrammer.changed.entity.TransfurCause.GRAB_REPLICATE),
+                                (float)net.ltxprogrammer.changed.process.ProcessTransfur.getEntityTransfurTolerance(player)));
+                return;
+            }
+            original.stepAssimilate();
+            return;
+        }
         if (instinctPlayer) {
-            if (!InstinctConfinementService.canTarget(carrier, player)) return;
             if (original.willAssimilate()) {
                 // Preserve Changed's shield, armour and hit-delay checks. Only
                 // replace its final irreversible conversion with a temporary suit.
@@ -76,11 +90,11 @@ public final class TakeoverAssimilationBehavior implements AssimilationBehavior 
     }
 
     public boolean managesNativeProgress() {
-        return instinctPlayer
+        return TransfurConsciousness.isKept(player) && (instinctPlayer
                 ? net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.instinctConfinement.get()
                     && net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.takeoverEnabled.get()
                     && InstinctConfinementService.canTarget(carrier, player)
-                : TakeoverService.canBeginOrdinary(carrier, player);
+                : TakeoverService.canBeginOrdinary(carrier, player));
     }
 
     @Override

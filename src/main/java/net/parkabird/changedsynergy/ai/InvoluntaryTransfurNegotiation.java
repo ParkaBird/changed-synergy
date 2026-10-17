@@ -286,6 +286,11 @@ public final class InvoluntaryTransfurNegotiation {
             return;
         }
 
+        if (!TransfurConsciousness.isKept(player)) {
+            TakeoverService.revokeOrdinaryAuthorization(source, player);
+            return;
+        }
+
         LatexAssimilationDecision<?> decision = event.getDecision();
         if (TakeoverService.active(player) || TakeoverService.carrying(source)) return;
         if (decision == null) {
@@ -403,7 +408,7 @@ public final class InvoluntaryTransfurNegotiation {
         ResourceLocation sourceType = ForgeRegistries.ENTITY_TYPES
                 .getKey(source.getType());
         boolean incompleteCompletion = isIncompleteSpecial(sourceType);
-        return source.isAlive()
+        return TransfurConsciousness.isKept(player) && source.isAlive()
                 && !LatexSocialMemory.isOrganic(source)
                 && (LatexSocialMemory.isSocialLatex(source)
                         || incompleteCompletion)
@@ -425,7 +430,8 @@ public final class InvoluntaryTransfurNegotiation {
             @Nullable TransfurVariant<?> targetVariant) {
         ResourceLocation originalPlayerForm = targetVariant == null
                 ? null : targetVariant.getFormId();
-        if (!LatexFusionIntent.mayCapture(source, targetVariant)
+        if (!TransfurConsciousness.isKept(player)
+                || !LatexFusionIntent.mayCapture(source, targetVariant)
                 || LatexSocialMemory.isOrganic(source)
                 || VoluntaryBondTransfurService.isCompleting(source, player)
                 || isVoluntaryCompanion(source, player)) {

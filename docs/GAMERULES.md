@@ -5,6 +5,12 @@ All 13 boolean rules default to `true`; initial reputation defaults to `0`.
 The same 14 rules appear under **World Rules** in Synergy's configuration page.
 Operators can apply edits with **Done**; other players can inspect server values.
 
+Changed's own `changed:keepConscious` rule also applies to Synergy. When it is
+`false`, forced transfur ends in death instead of starting a takeover, including
+transfur by an Instinct-mode player. Confirmed voluntary friendship/bond transfur,
+chosen starting origins and temporary protective wrapping remain safe. Turning
+the rule back on restores the configured takeover routes.
+
 | Rule | What it controls |
 | --- | --- |
 | `changedSynergyNativeOrigins` | Offers first-time human/native species selection. Native origins require TrueTransfur. When on, permanent-origin features apply only to native players; the separate Human-Origin Instinct Control setting can permit human control mode. When off, TrueTransfur's ordinary scope is restored. Saved origins are retained. |

@@ -219,6 +219,7 @@ public final class HostileTransfurredGrabGoal extends Goal {
         instance.transfurProgressionO = progress;
         instance.transfurProgression = progress;
         instance.setTemporaryForSuit(false);
+        net.parkabird.changedsynergy.ai.TransfurConsciousness.applyInvoluntaryOutcome(target, instance);
         IAbstractChangedEntity transformedPlayer =
                 IAbstractChangedEntity.forPlayerWithVariant(target, instance);
         ProcessTransfur.onNewlyTransfurred(transformedPlayer);

@@ -64,7 +64,7 @@ public final class InstinctConfinementService {
     private static boolean canBegin(ChangedEntity body,ServerPlayer human) {
         long now=human.server.overworld().getGameTime();
         var juvenile=net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ENTITY_TYPE,net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(ChangedSynergyMod.MOD_ID,"juvenile_social"));
-        if(!ChangedSynergyConfig.COMMON.instinctConfinement.get()||!ChangedSynergyConfig.COMMON.takeoverEnabled.get()
+        if(!TransfurConsciousness.isKept(human)||!ChangedSynergyConfig.COMMON.instinctConfinement.get()||!ChangedSynergyConfig.COMMON.takeoverEnabled.get()
                 ||!Changed.config.server.isGrabEnabled.get()||!canTarget(body,human)||active(human)||carrying(body)
                 ||body.getSelfVariant()==null||ProcessTransfur.getPlayerTransfurProgress(human)<ProcessTransfur.getEntityTransfurTolerance(human)
                 ||human.getPersistentData().getLong(GRACE)>now||body.getType().is(juvenile)
