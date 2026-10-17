@@ -34,10 +34,40 @@ final class MountedArmorRegression {
             menu.getSlot(0).set(new ItemStack(Items.SADDLE));
             if (!menu.clickMenuButton(player, CentaurMountConfigMenu.RIDE_BUTTON_ID) || player.getVehicle() != mount)
                 throw new AssertionError("Reported saddle-menu ride sequence did not mount the white centaur");
-            var item = ChangedItems.IRON_QUADRUPEDAL_LEGGINGS.get();
+            var item = ChangedItems.NETHERITE_QUADRUPEDAL_LEGGINGS.get();
             var leggings = new ItemStack(item); leggings.getOrCreateTag().putUUID("ArmorRegression", player.getUUID());
+            // The supplied video uses Creative with a full inventory. Before
+            // the fix, Creative retained the hand item while invalid-armour
+            // cleanup returned a newly equipped copy as a real dropped entity.
+            player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+            for (int i=0; i<player.getInventory().items.size(); i++) player.getInventory().items.set(i, new ItemStack(Items.STONE, 64));
             player.setItemInHand(InteractionHand.MAIN_HAND, leggings);
-            for (int attempt=0; attempt<8; attempt++) {
+            MinecraftForge.EVENT_BUS.unregister(net.parkabird.changedsynergy.ai.CreatureArmorService.class);
+            try {
+                player.gameMode.useItem(player, level, player.getMainHandItem(), InteractionHand.MAIN_HAND);
+                MinecraftForge.EVENT_BUS.post(new LivingEvent.LivingTickEvent(player));
+                int dropped = level.getEntitiesOfClass(ItemEntity.class, player.getBoundingBox().inflate(8), e -> e.getItem().is(item))
+                        .stream().mapToInt(e -> e.getItem().getCount()).sum();
+                if (player.getMainHandItem().getCount()!=1 || dropped!=1)
+                    throw new AssertionError("Legacy Creative/full-inventory duplication was not reproduced: dropped="+dropped);
+                System.out.println("MOUNTED_ARMOR_LEGACY_DUPLICATION_REPRODUCED: one original in hand plus one real dropped copy");
+                player.getInventory().clearContent();
+                player.setItemInHand(InteractionHand.MAIN_HAND, leggings.copy());
+                player.gameMode.useItem(player, level, player.getMainHandItem(), InteractionHand.MAIN_HAND);
+                MinecraftForge.EVENT_BUS.post(new LivingEvent.LivingTickEvent(player));
+                if (player.getInventory().countItem(item)!=2)
+                    throw new AssertionError("Legacy empty-inventory duplication was not reproduced");
+                System.out.println("MOUNTED_ARMOR_LEGACY_DUPLICATION_REPRODUCED: one original plus one returned inventory copy");
+            } finally {
+                MinecraftForge.EVENT_BUS.register(net.parkabird.changedsynergy.ai.CreatureArmorService.class);
+                level.getEntitiesOfClass(ItemEntity.class, player.getBoundingBox().inflate(8), e -> e.getItem().is(item)).forEach(ItemEntity::discard);
+                player.setItemSlot(EquipmentSlot.LEGS, ItemStack.EMPTY);
+                player.getInventory().clearContent();
+                player.setItemInHand(InteractionHand.MAIN_HAND, leggings.copy());
+            }
+            for (boolean creative : new boolean[]{true, false}) {
+              player.gameMode.changeGameModeForPlayer(creative ? net.minecraft.world.level.GameType.CREATIVE : net.minecraft.world.level.GameType.SURVIVAL);
+              for (int attempt=0; attempt<8; attempt++) {
                 var result = player.gameMode.useItem(player, level, player.getMainHandItem(), InteractionHand.MAIN_HAND);
                 if (result != net.minecraft.world.InteractionResult.FAIL || !player.getItemBySlot(EquipmentSlot.LEGS).isEmpty())
                     throw new AssertionError("Human right-click must reject quadrupedal armour before equipping/returning it");
@@ -48,6 +78,7 @@ final class MountedArmorRegression {
                         .stream().mapToInt(e -> e.getItem().getCount()).sum();
                 System.out.println("MOUNTED_ARMOR_TRACE: attempt="+attempt+" total="+total+" hand="+player.getMainHandItem()+" legs="+player.getItemBySlot(EquipmentSlot.LEGS));
                 if (total != 1) throw new AssertionError("Mounted quadrupedal armour duplicated/lost, total="+total);
+              }
             }
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_LEGGINGS));
             player.gameMode.useItem(player, level, player.getMainHandItem(), InteractionHand.MAIN_HAND);
@@ -61,7 +92,7 @@ final class MountedArmorRegression {
             MinecraftForge.EVENT_BUS.post(new LivingEvent.LivingTickEvent(player));
             if (!player.getItemBySlot(EquipmentSlot.LEGS).is(item) || !player.getMainHandItem().isEmpty())
                 throw new AssertionError("A genuine quadrupedal player must still equip the armour normally");
-            System.out.println("MOUNTED_ARMOR_REGRESSION_PASS: white centaur tack menu, mounted human, eight real item uses, one conserved leggings stack");
+            System.out.println("MOUNTED_ARMOR_REGRESSION_PASS: white centaur tack menu, mounted human, sixteen real Creative/Survival item uses, ordinary armour and quadrupedal player use");
         } finally { player.stopRiding(); player.discard(); mount.discard(); }
     }
 }

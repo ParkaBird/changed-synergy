@@ -9,7 +9,7 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 ### Hotfix.2
 
 - With Changed's Keep Conscious rule disabled, forced transfur now causes death instead of takeover, including Instinct-player attacks and hostile secondary transfur. Confirmed voluntary transfur, chosen origins and protective wrapping remain safe.
-- Human riders can no longer temporarily equip incompatible quadrupedal leggings or boots and trigger equipment returns. Compatible creature bodies and ordinary human armour retain normal equipment use.
+- Fixed quadrupedal armour duplication when a human right-clicks it while riding, including Creative mode and full inventories. Compatible creature bodies and ordinary human armour retain normal equipment use.
 
 - Diffusion Syringes now release wrapped players from the original creature without creating an extra latex. This also covers borrowed takeover control and double-headed Yufeng wrapping.
 - Fixed firework propulsion while wrapped by a flying companion, including Red Dragons. Repeated rockets keep their normal boost duration instead of hitting the wrapping creature and disappearing early.
