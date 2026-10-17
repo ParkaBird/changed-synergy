@@ -10,7 +10,7 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 
 - Diffusion Syringes now release wrapped players from the original creature without creating an extra latex. This also covers borrowed takeover control and double-headed Yufeng wrapping.
 - Fixed firework propulsion while wrapped by a flying companion, including Red Dragons. Repeated rockets keep their normal boost duration instead of hitting the wrapping creature and disappearing early.
-- Updated community English and Spanish dialogue, expanded White and Organic Spanish translations, and aligned the corresponding Simplified Chinese lines. Corrected spelling, punctuation and placeholder errors without restoring previously fixed mistakes.
+- Updated community English and Spanish dialogue, including Goldfinder's PR #13 English corrections; expanded White and Organic Spanish translations, and aligned the corresponding Simplified Chinese lines. Corrected spelling, punctuation and placeholder errors without restoring previously fixed mistakes.
 - Fixed environmental transfur affecting players inside a takeover, including latex puddles and dropped syringes. Borrowed control, normal release and the takeover's own final outcome remain intact.
 - Fixed following companions refusing to teleport while targeting an enemy, including enemies they cannot reach or hit. Following friends, bonded companions, pets and travelling camp members now regroup safely once you move beyond their normal teleport distance. Nearby combat, waiting orders, stationary camp duties and active grabs or wraps remain respected.
 
@@ -115,7 +115,7 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 ### Settings, localization and server support
 
 - Integrated revised community English and Spanish dialogue, expanded White and Organic Spanish translations, and updated the corresponding Simplified Chinese lines with consistent terminology and valid placeholders.
-- Fixed unresolved relationship-dialogue placeholders when introducing a creature through wheel gifting. Applied Goldfinder's English dialogue corrections from PR #12 and corrected additional scent-related typos.
+- Fixed unresolved relationship-dialogue placeholders when introducing a creature through wheel gifting. Applied Goldfinder's English dialogue corrections from PR #12 and PR #13 and corrected additional scent-related typos.
 
 - Applied the latest Russian localization contributed by TrueTransfur's author, including updated interface text and localized creature names.
 
