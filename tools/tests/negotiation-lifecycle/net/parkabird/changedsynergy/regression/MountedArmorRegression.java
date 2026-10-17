@@ -44,6 +44,10 @@ final class MountedArmorRegression {
             player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
             for (int i=0; i<player.getInventory().items.size(); i++) player.getInventory().items.set(i, new ItemStack(Items.STONE, 64));
             player.setItemInHand(InteractionHand.MAIN_HAND, leggings);
+            // Demonstrate the unprotected Changed bug in the base environment;
+            // optional mods can replace native item-use and armour cleanup.
+            if (!net.minecraftforge.fml.ModList.get().isLoaded("true_transfur")
+                    && !net.minecraftforge.fml.ModList.get().isLoaded("changed_addon")) {
             MinecraftForge.EVENT_BUS.unregister(net.parkabird.changedsynergy.ai.CreatureArmorService.class);
             try {
                 player.gameMode.useItem(player, level, player.getMainHandItem(), InteractionHand.MAIN_HAND);
@@ -66,6 +70,7 @@ final class MountedArmorRegression {
                 player.setItemSlot(EquipmentSlot.LEGS, ItemStack.EMPTY);
                 player.getInventory().clearContent();
                 player.setItemInHand(InteractionHand.MAIN_HAND, leggings.copy());
+            }
             }
             for (boolean creative : new boolean[]{true, false}) {
               player.gameMode.changeGameModeForPlayer(creative ? net.minecraft.world.level.GameType.CREATIVE : net.minecraft.world.level.GameType.SURVIVAL);
