@@ -22,6 +22,7 @@
     "AddonAlphaLeapGrabMixin",
     "AddonInstinctGrabGoalMixin",
     "AddonNativeSuitGoalGuardMixin",
+    "AddonTakeoverSeparationMixin",
     "AddonThunderDashCarryMixin",
     "AddonThunderScanLoadedChunksMixin",
     "AddonThunderDiveCarryMixin",

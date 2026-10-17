@@ -98,7 +98,64 @@ final class TakeoverHazardRegression {
                 Changed.postModEvent(scripted);
                 check(!scripted.isCanceled(), "Capture protection leaves scripted non-environmental conversion available");
             }
-            check(TakeoverService.forceReleaseByCommand(player), "Protected suit can still be released");
+            var syringe = net.minecraftforge.registries.ForgeRegistries.ITEMS.getValue(
+                    new net.minecraft.resources.ResourceLocation("changed_addon", "diffusion_syringe"));
+            if (syringe != null && syringe != net.minecraft.world.item.Items.AIR) {
+                var bounds = player.getBoundingBox().inflate(24);
+                var before = level.getEntitiesOfClass(net.ltxprogrammer.changed.entity.ChangedEntity.class, bounds)
+                        .stream().map(net.minecraft.world.entity.Entity::getUUID).collect(java.util.stream.Collectors.toSet());
+                var stack = new net.minecraft.world.item.ItemStack(syringe, 2);
+                var result = syringe.finishUsingItem(stack, level, player);
+                check(result.getCount() == 1 && player.getInventory().countItem(
+                                net.ltxprogrammer.changed.init.ChangedItems.SYRINGE.get()) == 1,
+                        "Real diffusion use consumes one dose and returns one empty syringe");
+                check(!TakeoverService.active(player) && carrier.isAlive()
+                                && level.getEntitiesOfClass(net.ltxprogrammer.changed.entity.ChangedEntity.class, bounds)
+                                    .stream().map(net.minecraft.world.entity.Entity::getUUID)
+                                    .collect(java.util.stream.Collectors.toSet()).equals(before),
+                        "Diffusion safely releases the original carrier without spawning a copy");
+                syringe.finishUsingItem(new net.minecraft.world.item.ItemStack(syringe), level, player);
+                check(level.getEntitiesOfClass(net.ltxprogrammer.changed.entity.ChangedEntity.class, bounds)
+                                .stream().map(net.minecraft.world.entity.Entity::getUUID)
+                                .collect(java.util.stream.Collectors.toSet()).equals(before),
+                        "Repeated diffusion after release cannot clone the carrier");
+                var originRule = level.getGameRules().getRule(net.parkabird.changedsynergy.init.ChangedSynergyGameRules.NATIVE_ORIGINS);
+                boolean originalPolicy = originRule.get();
+                // Ordinary reversal is allowed for this non-native player; do not
+                // mistake TT's intended permanent-body policy for a split failure.
+                originRule.set(true, null);
+                try {
+                    var ordinary = ProcessTransfur.setPlayerTransfurVariant(player,
+                            ChangedTransfurVariants.DARK_LATEX_WOLF_MALE.get());
+                    check(ordinary != null && !ordinary.isTemporaryFromSuit(), "Ordinary permanent form starts outside takeover");
+                    syringe.finishUsingItem(new net.minecraft.world.item.ItemStack(syringe), level, player);
+                    var after = level.getEntitiesOfClass(net.ltxprogrammer.changed.entity.ChangedEntity.class, bounds);
+                    check(ProcessTransfur.getPlayerTransfurVariant(player) == null && after.size() == before.size() + 1,
+                            "Ordinary diffusion still splits exactly one new creature from a transformed player; form="
+                                    + ProcessTransfur.getPlayerTransfurVariant(player) + "; before=" + before.size()
+                                    + "; after=" + after.size());
+                    after.stream().filter(entity -> !before.contains(entity.getUUID())).forEach(net.minecraft.world.entity.Entity::discard);
+                    var doubleWing = ChangedEntities.DARK_LATEX_DOUBLE_YUFENG.get().create(level);
+                    try {
+                        doubleWing.setPos(player.position().add(1, 0, 0)); level.addFreshEntity(doubleWing);
+                        net.parkabird.changedsynergy.ai.BondedSuitService.ensureGrabAbility(doubleWing);
+                        var hold = net.parkabird.changedsynergy.ai.BondedSuitService.ability(doubleWing);
+                        check(hold.suitEntity(player), "Double Yufeng establishes a real native temporary suit");
+                        hold.grabbedHasControl = true; hold.tickIdle(); player.setOnGround(true);
+                        var identities = level.getEntitiesOfClass(net.ltxprogrammer.changed.entity.ChangedEntity.class, bounds)
+                                .stream().map(net.minecraft.world.entity.Entity::getUUID).collect(java.util.stream.Collectors.toSet());
+                        syringe.finishUsingItem(new net.minecraft.world.item.ItemStack(syringe), level, player);
+                        check(ProcessTransfur.getPlayerTransfurVariant(player) == null && hold.grabbedEntity == null
+                                        && doubleWing.isAlive() && level.getEntitiesOfClass(net.ltxprogrammer.changed.entity.ChangedEntity.class, bounds)
+                                            .stream().map(net.minecraft.world.entity.Entity::getUUID)
+                                            .collect(java.util.stream.Collectors.toSet()).equals(identities),
+                                "Diffusion releases native double-wing wrapping without downgrading the form or cloning its carrier");
+                    } finally { doubleWing.discard(); }
+                } finally { originRule.set(originalPolicy, null); }
+                System.out.println("TAKEOVER_DIFFUSION_SEPARATION_PASS");
+            } else {
+                check(TakeoverService.forceReleaseByCommand(player), "Protected suit can still be released without Addon");
+            }
             check(!TakeoverService.active(player) && !TakeoverService.blocksPlayerInput(player)
                     && ProcessTransfur.getPlayerTransfurVariant(player) == null, "Release restores the original human normally");
             for (int kind = 0; kind < 3; kind++) {
