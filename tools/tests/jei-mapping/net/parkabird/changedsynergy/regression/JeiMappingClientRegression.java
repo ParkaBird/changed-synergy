@@ -78,6 +78,7 @@ public final class JeiMappingClientRegression {
                 stage = 1;
             }
             if (mc.level == null || mc.player == null || !mc.hasSingleplayerServer()) return;
+            if (stage == 2 && !WrappedFlightRegression.clientTick(mc)) return;
             if (++ticks < (stage == 7 ? 120 : 40)) return;
             ticks = 0;
             if (stage > 1 && mc.screen != null) exerciseInput(mc);
@@ -85,7 +86,7 @@ public final class JeiMappingClientRegression {
                 checkInterfaceImplementations();
                 var serverChecks = new java.util.concurrent.CompletableFuture<Void>();
                 mc.getSingleplayerServer().execute(() -> {
-                    try { SocialContinuityRegression.run(mc.getSingleplayerServer()); TradeDoorRegression.run(mc.getSingleplayerServer()); TakeoverHazardRegression.run(mc.getSingleplayerServer()); serverChecks.complete(null); }
+                    try { SocialContinuityRegression.run(mc.getSingleplayerServer()); TradeDoorRegression.run(mc.getSingleplayerServer()); TakeoverHazardRegression.run(mc.getSingleplayerServer()); WrappedFlightRegression.run(mc.getSingleplayerServer()); serverChecks.complete(null); }
                     catch (Throwable failure) { serverChecks.completeExceptionally(failure); }
                 });
                 serverChecks.get(45, java.util.concurrent.TimeUnit.SECONDS);

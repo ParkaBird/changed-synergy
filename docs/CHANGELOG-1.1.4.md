@@ -85,6 +85,8 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 
 ### Abilities, takeover and creature ecology
 
+- Diffusion Syringes release wrapped players from their original carrier without producing a duplicate, including borrowed takeover control and double-headed Yufeng wrapping.
+- Firework propulsion works consistently while wrapped by a flying companion, including Red Dragons; boosting rockets no longer collide with the wrapping creature and expire early.
 - Fixed environmental transfur affecting players inside a takeover, including latex puddles and dropped syringes. Borrowed control, normal release and the takeover's own final outcome remain intact.
 
 - Dark and White latex are now peaceful competitors. NPCs and players in opposite latex forms, including TrueTransfur Instinct bodies, no longer become enemies on sight. Faction-alliance competition remains, and genuine aggression, theft or hostile standing can still provoke a response.
@@ -103,6 +105,7 @@ Thank you to everyone who tested the mod, reported problems and shared ideas aft
 
 ### Settings, localization and server support
 
+- Integrated revised community English and Spanish dialogue, expanded White and Organic Spanish translations, and updated the corresponding Simplified Chinese lines with consistent terminology and valid placeholders.
 - Fixed unresolved relationship-dialogue placeholders when introducing a creature through wheel gifting. Applied Goldfinder's English dialogue corrections from PR #12 and corrected additional scent-related typos.
 
 - Applied the latest Russian localization contributed by TrueTransfur's author, including updated interface text and localized creature names.
