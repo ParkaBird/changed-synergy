@@ -29,6 +29,7 @@ def main():
     parser.add_argument('--extras', type=Path)
     parser.add_argument('--extra-mod', type=Path, action='append', default=[])
     parser.add_argument('--fixture', type=Path)
+    parser.add_argument('--run-directory', type=Path)
     parser.add_argument('--suite', choices=['tt', 'camp', 'social', 'settings', 'community', 'crew-load', 'community-load', 'protection', 'pets', 'negotiation'], default='tt')
     parser.add_argument('--without-addon', action='store_true')
     parser.add_argument('--check-command-state', action='store_true')
@@ -36,7 +37,8 @@ def main():
     if args.addon and args.without_addon:
         parser.error('--addon and --without-addon cannot be combined')
     repo = Path(__file__).resolve().parent.parent
-    run = repo / '.codex-tmp' / 'production-community-server'
+    run = (args.run_directory or repo / '.codex-tmp' / 'production-community-server').resolve()
+    assert run.parent == (repo / '.codex-tmp').resolve(), 'Only an existing private regression server may be changed.'
     mods = run / 'mods'
     version = next(line.split('=', 1)[1].split('+', 1)[0] for line in (repo / 'gradle.properties').read_text(encoding='utf-8').splitlines() if line.startswith('mod_version='))
     fixture = args.fixture or repo / '.codex-tmp' / 'truetransfur-release-build' / 'libs' / f'ChangedSynergy-m1.20.1-v{version}-all.jar'

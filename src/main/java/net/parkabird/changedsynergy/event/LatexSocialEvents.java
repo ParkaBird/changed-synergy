@@ -667,6 +667,14 @@ public final class LatexSocialEvents {
                 || mob.level().isClientSide) {
             return;
         }
+        if (!net.parkabird.changedsynergy.ai.TransfurConsciousness.isKept(player)
+                && event.getAmount() == Float.MAX_VALUE
+                && (event.getSource().is(net.ltxprogrammer.changed.init.ChangedDamageSources.TRANSFUR.key())
+                    || event.getSource().is(net.ltxprogrammer.changed.init.ChangedDamageSources.ABSORB.key()))) {
+            // This is Changed committing an already completed conversion, not
+            // another swipe. The new species/kinship must not cancel its death.
+            return;
+        }
         if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(mob)) {
             if (LatexCreatureCombatRules.rejectsPeacefulCompetitorTarget(mob, player)) {
                 event.setCanceled(true);

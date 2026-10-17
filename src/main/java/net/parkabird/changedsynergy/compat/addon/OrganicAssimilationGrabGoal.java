@@ -269,6 +269,7 @@ public final class OrganicAssimilationGrabGoal extends Goal {
         instance.transfurProgressionO = 1.0F;
         instance.transfurProgression = 1.0F;
         instance.setTemporaryForSuit(false);
+        net.parkabird.changedsynergy.ai.TransfurConsciousness.applyInvoluntaryOutcome(target, instance);
         IAbstractChangedEntity transformed =
                 IAbstractChangedEntity.forPlayerWithVariant(target, instance);
         ProcessTransfur.onNewlyTransfurred(transformed);

@@ -141,6 +141,12 @@ A bonded companion may confine an owner after repeated **witnessed** kills of it
 
 Takeover consequences depend on the encounter:
 
+Takeovers require Changed's **Keep Conscious** rule (`changed:keepConscious`).
+With this rule off, forced transfur causes death through the normal conversion
+instead, including attacks from Instinct-mode players. Confirmed voluntary
+friendship/bond transfur and chosen starting origins remain safe; protective
+wrapping does not count as forced transfur.
+
 | Encounter | Outcome |
 | --- | --- |
 | Bonded kin confinement, a personality-led friendly takeover, or confinement following aggression at neutral/friendly standing | The countdown releases you. A failed escape can make you sleep before release; friendly takeover can include orange compensation. |

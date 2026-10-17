@@ -3,6 +3,7 @@ package net.parkabird.changedsynergy.ai;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.variant.ClothingShape;
 import net.ltxprogrammer.changed.item.ExtendedItemProperties;
+import net.ltxprogrammer.changed.item.QuadrupedalArmor;
 import net.ltxprogrammer.changed.world.enchantments.FormFittingEnchantment;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,13 +18,33 @@ import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TridentItem;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.event.NpcDispositionEvents;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.parkabird.changedsynergy.world.inventory.BondedCreatureInventory;
 
 /** Shared checks and direct interactions for creature equipment. */
+@Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID)
 public final class CreatureArmorService {
     private CreatureArmorService() {
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onUseQuadrupedalArmor(PlayerInteractEvent.RightClickItem event) {
+        if (!(event.getItemStack().getItem() instanceof QuadrupedalArmor armor)) return;
+        EquipmentSlot slot = armor.getEquipmentSlot();
+        ItemStack fitted = FormFittingEnchantment.getFormFitted(event.getEntity(), event.getItemStack(), slot);
+        if (fitted.getItem() instanceof ExtendedItemProperties properties
+                && !properties.allowedInSlot(fitted, event.getEntity(), slot)) {
+            // Riding changes neither the rider's body nor their equipment slots.
+            // Reject on both sides before native wear ticks can return an invalid
+            // equipped copy independently on the client and server.
+            event.setCancellationResult(InteractionResult.FAIL);
+            event.setCanceled(true);
+        }
     }
 
     public static boolean canWear(ChangedEntity creature, ItemStack original, EquipmentSlot slot) {

@@ -345,7 +345,8 @@ public final class TakeoverService {
 
     private static boolean baseOrdinaryEligibility(
             ChangedEntity carrier, ServerPlayer player) {
-        if (!ChangedSynergyConfig.COMMON.takeoverEnabled.get() || !Changed.config.server.isGrabEnabled.get()
+        if (!TransfurConsciousness.isKept(player)
+                || !ChangedSynergyConfig.COMMON.takeoverEnabled.get() || !Changed.config.server.isGrabEnabled.get()
                 || active(player) || carrying(carrier)
                 || !player.isAlive() || !carrier.isAlive() || player.isCreative() || player.isSpectator()
                 || TrueTransfurCompat.isInstinctShell(player) || TrueTransfurCompat.isRebirthing(player)
@@ -472,7 +473,7 @@ public final class TakeoverService {
     private static boolean beginOrdinaryAuthorized(ChangedEntity carrier,
             ServerPlayer player, boolean confinement) {
         // All ordinary capture paths share this commit guard, before old holds or forms change.
-        if (!canPhysicallyCapture(carrier, player)) return false;
+        if (!TransfurConsciousness.isKept(player) || !canPhysicallyCapture(carrier, player)) return false;
         GrabEntityAbilityInstance ability = BondedSuitService.ability(carrier);
         if (ability == null) {
             clearIntent(carrier);
@@ -582,7 +583,7 @@ public final class TakeoverService {
     }
 
     public static boolean beginExoskeleton(ServerPlayer player, Exoskeleton source) {
-        if (!ChangedSynergyConfig.COMMON.takeoverEnabled.get()
+        if (!TransfurConsciousness.isKept(player) || !ChangedSynergyConfig.COMMON.takeoverEnabled.get()
                 || !ChangedSynergyConfig.COMMON.takeoverExoskeleton.get() || active(player)
                 || !player.isAlive() || player.isCreative() || player.isSpectator()) return false;
         CompoundTag state = ExoskeletonTakeoverAdapter.capture(source, player);
@@ -1258,6 +1259,7 @@ public final class TakeoverService {
             instance.transfurProgressionO = 1.0F;
             instance.transfurProgression = 1.0F;
             instance.setTemporaryForSuit(false);
+            TransfurConsciousness.applyInvoluntaryOutcome(player, instance);
             ProcessTransfur.setPlayerTransfurProgress(player, 1.0F);
             ProcessTransfur.onNewlyTransfurred(
                     IAbstractChangedEntity.forPlayerWithVariant(player, instance));

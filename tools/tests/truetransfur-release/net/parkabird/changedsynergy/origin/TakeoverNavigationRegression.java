@@ -57,7 +57,48 @@ final class TakeoverNavigationRegression {
                 if(human.distanceToSqr(body)>.3||!human.noPhysics)throw new AssertionError("Native suit position/physics stopped ticking: distance="+human.distanceToSqr(body)+" noPhysics="+human.noPhysics);
                 System.out.println("TAKEOVER_NAVIGATION_PASS: full carrier ticks retain continuous native combat navigation");
             } finally {target.discard();InstinctConfinementService.release(human);}
+            lethalInstinctConversion(server, body);
         } finally {sample.discard();cfg.creatureTransfurMethod.set(previous);server.setPvpAllowed(pvp);human.getPersistentData().remove("SynergyInstinctRestraintGrace");body.setTarget(null);body.setNoAi(true);body.setPos(human.position());}
+    }
+    private static void lethalInstinctConversion(MinecraftServer server, ChangedEntity body) throws Exception {
+        var rules = server.overworld().getGameRules();
+        var key = net.ltxprogrammer.changed.init.ChangedGameRules.RULE_KEEP_BRAIN;
+        boolean kept = rules.getBoolean(key);
+        var owner = net.parkabird.changedsynergy.compat.TrueTransfurCompat.bodyOwner(body);
+        var ownerForm = ProcessTransfur.getPlayerTransfurVariant(owner);
+        try {
+            for (boolean cached : new boolean[]{false, true}) {
+                var human = new ServerPlayer(server, server.overworld(), new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "InstinctFatal"));
+                human.connection = new net.minecraft.server.network.ServerGamePacketListenerImpl(server,
+                        new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND), human);
+                net.minecraftforge.fml.util.ObfuscationReflectionHelper.setPrivateValue(ServerPlayer.class, human, 0, "f_8921_");
+                var identity = new NativeOriginData.Identity(); identity.state = "human";
+                NativeOriginData.get(server).players.put(human.getUUID(), identity);
+                human.setPos(body.position().add(1, 0, 0)); FactionReputation.set(body, human, -70);
+                try {
+                    rules.getRule(key).set(cached, server);
+                    var decision = net.ltxprogrammer.changed.entity.ai.LatexAssimilationDecision.strong(
+                            net.ltxprogrammer.changed.entity.ai.LatexAssimilationDecision.Method.ABSORPTION,
+                            body.getSelfVariant(), net.ltxprogrammer.changed.entity.TransfurContext.npcLatexHazard(body,
+                                    net.ltxprogrammer.changed.entity.TransfurCause.GRAB_ABSORB), 100F);
+                    var behavior = ProcessTransfur.computeAssimilationBehavior(human, decision);
+                    rules.getRule(key).set(false, server);
+                    if (!InstinctConfinementService.canTarget(body, human) || InstinctConfinementService.begin(body, human))
+                        throw new AssertionError("Rule-off Instinct hostility must remain while takeover is rejected");
+                    behavior.stepAssimilate();
+                    var form = ProcessTransfur.getPlayerTransfurVariant(human);
+                    if (form != null) {
+                        var tick = form.getClass().getDeclaredMethod("tickTransfurProgress"); tick.setAccessible(true);
+                        for (int i=0; i<800 && form.transfurProgression<1 && human.isAlive(); i++) tick.invoke(form);
+                    }
+                    if (human.isAlive() || TakeoverService.active(human) || !body.isAlive() || body.isRemoved()
+                            || net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(owner)!=body
+                            || ProcessTransfur.getPlayerTransfurVariant(owner)!=ownerForm)
+                        throw new AssertionError("Rule-off Instinct conversion must kill only the victim, cached="+cached);
+                    System.out.println("KEEP_CONSCIOUS_INSTINCT_PASS: victim dies; no takeover; real owner, body, form and mode retained; cached="+cached);
+                } finally { human.discard(); }
+            }
+        } finally { rules.getRule(key).set(kept, server); }
     }
     private static void tick(MinecraftServer server,ServerPlayer human,ServerPlayer owner,ChangedEntity body)throws Exception {
         var count=net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(MinecraftServer.class,"f_129766_");

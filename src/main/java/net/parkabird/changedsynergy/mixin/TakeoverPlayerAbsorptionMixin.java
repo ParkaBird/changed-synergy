@@ -37,6 +37,7 @@ public abstract class TakeoverPlayerAbsorptionMixin {
             return;
         }
         if (!(target instanceof ServerPlayer player)
+                || !net.parkabird.changedsynergy.ai.TransfurConsciousness.isKept(player)
                 || decision == null
                 || callback.getReturnValue() == null
                 || decision.context().source() == null) return;

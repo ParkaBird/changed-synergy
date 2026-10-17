@@ -40,6 +40,8 @@ public final class NegotiationLifecycleRegression {
             ChangedSynergyConfig.SPEC.setConfig(com.electronwill.nightconfig.core.CommentedConfig.inMemory());
             ChangedSynergyConfig.COMMON.takeoverEnabled.set(false);
             event.getServer().overworld().getGameRules().getRule(ChangedSynergyGameRules.NATIVE_ORIGINS).set(true, event.getServer());
+            MountedArmorRegression.run(event.getServer());
+            KeepConsciousRegression.run(event.getServer());
             loginBeforeConnection(event.getServer());
             lifecycle(event.getServer());
             humanoidGrab(event.getServer());
