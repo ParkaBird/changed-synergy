@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.init.ChangedEntities;
 import net.ltxprogrammer.changed.init.ChangedItems;
+import net.ltxprogrammer.changed.init.ChangedRegistry;
 import net.ltxprogrammer.changed.item.Syringe;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.minecraft.nbt.CompoundTag;
@@ -217,6 +218,17 @@ public final class BondedRevivalService {
     public static String bondName(ItemStack stack) {
         CompoundTag root = maskData(stack);
         return root == null ? "" : root.getString(BOND_NAME);
+    }
+
+    public static Component bondSampleDescription(ItemStack stack) {
+        var description = Component.literal(bondName(stack));
+        CompoundTag root = maskData(stack);
+        ResourceLocation form = root == null ? null : ResourceLocation.tryParse(root.getString(FORM));
+        var variant = form == null ? null : ChangedRegistry.TRANSFUR_VARIANT.get().getValue(form);
+        if (variant != null) {
+            description.append(" (").append(variant.getEntityType().getDescription()).append(")");
+        }
+        return description;
     }
 
     public static boolean belongsTo(ItemStack stack, ServerPlayer player) {

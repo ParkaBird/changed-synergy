@@ -29,7 +29,11 @@ final class MountedArmorRegression {
         net.parkabird.changedsynergy.origin.NativeOriginData.get(server).players.put(player.getUUID(), identity);
         var mount = ChangedEntities.WHITE_LATEX_CENTAUR.get().create(level);
         try {
-            player.setPos(180.5, 160, 180.5); mount.setPos(player.position()); level.addFreshEntity(mount);
+            var spawn = level.getSharedSpawnPos();
+            player.setPos(spawn.getX()+4.5, 160, spawn.getZ()+4.5);
+            level.getChunkAt(player.blockPosition());
+            mount.setPos(player.position());
+            if (!level.addFreshEntity(mount)) throw new AssertionError("Test mount failed to join the loaded spawn chunk");
             LatexSocialMemory.addBond(mount, player);
             var menu = new CentaurMountConfigMenu(1, player.getInventory(), mount);
             player.containerMenu = menu;
