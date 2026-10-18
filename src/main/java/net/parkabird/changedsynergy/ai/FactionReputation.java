@@ -9,7 +9,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.entity.player.Player;
 import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
@@ -257,7 +256,7 @@ public final class FactionReputation {
             ServerPlayer clone) {
         CompoundTag source = data(original);
         if (!source.isEmpty()) {
-            persisted(clone).put(ROOT, source.copy());
+            PlayerPersistentData.get(clone).put(ROOT, source.copy());
         }
     }
 
@@ -540,7 +539,7 @@ public final class FactionReputation {
     }
 
     private static CompoundTag data(ServerPlayer player) {
-        CompoundTag persisted = persisted(player);
+        CompoundTag persisted = PlayerPersistentData.get(player);
         if (!persisted.contains(ROOT, Tag.TAG_COMPOUND)) {
             persisted.put(ROOT, new CompoundTag());
         }
@@ -550,14 +549,6 @@ public final class FactionReputation {
         // affiliations, so discard the dormant key instead of guessing.
         reputation.remove(LEGACY_ORGANIC_FACTION_KEY);
         return reputation;
-    }
-
-    private static CompoundTag persisted(ServerPlayer player) {
-        CompoundTag root = player.getPersistentData();
-        if (!root.contains(Player.PERSISTED_NBT_TAG, Tag.TAG_COMPOUND)) {
-            root.put(Player.PERSISTED_NBT_TAG, new CompoundTag());
-        }
-        return root.getCompound(Player.PERSISTED_NBT_TAG);
     }
 
     private static boolean enabled(ServerPlayer player) {

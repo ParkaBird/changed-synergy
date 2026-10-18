@@ -1806,5 +1806,7 @@
   "dialogue.changed_synergy.white.white_knight_fusion_complete.2": "Este cuerpo supera nuestras expectativas. ¡Estamos felices con el resultado!",
   "dialogue.changed_synergy.white.bond_safety_release_not_ready.0": "No podemos dejarte ir. Hay peligro cerca.",
   "dialogue.changed_synergy.white.bond_safety_release_not_ready.1": "Pregúntanos luego. En este momento, sentimos que no es seguro aquí afuera.",
-  "message.changed_synergy.bond.death_location": "%1$s murió en %2$s, en las coordenadas %3$s, %4$s, %5$s."
+  "message.changed_synergy.bond.death_location": "%1$s murió en %2$s, en las coordenadas %3$s, %4$s, %5$s.",
+  "config.changed_synergy.option.organic_sleep_reversal": "Reversión orgánica al dormir",
+  "config.changed_synergy.option.organic_sleep_reversal.description": "Permite revertir una transformación orgánica tras dormir toda la noche. También requiere activar la reversión normal; se mantienen las protecciones de TrueTransfur permanente y del origen nativo."
 }

@@ -600,14 +600,14 @@ public final class LatexSocialMemory {
                 }
             }
         }
-        playerPersistedData(player).putBoolean(PLAYER_BONDS_SCANNED, true);
+        PlayerPersistentData.get(player).putBoolean(PLAYER_BONDS_SCANNED, true);
         return bonded;
     }
 
     /** Returns the persistent UUID registry used by the player bond command. */
     public static Set<UUID> bondedCreatureUuids(ServerPlayer player) {
         applyPendingBondDeaths(player);
-        if (!playerPersistedData(player).getBoolean(PLAYER_BONDS_SCANNED)) {
+        if (!PlayerPersistentData.get(player).getBoolean(PLAYER_BONDS_SCANNED)) {
             loadedBondedCreatures(player);
         }
 
@@ -663,7 +663,7 @@ public final class LatexSocialMemory {
                 .anyMatch(key -> !key.equals(excludedKey))) {
             return true;
         }
-        if (!playerPersistedData(player).getBoolean(PLAYER_BONDS_SCANNED)) {
+        if (!PlayerPersistentData.get(player).getBoolean(PLAYER_BONDS_SCANNED)) {
             loadedBondedCreatures(player);
         }
         return playerBondData(player).getAllKeys().stream()
@@ -789,8 +789,8 @@ public final class LatexSocialMemory {
 
     /** Explicitly preserves the bond registry when Minecraft replaces a player on death. */
     public static void copyPlayerBondData(ServerPlayer original, ServerPlayer clone) {
-        CompoundTag source = playerPersistedData(original);
-        CompoundTag target = playerPersistedData(clone);
+        CompoundTag source = PlayerPersistentData.get(original);
+        CompoundTag target = PlayerPersistentData.get(clone);
         if (source.contains(PLAYER_BONDS, Tag.TAG_COMPOUND)) {
             target.put(PLAYER_BONDS, source.getCompound(PLAYER_BONDS).copy());
         }
@@ -1440,6 +1440,12 @@ public final class LatexSocialMemory {
             ChangedEntity mob,
             ServerPlayer player) {
         settleCurrentConflict(mob, player);
+        TakeoverConflictMemory.clear(mob, player);
+        child(mob, PAT_TRUCE_BETRAYALS).remove(player.getStringUUID());
+        child(mob, RELATIONSHIP_BETRAYALS).remove(player.getStringUUID());
+        CreaturePersonality.setFamiliarity(mob, player,
+                Math.max(0, CreaturePersonality.familiarity(mob, player)));
+        CreaturePersonality.establishRelationship(mob, player);
     }
 
     private static void settleCurrentConflict(
@@ -1886,19 +1892,11 @@ public final class LatexSocialMemory {
     }
 
     private static CompoundTag playerBondData(ServerPlayer player) {
-        CompoundTag persisted = playerPersistedData(player);
+        CompoundTag persisted = PlayerPersistentData.get(player);
         if (!persisted.contains(PLAYER_BONDS, Tag.TAG_COMPOUND)) {
             persisted.put(PLAYER_BONDS, new CompoundTag());
         }
         return persisted.getCompound(PLAYER_BONDS);
-    }
-
-    private static CompoundTag playerPersistedData(ServerPlayer player) {
-        CompoundTag root = player.getPersistentData();
-        if (!root.contains(Player.PERSISTED_NBT_TAG, Tag.TAG_COMPOUND)) {
-            root.put(Player.PERSISTED_NBT_TAG, new CompoundTag());
-        }
-        return root.getCompound(Player.PERSISTED_NBT_TAG);
     }
 
     private static boolean invokePlayerMethod(ChangedEntity mob, String name, Player player)

@@ -1,5 +1,7 @@
 # Native Origins — 1.1.4
 
+Pure White Wolves, pups, Cerberuses and Bloodcell Wolves retain their species and body during regional adaptation. Away from White territory, their individual eyes become visible; Cerberuses gain eyes on all three heads, with stable individual colours and styles. Returning home hides them again. The same applies in Instinct mode.
+
 Start as a human or a native latex creature. Native species choices require **TrueTransfur**. **2.0.0** is recommended for the full native roleplay and Instinct experience. **1.0.1** remains supported for native origins and direct player control.
 
 The archive has a human record and five creature sections: White, Dark, Variant, Organic and Aquatic. A section is a browsing category; check the species dossier for its actual faction and rival faction. Eligible juvenile and fusion forms are included. Some special forms and bosses are unavailable.

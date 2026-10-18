@@ -41,6 +41,7 @@ public final class SettingsServerRegression {
     @SubscribeEvent public static void started(ServerStartedEvent event) {
         try {
             MinecraftServer server = event.getServer();
+            OutpostSpacingRegression.run(server);
             Path output = Path.of(System.getProperty("settings.audit.output"));
             Files.createDirectories(output);
             Path file = output.resolve("persisted-common.toml");
@@ -50,7 +51,7 @@ public final class SettingsServerRegression {
                 ChangedSynergyConfig.SPEC.correct(config);
                 var source = server.createCommandSourceStack().withSource(SILENT).withPermission(4);
                 var publicOptions = ChangedSynergyConfig.options();
-                check(publicOptions.size() == 116, "116 public common settings: " + publicOptions.size());
+                check(publicOptions.size() == 118, "118 public common settings: " + publicOptions.size());
                 check(!publicOptions.containsValue(ChangedSynergyConfig.COMMON.behaviourConfigRevision), "Migration marker stays internal");
                 for (var entry : publicOptions.entrySet()) {
                     String key = entry.getKey();
@@ -75,7 +76,7 @@ public final class SettingsServerRegression {
                 check(run(server, source, "config categories") > 0, "Category command");
                 for (String section : publicOptions.keySet().stream().map(k -> k.split("\\.")[0]).distinct().toList())
                     check(run(server, source, "config list " + section.toLowerCase(Locale.ROOT) + " 1") > 0, "Category listing: " + section);
-                check(run(server, source, "config list 2") == 116, "Original numeric pagination");
+                check(run(server, source, "config list 2") == 118, "Original numeric pagination");
                 check(run(server, source, "config list 9999") == 0, "Reject invalid page");
                 check(run(server, source, "config get BEHAVIOUR.BehaviourConfigRevision") == 0, "Internal marker cannot be queried");
                 try {
@@ -114,6 +115,8 @@ public final class SettingsServerRegression {
                 run(server, source, "config reset BEHAVIOUR.SearchSpeed");
                 worldRules(server, source);
                 runtimeGuards(server);
+                NonRivalCombatProtectionRegression.run(server);
+                PlayfulPersonalityRegression.run(server);
                 var catalog = new LinkedHashMap<String, Object>();
                 catalog.put("common", metadata(publicOptions, ChangedSynergyConfig.SPEC));
                 var clients = new TreeMap<String, ForgeConfigSpec.ConfigValue<?>>();

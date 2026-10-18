@@ -2,6 +2,36 @@
 
 This project follows semantic versioning while it is practical. Beta releases may still change saved-data details or interaction balance.
 
+## 1.1.4-hotfix.2
+
+- Fixed player/wild outpost spacing ignoring server settings when establishing a player camp, inconsistent distance boundaries, and existing camps being rejected after spacing changes.
+- Outpost gathering assignments now show each creature's target resources in the roster and main/backup work controls.
+- Added a server setting to disable organic-transfur reversal after sleeping independently of other reversal methods.
+- Added a server setting to disable the low-health ceasefire in fights between non-rival latex creatures, independently of bonded-companion safety.
+- Fixed creatures continuing to attack or pursue a player during the transfur animation. The creature responsible now ends the completed conflict without erasing faction reputation.
+- Fixed missing Dark latex NPCs and inert player-body duplicates after involuntary transfur death. Death leaves one independent NPC of the resulting species, without automatically assigning the player's name.
+- Fixed friendly transfur being described as retaliation because of attacks on other creatures, concluded conflicts or unrelated pursuit assignments.
+- Fixed successful transfur negotiation failing to unlock direct right-click interaction. Successful restoration now establishes an initial acquaintance with the negotiating creature.
+- Fixed White latex coverings on ordinary blocks being ignored as home territory by Pure White adaptation.
+- Fixed Pure White adaptation changing the original species or body. Away adaptation now reveals individual eyes on Pure White Wolves, pups, Cerberuses and Bloodcell Wolves, including players in Instinct mode. Cerberus heads can have distinct, stable eye colours and styles.
+- Corrected the Pure White pup's eye position, including when turning its head.
+- Fixed chosen spawn personalities being replaced by random traits, including Playful and Polite after reloading.
+- Fixed Playful and Polite behavior traits being hidden in relationship information.
+- Fixed alignment of the grab-escape QTE, contact-roster header controls and icons inside radial-wheel frames.
+- Fixed ability-wheel icons disappearing or shifting outside their frames, including White latex forms.
+- Fixed the camp-invitation wheel tooltip displaying untranslated keys.
+- Fixed small creatures, including baby zombies, appearing near the carrier's feet instead of in its arms during a grab.
+- Fixed the permanent-outcome escape warning displaying a translation key instead of its description.
+- Added the bonded companion's death dimension and coordinates to death notifications, including notifications received after logging back in.
+- Added the companion's localized species after its name in the latex sample tooltip.
+- Fixed forced transfur bypassing Changed's Keep Conscious rule. With the rule disabled, involuntary transfur causes death instead of takeover; confirmed voluntary transfur and protective wrapping remain safe.
+- Fixed quadrupedal armour duplication when human riders right-click leggings or boots, including Creative mode and full inventories.
+- Fixed Diffusion Syringes creating an extra creature instead of separating the player from the original carrier, including borrowed takeover control and double-headed Yufeng wrapping.
+- Fixed repeated firework boosts failing while wrapped by a flying companion, including Red Dragons.
+- Fixed environmental transfur affecting players inside a takeover, including latex puddles and dropped syringes.
+- Fixed following companions refusing to teleport while targeting distant or unreachable enemies.
+- Corrected dialogue spelling, grammar, punctuation and placeholders, including community revisions and the latest updates from Goldfinder's PR #13.
+
 ## 1.1.4-hotfix
 
 - Added a compatibility workaround for JEI 15.70.0.221 mouse hit-testing, covering both screen rendering and keyboard/mouse input, including chat and recipe screens. JEI remains optional.

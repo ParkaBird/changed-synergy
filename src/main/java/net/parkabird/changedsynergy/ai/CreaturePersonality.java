@@ -121,7 +121,7 @@ public final class CreaturePersonality {
         int dominant = personality.getInt(DOMINANT_TRAIT);
         if (!personality.contains(DOMINANT_TRAIT, Tag.TAG_INT)
                 || dominant < 0 || dominant >= Trait.values().length
-                || (mask & 1 << dominant) == 0 || Trait.values()[dominant].behaviorOnly()) {
+                || (mask & 1 << dominant) == 0) {
             personality.putInt(DOMINANT_TRAIT, selectDominantTrait(mob, mask));
         }
     }
@@ -161,7 +161,7 @@ public final class CreaturePersonality {
         return Trait.values()[data(mob).getInt(DOMINANT_TRAIT)];
     }
 
-    /** Commands can set a primary personality or add an exclusive behavior trait. */
+    /** Explicit choices also allow the normally secondary playful/polite traits as primary. */
     public static void setDominantTrait(ChangedEntity mob, Trait trait) {
         ensure(mob);
         CompoundTag personality = data(mob);
@@ -178,8 +178,8 @@ public final class CreaturePersonality {
             }
         } else {
             if (Integer.bitCount(mask) > 3) mask &= ~(1 << dominant);
-            personality.putInt(DOMINANT_TRAIT, trait.ordinal());
         }
+        personality.putInt(DOMINANT_TRAIT, trait.ordinal());
         personality.putInt(TRAIT_MASK, mask);
         personality.putInt(DATA_VERSION, CURRENT_VERSION);
         ensure(mob);

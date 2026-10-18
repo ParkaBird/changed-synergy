@@ -85,6 +85,7 @@
 | --- | --- | --- | --- |
 | `RELATIONSHIPS.TamedCompanionRegeneration` | `0` | 0 ~ 5 | 原生宠物恢复等级: Changed 原生宠物获得的生命恢复等级；设为零则关闭。 |
 | `RELATIONSHIPS.OrdinaryTransfurReversal` | `true` | true / false | 普通逆转兽化: 允许通过谈判、羁绊伙伴和睡眠解除兽化。关闭后仍可正常结束接管，并保留 /untf 与 /untransfur 故障恢复指令。 |
+| `RELATIONSHIPS.OrganicSleepReversal` | `true` | true / false | 有机兽化睡眠逆转：允许在完整睡过一夜后解除有机兽化。仍需开启“普通逆转兽化”，并遵守永久兽化和原生身份保护。 |
 | `RELATIONSHIPS.ProtectiveReleaseRequests` | `true` | true / false | 羁绊保护性滞留: 多次因危险被救援后，谨慎、保护欲强或敏感的羁绊可能需要玩家反复请求才肯释放。每次请求都会关闭轮盘，需要重新打开再问。 |
 | `RELATIONSHIPS.BondedEmergencyRescue` | `true` | true / false | 羁绊紧急营救: 允许胶兽羁绊包裹营救、有机羁绊带主人撤离；另行开启后也允许水生朋友营救溺水玩家。关闭后仍可主动包裹或正常协助战斗。 |
 | `RELATIONSHIPS.AquaticFriendDrowningRescue` | `true` | true / false | 水生朋友溺水营救: 玩家因溺水实际受到伤害后，允许水生朋友包裹营救；同时需要开启“羁绊紧急营救”。 |
@@ -104,6 +105,7 @@
 | `RELATIONSHIPS.IndependentFactionReputation` | `false` | true / false | 阵营声望独立: 开启后，各阵营声望独立变化；与一个阵营交好不会降低对立阵营声望，可以与所有阵营结盟。过去已损失的声望不会自动恢复。 |
 | `RELATIONSHIPS.PostTransfurTruceSeconds` | `90` | 0 ~ 600 | 兽化后停战时长: 兽化或接管释放后，各胶兽阵营恢复敌意前的保护秒数；设为 0 可关闭。 |
 | `RELATIONSHIPS.PeacefulVillageRelations` | `true` | true / false | 村庄单位和平相处: 阻止胶兽与村民、流浪商人、铁傀儡及兼容的村庄守卫互相攻击。默认开启。 |
+| `RELATIONSHIPS.NonRivalCombatProtection` | `true` | true / false | 非宿敌胶兽互斗保护：在生命值降至20%（至少1点）时结束互斗。关闭后允许正常致命伤害；同族友伤防护、羁绊安全线和玩家战斗规则独立生效。 |
 
 ### 招呼与社交行为
 
@@ -167,7 +169,7 @@
 | 设置键 | 默认值 | 范围／选项 | 作用 |
 | --- | --- | --- | --- |
 | `COMMUNITIES.MinimumOutpostSpacing` | `48` | 16 ~ 256 | 野生据点最小间距: 两个独立野生据点之间允许的最小水平距离（格）。附近相容的胶兽仍会共用已有据点。 |
-| `COMMUNITIES.PlayerWildOutpostMinimumSpacing` | `48` | 16 ~ 256 | 玩家与野生据点间距: 玩家据点标记与新野生据点储物点之间的最小水平距离。已有据点保持原位。 |
+| `COMMUNITIES.PlayerWildOutpostMinimumSpacing` | `48` | 16 ~ 256 | 玩家与野生据点间距: 新建玩家据点或野生据点时，两者标记与仓库之间的最小水平距离。已有据点保持原位。 |
 | `COMMUNITIES.CreatureOutposts` | `true` | true / false | 胶兽自主建立据点: 允许野外胶兽新建或认领据点，包括遗址、蜂巢和水生据点。关闭后保留已有据点、物资及送货行为，不影响玩家营地和设施内已有仓库。 |
 | `COMMUNITIES.UseChangedStructureOutposts` | `true` | true / false | 认领 Changed 遗址【流畅度影响：低】: 尚无据点的供给者可以认领已生成的 Changed 遗址，并在空位布置紧凑的社区仓库。设施始终不会被认领。 |
 | `COMMUNITIES.LatexBeeHiveOutposts` | `true` | true / false | 胶液蜜蜂蜂巢据点【流畅度影响：低】: 胶液蜜蜂供给者可以在已生成的 Changed 蜂巢旁建立小型社区仓库。 |
@@ -184,7 +186,7 @@
 
 | 设置键 | 默认值 | 范围／选项 | 作用 |
 | --- | --- | --- | --- |
-| `ECOLOGY.PureWhiteWolfAdaptation` | `true` | true / false | 纯白胶狼地域适应: 成年纯白胶狼远离白胶森林后会适应为雄性白胶狼形态，返回后恢复纯白形态。此选项也控制纯白胶狼玩家的外观和视野适应，玩家的实际物种、能力和阵营保持不变。 |
+| `ECOLOGY.PureWhiteWolfAdaptation` | `true` | true / false | 纯白胶狼地域适应: 纯白胶狼、幼崽、三头犬和血细胞胶狼远离白胶领地后显现眼睛，返回后隐藏眼睛。适用于胶兽和玩家（包括本能模式），不改变物种、身体或能力。 |
 
 ### 开局物种名单
 

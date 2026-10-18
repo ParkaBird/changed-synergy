@@ -96,6 +96,7 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> bondTokens;
         public final ForgeConfigSpec.BooleanValue playfulFriendTransfur;
         public final ForgeConfigSpec.BooleanValue ordinaryTransfurReversal;
+        public final ForgeConfigSpec.BooleanValue organicSleepReversal;
         public final ForgeConfigSpec.BooleanValue bondProtectiveReleaseRequests;
         public final ForgeConfigSpec.BooleanValue bondedEmergencyRescue;
         public final ForgeConfigSpec.BooleanValue aquaticFriendDrowningRescue;
@@ -106,6 +107,7 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.BooleanValue selfDefensePenaltyProtection;
         public final ForgeConfigSpec.BooleanValue allowMultipleBonds;
         public final ForgeConfigSpec.BooleanValue peacefulVillageRelations;
+        public final ForgeConfigSpec.BooleanValue nonRivalCombatProtection;
         public final ForgeConfigSpec.BooleanValue factionPursuit;
         public final ForgeConfigSpec.BooleanValue factionPursuitOverworldOnly;
         public final ForgeConfigSpec.BooleanValue independentFactionReputation;
@@ -289,6 +291,10 @@ public final class ChangedSynergyConfig {
                     .comment("Allow ordinary Synergy transfur reversal through negotiation, bonded companions, and sleep.",
                             "Disabling this does not block takeover separation or the Changed /untf and /untransfur commands.")
                     .define("OrdinaryTransfurReversal", true);
+            organicSleepReversal = builder
+                    .comment("Allow a completed night's sleep to reverse organic transfur.",
+                            "OrdinaryTransfurReversal must also be enabled. Permanent TrueTransfur and native-origin protections still apply.")
+                    .define("OrganicSleepReversal", true);
             bondProtectiveReleaseRequests = builder
                     .comment("Let cautious, protective, and sensitive companions require repeated release requests",
                             "after repeatedly rescuing their owner from danger. The request count survives closing the radial menu.")
@@ -325,6 +331,10 @@ public final class ChangedSynergyConfig {
                     .comment("Keep Changed creatures, villagers, wandering traders, and village protectors out of mutual combat.",
                             "Additional civilian and protector entity types can be supplied through Changed: Synergy entity tags.")
                     .define("PeacefulVillageRelations", true);
+            nonRivalCombatProtection = builder
+                    .comment("End fights between non-rival latex NPCs at 20% health (at least 1 health) instead of allowing lethal damage.",
+                            "Disabling this does not change compatriot friendly-fire prevention, bonded safety or player combat rules.")
+                    .define("NonRivalCombatProtection", true);
             politeHumanInteraction = builder
                     .comment("Let polite individuals approach unfamiliar humans before deciding to hunt.")
                     .define("PoliteHumanInteraction", true);
@@ -351,8 +361,8 @@ public final class ChangedSynergyConfig {
                             "Nearby compatible creatures still reuse an existing community outpost.")
                     .defineInRange("MinimumOutpostSpacing", 48, 16, 256);
             playerWildOutpostMinimumSpacing = builder
-                    .comment("Minimum horizontal distance in blocks from a player's camp marker to a newly claimed wild outpost cache.",
-                            "Only affects new wild outpost placement. Existing outposts are not moved or removed.")
+                    .comment("Minimum horizontal distance in blocks between a player's camp marker and a wild outpost cache when either is established.",
+                            "Only affects new placements. Existing outposts are not moved or removed.")
                     .defineInRange("PlayerWildOutpostMinimumSpacing", 48, 16, 256);
             playerOutposts = builder.comment("Allow players to claim a campfire as a home outpost. Existing bell-founded outposts remain supported.")
                     .define("PlayerOutposts", true);
@@ -549,8 +559,8 @@ public final class ChangedSynergyConfig {
 
             builder.comment("Creature ecology and regional adaptation").push("ECOLOGY");
             pureWhiteWolfAdaptation = builder
-                    .comment("Let adult Pure White Latex Wolves develop the male White Latex Wolf appearance",
-                            "after travelling far from the White Latex Forest, then return to Pure White on coming home.",
+                    .comment("Let Pure White Latex Wolves display their individual eyes away from White territory",
+                            "and hide those eyes on coming home, without replacing their species or body.",
                             "Identity, relationships, faction allegiance and equipment are preserved.")
                     .define("PureWhiteWolfAdaptation", true);
             builder.pop();

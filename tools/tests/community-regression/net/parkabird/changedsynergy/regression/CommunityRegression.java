@@ -10,6 +10,7 @@ public final class CommunityRegression {
     @SubscribeEvent public static void run(ServerStartedEvent event) {
         boolean loadRunning = false;
         try {
+            FacilityTemplateRegression.run();
             boolean success = check(() -> HypnosisPlayerRegression.run(event.getServer()));
             success &= check(() -> RescueWrapRegression.run(event.getServer()));
             success &= check(() -> PlayerVisualMechanicsRegression.run(event.getServer()));

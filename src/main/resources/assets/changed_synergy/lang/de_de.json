@@ -317,5 +317,7 @@
   "dialogue.changed_synergy.personality.polite.release.0": "Wir haben eine Einigung. Komm bitte näher und ich lasse dich raus.",
   "dialogue.changed_synergy.personality.polite.release.1": "In Ordnung. Ich respektiere deine Entscheidung. Bitte halte einen Moment still.",
   "dialogue.changed_synergy.personality.polite.play.0": "Sicher. Was möchtest du spielen?",
-  "dialogue.changed_synergy.personality.polite.play.1": "Wir können ein bisschen spielen. Sag bescheid wenn du müde wirst."
+  "dialogue.changed_synergy.personality.polite.play.1": "Wir können ein bisschen spielen. Sag bescheid wenn du müde wirst.",
+  "config.changed_synergy.option.organic_sleep_reversal": "Organische Rückverwandlung durch Schlaf",
+  "config.changed_synergy.option.organic_sleep_reversal.description": "Erlaubt die Rückverwandlung nach einer vollständig durchgeschlafenen Nacht. Die normale Rückverwandlung muss ebenfalls aktiviert sein; der Schutz permanenter TrueTransfur-Formen und nativer Ursprünge bleibt bestehen."
 }

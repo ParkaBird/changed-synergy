@@ -342,7 +342,8 @@ public final class TerritoryContextEvents {
         return "";
     }
 
-    private static boolean hasFacilityMarker(String path, String marker) {
+    /** Template token boundaries shared by facility sections and work-room selection. */
+    public static boolean hasFacilityMarker(String path, String marker) {
         int slash = path.lastIndexOf('/');
         String file = slash >= 0 ? path.substring(slash + 1) : path;
         return path.contains("/" + marker + "/")

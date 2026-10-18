@@ -1,5 +1,7 @@
 # Social guide
 
+Successful transfur negotiation establishes an initial acquaintance: after restoration, you can right-click the creature with an empty hand to open its social wheel. This does not grant close friendship or a bond.
+
 [中文版](SOCIAL_GUIDE.zh-CN.md)
 
 These rules describe the default settings in Changed: Synergy 1.1.4-hotfix. Servers can change relationship growth, bond requirements and other interaction settings. The configuration screen has **Server Settings**, **World Rules** and **Client Visuals** tabs. On multiplayer servers, gameplay values are shown read-only; operators use `/changedsynergy config` to change them and can edit world rules in their own tab. See the [settings guide](SETTINGS_GUIDE.md) for the current categories and dependencies.
@@ -74,7 +76,7 @@ Third-person strokes blend into and out of the pose on models with usable arms. 
 
 ## Playful friends
 
-**Playful** and **Polite** are mutually exclusive behavior traits. Other personality traits determine how the creature speaks.
+**Playful** and **Polite** are mutually exclusive behavior traits. Other personality traits determine how the creature speaks. Relationship information shows the behavior trait separately from the main personality.
 
 An adult Playful friend below Close affection may occasionally try a friendly assimilation or absorption of a healthy human friend. Attempts become less likely as affection rises and stop at 28. The creature waits at least five minutes after an attempt. Combat, danger, existing captures and recent release protection prevent a new attempt.
 
@@ -141,7 +143,7 @@ Takeovers require Changed's **Keep Conscious** rule (`changed:keepConscious`).
 With this rule off, forced transfur causes death through the normal conversion
 instead, including attacks from Instinct-mode players. Confirmed voluntary
 friendship/bond transfur and chosen starting origins remain safe; protective
-wrapping does not count as forced transfur.
+wrapping does not count as forced transfur. The resulting NPC is not automatically named after the player.
 
 | Encounter | Outcome |
 | --- | --- |
@@ -205,11 +207,15 @@ Time expiry, the carrier returning to PLAYER, logout, death or a missing/replace
 
 Transformed players' own relationship wheel omits **Ask them to vouch**. When options extend beyond the eight visible slots, use the left and right arrow keys to reveal them; the wheel displays this hint only when needed. Scrolling the mouse wheel still switches to the ability wheel.
 
+Organic transfur can reverse after a completed night’s sleep. Servers can disable only this route with **Organic Sleep Reversal** (`RELATIONSHIPS.OrganicSleepReversal`, default on), while leaving other reversal methods available. The general reversal setting and permanent-body protections still apply.
+
 Temporary companion wrapping does not make you permanently transformed. When TrueTransfur or native origin prevents safe reversal, a companion refuses the reversal rather than attempting a lethal separation. Native origins and the first-entry choice are explained in [Native origins](NATIVE_ORIGINS.md).
 
 With player hypnosis enabled, a player in a suitable hypnotic species can contest a human player's resistance. Both players see the same style of WASD QTE and share its progress: the creature reinforces it while the human tries to escape. Player contests last longer than NPC hypnosis. Patting the player hypnotist briefly prevents them from reinforcing the QTE.
 
 Server owners can disable **Enable Telepathy** under Dialogue. This pauses new unlock progress and replaces telepathic speech with species vocalizations, including for players who already unlocked telepathy, transformed players, hypnosis and takeover. Saved progress returns when the setting is enabled again. A supported, enabled Addon Translator can still translate when its separate support option is enabled. This does not disable hypnosis or takeover gameplay.
+
+The negotiation panel describes the current transfur encounter. The creature's first-contact thought describes your original meeting and can differ after a later conflict. A successful negotiation ends that individual conflict without erasing faction history.
 
 Successful transfur negotiation introduces you to the creature once you have been restored. This starts an acquaintance, not a bond or an automatic friendship. Bonded-companion death notifications include the dimension and coordinates where the companion died; if you were offline, the recorded location is shown when you return. Latex samples left by bonded companions also show the companion's species after their name.
 

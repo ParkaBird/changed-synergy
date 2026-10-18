@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import zipfile
@@ -59,9 +60,10 @@ TEXT_SUFFIXES = {
 SKIP_PARTS = {
     ".git", ".gradle", ".idea", ".codex-tmp", ".local-artifacts", "build", "libs",
     "dist", "latex_moth_high_style_export", "mcmodsrepo", "release_backups",
-    "recovery_backups", "run", "run-data", ".diagnostics", "analysis", "net",
-    ".codex-di-decompile",
+    "recovery_backups", "run", "run-data", ".diagnostics", "analysis",
+    ".codex-di-decompile", "__pycache__",
 }
+SKIP_ROOTS = {"net", "outputs", "config", ".changed-synergy-backups", ".mixin.out"}
 
 
 class Audit:
@@ -78,18 +80,16 @@ class Audit:
 
 def iter_publishable_files() -> list[Path]:
     files: list[Path] = []
-    for path in ROOT.rglob("*"):
-        if not path.is_file():
-            continue
-        relative = path.relative_to(ROOT)
-        if any(
-            part in SKIP_PARTS
-            or part.startswith("build-")
-            or part.startswith(".codex-crash-")
-            for part in relative.parts
-        ):
-            continue
-        files.append(path)
+    for directory, subdirectories, names in os.walk(ROOT):
+        parent = Path(directory)
+        subdirectories[:] = [name for name in subdirectories
+                             if name not in SKIP_PARTS
+                             and not name.startswith(("build-", ".codex-crash-"))
+                             and not (parent == ROOT and name in SKIP_ROOTS)]
+        for name in names:
+            path = parent / name
+            if path.is_file():
+                files.append(path)
     return files
 
 

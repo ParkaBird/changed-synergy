@@ -75,18 +75,57 @@ final class October18FeedbackRegression {
         pure.getBasicPlayerInfo().setLeftIrisColor(Color3.fromInt(0x44DD66));
         pure.getBasicPlayerInfo().setRightIrisColor(Color3.fromInt(0xDD9944));
         level.addFreshEntity(pure);
-        var change = PureWhiteWolfAdaptation.class.getDeclaredMethod("changeForm", net.ltxprogrammer.changed.entity.ChangedEntity.class, boolean.class);
-        change.setAccessible(true); change.invoke(null, pure, false);
-        var adapted = level.getEntitiesOfClass(net.ltxprogrammer.changed.entity.beast.WhiteLatexWolfMale.class,
-                pure.getBoundingBox().inflate(3), e -> e.getName().getString().equals("AdaptedEyeCheck")).stream().findFirst().orElseThrow();
+        var data = new CompoundTag(); data.putBoolean("Eligible", true); data.putLong("AwaySince", level.getGameTime()-300);
+        pure.getPersistentData().put(PureWhiteWolfAdaptation.DATA_KEY, data);
+        pure.tickCount = Math.floorMod(pure.getId(), 100);
+        PureWhiteWolfAdaptation.onLivingTick(new LivingEvent.LivingTickEvent(pure));
         try {
-            check(adapted.getBasicPlayerInfo().getLeftIrisColor().toInt() == 0x44DD66
-                    && adapted.getBasicPlayerInfo().getRightIrisColor().toInt() == 0xDD9944
-                    && adapted.getBasicPlayerInfo().getEyeStyle() == EyeStyle.values()[0], "Adaptation keeps individual eye colour and style");
-            var updates = adapted.getEntityData().packDirty();
-            check(updates != null && updates.stream().anyMatch(d -> d.value() instanceof net.ltxprogrammer.changed.entity.BasicPlayerInfo info
-                    && info.getLeftIrisColor().toInt() == 0x44DD66), "Eye appearance is sent through Changed's native entity-data synchronization");
-        } finally { adapted.discard(); pure.discard(); }
+            check(!pure.isRemoved() && pure.getType()==ChangedEntities.PURE_WHITE_LATEX_WOLF.get()
+                    && PureWhiteWolfAdaptation.isAdaptedForm(pure), "Away adaptation adds synchronized eyes without replacing the pure-white species or UUID");
+            check(pure.getBasicPlayerInfo().getLeftIrisColor().toInt() == 0x44DD66
+                    && pure.getBasicPlayerInfo().getRightIrisColor().toInt() == 0xDD9944
+                    && pure.getBasicPlayerInfo().getEyeStyle() == EyeStyle.values()[0], "Eye-only adaptation keeps individual eye colour and style");
+            var updates = pure.getEntityData().packDirty();
+            check(updates != null && updates.stream().anyMatch(d -> Boolean.TRUE.equals(d.value())), "Adapted eyes synchronize through native entity data");
+            var saved = new CompoundTag(); pure.saveWithoutId(saved);
+            var loaded = ChangedEntities.PURE_WHITE_LATEX_WOLF.get().create(level); loaded.load(saved); loaded.setUUID(UUID.randomUUID());
+            check(level.addFreshEntity(loaded) && PureWhiteWolfAdaptation.isAdaptedForm(loaded), "Adapted NPC eyes survive save/load");
+            loaded.discard();
+            LatexCoverState.setAt(level, position.below(), ChangedLatexTypes.WHITE_LATEX.get().defaultCoverState(), 2);
+            PureWhiteWolfAdaptation.onLivingTick(new LivingEvent.LivingTickEvent(pure));
+            check(!PureWhiteWolfAdaptation.isAdaptedForm(pure), "Returning to White covering hides eyes on the same original body");
+            LatexCoverState.setAt(level, position.below(), ChangedLatexTypes.NONE.get().defaultCoverState(), 2);
+        } finally { pure.discard(); }
+        for (var type : java.util.List.of(ChangedEntities.PURE_WHITE_LATEX_WOLF_PUP.get(),
+                ChangedEntities.PURE_WHITE_LATEX_CERBERUS.get(), ChangedEntities.LATEX_MUTANT_BLOODCELL_WOLF.get())) {
+            var creature = type.create(level); creature.setPos(position.getX()+.5,position.getY(),position.getZ()+.5);
+            level.addFreshEntity(creature); UUID originalId = creature.getUUID();
+            var away = new CompoundTag();away.putBoolean("Eligible",true);away.putLong("AwaySince",level.getGameTime()-300);
+            creature.getPersistentData().put(PureWhiteWolfAdaptation.DATA_KEY,away);
+            creature.tickCount=Math.floorMod(creature.getId(),100);
+            PureWhiteWolfAdaptation.onLivingTick(new LivingEvent.LivingTickEvent(creature));
+            check(creature.getType()==type && creature.getUUID().equals(originalId) && PureWhiteWolfAdaptation.isAdaptedForm(creature),
+                    "Additional White form adapts without species/UUID changes: "+type);
+            LatexCoverState.setAt(level,position.below(),ChangedLatexTypes.WHITE_LATEX.get().defaultCoverState(),2);
+            PureWhiteWolfAdaptation.onLivingTick(new LivingEvent.LivingTickEvent(creature));
+            check(!PureWhiteWolfAdaptation.isAdaptedForm(creature),"Additional White form hides eyes on returning: "+type);
+            LatexCoverState.setAt(level,position.below(),ChangedLatexTypes.NONE.get().defaultCoverState(),2);
+            creature.discard();
+        }
+        var legacyNpc = ChangedEntities.WHITE_LATEX_WOLF_MALE.get().create(level);
+        legacyNpc.setPos(position.getX()+.5, position.getY(), position.getZ()+.5);
+        legacyNpc.setCustomName(net.minecraft.network.chat.Component.literal("LegacyPureCheck"));
+        legacyNpc.getBasicPlayerInfo().setLeftIrisColor(Color3.fromInt(0x44DD66));
+        var marker = new CompoundTag(); marker.putBoolean("Eligible", true);
+        legacyNpc.getPersistentData().put(PureWhiteWolfAdaptation.DATA_KEY, marker);
+        level.addFreshEntity(legacyNpc);
+        var restore = PureWhiteWolfAdaptation.class.getDeclaredMethod("restoreLegacyForm", net.ltxprogrammer.changed.entity.ChangedEntity.class);
+        restore.setAccessible(true); restore.invoke(null, legacyNpc);
+        var restoredPure = level.getEntitiesOfClass(net.ltxprogrammer.changed.entity.beast.PureWhiteLatexWolf.class,
+                legacyNpc.getBoundingBox().inflate(3), e -> e.getName().getString().equals("LegacyPureCheck")).stream().findFirst().orElseThrow();
+        check(restoredPure.getBasicPlayerInfo().getLeftIrisColor().toInt()==0x44DD66 && PureWhiteWolfAdaptation.isAdaptedForm(restoredPure),
+                "Previously converted pure-white NPCs recover their species with individual eyes intact");
+        restoredPure.discard();
 
         var deaths = BondedCreatureDeathData.get(server); UUID owner = UUID.randomUUID(), creature = UUID.randomUUID();
         CompoundTag notice = new CompoundTag(); notice.putString("Name", "LocationCheck");

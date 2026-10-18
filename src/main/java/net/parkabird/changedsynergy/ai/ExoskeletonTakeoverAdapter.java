@@ -611,12 +611,6 @@ public final class ExoskeletonTakeoverAdapter {
         return stack.getItem() instanceof ExoskeletonItem<?> && stack.hasTag()
                 ? stack.getTag().getCompound(DATA) : new CompoundTag();
     }
-    private static CompoundTag persisted(ServerPlayer player) {
-        CompoundTag root = player.getPersistentData();
-        if (!root.contains(net.minecraft.world.entity.player.Player.PERSISTED_NBT_TAG, Tag.TAG_COMPOUND))
-            root.put(net.minecraft.world.entity.player.Player.PERSISTED_NBT_TAG, new CompoundTag());
-        return root.getCompound(net.minecraft.world.entity.player.Player.PERSISTED_NBT_TAG);
-    }
     private static boolean finite(Vec3 v) {
         return Double.isFinite(v.x) && Double.isFinite(v.y) && Double.isFinite(v.z);
     }

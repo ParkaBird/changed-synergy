@@ -61,7 +61,7 @@ final class CampCrewCombatChecks {
         for(int tick=0;tick<180;tick++) {
             enemy.tickCount++; enemy.tick(); // Includes native damage immunity expiry.
             CampNavigationChecks.tick(level,owner,List.of(mob),1);
-            if(enemy.getHealth()<health || !enemy.isAlive()) return true;
+            if (engaged(mob, enemy, health)) return true;
         }
         var grab=BondedSuitService.ability(mob);
         System.out.println("CAMP_CREW_COMBAT_DIAGNOSTIC target="+mob.getTarget()+" pos="+mob.position()+" health="+enemy.getHealth()
@@ -70,6 +70,20 @@ final class CampCrewCombatChecks {
                 +" goals="+mob.goalSelector.getAvailableGoals().stream().map(g->g.getGoal().getClass().getSimpleName()+":"+g.isRunning()).toList()
                 +" targets="+mob.targetSelector.getAvailableGoals().stream().map(g->g.getGoal().getClass().getSimpleName()+":"+g.isRunning()).toList());
         return false;
+    }
+
+    static boolean engaged(ChangedEntity mob, Zombie enemy, float initialHealth) {
+        if (enemy.getHealth() < initialHealth || !enemy.isAlive()) return true;
+        // Native combat may choose a real grab instead of a melee strike.
+        var hold = BondedSuitService.ability(mob);
+        var grabber = net.ltxprogrammer.changed.ability.GrabEntityAbility.getGrabber(enemy);
+        return mob.getTarget() == enemy && hold != null && hold.grabbedEntity == enemy
+                && grabber != null && grabber.getEntity() == mob && mob.distanceToSqr(enemy) < 4;
+    }
+
+    static void releaseGrab(ChangedEntity mob) {
+        var hold = BondedSuitService.ability(mob);
+        if (hold != null && hold.grabbedEntity != null) hold.releaseEntity(false);
     }
     @SuppressWarnings("unchecked")
     private static void alliedMember(ServerPlayer owner,ChangedEntity mob) throws Exception {
@@ -101,6 +115,7 @@ final class CampCrewCombatChecks {
         }
     }
     private static void stop(ChangedEntity mob) {
+        releaseGrab(mob);
         mob.goalSelector.getRunningGoals().toList().forEach(net.minecraft.world.entity.ai.goal.WrappedGoal::stop);
         mob.targetSelector.getRunningGoals().toList().forEach(net.minecraft.world.entity.ai.goal.WrappedGoal::stop);
         mob.setTarget(null); mob.getNavigation().stop(); mob.setLastHurtByMob(null);

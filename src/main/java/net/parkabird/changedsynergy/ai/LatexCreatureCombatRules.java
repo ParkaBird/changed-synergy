@@ -156,7 +156,8 @@ public final class LatexCreatureCombatRules {
     /** Incidental fights between non-rival latexes end before either can die. */
     public static float limitNonRivalDamage(
             ChangedEntity target, ChangedEntity attacker, float damage) {
-        if (damage <= 0.0F || areRivals(attacker, target)
+        if (!ChangedSynergyConfig.COMMON.nonRivalCombatProtection.get()
+                || damage <= 0.0F || areRivals(attacker, target)
                 || !LatexSocialMemory.isSocialLatex(attacker)
                 || !LatexSocialMemory.isSocialLatex(target)) return damage;
         float minimumHealth = Math.max(1.0F, target.getMaxHealth() * 0.2F);

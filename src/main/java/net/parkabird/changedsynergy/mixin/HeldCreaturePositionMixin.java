@@ -27,7 +27,8 @@ public abstract class HeldCreaturePositionMixin {
         if (held == null || ability.suited) return;
         double heightDifference = holder.getBbHeight() - held.getBbHeight();
         if (heightDifference > 0.0D) {
-            pose.translate(0.0D, Math.min(0.6D, heightDifference * 0.35D), 0.0D);
+            // Living model space points downward; a negative Y offset lifts the held body.
+            pose.translate(0.0D, -Math.min(0.6D, heightDifference * 0.35D), 0.0D);
         }
     }
 }

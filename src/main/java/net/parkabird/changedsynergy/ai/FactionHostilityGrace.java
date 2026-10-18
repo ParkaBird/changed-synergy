@@ -6,7 +6,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.parkabird.changedsynergy.event.LatexSocialEvents;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 
@@ -53,7 +52,7 @@ public final class FactionHostilityGrace {
 
     public static void beginSecondary(ChangedEntity source, ServerPlayer player) {
         String group = FactionReputation.groupId(source);
-        CompoundTag persisted = persisted(player);
+        CompoundTag persisted = PlayerPersistentData.get(player);
         if (!persisted.contains(DAMAGE_LOCK, Tag.TAG_COMPOUND)) {
             persisted.put(DAMAGE_LOCK, new CompoundTag());
         }
@@ -67,7 +66,7 @@ public final class FactionHostilityGrace {
     }
 
     public static boolean damageLocked(ChangedEntity creature, ServerPlayer player) {
-        CompoundTag locks = persisted(player).getCompound(DAMAGE_LOCK);
+        CompoundTag locks = PlayerPersistentData.get(player).getCompound(DAMAGE_LOCK);
         String group = FactionReputation.groupId(creature);
         if (locks.getLong(group) > player.level().getGameTime()) {
             return true;
@@ -114,24 +113,24 @@ public final class FactionHostilityGrace {
             ServerPlayer clone) {
         CompoundTag source = existingData(original);
         if (source != null && !source.isEmpty()) {
-            persisted(clone).put(ROOT, source.copy());
+            PlayerPersistentData.get(clone).put(ROOT, source.copy());
         }
-        CompoundTag locks = persisted(original).getCompound(DAMAGE_LOCK);
+        CompoundTag locks = PlayerPersistentData.get(original).getCompound(DAMAGE_LOCK);
         if (!locks.isEmpty()) {
-            persisted(clone).put(DAMAGE_LOCK, locks.copy());
+            PlayerPersistentData.get(clone).put(DAMAGE_LOCK, locks.copy());
         }
-        persisted(clone).put(AGGRESSION, persisted(original).getCompound(AGGRESSION).copy());
+        PlayerPersistentData.get(clone).put(AGGRESSION, PlayerPersistentData.get(original).getCompound(AGGRESSION).copy());
     }
 
     public static void noteAggression(ChangedEntity creature, ServerPlayer player) {
-        CompoundTag root = persisted(player);
+        CompoundTag root = PlayerPersistentData.get(player);
         if (!root.contains(AGGRESSION, Tag.TAG_COMPOUND)) root.put(AGGRESSION, new CompoundTag());
         root.getCompound(AGGRESSION).putLong(FactionReputation.groupId(creature),
                 player.level().getGameTime() + 20L * 60L * 5L);
     }
 
     public static boolean wasAggressor(ChangedEntity creature, ServerPlayer player) {
-        return persisted(player).getCompound(AGGRESSION).getLong(FactionReputation.groupId(creature))
+        return PlayerPersistentData.get(player).getCompound(AGGRESSION).getLong(FactionReputation.groupId(creature))
                 > player.level().getGameTime();
     }
 
@@ -169,7 +168,7 @@ public final class FactionHostilityGrace {
     }
 
     private static CompoundTag graceData(ServerPlayer player) {
-        CompoundTag persisted = persisted(player);
+        CompoundTag persisted = PlayerPersistentData.get(player);
         if (!persisted.contains(ROOT, Tag.TAG_COMPOUND)) {
             persisted.put(ROOT, new CompoundTag());
         }
@@ -177,16 +176,9 @@ public final class FactionHostilityGrace {
     }
 
     private static CompoundTag existingData(ServerPlayer player) {
-        CompoundTag persisted = persisted(player);
+        CompoundTag persisted = PlayerPersistentData.get(player);
         return persisted.contains(ROOT, Tag.TAG_COMPOUND)
                 ? persisted.getCompound(ROOT) : null;
     }
 
-    private static CompoundTag persisted(Player player) {
-        CompoundTag root = player.getPersistentData();
-        if (!root.contains(Player.PERSISTED_NBT_TAG, Tag.TAG_COMPOUND)) {
-            root.put(Player.PERSISTED_NBT_TAG, new CompoundTag());
-        }
-        return root.getCompound(Player.PERSISTED_NBT_TAG);
-    }
 }

@@ -206,6 +206,15 @@ public final class PlayerOutpostData extends SavedData {
         if (!campfire && !(previous != null && !previous.campfireMarker
                 && previous.dimension.equals(dimension) && previous.marker.equals(marker)
                 && level.getBlockState(marker).is(Blocks.BELL))) return "campfire";
+        // Reopening an existing home is not a new placement after spacing settings change.
+        if (previous != null && previous.dimension.equals(dimension) && previous.marker.equals(marker)) {
+            if (previous.campfireMarker != campfire) {
+                previous.campfireMarker = campfire;
+                if (campfire && previous.cooking == null) previous.cooking = marker.immutable();
+                setDirty();
+            }
+            return "claimed";
+        }
         for (Outpost other : outposts.values()) {
             if (!other.owner.equals(owner) && other.dimension.equals(dimension)
                     && (!level.hasChunkAt(other.marker) || other.active(level))
@@ -213,16 +222,10 @@ public final class PlayerOutpostData extends SavedData {
                 return "overlap";
             }
         }
-        if (CreatureCommunityData.isCacheAreaClaimed(level, marker, RADIUS + 16)) return "overlap";
+        if (CreatureCommunityData.isCacheAreaClaimed(level, marker,
+                ChangedSynergyConfig.COMMON.playerWildOutpostMinimumSpacing.get())) return "overlap";
         if (previous == null) {
             outposts.put(owner, new Outpost(owner, dimension, marker.immutable()));
-        } else if (previous.dimension.equals(dimension) && previous.marker.equals(marker)) {
-            if (previous.campfireMarker != campfire) {
-                previous.campfireMarker = campfire;
-                if (campfire && previous.cooking == null) previous.cooking = marker.immutable();
-                setDirty();
-            }
-            return "claimed";
         } else {
             previous.dimension = dimension;
             previous.marker = marker.immutable();

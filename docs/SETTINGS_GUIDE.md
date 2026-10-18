@@ -100,6 +100,7 @@ permission to ignore a disabled server feature.
 | --- | --- | --- | --- |
 | `RELATIONSHIPS.TamedCompanionRegeneration` | `0` | 0 ~ 5 | Native Pet Regeneration: Regeneration level for native Changed pets. Zero disables it. |
 | `RELATIONSHIPS.OrdinaryTransfurReversal` | `true` | true / false | Ordinary Transfur Reversal: Allow Synergy transfur reversal through negotiation, bonded companions, and sleep. Takeover separation and the /untf and /untransfur recovery commands remain available when disabled. |
+| `RELATIONSHIPS.OrganicSleepReversal` | `true` | true / false | Organic Sleep Reversal: Allow reversal of organic transfur after a completed night’s sleep. Requires Ordinary Transfur Reversal; permanent-transfur and native-origin protection still apply. |
 | `RELATIONSHIPS.ProtectiveReleaseRequests` | `true` | true / false | Protective Release Requests: After repeated danger rescues, cautious, protective, and sensitive companions may ask the player to request release more than once. Each request closes the radial menu; reopen it to ask again. |
 | `RELATIONSHIPS.BondedEmergencyRescue` | `true` | true / false | Bonded Emergency Rescue: Allow bonded latex companions to wrap endangered owners, organic companions to evacuate them, and aquatic friends to rescue drowning players when enabled separately. Manual wrapping and ordinary defense remain available. |
 | `RELATIONSHIPS.AquaticFriendDrowningRescue` | `true` | true / false | Aquatic Friend Drowning Rescue: Let aquatic friends wrap a player after actual drowning damage. Bonded Emergency Rescue must also be enabled. |
@@ -119,6 +120,7 @@ permission to ignore a disabled server feature.
 | `RELATIONSHIPS.IndependentFactionReputation` | `false` | true / false | Independent Faction Reputation: When enabled, gaining reputation with one faction never reduces a rival's reputation, so you can ally with every faction. Existing reputation losses are not restored. |
 | `RELATIONSHIPS.PostTransfurTruceSeconds` | `90` | 0 ~ 600 | Post-transfur Ceasefire: Seconds before latex factions may become hostile again after a transfur or takeover release. Set to 0 to disable it. |
 | `RELATIONSHIPS.PeacefulVillageRelations` | `true` | true / false | Peaceful Village Relations: Prevents mutual combat between Changed creatures and villagers, wandering traders, iron golems, or compatible village protectors. Enabled by default. |
+| `RELATIONSHIPS.NonRivalCombatProtection` | `true` | true / false | Non-rival Latex Combat Protection: End non-rival NPC fights at 20% health (at least 1 health). Disable to allow normal lethal damage. Compatriot friendly-fire prevention, bonded safety and player combat rules remain separate. |
 
 ### Greetings and Social Behaviour
 
@@ -182,7 +184,7 @@ permission to ignore a disabled server feature.
 | Key | Default | Allowed range / choices | Purpose |
 | --- | --- | --- | --- |
 | `COMMUNITIES.MinimumOutpostSpacing` | `48` | 16 ~ 256 | Minimum Wild Outpost Spacing: Minimum horizontal distance in blocks between independently claimed wild outposts. Compatible nearby creatures still share an existing outpost. |
-| `COMMUNITIES.PlayerWildOutpostMinimumSpacing` | `48` | 16 ~ 256 | Player / Wild Outpost Spacing: Minimum horizontal distance from a player camp marker to a new wild outpost cache. Existing outposts stay in place. |
+| `COMMUNITIES.PlayerWildOutpostMinimumSpacing` | `48` | 16 ~ 256 | Player / Wild Outpost Spacing: Minimum horizontal distance between a player camp marker and a wild outpost cache when either is established. Existing outposts stay in place. |
 | `COMMUNITIES.CreatureOutposts` | `true` | true / false | Autonomous Creature Outposts: Allow wild creatures to build or claim new outposts, including ruins, hives and aquatic caches. Off preserves existing outposts, storage and deliveries. Player camps and existing facility storage are unaffected. |
 | `COMMUNITIES.UseChangedStructureOutposts` | `true` | true / false | Claim Changed Ruins [Low impact]: Provisioners without an outpost can claim generated Changed ruins and place a compact community store in empty space. The facility is always excluded. |
 | `COMMUNITIES.LatexBeeHiveOutposts` | `true` | true / false | Latex Bee Hive Outposts [Low impact]: Latex-bee provisioners can establish a small community store beside a generated Changed beehive. |
@@ -199,7 +201,7 @@ permission to ignore a disabled server feature.
 
 | Key | Default | Allowed range / choices | Purpose |
 | --- | --- | --- | --- |
-| `ECOLOGY.PureWhiteWolfAdaptation` | `true` | true / false | Pure White Wolf Regional Adaptation: Adult Pure White Latex Wolves adapt to a male White Latex Wolf form when far from their forest, and return to Pure White on coming home. This also changes Pure White players' appearance and vision, while preserving their actual species, abilities and faction. |
+| `ECOLOGY.PureWhiteWolfAdaptation` | `true` | true / false | Pure White Wolf Regional Adaptation: Pure White Wolves, pups, Cerberuses and Bloodcell Wolves develop visible eyes away from White territory and hide them on returning. Applies to creatures and players, including Instinct mode, without changing species, body or abilities. |
 
 ### Starting Species List
 

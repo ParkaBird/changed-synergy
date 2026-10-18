@@ -5,10 +5,8 @@ import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.data.AccessorySlots;
 import net.ltxprogrammer.changed.Changed;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
-import net.ltxprogrammer.changed.entity.beast.PureWhiteLatexWolf;
 import net.ltxprogrammer.changed.entity.beast.WhiteLatexWolfMale;
 import net.ltxprogrammer.changed.init.ChangedEntities;
-import net.ltxprogrammer.changed.init.ChangedTransfurVariants;
 import net.ltxprogrammer.changed.entity.variant.TransfurVariantInstance;
 import net.ltxprogrammer.changed.network.packet.SyncTransfurPacket;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
@@ -19,7 +17,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -28,12 +25,15 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
+import net.parkabird.changedsynergy.util.PureWhiteVision;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.parkabird.changedsynergy.world.LatexTerritoryBiomes;
 
-/** Lets an adult pure-white wolf grow visible eyes away from its home biome. */
+/** Reveals the original White-faction bodies' eyes away from home territory. */
 @Mod.EventBusSubscriber(
         modid = ChangedSynergyMod.MOD_ID,
         bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -59,16 +59,17 @@ public final class PureWhiteWolfAdaptation {
         if (!(event.getEntity() instanceof ChangedEntity creature)
                 || !(creature.level() instanceof ServerLevel level)
                 || creature.getUnderlyingPlayer() != null
-                || !ChangedSynergyConfig.COMMON.pureWhiteWolfAdaptation.get()
-                || !ChangedSynergyGameRules.enabled(
-                        level, ChangedSynergyGameRules.CREATURE_LIFE)
                 || !isSupportedForm(creature)
                 || creature.tickCount % CHECK_INTERVAL_TICKS
                         != Math.floorMod(creature.getId(), CHECK_INTERVAL_TICKS)) {
             return;
         }
 
-        boolean pure = creature instanceof PureWhiteLatexWolf;
+        boolean pure = isNativeForm(creature);
+        if (TrueTransfurCompat.isInstinctBody(creature)) {
+            setAdaptedForm(creature, isAdaptedPlayer(TrueTransfurCompat.bodyOwner(creature)));
+            return;
+        }
         CompoundTag data = existingData(creature);
         if (!pure && (data == null || !data.getBoolean(ELIGIBLE))) {
             return;
@@ -79,16 +80,33 @@ public final class PureWhiteWolfAdaptation {
             creature.getPersistentData().put(DATA_KEY, data);
         }
 
-        if (inHomeBiome(creature)) {
-            rememberHome(level, creature.blockPosition(), data);
+        // Restore only wolves converted by older Synergy versions, retaining their individual identity.
+        if (!pure) {
+            if (safeToChange(creature)) SafeEntityMutationQueue.queue(creature,
+                    "pure_white_wolf_adaptation", () -> restoreLegacyForm(creature));
+            return;
+        }
+        if (!ChangedSynergyConfig.COMMON.pureWhiteWolfAdaptation.get()
+                || !ChangedSynergyGameRules.enabled(level, ChangedSynergyGameRules.CREATURE_LIFE)) {
+            data.putBoolean(ADAPTED, false);
             data.remove(AWAY_SINCE);
-            if (!pure && safeToChange(creature)) {
-                queueChange(creature, true);
-            }
+            setAdaptedForm(creature, false);
             return;
         }
 
-        if (!pure || !farFromRememberedHome(level, creature.blockPosition(), data)) {
+        if (inHomeBiome(creature)) {
+            rememberHome(level, creature.blockPosition(), data);
+            data.remove(AWAY_SINCE);
+            data.putBoolean(ADAPTED, false);
+            setAdaptedForm(creature, false);
+            return;
+        }
+
+        if (data.getBoolean(ADAPTED)) {
+            setAdaptedForm(creature, true);
+            return;
+        }
+        if (!farFromRememberedHome(level, creature.blockPosition(), data)) {
             data.remove(AWAY_SINCE);
             return;
         }
@@ -97,9 +115,18 @@ public final class PureWhiteWolfAdaptation {
             data.putLong(AWAY_SINCE, now);
             return;
         }
-        if (now - data.getLong(AWAY_SINCE) >= UNANCHORED_GRACE_TICKS
-                && safeToChange(creature)) {
-            queueChange(creature, false);
+        if (now - data.getLong(AWAY_SINCE) >= UNANCHORED_GRACE_TICKS) {
+            data.putBoolean(ADAPTED, true);
+            setAdaptedForm(creature, true);
+        }
+    }
+
+    @SubscribeEvent public static void onJoin(EntityJoinLevelEvent event) {
+        if (!event.getLevel().isClientSide() && event.getEntity() instanceof ChangedEntity wolf && isNativeForm(wolf)) {
+            CompoundTag data = existingData(wolf);
+            setAdaptedForm(wolf, data != null && data.getBoolean(ADAPTED)
+                    && ChangedSynergyConfig.COMMON.pureWhiteWolfAdaptation.get()
+                    && ChangedSynergyGameRules.enabled(wolf.level(), ChangedSynergyGameRules.CREATURE_LIFE));
         }
     }
 
@@ -114,23 +141,25 @@ public final class PureWhiteWolfAdaptation {
         }
         var variant = ProcessTransfur.getPlayerTransfurVariant(player);
         if (variant == null || variant.isTemporaryFromSuit()
-                || !variant.is(ChangedTransfurVariants.PURE_WHITE_LATEX_WOLF)
+                || !PureWhiteVision.isPureWhiteForm(variant)
                 || !(variant instanceof PlayerState holder)) {
             return;
         }
         ServerLevel level = player.serverLevel();
+        LivingEntity visibleBody = TrueTransfurCompat.interactionBody(player);
+        BlockPos position = visibleBody.blockPosition();
         CompoundTag data = holder.changedSynergy$getPureWhiteAdaptation();
         boolean wasAdapted = data.getBoolean(ADAPTED);
         if (!ChangedSynergyConfig.COMMON.pureWhiteWolfAdaptation.get()
                 || !ChangedSynergyGameRules.enabled(
                         level, ChangedSynergyGameRules.CREATURE_LIFE)) {
             data = new CompoundTag();
-        } else if (inHomeTerritory(level, player.blockPosition())) {
-            rememberHome(level, player.blockPosition(), data);
+        } else if (inHomeTerritory(level, position)) {
+            rememberHome(level, position, data);
             data.remove(AWAY_SINCE);
             data.putBoolean(ADAPTED, false);
         } else if (!wasAdapted) {
-            if (!farFromRememberedHome(level, player.blockPosition(), data)) {
+            if (!farFromRememberedHome(level, position, data)) {
                 data.remove(AWAY_SINCE);
             } else {
                 long now = level.getGameTime();
@@ -143,6 +172,8 @@ public final class PureWhiteWolfAdaptation {
             }
         }
         holder.changedSynergy$setPureWhiteAdaptation(data);
+        if (visibleBody instanceof ChangedEntity body && visibleBody != player)
+            setAdaptedForm(body, data.getBoolean(ADAPTED));
         if (wasAdapted != data.getBoolean(ADAPTED)) {
             Changed.PACKET_HANDLER.send(
                     PacketDistributor.TRACKING_ENTITY_AND_SELF
@@ -159,7 +190,7 @@ public final class PureWhiteWolfAdaptation {
     public static boolean isAdaptedPlayer(
             @Nullable TransfurVariantInstance<?> variant) {
         return variant != null && !variant.isTemporaryFromSuit()
-                && variant.is(ChangedTransfurVariants.PURE_WHITE_LATEX_WOLF)
+                && PureWhiteVision.isPureWhiteForm(variant)
                 && variant instanceof PlayerState holder
                 && holder.changedSynergy$getPureWhiteAdaptation()
                         .getBoolean(ADAPTED);
@@ -171,18 +202,32 @@ public final class PureWhiteWolfAdaptation {
         void changedSynergy$setPureWhiteAdaptation(CompoundTag data);
     }
 
-    private static boolean isSupportedForm(ChangedEntity creature) {
-        return creature.getClass() == PureWhiteLatexWolf.class
-                || creature.getClass() == WhiteLatexWolfMale.class;
+    public interface NpcState {
+        boolean changedSynergy$hasAdaptedEyes();
+        void changedSynergy$setAdaptedEyes(boolean adapted);
     }
 
-    /** True only for an eyed male form that originated as a pure-white wolf. */
+    public static void setAdaptedForm(ChangedEntity creature, boolean adapted) {
+        if (isNativeForm(creature) && creature instanceof NpcState state)
+            state.changedSynergy$setAdaptedEyes(adapted);
+    }
+
+    private static boolean isNativeForm(@Nullable ChangedEntity creature) {
+        return creature != null && (creature.getType() == ChangedEntities.PURE_WHITE_LATEX_WOLF.get()
+                || creature.getType() == ChangedEntities.PURE_WHITE_LATEX_WOLF_PUP.get()
+                || creature.getType() == ChangedEntities.PURE_WHITE_LATEX_CERBERUS.get()
+                || creature.getType() == ChangedEntities.LATEX_MUTANT_BLOODCELL_WOLF.get());
+    }
+
+    private static boolean isSupportedForm(ChangedEntity creature) {
+        return isNativeForm(creature) || creature.getClass() == WhiteLatexWolfMale.class;
+    }
+
+    /** Adaptation adds eyes to the original pure-white body without replacing its species. */
     public static boolean isAdaptedForm(@Nullable ChangedEntity creature) {
-        CompoundTag data = creature == null ? null : existingData(creature);
-        return creature != null
-                && creature.getClass() == WhiteLatexWolfMale.class
-                && data != null
-                && data.getBoolean(ELIGIBLE);
+        return isNativeForm(creature)
+                && (isAdaptedPlayer(creature.getUnderlyingPlayer())
+                    || creature instanceof NpcState state && state.changedSynergy$hasAdaptedEyes());
     }
 
     @Nullable
@@ -250,18 +295,11 @@ public final class PureWhiteWolfAdaptation {
                 && !TakeoverService.carrying(creature);
     }
 
-    private static void queueChange(ChangedEntity creature, boolean toPure) {
-        SafeEntityMutationQueue.queue(
-                creature,
-                "pure_white_wolf_adaptation",
-                () -> changeForm(creature, toPure));
-    }
-
-    private static void changeForm(ChangedEntity source, boolean toPure) {
+    private static void restoreLegacyForm(ChangedEntity source) {
         if (!safeToChange(source)
-                || inHomeBiome(source) != toPure
-                || toPure && source.getClass() != WhiteLatexWolfMale.class
-                || !toPure && source.getClass() != PureWhiteLatexWolf.class) {
+                || TrueTransfurCompat.isInstinctBody(source)
+                || source.getClass() != WhiteLatexWolfMale.class
+                || existingData(source) == null || !existingData(source).getBoolean(ELIGIBLE)) {
             return;
         }
 
@@ -280,16 +318,19 @@ public final class PureWhiteWolfAdaptation {
                 .map(AccessorySlots::save)
                 .orElse(null);
 
-        EntityType<? extends ChangedEntity> type = toPure
-                ? ChangedEntities.PURE_WHITE_LATEX_WOLF.get()
-                : ChangedEntities.WHITE_LATEX_WOLF_MALE.get();
-        ChangedEntity replacement = source.convertTo(type, true);
+        ChangedEntity replacement = source.convertTo(ChangedEntities.PURE_WHITE_LATEX_WOLF.get(), true);
         if (replacement == null) {
             return;
         }
 
         replacement.getPersistentData().put(DATA_KEY, adaptation);
         CreatureMorphContinuity.transferForced(source, replacement);
+        adaptation = replacement.getPersistentData().getCompound(DATA_KEY);
+        boolean adapted = ChangedSynergyConfig.COMMON.pureWhiteWolfAdaptation.get()
+                && ChangedSynergyGameRules.enabled(source.level(), ChangedSynergyGameRules.CREATURE_LIFE)
+                && !inHomeBiome(replacement);
+        adaptation.putBoolean(ADAPTED, adapted);
+        setAdaptedForm(replacement, adapted);
         var appearance = new net.ltxprogrammer.changed.entity.BasicPlayerInfo();
         appearance.copyFrom(source.getBasicPlayerInfo());
         replacement.getEntityData().set(net.parkabird.changedsynergy.mixin.ChangedEntityAppearanceAccessor.changedSynergy$appearanceData(), appearance);

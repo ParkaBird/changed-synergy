@@ -30,7 +30,9 @@ jobs:
           python-version: "3.12"
 
       - name: Validate repository
-        run: python tools/validate_release.py
+        run: |
+          python tools/tests/test_release_validation.py
+          python tools/validate_release.py
 
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew

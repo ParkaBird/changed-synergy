@@ -1263,14 +1263,14 @@ public final class InvoluntaryTransfurNegotiation {
     public static void copyPlayerData(
             ServerPlayer original,
             ServerPlayer clone) {
-        CompoundTag originalPersisted = persisted(original);
+        CompoundTag originalPersisted = PlayerPersistentData.get(original);
         if (originalPersisted.contains(PLAYER_ROOT, Tag.TAG_COMPOUND)
                 && !expiredCapture(original, originalPersisted.getCompound(PLAYER_ROOT))) {
-            persisted(clone).put(
+            PlayerPersistentData.get(clone).put(
                     PLAYER_ROOT,
                     originalPersisted.getCompound(PLAYER_ROOT).copy());
         } else {
-            persisted(clone).remove(PLAYER_ROOT);
+            PlayerPersistentData.get(clone).remove(PLAYER_ROOT);
         }
     }
 
@@ -1279,7 +1279,7 @@ public final class InvoluntaryTransfurNegotiation {
         clearPreviousClaim(player);
         player.getPersistentData().remove(CSP_EXPOSURE);
         CompoundTag data = new CompoundTag();
-        persisted(player).put(PLAYER_ROOT, data);
+        PlayerPersistentData.get(player).put(PLAYER_ROOT, data);
         UUID id = captureId(data);
         data.putString(MODE, mode.name());
         data.putBoolean(CAPTURE_PENDING, true);
@@ -2078,7 +2078,8 @@ public final class InvoluntaryTransfurNegotiation {
 
     /** Organic assimilation cannot be negotiated, but a completed night's sleep can undo it. */
     public static boolean releaseOrganicAfterSleep(ServerPlayer player) {
-        if (!ordinaryReversalEnabled() || TrueTransfurCompat.blocksReversal(player)) return false;
+        if (!ChangedSynergyConfig.COMMON.organicSleepReversal.get()
+                || !ordinaryReversalEnabled() || TrueTransfurCompat.blocksReversal(player)) return false;
         var instance = ProcessTransfur.getPlayerTransfurVariantSafe(player)
                 .filter(value -> LatexSocialMemory.isOrganic(value.getChangedEntity()))
                 .orElse(null);
@@ -2383,12 +2384,11 @@ public final class InvoluntaryTransfurNegotiation {
         if (CreatureCacheGuardService.isDefendingAgainst(source, player)) {
             return Reason.CACHE_DEFENSE;
         }
-        if (FactionPursuitService.isPursuer(source)) return Reason.FACTION_RETALIATION;
+        if (FactionPursuitService.isPursuing(source, player)) return Reason.FACTION_RETALIATION;
         if (HumanBoundaryService.isChallenged(source, player)) {
             return Reason.HOST_SEEKING;
         }
         if (TakeoverConflictMemory.initiated(source, player)
-                || FactionHostilityGrace.wasAggressor(source, player)
                 || LatexSocialMemory.isProvoked(source, player)) {
             return Reason.SELF_DEFENSE;
         }
@@ -2709,7 +2709,7 @@ public final class InvoluntaryTransfurNegotiation {
     }
 
     private static void clearPlayerData(ServerPlayer player) {
-        persisted(player).remove(PLAYER_ROOT);
+        PlayerPersistentData.get(player).remove(PLAYER_ROOT);
         syncAbsorptionState(player, false);
     }
 
@@ -2760,25 +2760,17 @@ public final class InvoluntaryTransfurNegotiation {
 
     @Nullable
     private static CompoundTag existingPlayerData(ServerPlayer player) {
-        CompoundTag persisted = persisted(player);
+        CompoundTag persisted = PlayerPersistentData.get(player);
         return persisted.contains(PLAYER_ROOT, Tag.TAG_COMPOUND)
                 ? persisted.getCompound(PLAYER_ROOT) : null;
     }
 
     private static CompoundTag playerData(ServerPlayer player) {
-        CompoundTag persisted = persisted(player);
+        CompoundTag persisted = PlayerPersistentData.get(player);
         if (!persisted.contains(PLAYER_ROOT, Tag.TAG_COMPOUND)) {
             persisted.put(PLAYER_ROOT, new CompoundTag());
         }
         return persisted.getCompound(PLAYER_ROOT);
-    }
-
-    private static CompoundTag persisted(Player player) {
-        CompoundTag root = player.getPersistentData();
-        if (!root.contains(Player.PERSISTED_NBT_TAG, Tag.TAG_COMPOUND)) {
-            root.put(Player.PERSISTED_NBT_TAG, new CompoundTag());
-        }
-        return root.getCompound(Player.PERSISTED_NBT_TAG);
     }
 
     private static void putLocation(

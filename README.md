@@ -32,7 +32,7 @@ Start with the [guide directory](docs/README.md), or choose a topic:
 | [Settings reference](docs/SETTINGS_GUIDE.md) · [中文](docs/SETTINGS_GUIDE.zh-CN.md) | Defaults, ranges and server-controlled options |
 | [Server configuration](docs/SERVER_CONFIGURATION.md) | Operator commands, multiplayer settings and world rules |
 
-See the [1.1.4 changelog](docs/CHANGELOG-1.1.4.md) for the changes since 1.1.3.
+See the [1.1.4-hotfix.2 release notes](docs/CHANGELOG-1.1.4-hotfix.2-full.md) for the latest fixes and the full changes since 1.1.3.
 
 ## What you can do
 

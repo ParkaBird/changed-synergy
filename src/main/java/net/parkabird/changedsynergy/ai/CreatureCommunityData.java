@@ -236,7 +236,7 @@ public final class CreatureCommunityData extends SavedData {
         }
         double radiusSqr = radius * radius;
         return claimedCachePositions(level).stream()
-                .anyMatch(cache -> horizontalDistanceSqr(cache, position) <= radiusSqr);
+                .anyMatch(cache -> horizontalDistanceSqr(cache, position) < radiusSqr);
     }
 
     /** A placement attempt takes one snapshot instead of rescanning every community for each cell. */
