@@ -15,7 +15,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 
 /** Player-owned settings and contact index used by the relationship wheel. */
@@ -331,11 +330,7 @@ public final class PlayerRelationshipSettings {
     }
 
     private static CompoundTag data(ServerPlayer player) {
-        CompoundTag persisted = player.getPersistentData();
-        if (!persisted.contains(Player.PERSISTED_NBT_TAG, Tag.TAG_COMPOUND)) {
-            persisted.put(Player.PERSISTED_NBT_TAG, new CompoundTag());
-        }
-        CompoundTag root = persisted.getCompound(Player.PERSISTED_NBT_TAG);
+        CompoundTag root = PlayerPersistentData.get(player);
         if (!root.contains(ROOT, Tag.TAG_COMPOUND)) {
             root.put(ROOT, new CompoundTag());
         }

@@ -310,6 +310,8 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
 
     private static CompoundTag progression(ChangedEntity creature, ServerPlayer player) {
         CompoundTag data = new CompoundTag();
+        data.putInt("BehaviorTrait", CreaturePersonality.has(creature, Trait.PLAYFUL) ? Trait.PLAYFUL.ordinal()
+                : CreaturePersonality.has(creature, Trait.POLITE) ? Trait.POLITE.ordinal() : -1);
         data.putBoolean("Balanced", CreaturePersonality.balanced());
         data.putBoolean("BasicWheel", RelationshipFavorService.canOpenBasicWheel(creature, player));
         data.putInt("StrangerLimit", ChangedSynergyConfig.COMMON.strangerAffectionLimit.get());
@@ -343,6 +345,11 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
 
     public Trait getDominantTrait() {
         return dominantTrait;
+    }
+
+    @Nullable public Trait getBehaviorTrait() {
+        Trait trait = enumByOrdinal(Trait.values(), progression.getInt("BehaviorTrait"), null);
+        return trait != null && trait.behaviorOnly() ? trait : null;
     }
 
     public HumanIntent getHumanIntent() {

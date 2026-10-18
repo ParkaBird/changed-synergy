@@ -233,7 +233,11 @@ public final class CampWorkRegression {
             var crewOwner = new ServerPlayer(event.getServer(), level, owner.getGameProfile());
             CampCrewChecks.run(crewOwner, mob, camp, chest);
             NativeRoleplayChecks.run(event.getServer());
-            CampTradeReturnChecks.run(owner, mob, camp);
+            // Crew's logout fixture also discards its player; trading uses a fresh connection.
+            var tradeOwner = new ServerPlayer(event.getServer(), level, owner.getGameProfile());
+            check(tradeOwner.isAlive(), "Trade regression uses the live rejoined owner");
+            try { CampTradeReturnChecks.run(tradeOwner, mob, camp); }
+            finally { tradeOwner.discard(); }
             PlayerOutpostService.clearAssignment(mob);
             check(mob.goalSelector.getAvailableGoals().stream().anyMatch(wrapped ->
                             wrapped.getGoal() instanceof net.minecraft.world.entity.ai.goal.RandomStrollGoal

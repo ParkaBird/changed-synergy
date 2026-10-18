@@ -11,6 +11,8 @@
     "CompanionFishingSpeedMixin",
     "OutpostContainerOpenersMixin",
     "PureWhitePlayerAdaptationStateMixin",
+    "PureWhiteNpcAdaptationStateMixin",
+    "DarkLatexNpcOwnershipMixin",
     "LatexPupCrystalContactMixin",
     "NativeOriginReversalMixin",
     "NegotiationFormLifecycleMixin",
@@ -85,9 +87,9 @@
     "VariantAbilityActivateMixin"
   ],
   "client": [
+    "PureWhiteHeadEyesMixin",
     "JeiMouseOverInterfaceMixin",
     "JeiMouseOverMappingMixin",
-    "PureWhitePlayerFormRenderMixin",
     "TrueTransfurOriginClientMixin",
     "TrueTransfurOriginNameTagMixin",
     "TrueTransfurOriginRotationMixin",

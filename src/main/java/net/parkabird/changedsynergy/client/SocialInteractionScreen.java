@@ -412,6 +412,11 @@ public final class SocialInteractionScreen
                 Component.translatable(
                         "personality.changed_synergy."
                                 + menu.getDominantTrait().dialogueKey())));
+        var behavior = menu.getBehaviorTrait();
+        if (behavior != null && behavior != menu.getDominantTrait()) {
+            relationship.add(Component.translatable("menu.changed_synergy.social.info.behavior",
+                    Component.translatable("personality.changed_synergy." + behavior.dialogueKey())));
+        }
         if (!menu.isBondedMode()) {
             relationship.add(Component.translatable(
                     "menu.changed_synergy.social.info.intent",

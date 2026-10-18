@@ -421,13 +421,10 @@ public final class TakeoverService {
 
     /** Identifies an absorption caused by the player's hostility or a faction response. */
     public static boolean isRetaliatoryCapture(ChangedEntity carrier, ServerPlayer player) {
-        return !HumanBoundaryService.isChallenged(carrier, player)
-                && (TakeoverConflictMemory.initiated(carrier, player)
-                    || FactionHostilityGrace.wasAggressor(carrier, player)
-                    || LatexSocialMemory.isProvoked(carrier, player)
-                    || FactionReputation.isHostile(carrier, player)
-                    || CreatureCacheGuardService.isDefendingAgainst(carrier, player)
-                    || FactionPursuitService.isPursuer(carrier));
+        return switch (InvoluntaryTransfurNegotiation.reasonForFinalAbsorption(carrier, player)) {
+            case SELF_DEFENSE, FACTION_RETALIATION, CACHE_DEFENSE -> true;
+            default -> false;
+        };
     }
 
     public static boolean beginOrdinary(ChangedEntity carrier, ServerPlayer player) {

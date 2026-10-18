@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.parkabird.changedsynergy.ai.PlayerOutpostSupplyType;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Role;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Work;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.CrewJob;
@@ -145,9 +146,7 @@ public final class PlayerOutpostScreen extends AbstractContainerScreen<PlayerOut
             var role = Component.translatable("command.changed_synergy.outpost.role."
                     + member.role().name().toLowerCase(java.util.Locale.ROOT));
             if (member.role() == Role.SUPPLY) {
-                role.append(Component.literal(" · ")).append(Component.translatable(
-                        "menu.changed_synergy.player_outpost.work."
-                                + member.work().name().toLowerCase(java.util.Locale.ROOT)));
+                role.append(Component.literal(" · ")).append(workName(member.work(), member.supplyType()));
             }
             button.setMessage(Component.literal((index == selectedIndex ? "▶ " : "  ")
                     + (member.loaded() ? "● " : "○ ") + name + "  ·  ")
@@ -169,15 +168,16 @@ public final class PlayerOutpostScreen extends AbstractContainerScreen<PlayerOut
         backupWork.active = selected != null && selected.role() == Role.SUPPLY;
         mainWork.setMessage(Component.translatable(crew ? "menu.changed_synergy.player_outpost.crew_job"
                         : "menu.changed_synergy.player_outpost.main_work",
-                selected == null ? Component.literal("—") : crew ? crewName(selected.crewJob()) : workName(selected.work())));
+                selected == null ? Component.literal("—") : crew ? crewName(selected.crewJob()) : workName(selected.work(), selected.supplyType())));
         backupWork.setMessage(Component.translatable("menu.changed_synergy.player_outpost.backup_work",
                 selected == null || selected.backupWork() == null
-                        ? Component.translatable("menu.changed_synergy.player_outpost.no_backup") : workName(selected.backupWork())));
-        mainWork.setTooltip(Tooltip.create(Component.translatable(crew ? "menu.changed_synergy.player_outpost.crew_hint"
-                : "menu.changed_synergy.player_outpost.work_hint")));
+                        ? Component.translatable("menu.changed_synergy.player_outpost.no_backup") : workName(selected.backupWork(), selected.supplyType())));
+        mainWork.setTooltip(Tooltip.create(mainWork.getMessage().copy().append("\n").append(Component.translatable(crew ? "menu.changed_synergy.player_outpost.crew_hint"
+                : "menu.changed_synergy.player_outpost.work_hint"))));
         backupWork.visible = !crew;
         mainWork.setWidth(crew ? imageWidth - 18 : workButtonWidth());
-        backupWork.setTooltip(Tooltip.create(Component.translatable("menu.changed_synergy.player_outpost.backup_hint")));
+        backupWork.setTooltip(Tooltip.create(backupWork.getMessage().copy().append("\n").append(
+                Component.translatable("menu.changed_synergy.player_outpost.backup_hint"))));
         for (Button order : memberOrders) order.active = selected != null;
         remove.active = selected != null;
         meals.setMessage(Component.translatable("menu.changed_synergy.player_outpost.meals",
@@ -185,7 +185,10 @@ public final class PlayerOutpostScreen extends AbstractContainerScreen<PlayerOut
         meals.setTooltip(Tooltip.create(Component.translatable("menu.changed_synergy.player_outpost.meals_hint")));
     }
 
-    private static Component workName(Work work) {
+    private static Component workName(Work work, PlayerOutpostSupplyType supplyType) {
+        if (work == Work.GATHER) return Component.translatable("menu.changed_synergy.player_outpost.gather_target",
+                Component.translatable("menu.changed_synergy.player_outpost.supply."
+                        + supplyType.name().toLowerCase(java.util.Locale.ROOT)));
         return Component.translatable("menu.changed_synergy.player_outpost.work." + work.name().toLowerCase(java.util.Locale.ROOT));
     }
 

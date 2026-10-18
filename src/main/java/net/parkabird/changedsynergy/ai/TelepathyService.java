@@ -5,7 +5,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 
@@ -55,7 +54,7 @@ public final class TelepathyService {
             ServerPlayer clone) {
         CompoundTag source = data(original);
         if (!source.isEmpty()) {
-            persisted(clone).put(ROOT, source.copy());
+            PlayerPersistentData.get(clone).put(ROOT, source.copy());
         }
     }
 
@@ -80,18 +79,11 @@ public final class TelepathyService {
     }
 
     private static CompoundTag data(ServerPlayer player) {
-        CompoundTag persisted = persisted(player);
+        CompoundTag persisted = PlayerPersistentData.get(player);
         if (!persisted.contains(ROOT, Tag.TAG_COMPOUND)) {
             persisted.put(ROOT, new CompoundTag());
         }
         return persisted.getCompound(ROOT);
     }
 
-    private static CompoundTag persisted(ServerPlayer player) {
-        CompoundTag root = player.getPersistentData();
-        if (!root.contains(Player.PERSISTED_NBT_TAG, Tag.TAG_COMPOUND)) {
-            root.put(Player.PERSISTED_NBT_TAG, new CompoundTag());
-        }
-        return root.getCompound(Player.PERSISTED_NBT_TAG);
-    }
 }

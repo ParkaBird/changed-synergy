@@ -54,6 +54,7 @@ final class October18UiRegression {
                         for(var text:takeover.tooltipsFor(section)) if(text.getString().contains("takeover.changed_synergy."))
                             throw new AssertionError("Permanent takeover warning still displays a translation key");
                     TakeoverClientState.clear();
+                    gatheringCards(mc,directory,target,scale);
                 } finally { target.destroyBuffers(); mc.getMainRenderTarget().bindWrite(true); }
             }
             var form=net.ltxprogrammer.changed.process.ProcessTransfur.setPlayerTransfurVariant(mc.player,
@@ -61,15 +62,93 @@ final class October18UiRegression {
             var tag=new net.minecraft.nbt.CompoundTag();tag.putBoolean("Adapted",true);
             ((net.parkabird.changedsynergy.ai.PureWhiteWolfAdaptation.PlayerState)form).changedSynergy$setPureWhiteAdaptation(tag);
             form.getChangedEntity().getBasicPlayerInfo().setLeftIrisColor(net.ltxprogrammer.changed.util.Color3.fromInt(0x44DD66));
-            var visual=(net.ltxprogrammer.changed.entity.ChangedEntity)PureWhitePlayerAppearance.forRender(form.getChangedEntity());
-            if(visual==form.getChangedEntity()||visual.getBasicPlayerInfo().getLeftIrisColor().toInt()!=0x44DD66)
-                throw new AssertionError("Adapted player render model loses the player's individual eyes");
+            var body = form.getChangedEntity();
+            if (!net.parkabird.changedsynergy.ai.PureWhiteWolfAdaptation.isAdaptedForm(body)
+                    || body.getType()!=net.ltxprogrammer.changed.init.ChangedEntities.PURE_WHITE_LATEX_WOLF.get()
+                    || body.getBasicPlayerInfo().getLeftIrisColor().toInt()!=0x44DD66)
+                throw new AssertionError("Eye adaptation changed the original pure-white body or its eyes");
+            var renderer = mc.getEntityRenderDispatcher().getRenderer(body);
+            java.util.List<?> layers = net.minecraftforge.fml.util.ObfuscationReflectionHelper.getPrivateValue(
+                    net.minecraft.client.renderer.entity.LivingEntityRenderer.class,
+                    (net.minecraft.client.renderer.entity.LivingEntityRenderer<?, ?>)renderer, "f_115291_");
+            if(layers.stream().filter(PureWhiteAdaptedEyesLayer.class::isInstance).count()!=1)
+                throw new AssertionError("Pure White renderer must have exactly one conditional native eyes layer");
+            renderer.render(body,0,1,new com.mojang.blaze3d.vertex.PoseStack(),mc.renderBuffers().bufferSource(),15728880);
+            mc.renderBuffers().bufferSource().endBatch();
+            WhiteEyesClientRegression.run(mc,directory);
+            HeldCreatureClientRegression.run(mc,directory);
+            behaviorCard(mc,directory);
+            WheelIconClientRegression.run(mc,directory);
             System.out.println("OCTOBER18_UI_REGRESSION_PASS: actual roster/QTE screenshots at GUI scales 2 and 3, translated warning and individual adapted-player eyes");
         } finally {
             mc.setScreen(null); TakeoverClientState.clear(); GrabQteOverlayRenderer.endTakeover();
             mc.options.guiScale().set(oldScale); mc.resizeDisplay();
             model.popPose();RenderSystem.applyModelViewMatrix();RenderSystem.setProjectionMatrix(projection,sorting);
         }
+    }
+    private static void gatheringCards(Minecraft mc,java.nio.file.Path directory,
+            com.mojang.blaze3d.pipeline.TextureTarget target,int scale)throws Exception {
+        var types=net.parkabird.changedsynergy.ai.PlayerOutpostSupplyType.values();
+        for(boolean backup:new boolean[]{false,true}) for(int selected=0;selected<types.length;selected++) {
+            var buffer=new net.minecraft.network.FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+            net.parkabird.changedsynergy.world.inventory.PlayerOutpostMenu menu;
+            try {
+                buffer.writeUtf("minecraft:overworld");buffer.writeBlockPos(new net.minecraft.core.BlockPos(0,64,0));
+                buffer.writeUtf("1, 64, 0");buffer.writeUtf("6 / 6");buffer.writeVarInt(32);buffer.writeBoolean(true);
+                buffer.writeUtf("✓ / ✓ / ✓ / ✓ / ✓ / ✓");buffer.writeBoolean(true);buffer.writeVarInt(selected);
+                buffer.writeVarInt(1);buffer.writeUtf("minecraft:overworld");buffer.writeVarInt(types.length);
+                for(var type:types) {
+                    buffer.writeUUID(UUID.randomUUID());buffer.writeUtf("Mica "+type.name());
+                    buffer.writeVarInt(net.parkabird.changedsynergy.ai.PlayerOutpostData.Role.SUPPLY.ordinal());
+                    buffer.writeVarInt(type.ordinal());buffer.writeUtf("minecraft:overworld");
+                    buffer.writeBlockPos(new net.minecraft.core.BlockPos(2,64,2));buffer.writeBoolean(true);
+                    buffer.writeVarInt((backup?net.parkabird.changedsynergy.ai.PlayerOutpostData.Work.FARM:
+                            net.parkabird.changedsynergy.ai.PlayerOutpostData.Work.GATHER).ordinal());
+                    buffer.writeVarInt((backup?net.parkabird.changedsynergy.ai.PlayerOutpostData.Work.GATHER:
+                            net.parkabird.changedsynergy.ai.PlayerOutpostData.Work.FARM).ordinal());
+                    buffer.writeVarInt(0);buffer.writeVarInt(net.parkabird.changedsynergy.ai.PlayerOutpostData.CrewJob.COMBAT.ordinal());
+                }
+                menu=new net.parkabird.changedsynergy.world.inventory.PlayerOutpostMenu(8,mc.player.getInventory(),buffer);
+            } finally {buffer.release();}
+            var screen=new PlayerOutpostScreen(menu,mc.player.getInventory(),
+                    net.parkabird.changedsynergy.world.inventory.PlayerOutpostMenu.TITLE);mc.setScreen(screen);
+            var gather=(net.minecraft.client.gui.components.Button)field(screen,backup?"backupWork":"mainWork").get(screen);
+            var other=(net.minecraft.client.gui.components.Button)field(screen,backup?"mainWork":"backupWork").get(screen);
+            String resource=Component.translatable("menu.changed_synergy.player_outpost.supply."
+                    +types[selected].name().toLowerCase(java.util.Locale.ROOT)).getString();
+            if(!gather.getMessage().getString().contains(resource)||other.getMessage().getString().contains(resource))
+                throw new AssertionError("Gathering target missing or applied to non-gathering work: "+types[selected]);
+            if(!backup && selected==0) {
+                var rows=(java.util.List<?>)field(screen,"rows").get(screen);
+                if(!((net.minecraft.client.gui.components.Button)rows.get(0)).getMessage().getString().contains(resource))
+                    throw new AssertionError("Roster gathering target missing");
+            }
+            if(!backup && (selected==0||selected==2)) {
+                target.setClearColor(.10F,.12F,.15F,1);target.clear(Minecraft.ON_OSX);target.bindWrite(true);
+                var graphics=new GuiGraphics(mc,mc.renderBuffers().bufferSource());screen.render(graphics,0,0,1);graphics.flush();
+                try(var picture=net.minecraft.client.Screenshot.takeScreenshot(target)){
+                    picture.writeToFile(directory.resolve("outpost-gather-"+types[selected].name().toLowerCase(java.util.Locale.ROOT)+"-scale-"+scale+".png"));
+                }
+            }
+            mc.setScreen(null);
+        }
+        System.out.println("OUTPOST_GATHER_TARGET_CLIENT_REGRESSION_PASS: six supply types, main/backup work, roster and unchanged non-gathering labels; GUI scale "+scale);
+    }
+    private static void behaviorCard(Minecraft mc,java.nio.file.Path directory)throws Exception {
+        var creature=net.ltxprogrammer.changed.init.ChangedEntities.DARK_LATEX_WOLF_MALE.get().create(mc.level);
+        var menu=new net.parkabird.changedsynergy.world.inventory.SocialInteractionMenu(7,mc.player.getInventory(),creature);
+        menu.getProgression().putInt("BehaviorTrait",net.parkabird.changedsynergy.ai.CreaturePersonality.Trait.PLAYFUL.ordinal());
+        if(menu.getBehaviorTrait()!=net.parkabird.changedsynergy.ai.CreaturePersonality.Trait.PLAYFUL)
+            throw new AssertionError("The separate Playful behavior display is missing");
+        var screen=new SocialInteractionScreen(menu,mc.player.getInventory(),Component.literal("Behavior"));mc.setScreen(screen);
+        field(screen,"changedSynergy$openedAtNanos").setLong(screen,System.nanoTime()-2_000_000_000L);
+        var target=new com.mojang.blaze3d.pipeline.TextureTarget(mc.getWindow().getWidth(),mc.getWindow().getHeight(),true,Minecraft.ON_OSX);
+        try {
+            target.setClearColor(.10F,.12F,.15F,1);target.clear(Minecraft.ON_OSX);target.bindWrite(true);
+            var graphics=new GuiGraphics(mc,mc.renderBuffers().bufferSource());screen.render(graphics,0,0,1);graphics.flush();
+            try(var picture=net.minecraft.client.Screenshot.takeScreenshot(target)){picture.writeToFile(directory.resolve("playful-behavior-information.png"));}
+            System.out.println("PLAYFUL_BEHAVIOR_CLIENT_REGRESSION_PASS: relationship information renders the separate Playful behavior trait");
+        } finally {mc.setScreen(null);creature.discard();target.destroyBuffers();mc.getMainRenderTarget().bindWrite(true);}
     }
     private static java.lang.reflect.Field field(Object target,String name)throws Exception {
         Class<?> type=target instanceof Class<?> c?c:target.getClass();

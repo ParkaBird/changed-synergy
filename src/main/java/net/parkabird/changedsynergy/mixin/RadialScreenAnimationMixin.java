@@ -292,14 +292,12 @@ public abstract class RadialScreenAnimationMixin
         changedSynergy$layerAlpha = visibleAlpha;
         graphics.setColor(1.0F, 1.0F, 1.0F, visibleAlpha);
         float wheelOffset = changedSynergy$getHorizontalOffset();
-        graphics.pose().pushPose();
-        graphics.pose().translate(RadialWheelAnimations.iconOffset(screen, section, false),
-                RadialWheelAnimations.iconOffset(screen, section, true), 0);
+        // Native ability models scale GuiGraphics poses; keep alignment in screen pixels.
         screen.renderSectionForeground(
                 graphics,
                 section,
-                x + wheelOffset,
-                y,
+                x + wheelOffset + RadialWheelAnimations.iconOffset(screen, section, false),
+                y + RadialWheelAnimations.iconOffset(screen, section, true),
                 partialTick,
                 mouseX,
                 mouseY,
@@ -307,7 +305,6 @@ public abstract class RadialScreenAnimationMixin
                 green,
                 blue,
                 alpha * visibleAlpha);
-        graphics.pose().popPose();
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         changedSynergy$layerAlpha = 1.0F;
     }

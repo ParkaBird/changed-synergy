@@ -24,4 +24,4 @@ These guides describe the default 1.1.4 rules. A server can change gameplay sett
 | [World rules](GAMERULES.md) | Synergy gamerules and their effects |
 | [Performance controls](PERFORMANCE.md) | Scheduling, diagnostics and settings for busy servers |
 
-See [compatibility and installation](../COMPATIBILITY.md) for supported mods, or the [1.1.4 changelog](CHANGELOG-1.1.4.md) for the changes since 1.1.3. Return to the [project homepage](../README.md).
+See [compatibility and installation](../COMPATIBILITY.md) for supported mods, or the [1.1.4-hotfix.2 release notes](CHANGELOG-1.1.4-hotfix.2-full.md) for the latest fixes and changes since 1.1.3. Return to the [project homepage](../README.md).

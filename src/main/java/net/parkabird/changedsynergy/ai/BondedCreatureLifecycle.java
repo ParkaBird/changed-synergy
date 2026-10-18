@@ -16,7 +16,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.portal.PortalInfo;
 import net.minecraft.world.phys.Vec3;
@@ -203,8 +202,8 @@ public final class BondedCreatureLifecycle {
 
     /** Copies bond location data to the replacement player entity after death. */
     public static void copyPlayerData(ServerPlayer original, ServerPlayer clone) {
-        CompoundTag source = playerPersistedData(original);
-        CompoundTag target = playerPersistedData(clone);
+        CompoundTag source = PlayerPersistentData.get(original);
+        CompoundTag target = PlayerPersistentData.get(clone);
         if (source.contains(PLAYER_LOCATIONS, Tag.TAG_COMPOUND)) {
             target.put(PLAYER_LOCATIONS, source.getCompound(PLAYER_LOCATIONS).copy());
         }
@@ -343,19 +342,11 @@ public final class BondedCreatureLifecycle {
     }
 
     private static CompoundTag locations(ServerPlayer owner) {
-        CompoundTag persisted = playerPersistedData(owner);
+        CompoundTag persisted = PlayerPersistentData.get(owner);
         if (!persisted.contains(PLAYER_LOCATIONS, Tag.TAG_COMPOUND)) {
             persisted.put(PLAYER_LOCATIONS, new CompoundTag());
         }
         return persisted.getCompound(PLAYER_LOCATIONS);
-    }
-
-    private static CompoundTag playerPersistedData(Player player) {
-        CompoundTag root = player.getPersistentData();
-        if (!root.contains(Player.PERSISTED_NBT_TAG, Tag.TAG_COMPOUND)) {
-            root.put(Player.PERSISTED_NBT_TAG, new CompoundTag());
-        }
-        return root.getCompound(Player.PERSISTED_NBT_TAG);
     }
 
     private static ResourceKey<net.minecraft.world.level.Level> dimensionKey(String value) {

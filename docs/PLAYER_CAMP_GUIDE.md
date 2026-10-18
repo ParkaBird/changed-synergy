@@ -138,6 +138,8 @@ Set a hunting area with `hunt corner1` and `hunt corner2`, or remove it with `hu
 | `cook` | Walk to storage, fetch ingredients and cook up to four items at a time on the linked campfire. Collect finished food and return it to storage. |
 | `haul` | Collect loose items in its pickup area, including equipment and player-thrown items, then deliver batches to storage. |
 
+The roster and main/backup work buttons show the selected creature's gathering resources, such as oranges or sweet berries. Hover over a work button to read its full label if space is limited. Travelling Gathering remains a separate job that collects oranges, sweet berries and glow berries regardless of species.
+
 Your main-work assignment takes priority over the species' default gathering preference. Workers try their backup work when no main-work task is available. If storage is full, workers keep their cargo and pause delivery. Carried resources drop when a worker dies or leaves the assignment; revival does not restore resources already dropped at death.
 
 Mineral gatherers and shore anglers prefer suitable pickaxes and fishing rods in their personal inventory. Supplied tools apply their material and enchantments and lose durability normally. Miners prefer the fastest suitable pickaxe, including Efficiency; Fortune and Silk Touch affect drops. Anglers prefer Lure, then Luck of the Sea. Ordinary gatherers use their default iron pickaxe or rod only when no suitable stored tool is available. You can retrieve supplied tools from the personal inventory; gathered produce remains in Work Cargo for delivery. Open-ocean fish catching retains its direct-catching method.
@@ -217,7 +219,7 @@ Production and shared meals pause while the owner is offline by default. Enablin
 
 Server operators can use `/changedsynergy config list COMMUNITIES`, followed by the `get`, `set` and `reset` subcommands, to manage camp settings. Configuration keys support command completion. Client settings cannot override the server's work switches. See [Server, world and client settings](SERVER_CONFIGURATION.md) for the configuration file, command syntax and synchronized settings page.
 
-`COMMUNITIES.PlayerWildOutpostMinimumSpacing` keeps newly established wild outposts away from player camps. The default is 48 blocks horizontally, measured from the camp marker to the wild storage point; operators can choose 16–256 blocks. It does not relocate existing outposts. `COMMUNITIES.MinimumOutpostSpacing` separately controls spacing between wild outposts.
+`COMMUNITIES.PlayerWildOutpostMinimumSpacing` separates player camps and wild outposts, regardless of which is established first. The default is 48 blocks horizontally, measured from the camp marker to the wild storage point; operators can choose 16–256 blocks. A site exactly at the minimum is allowed; vertical distance does not reduce the required horizontal spacing. Changing this setting does not relocate or invalidate existing outposts. `COMMUNITIES.MinimumOutpostSpacing` separately controls spacing between wild outposts.
 
 Use the same Synergy build on the server and all clients.
 

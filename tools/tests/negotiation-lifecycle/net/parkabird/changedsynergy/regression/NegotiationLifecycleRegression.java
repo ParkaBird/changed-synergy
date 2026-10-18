@@ -40,7 +40,11 @@ public final class NegotiationLifecycleRegression {
             ChangedSynergyConfig.SPEC.setConfig(com.electronwill.nightconfig.core.CommentedConfig.inMemory());
             ChangedSynergyConfig.COMMON.takeoverEnabled.set(false);
             event.getServer().overworld().getGameRules().getRule(ChangedSynergyGameRules.NATIVE_ORIGINS).set(true, event.getServer());
+            PlayerPersistenceRegression.run(event.getServer());
+            NegotiationReasonRegression.run(event.getServer());
+            OrganicSleepReversalRegression.run(event.getServer());
             MountedArmorRegression.run(event.getServer());
+            AuthorIdentityRegression.run(event.getServer());
             KeepConsciousRegression.run(event.getServer());
             October18FeedbackRegression.run(event.getServer());
             loginBeforeConnection(event.getServer());
@@ -191,6 +195,9 @@ public final class NegotiationLifecycleRegression {
         ProcessTransfur.setPlayerTransfurVariant(clone, other);
         normal.getDecision().postTransfurListener().accept(IAbstractChangedEntity.forPlayer(clone));
         var view = InvoluntaryTransfurNegotiation.view(clone).orElseThrow();
+        net.parkabird.changedsynergy.ai.CreaturePersonality.setFamiliarity(nextSource, clone, -30);
+        net.parkabird.changedsynergy.ai.LatexSocialMemory.markPatTruceBetrayal(nextSource, clone);
+        net.parkabird.changedsynergy.ai.LatexSocialMemory.markRelationshipBetrayal(nextSource, clone);
         var begin = InvoluntaryTransfurNegotiation.class.getDeclaredMethod("beginRelease", ServerPlayer.class,
                 ChangedEntity.class, InvoluntaryTransfurNegotiation.View.class, InvoluntaryTransfurNegotiation.View.class);
         begin.setAccessible(true); begin.invoke(null, clone, nextSource, view, view);
@@ -200,6 +207,10 @@ public final class NegotiationLifecycleRegression {
         check(!ProcessTransfur.isPlayerTransfurred(clone) && data(clone) == null, "Successful negotiation still releases and clears its own claim");
         check(net.parkabird.changedsynergy.ai.CreaturePersonality.hasEstablishedRelationship(nextSource, clone),
                 "Successful negotiated restoration introduces both participants in balanced social mode");
+        check(net.parkabird.changedsynergy.ai.RelationshipFavorService.canOpenBasicWheel(nextSource, clone),
+                "Successful restoration permits direct right-click interaction even after the concluded hostile incident");
+        check(net.parkabird.changedsynergy.ai.CreaturePersonality.familiarity(nextSource, clone)==0,
+                "Negotiated acquaintance does not grant advanced friendship or farm positive familiarity");
 
         var former = stage(clone, nextSource, other, false);
         ProcessTransfur.setPlayerTransfurVariant(clone, other);

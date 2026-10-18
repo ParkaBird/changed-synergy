@@ -3,7 +3,6 @@ package net.parkabird.changedsynergy.regression;
 import net.ltxprogrammer.changed.client.renderer.AdvancedHumanoidRenderer;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.PlayerDataExtension;
-import net.ltxprogrammer.changed.entity.beast.WhiteLatexWolfMale;
 import net.ltxprogrammer.changed.entity.variant.TransfurVariantInstance;
 import net.ltxprogrammer.changed.init.ChangedTransfurVariants;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
@@ -14,7 +13,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.HumanoidArm;
 import net.parkabird.changedsynergy.ai.PureWhiteWolfAdaptation;
 import net.parkabird.changedsynergy.client.PatAnimationClientState;
-import net.parkabird.changedsynergy.client.PureWhitePlayerAppearance;
 
 /** Call once after an isolated client fixture has entered a world. */
 public final class PlayerVisualClientRegression {
@@ -118,23 +116,16 @@ public final class PlayerVisualClientRegression {
             var body = pure.getChangedEntity();
             CompoundTag adapted = new CompoundTag(); adapted.putBoolean("Adapted", true);
             ((PureWhiteWolfAdaptation.PlayerState) pure).changedSynergy$setPureWhiteAdaptation(adapted);
-            var visual = PureWhitePlayerAppearance.forRender(body);
-            check(visual instanceof WhiteLatexWolfMale && visual != body,
-                    "Adapted pure-white player renders the eyed male model");
-            check(java.util.Objects.equals(visual.getCustomName(), body.getCustomName()),
-                    "Adapted rendering preserves the original player display name");
-            check(ProcessTransfur.getPlayerTransfurVariant(player) == pure
-                            && pure.getChangedEntity() == body,
+            check(PureWhiteWolfAdaptation.isAdaptedForm(body), "Adapted pure-white player shows native eyes");
+            check(body.getType()==net.ltxprogrammer.changed.init.ChangedEntities.PURE_WHITE_LATEX_WOLF.get(),
+                    "Adaptation retains the original species and renderer");
+            check(ProcessTransfur.getPlayerTransfurVariant(player) == pure && pure.getChangedEntity() == body,
                     "Rendering cannot replace actual player form");
-            check(PureWhitePlayerAppearance.forRender(body) == visual,
-                    "Visual surrogate is reused across renders");
             pure.setTemporaryForSuit(true);
-            check(PureWhitePlayerAppearance.forRender(body) == body,
-                    "Temporary wrapping never uses the player's adapted model");
+            check(!PureWhiteWolfAdaptation.isAdaptedForm(body), "Temporary wrapping does not inherit player adaptation");
             pure.setTemporaryForSuit(false);
             ((PureWhiteWolfAdaptation.PlayerState) pure).changedSynergy$setPureWhiteAdaptation(new CompoundTag());
-            check(PureWhitePlayerAppearance.forRender(body) == body,
-                    "Cleared adaptation renders original pure-white model");
+            check(!PureWhiteWolfAdaptation.isAdaptedForm(body), "Cleared adaptation hides the eyes");
             check(!PatAnimationClientState.applyRightArmPose(player.getId(), 0, null),
                     "True armless models stay safe");
             System.out.println("PLAYER_VISUAL_CLIENT_PASS");

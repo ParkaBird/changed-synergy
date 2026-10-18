@@ -60,6 +60,10 @@ final class CampCrewSchedulingChecks {
             PlayerOutpostService.releaseCargo(leaf);
             level.setBlock(resource,Blocks.STONE.defaultBlockState(),3);
             terrain(owner, leaf, camp);
+            // Each following scenario starts from its own settled flat-field position.
+            leaf.goalSelector.getRunningGoals().toList().forEach(net.minecraft.world.entity.ai.goal.WrappedGoal::stop);
+            leaf.getNavigation().stop(); leaf.setPos(20.5,90,20.5);
+            leaf.setDeltaMovement(Vec3.ZERO); leaf.setOnGround(true);
             owner.setPos(20.5,90,22.5);
             camp.members.get(leaf.getUUID()).workStatus="travelling";
             check(!new PlayerOutpostGoal(leaf).canUse()&&camp.members.get(leaf.getUUID()).workStatus.equals("waiting"),
@@ -167,8 +171,11 @@ final class CampCrewSchedulingChecks {
     }
     /** Optional local reproduction uses terrain only; it never opens or writes the user's save. */
     private static void terrain(ServerPlayer owner, ChangedEntity mob, Outpost camp) throws Exception {
-        var file=java.nio.file.Path.of("../crew-terrain-snapshot.json");
-        if(!java.nio.file.Files.isRegularFile(file))return;
+        String snapshotPath = System.getProperty("changed_synergy.campTerrainSnapshot");
+        if (snapshotPath == null || snapshotPath.isBlank()) return;
+        var file = java.nio.file.Path.of(snapshotPath);
+        if (!java.nio.file.Files.isRegularFile(file))
+            throw new IllegalArgumentException("Missing requested camp terrain snapshot: " + file);
         var level=owner.serverLevel();
         var snapshot=com.google.gson.JsonParser.parseString(java.nio.file.Files.readString(file)).getAsJsonObject();
         var changed=new java.util.HashMap<BlockPos,net.minecraft.world.level.block.state.BlockState>();

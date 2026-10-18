@@ -41,6 +41,13 @@ public final class FactionPursuitService {
 
     public static boolean isPursuer(ChangedEntity mob) { return mob.getPersistentData().contains(SQUAD); }
 
+    /** Only the active squad assignment for this player explains a capture. */
+    public static boolean isPursuing(ChangedEntity mob, ServerPlayer player) {
+        var squad = mob.getPersistentData().getCompound(SQUAD);
+        return squad.hasUUID("Target") && player.getUUID().equals(squad.getUUID("Target"))
+                && squad.getLong("Until") > mob.level().getGameTime();
+    }
+
     private static CompoundTag persisted(ServerPlayer player) {
         var root = player.getPersistentData();
         if (!root.contains(Player.PERSISTED_NBT_TAG)) root.put(Player.PERSISTED_NBT_TAG, new CompoundTag());

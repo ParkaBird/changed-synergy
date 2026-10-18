@@ -786,7 +786,7 @@ public final class CreatureSettlementService {
         }
         String path = snapshot.piece().pieceName().getPath()
                 .toLowerCase(Locale.ROOT);
-        return path.contains("garden") || hasFacilityMarker(path, "tree");
+        return path.contains("garden") || TerritoryContextEvents.hasFacilityMarker(path, "tree");
     }
 
     private static boolean isTreeTemplate(
@@ -794,7 +794,7 @@ public final class CreatureSettlementService {
         if (snapshot == null) {
             return false;
         }
-        return hasFacilityMarker(
+        return TerritoryContextEvents.hasFacilityMarker(
                 snapshot.piece().pieceName().getPath()
                         .toLowerCase(Locale.ROOT),
                 "tree");
@@ -803,17 +803,6 @@ public final class CreatureSettlementService {
     private static String facilitySection(
             @Nullable FacilitySnapshot snapshot) {
         return TerritoryContextEvents.facilitySectionId(snapshot);
-    }
-
-    private static boolean hasFacilityMarker(
-            String path,
-            String marker) {
-        int slash = path.lastIndexOf('/');
-        String file = slash >= 0 ? path.substring(slash + 1) : path;
-        return path.contains("/" + marker + "/")
-                || file.startsWith(marker + "_")
-                || file.contains("_" + marker + "_")
-                || file.endsWith("_" + marker);
     }
 
     private static boolean sameFacilitySection(

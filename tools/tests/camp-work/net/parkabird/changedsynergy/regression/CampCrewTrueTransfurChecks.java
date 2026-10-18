@@ -98,10 +98,15 @@ final class CampCrewTrueTransfurChecks {
             defense.start();
             check(mob.getTarget()==enemy,"Physical-body combat resolves through the real player's crew");
             float health=enemy.getHealth();
-            for(int i=0;i<180&&enemy.getHealth()>=health;i++) {
+            for(int i=0;i<180&&!CampCrewCombatChecks.engaged(mob,enemy,health);i++) {
                 enemy.tickCount++; enemy.tick(); CampNavigationChecks.tick(level,owner,List.of(mob),1);
             }
-            check(enemy.getHealth()<health || !enemy.isAlive(),"Instinct-mode combat crew actually approaches and hits the threat");
+            if (!CampCrewCombatChecks.engaged(mob,enemy,health))
+                System.out.println("CAMP_CREW_TT_COMBAT_DIAGNOSTIC npc="+mob.position()+" enemy="+enemy.position()
+                        +" target="+mob.getTarget()+" flags="+mob.goalSelector.getRunningGoals().map(g->g.getGoal().getClass().getSimpleName()).toList()
+                        +" grab="+net.ltxprogrammer.changed.ability.GrabEntityAbility.getGrabber(enemy));
+            check(CampCrewCombatChecks.engaged(mob,enemy,health),"Instinct-mode combat crew actually attacks or grabs the threat");
+            CampCrewCombatChecks.releaseGrab(mob);
             defense.stop(); enemy.discard(); enemy=null; body.setLastHurtMob(null); body.setLastHurtByMob(null);
             alliedBody(owner,body,players);
             mob.goalSelector.getRunningGoals().toList().forEach(net.minecraft.world.entity.ai.goal.WrappedGoal::stop);
@@ -119,6 +124,7 @@ final class CampCrewTrueTransfurChecks {
             System.out.println("CAMP_CREW_TRUETRANSFUR_PASS checks=18");
         } finally {
             players.put(owner.getUUID(),owner);
+            CampCrewCombatChecks.releaseGrab(mob);
             if(enemy!=null)enemy.discard(); owner.setLastHurtMob(null); owner.setLastHurtByMob(null);
             net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.companionMonsterAssistOnly.set(oldAssist);
             if (TrueTransfurCompat.isInstinctShell(owner)) changeMode.invoke(null,owner,player);
