@@ -111,7 +111,9 @@ final class October18FeedbackRegression {
                 source.getSelfVariant().getFormId().toString());
         var expected = net.minecraft.network.chat.Component.literal("SampleName (")
                 .append(ChangedEntities.GAS_WOLF_MALE.get().getDescription()).append(")");
-        check(BondedRevivalService.bondSampleDescription(sample).equals(expected),
+        var description = BondedRevivalService.bondSampleDescription(sample);
+        check(description.getString().equals(expected.getString())
+                && description.getSiblings().get(1).equals(ChangedEntities.GAS_WOLF_MALE.get().getDescription()),
                 "A revival sample appends its localized species after the creature's name");
         sample.getTag().getCompound("ChangedSynergyBondRevival").putString("Form", "missing:removed_form");
         check(BondedRevivalService.bondSampleDescription(sample).getString().equals("SampleName"),
