@@ -37,12 +37,16 @@ final class October18UiRegression {
                     try(var image=net.minecraft.client.Screenshot.takeScreenshot(target)){image.writeToFile(directory.resolve("relationship-alignment-scale-"+scale+".png"));}
                     mc.setScreen(null);
                     UUID id=UUID.randomUUID();
-                    GrabQteOverlayRenderer.renderTakeover(graphics,width,height,id,1,3,12,-1);
-                    field(GrabQteOverlayRenderer.class,"takeoverStartedAt").setLong(null,net.minecraft.Util.getMillis()-1000);
-                    field(GrabQteOverlayRenderer.class,"takeoverKeyStartedAt").setLong(null,net.minecraft.Util.getMillis()-1000);
-                    target.clear(Minecraft.ON_OSX); target.bindWrite(true);
-                    GrabQteOverlayRenderer.renderTakeover(graphics,width,height,id,1,3,12,-1); graphics.flush();
-                    try(var image=net.minecraft.client.Screenshot.takeScreenshot(target)){image.writeToFile(directory.resolve("grab-qte-alignment-scale-"+scale+".png"));}
+                    for (int key=0;key<4;key++) {
+                        GrabQteOverlayRenderer.endTakeover();
+                        GrabQteOverlayRenderer.renderTakeover(graphics,width,height,id,key,3,12,-1);
+                        field(GrabQteOverlayRenderer.class,"takeoverStartedAt").setLong(null,net.minecraft.Util.getMillis()-1000);
+                        field(GrabQteOverlayRenderer.class,"takeoverKeyStartedAt").setLong(null,net.minecraft.Util.getMillis()-1000);
+                        target.clear(Minecraft.ON_OSX); target.bindWrite(true);
+                        GrabQteOverlayRenderer.renderTakeover(graphics,width,height,id,key,3,12,-1); graphics.flush();
+                        String name=key==1?"grab-qte-alignment-scale-":"grab-qte-key-"+key+"-scale-";
+                        try(var image=net.minecraft.client.Screenshot.takeScreenshot(target)){image.writeToFile(directory.resolve(name+scale+".png"));}
+                    }
                     GrabQteOverlayRenderer.endTakeover();
                     TakeoverClientState.receive(new TakeoverStatePacket(id,0,0,-1,mc.player.getId(),100,100,1,false,false,true,0,0,1,0,12,0,"Carrier"));
                     var takeover=new TakeoverScreen(); takeover.init(mc,width,height);
