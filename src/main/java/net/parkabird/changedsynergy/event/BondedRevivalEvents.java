@@ -171,7 +171,9 @@ public final class BondedRevivalEvents {
                 || BondedRevivalService.isRevivalVessel(stack)) {
             event.getToolTip().add(Component.translatable(
                     "tooltip.changed_synergy.revival_mask.bond",
-                    BondedRevivalService.bondName(stack)).withStyle(ChatFormatting.GRAY));
+                    BondedRevivalService.isRevivalSample(stack)
+                            ? BondedRevivalService.bondSampleDescription(stack)
+                            : BondedRevivalService.bondName(stack)).withStyle(ChatFormatting.GRAY));
             event.getToolTip().add(Component.translatable(
                     BondedRevivalService.isRevivalSample(stack)
                             ? "tooltip.changed_synergy.revival_sample.infuser"

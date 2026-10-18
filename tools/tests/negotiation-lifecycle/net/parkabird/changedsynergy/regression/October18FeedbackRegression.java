@@ -105,6 +105,17 @@ final class October18FeedbackRegression {
         var oldData = (BondedCreatureDeathData)load.invoke(null, legacy);
         check(oldData.isDead(owner, creature) && oldData.consume(owner).get(creature).isEmpty(),
                 "Old boolean death records still remove stale relationships without inventing a location");
+        var sampleFactory = BondedRevivalService.class.getDeclaredMethod("revivalSample", UUID.class, UUID.class, String.class, String.class);
+        sampleFactory.setAccessible(true);
+        var sample = (net.minecraft.world.item.ItemStack)sampleFactory.invoke(null, UUID.randomUUID(), owner, "SampleName",
+                source.getSelfVariant().getFormId().toString());
+        var expected = net.minecraft.network.chat.Component.literal("SampleName (")
+                .append(ChangedEntities.GAS_WOLF_MALE.get().getDescription()).append(")");
+        check(BondedRevivalService.bondSampleDescription(sample).equals(expected),
+                "A revival sample appends its localized species after the creature's name");
+        sample.getTag().getCompound("ChangedSynergyBondRevival").putString("Form", "missing:removed_form");
+        check(BondedRevivalService.bondSampleDescription(sample).getString().equals("SampleName"),
+                "A removed species leaves the original sample name readable");
         System.out.println("OCTOBER18_FEEDBACK_REGRESSION_PASS");
     }
     private static void check(boolean value, String message) {

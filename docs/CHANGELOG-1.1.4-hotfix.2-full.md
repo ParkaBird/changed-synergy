@@ -8,6 +8,7 @@
 - Fixed alignment of the grab-escape QTE, contact-roster header controls and icons inside radial-wheel frames.
 - Fixed the permanent-outcome escape warning displaying a translation key instead of its description.
 - Added the bonded companion's death dimension and coordinates to death notifications, including notifications received after logging back in.
+- Added the companion's localized species after its name in the latex sample tooltip.
 - Fixed forced transfur bypassing Changed's Keep Conscious rule. With the rule disabled, involuntary transfur causes death instead of takeover; confirmed voluntary transfur and protective wrapping remain safe.
 - Fixed quadrupedal armour duplication when human riders right-click leggings or boots, including Creative mode and full inventories.
 - Fixed Diffusion Syringes creating an extra creature instead of separating the player from the original carrier, including borrowed takeover control and double-headed Yufeng wrapping.
