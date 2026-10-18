@@ -475,7 +475,8 @@ public final class PlayerRelationshipScreen
             int buttonX = start + index * 18;
             boolean hovered = mouseX >= buttonX && mouseX < buttonX + 16
                     && mouseY >= y + 3 && mouseY < y + 18;
-            graphics.drawString(font, labels[index], buttonX + (16 - font.width(labels[index])) / 2, y + 7,
+            // The lowercase x has a shorter glyph than the arrows; align their visible centres.
+            graphics.drawString(font, labels[index], buttonX + (16 - font.width(labels[index])) / 2, y + (index == 2 ? 6 : 7),
                     withAlpha(!enabled ? 0x888888 : hovered ? 0xFFF2A0 : 0xFFFFFF,
                             Math.round(0xF0 * alpha)), false);
         }

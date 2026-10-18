@@ -534,16 +534,7 @@ public final class GrabQteOverlayRenderer {
         graphics.pose().translate(x + 8.0F, y + 8.0F, 0.0F);
         graphics.pose().scale(scale, scale, 1.0F);
         graphics.pose().translate(-(x + 8.0F), -(y + 8.0F), 0.0F);
-        int u = key == KeyReference.MOVE_RIGHT || key == KeyReference.MOVE_BACKWARD ? 16 : 0;
-        int v = key == KeyReference.MOVE_LEFT || key == KeyReference.MOVE_BACKWARD ? 16 : 0;
-        graphics.setColor(1, 1, 1, QteAnimationUtil.clamp(alpha));
-        graphics.blit(net.ltxprogrammer.changed.Changed.modResource("textures/gui/grab_escape_keys.png"),
-                x, y, u, v, 16, 16, 32, 32);
-        var font = gui.getFont();
-        String label = key.getName(Minecraft.getInstance().level).getString().toUpperCase(java.util.Locale.ROOT);
-        graphics.drawString(font, label, x + (16 - font.width(label)) / 2,
-                y + (16 - font.lineHeight) / 2,
-                QteAnimationUtil.withAlpha(0xFFFFFF, QteAnimationUtil.clamp(alpha)), true);
+        GrabOverlay.renderEscapeKeyAt(gui, graphics, x, y, key, QteAnimationUtil.clamp(alpha));
         graphics.pose().popPose();
     }
 
