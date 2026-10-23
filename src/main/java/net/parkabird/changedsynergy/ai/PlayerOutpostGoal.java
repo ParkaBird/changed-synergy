@@ -37,6 +37,7 @@ import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.FishingSite;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.GlowBerrySite;
 import net.parkabird.changedsynergy.world.inventory.PlayerOutpostCargoInventory;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 /** Follows the owner's job order and delivers real foraged resources to the linked chest. */
 public final class PlayerOutpostGoal extends Goal {
@@ -597,6 +598,9 @@ public final class PlayerOutpostGoal extends Goal {
     }
 
     public static ItemStack insert(Container container, ItemStack source) {
+        if (container instanceof HandlerContainer wrapped) {
+            return ItemHandlerHelper.insertItem(wrapped.handler(), source.copy(), false);
+        }
         ItemStack remainder = source.copy();
         for (int pass = 0; pass < 2 && !remainder.isEmpty(); pass++) {
             for (int slot = 0; slot < container.getContainerSize() && !remainder.isEmpty(); slot++) {
