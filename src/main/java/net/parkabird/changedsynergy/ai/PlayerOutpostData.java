@@ -20,6 +20,10 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 
+//Patch Imports (Forgot to add)
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+
 /** Player-owned home records. No wild-community stock or chunk tickets are used. */
 public final class PlayerOutpostData extends SavedData {
     public static final int RADIUS = 32;
