@@ -130,15 +130,24 @@ public final class CreatureCommunityData extends SavedData {
     }
 
     /** Finds a Synergy-built community cache without treating arbitrary containers as owned. */
-    public static Optional<Snapshot> snapshotAtCache(
-            ServerLevel level, BlockPos position) {
+    public static Optional<Snapshot> snapshotAtCache(ServerLevel level, BlockPos position) {
         String dimension = level.dimension().location().toString();
         return get(level.getServer()).communities.values().stream()
                 .filter(community -> community.cache != null
-                        && community.cache.equals(position)
-                        && community.dimension.equals(dimension))
+                        && community.dimension.equals(dimension)
+                        && (community.cache.equals(position) || otherHalf(level, community.cache, position)))
                 .map(Community::snapshot)
                 .findFirst();
+    }
+
+    private static boolean otherHalf(ServerLevel level, BlockPos cache, BlockPos position) {
+        if (!level.hasChunkAt(cache)) return false;
+        var state = level.getBlockState(cache);
+        return state.getBlock() instanceof net.minecraft.world.level.block.ChestBlock
+                && state.getValue(net.minecraft.world.level.block.ChestBlock.TYPE)
+                    != net.minecraft.world.level.block.state.properties.ChestType.SINGLE
+                && cache.relative(net.minecraft.world.level.block.ChestBlock.getConnectedDirection(state))
+                        .equals(position);
     }
 
     /** Checks the actual opened inventory, including either half of a double chest. */
