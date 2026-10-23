@@ -175,16 +175,21 @@ public final class PlayerOutpostData extends SavedData {
         return outposts.values();
     }
 
-    /** Treats both halves of a double chest as one registered store. */
     public static Container container(ServerLevel level, BlockPos pos) {
         if (level == null || pos == null || !level.hasChunkAt(pos)) return null;
         var state = level.getBlockState(pos);
-        if (state.getBlock() instanceof ChestBlock chest) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (state.getBlock() instanceof ChestBlock chest
+                && be instanceof net.minecraft.world.level.block.entity.ChestBlockEntity) {
             if (state.getValue(ChestBlock.TYPE) != net.minecraft.world.level.block.state.properties.ChestType.SINGLE
                     && !level.hasChunkAt(pos.relative(ChestBlock.getConnectedDirection(state)))) return null;
-            return ChestBlock.getContainer(chest, state, level, pos, true);
+            Container vanilla = ChestBlock.getContainer(chest, state, level, pos, true);
+            if (vanilla != null) return vanilla;
         }
-        return level.getBlockEntity(pos) instanceof Container container ? container : null;
+        if (be instanceof Container container) return container;
+        if (be == null) return null;
+        return be.getCapability(ForgeCapabilities.ITEM_HANDLER, null)
+                .resolve().map(HandlerContainer::new).orElse(null);
     }
 
     /** Keeps later wild outpost placement away from a player's active home. */
