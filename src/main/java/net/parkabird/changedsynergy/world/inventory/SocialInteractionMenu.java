@@ -705,6 +705,9 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
             case "social_talk" -> {
                 if(net.parkabird.changedsynergy.npc.NpcConversations.canOpen(creature)){net.parkabird.changedsynergy.npc.NpcConversations.open(creature,origin);return;}
                 CreaturePersonality.rememberEncounter(creature, origin);
+                creature.getNavigation().stop();
+                creature.getMoveControl().setWantedPosition(creature.getX(), creature.getY(), creature.getZ(), 0.0);
+                creature.setDeltaMovement(0.0, creature.getDeltaMovement().y, 0.0);
                 creature.getLookControl().setLookAt(origin, 30.0F, 30.0F);
                 NpcDialogue.trigger(creature, origin, conversationCue(origin));
             }
@@ -898,6 +901,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
     }
 
     private void playTogether(ServerPlayer origin) {
+        if (creature != null && (CreatureLifeMemory.role(creature) == CreatureLifeMemory.GroupRole.CHIEF || getRole() == CreatureLifeMemory.GroupRole.CHIEF)) return;
         if (!bonded && !CreaturePersonality.hasTrustedRelationship(creature, origin)) return;
         long remaining = CreaturePersonality.playCooldownRemaining(
                 creature,

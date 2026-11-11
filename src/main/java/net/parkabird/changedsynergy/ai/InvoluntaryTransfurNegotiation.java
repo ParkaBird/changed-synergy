@@ -1083,6 +1083,26 @@ public final class InvoluntaryTransfurNegotiation {
                         .orElse(false);
     }
 
+    private static boolean canContinueRiteReversal(
+            ChangedEntity source,
+            ServerPlayer player,
+            CompoundTag release) {
+        if (!source.isAlive()
+                || source.isRemoved()
+                || !player.isAlive()
+                || source.level() != player.level()) {
+            return false;
+        }
+        if (release.getBoolean(RELEASE_REVERSED)) {
+            return true;
+        }
+        return !TrueTransfurCompat.blocksReversal(player)
+                && !player.isSpectator()
+                && player.distanceToSqr(source) <= 64.0D
+                && ProcessTransfur.isPlayerTransfurred(player)
+                && net.parkabird.changedsynergy.npc.NpcRites.reversible(player);
+    }
+
     /** Starts the same secure, QTE-free hold used after a successful negotiation. */
     public static boolean beginBondedReversal(
             ChangedEntity source,
@@ -1124,12 +1144,15 @@ public final class InvoluntaryTransfurNegotiation {
         CompoundTag release = source.getPersistentData()
                 .getCompound(RELEASE_ROOT);
         boolean bondedReversal = release.getBoolean(RELEASE_BONDED);
+        boolean riteReversal = release.getBoolean("ReleaseRite");
         if (!source.isAlive()
                 || !player.isAlive()
                 || source.level() != player.level()
-                || (bondedReversal
-                        ? !canContinueBondedReversal(source, player, release)
-                        : !canNegotiate(player, source))
+                || (riteReversal
+                        ? !canContinueRiteReversal(source, player, release)
+                        : (bondedReversal
+                                ? !canContinueBondedReversal(source, player, release)
+                                : !canNegotiate(player, source)))
                 || !isReleaseHoldTarget(source, player)) {
             return ReleaseHoldStep.ABORT;
         }
@@ -1140,6 +1163,7 @@ public final class InvoluntaryTransfurNegotiation {
             applyPlayerReversal(
                     player,
                     !bondedReversal
+                            && !riteReversal
                             && readView(playerData(player)).whiteKnightSplit());
             release.putBoolean(RELEASE_REVERSED, true);
             reversedNow = true;
@@ -1157,10 +1181,13 @@ public final class InvoluntaryTransfurNegotiation {
         CompoundTag release = source.getPersistentData()
                 .getCompound(RELEASE_ROOT);
         boolean bondedReversal = release.getBoolean(RELEASE_BONDED);
+        boolean riteReversal = release.getBoolean("ReleaseRite");
         if (!isReleaseHoldTarget(source, player)
-                || (bondedReversal
-                        ? !canContinueBondedReversal(source, player, release)
-                        : !canNegotiate(player, source))) {
+                || (riteReversal
+                        ? !canContinueRiteReversal(source, player, release)
+                        : (bondedReversal
+                                ? !canContinueBondedReversal(source, player, release)
+                                : !canNegotiate(player, source)))) {
             abortReleaseHold(source, player);
             return;
         }
@@ -1173,6 +1200,20 @@ public final class InvoluntaryTransfurNegotiation {
             CompoundTag release,
             boolean playDialogue) {
         boolean bondedReversal = release.getBoolean(RELEASE_BONDED);
+        boolean riteReversal = release.getBoolean("ReleaseRite");
+        if (riteReversal) {
+            if (!release.getBoolean(RELEASE_REVERSED)) {
+                applyPlayerReversal(player, false);
+            }
+            source.getPersistentData().remove(RELEASE_ROOT);
+            net.parkabird.changedsynergy.npc.NpcRites.clearReversibleForm(player);
+            LatexSocialMemory.clearHostilityToward(source, player);
+            abandonClaim(player);
+            if (playDialogue && source.level() == player.level()) {
+                NpcDialogue.trigger(source, player, Cue.BOND_REVERSE_COMPLETE);
+            }
+            return;
+        }
         if (bondedReversal) {
             if (!release.getBoolean(RELEASE_REVERSED)) {
                 applyPlayerReversal(player, false);
@@ -2097,7 +2138,7 @@ public final class InvoluntaryTransfurNegotiation {
         finishReleaseHold(source, player);
     }
 
-    private static void applyPlayerReversal(
+    public static void applyPlayerReversal(
             ServerPlayer player,
             boolean whiteKnightSplit) {
         applyPlayerReversal(player, whiteKnightSplit, true);

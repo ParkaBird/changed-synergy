@@ -102,12 +102,22 @@ public final class CampLifeService {
     public static CompoundTag forResident(ChangedEntity npc){return visibleRequests(npc).stream().filter(CampLifeService::personal).findFirst().orElse(null);}
     public static Supply supply(ItemStack stack,ChangedEntity npc){return Arrays.stream(Supply.values()).filter(s->s.accepts(stack,npc)).findFirst().orElse(null);}
     public static boolean canHelp(ChangedEntity npc,ServerPlayer player){var body=TrueTransfurCompat.interactionBody(player);return atHome(npc)&&body.level()==npc.level()&&NaturalCampService.bounds(npc).contains(body.position())&&CampMembershipService.score(npc,player)>=0&&!LatexSocialMemory.isProvoked(npc,player)&&!LatexSocialMemory.hasRelationshipBetrayal(npc,player);}
-    private static CompoundTag account(ChangedEntity npc,ServerPlayer player){var data=CampMembershipService.membership(player);var all=data.getCompound("Contributions");String home=StoryNpcService.homeKey(npc);var account=all.getCompound(home);all.put(home,account);data.put("Contributions",all);return account;}
-    public static int reward(ChangedEntity npc,ServerPlayer player,int amount){
-        if(!canHelp(npc,player))return 0;var record=account(npc,player);long day=day(npc);
+    private static CompoundTag account(String home,ServerPlayer player){var data=CampMembershipService.membership(player);var all=data.getCompound("Contributions");var account=all.getCompound(home);all.put(home,account);data.put("Contributions",all);return account;}
+    private static CompoundTag account(ChangedEntity npc,ServerPlayer player){return account(StoryNpcService.homeKey(npc),player);}
+    public static int reward(String home,ServerPlayer player,int amount){
+        if(home==null||home.isEmpty()||net.parkabird.changedsynergy.init.ChangedSynergyGameRules.noCivilizationMode(player.level()))return 0;
+        var data=CampMembershipService.membership(player);
+        if(data.getCompound("LocalTrust").getInt(home)<0)return 0;
+        var record=account(home,player);long day=player.serverLevel().getDayTime()/24000L;
         if(!record.contains("Day")||record.getLong("Day")!=day){record.putLong("Day",day);record.putInt("Earned",0);}
-        int granted=Math.max(0,Math.min(amount,8-record.getInt("Earned")));record.putInt("Earned",record.getInt("Earned")+granted);
-        CampMembershipService.adjust(npc,player,granted);record.putLong("LastHelp",npc.level().getGameTime());CampMembershipData.get(player.server).setDirty();return granted;
+        int granted=Math.max(0,Math.min(amount,8-record.getInt("Earned")));
+        if(granted<=0)return 0;
+        record.putInt("Earned",record.getInt("Earned")+granted);
+        CampMembershipService.adjust(home,player,granted);record.putLong("LastHelp",player.level().getGameTime());CampMembershipData.get(player.server).setDirty();return granted;
+    }
+    public static int reward(ChangedEntity npc,ServerPlayer player,int amount){
+        if(!canHelp(npc,player))return 0;
+        return reward(StoryNpcService.homeKey(npc),player,amount);
     }
     private static int returned(ChangedEntity npc,ServerPlayer player,ItemStack stack,int amount){var debt=account(npc,player).getCompound("Withdrawn");String id=BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();int used=Math.min(amount,debt.getInt(id));debt.putInt(id,Math.max(0,debt.getInt(id)-used));account(npc,player).put("Withdrawn",debt);return amount-used;}
     public static boolean deliver(ChangedEntity npc,ServerPlayer player,ItemStack expected,int amount,String requestId){
@@ -176,8 +186,33 @@ public final class CampLifeService {
         if(before.isEmpty()&&after.isEmpty())return;
         var data=CampMembershipService.membership(player);var all=data.getCompound("Contributions");
         var keys=new HashSet<>(before.keySet());keys.addAll(after.keySet());
-        for(var key:keys){int amount=before.getOrDefault(key,0)-after.getOrDefault(key,0);if(amount==0)continue;var account=all.getCompound(key.home());var debt=account.getCompound("Withdrawn");debt.putInt(key.item(),(int)Math.max(0,Math.min(Integer.MAX_VALUE,(long)debt.getInt(key.item())+amount)));account.put("Withdrawn",debt);all.put(key.home(),account);}
+        int totalRewarded = 0;
+        for(var key:keys){
+            int amount=before.getOrDefault(key,0)-after.getOrDefault(key,0);
+            if(amount==0)continue;
+            var account=all.getCompound(key.home());
+            var debt=account.getCompound("Withdrawn");
+            if(amount>0){
+                debt.putInt(key.item(),(int)Math.max(0,Math.min(Integer.MAX_VALUE,(long)debt.getInt(key.item())+amount)));
+            }else{
+                int deposit=-amount;
+                int owed=debt.getInt(key.item());
+                int paid=Math.min(deposit,owed);
+                debt.putInt(key.item(),owed-paid);
+                int fresh=deposit-paid;
+                if(fresh>0){
+                    var item=BuiltInRegistries.ITEM.get(ResourceLocation.tryParse(key.item()));
+                    if(item!=null&&item.isEdible()){
+                        totalRewarded+=reward(key.home(),player,fresh);
+                    }
+                }
+            }
+            account.put("Withdrawn",debt);all.put(key.home(),account);
+        }
         data.put("Contributions",all);CampMembershipData.get(player.server).setDirty();
+        if(totalRewarded>0){
+            player.displayClientMessage(net.minecraft.network.chat.Component.translatable("message.changed_synergy.camp.trust_deposit",totalRewarded),true);
+        }
     }
     public static void rememberStores(ChangedEntity npc){
         var camp=register(npc);if(camp.isEmpty()||!camp.getString("Dimension").equals(npc.level().dimension().location().toString()))return;

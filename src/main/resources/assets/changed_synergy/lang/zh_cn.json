@@ -6405,5 +6405,17 @@
   "camp.changed_synergy.choice.personal_submit": "这些是给你的，我已经带齐了。",
   "camp.changed_synergy.choice.outfit": "我可以领一套营地的服装吗？",
   "camp.changed_synergy.home.pathfinder": "沙漠避难所社区",
-  "container.changed_synergy.camp_supplies": "营地物资"
+  "container.changed_synergy.camp_supplies": "营地物资",
+  "camp.changed_synergy.choice.reverse_rite": "能聊聊做回人类形态的事吗？",
+  "camp.changed_synergy.choice.confirm_reverse_rite": "我准备好了，请帮我逆转兽化。",
+  "camp.changed_synergy.weaver.reverse_rite.0": "借穿我们的外衣本就是你的自愿选择，让你平安做回自己也是这份承诺的一部分。靠近些。",
+  "camp.changed_synergy.matriarch.reverse_rite.0": "早就跟你说过这是可逆的！要是你准备好重新用双腿奔跑了，站稳别动，我这就把外衣收回来。",
+  "camp.changed_synergy.archivist.reverse_rite.0": "正如我承诺过的那样，这场飞行只是一次暂时的体验。请站稳别动，我来仔细收回羽翼形态。",
+  "camp.changed_synergy.pathfinder.reverse_rite.0": "答应过的事当然算数。当跳鼠虽好玩，但你的双手也同样不可或缺。站好别动，我这就为你逆转。",
+  "camp.changed_synergy.resident.reverse_rite.0": "首领可以帮你收回借穿的外衣。我们会保证你平安做回自己。",
+  "camp.changed_synergy.desert_resident.reverse_rite.0": "引路人会很乐意帮你找回人类双手的。站好别动。",
+  "message.changed_synergy.camp.trust_deposit": "已向公共储备投递物资（本地信任 +%s）",
+  "command.changed_synergy.telepathy.inspect": "玩家 %1$s 的心感状态：已解锁：%2$s，完成兽化次数：%3$s，全局启用：%4$s，当前兽化：%5$s",
+  "command.changed_synergy.telepathy.granted": "已为 %s 授予永久胶兽心感理解。",
+  "command.changed_synergy.telepathy.revoked": "已撤销 %s 的胶兽心感理解。"
 }

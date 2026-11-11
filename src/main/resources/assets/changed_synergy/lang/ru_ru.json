@@ -6394,5 +6394,17 @@
   "camp.changed_synergy.choice.personal_submit": "Вот все, о чем ты просил, — держи.",
   "camp.changed_synergy.choice.outfit": "Можно мне получить одежду лагеря?",
   "camp.changed_synergy.home.pathfinder": "община Пустынного убежища",
-  "container.changed_synergy.camp_supplies": "Припасы лагеря"
+  "container.changed_synergy.camp_supplies": "Припасы лагеря",
+  "camp.changed_synergy.choice.reverse_rite": "Можем поговорить о возвращении в человеческий облик?",
+  "camp.changed_synergy.choice.confirm_reverse_rite": "Я готов. Пожалуйста, обрати трансформацию.",
+  "camp.changed_synergy.weaver.reverse_rite.0": "Примерить наш облик всегда было твоим выбором, и вернуть человеческое тело — часть обещания. Подойди ближе.",
+  "camp.changed_synergy.matriarch.reverse_rite.0": "Я же говорила, что всё обратимо! Если хочешь снова ходить на двух ногах, замри, и я сниму эту шкуру.",
+  "camp.changed_synergy.archivist.reverse_rite.0": "Как я и обещал, этот полёт был лишь временным опытом. Стой смирно, пока я аккуратно снимаю пернатый облик.",
+  "camp.changed_synergy.pathfinder.reverse_rite.0": "Обещание есть обещание. Быть тушканчиком весело, но твои руки нам тоже нужны. Постой спокойно секунду.",
+  "camp.changed_synergy.resident.reverse_rite.0": "Вождь может помочь снять заимствованный облик. Мы позаботимся о том, чтобы ты вернулся невредимым.",
+  "camp.changed_synergy.desert_resident.reverse_rite.0": "Проводник с радостью поможет тебе вернуть человеческие руки. Не двигайся.",
+  "message.changed_synergy.camp.trust_deposit": "Припасы положены на общий склад (+%s к местному доверию)",
+  "command.changed_synergy.telepathy.inspect": "Телепатия для %1$s: Разблокировано: %2$s, Завершено: %3$s, Глобально: %4$s, Трансформирован: %5$s",
+  "command.changed_synergy.telepathy.granted": "Постоянное понимание телепатической сети даровано игроку %s.",
+  "command.changed_synergy.telepathy.revoked": "Понимание телепатической сети отозвано у игроку %s."
 }

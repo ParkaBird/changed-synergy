@@ -55,7 +55,8 @@ public final class BondCommand {
                 .then(PlayerOutpostCommand.create())
                 .then(ServerConfigCommand.create())
                 .then(PersonalitySpawnCommand.create())
-                .then(NativeOriginCommand.create());
+                .then(NativeOriginCommand.create())
+                .then(TelepathyCommand.create());
         root.then(net.parkabird.changedsynergy.ai.PlayerSocialService.command());
         event.getDispatcher().register(root);
     }

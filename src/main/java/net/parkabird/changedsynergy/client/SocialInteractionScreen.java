@@ -80,8 +80,11 @@ public final class SocialInteractionScreen
     private final LivingEntity absorptionPreviewEntity;
     private static List<Action> npcActions(List<Action> entries,SocialInteractionMenu menu) {
         boolean fixed=menu.getProgression().getBoolean("StoryNpc");
-        if(!fixed&&!menu.getProgression().getBoolean("CampDialogue"))return List.copyOf(entries);
-        return entries.stream().filter(a->!fixed||!java.util.Set.of("social_follow","social_native_bond","social_voluntary_transfur","social_friendly_transfur","social_inventory").contains(a.command()))
+        boolean chief=menu.getRole() == net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole.CHIEF;
+        if(!fixed&&!menu.getProgression().getBoolean("CampDialogue")&&!chief)return List.copyOf(entries);
+        return entries.stream()
+                .filter(a->!chief||!a.command().equals("social_play"))
+                .filter(a->!fixed||!java.util.Set.of("social_follow","social_native_bond","social_voluntary_transfur","social_friendly_transfur","social_inventory").contains(a.command()))
                 .filter(a->!menu.getProgression().getBoolean("NoNpcDialogue")||!a.command().equals("social_talk"))
                 .map(a->a.command().equals("social_talk")?new Action("npc_dialogue",a.texture(),a.textureSize()):a).toList();
     }

@@ -6405,5 +6405,17 @@
   "camp.changed_synergy.choice.personal_submit": "I brought everything you asked for—here you go.",
   "camp.changed_synergy.choice.outfit": "Could I claim a camp outfit?",
   "camp.changed_synergy.home.pathfinder": "the Desert Refuge Household",
-  "container.changed_synergy.camp_supplies": "Camp Supplies"
+  "container.changed_synergy.camp_supplies": "Camp Supplies",
+  "camp.changed_synergy.choice.reverse_rite": "Could we talk about returning to my human form?",
+  "camp.changed_synergy.choice.confirm_reverse_rite": "I'm ready. Please reverse the transformation.",
+  "camp.changed_synergy.weaver.reverse_rite.0": "Borrowing our coat was always your choice, and returning to yourself is part of the promise. Come close.",
+  "camp.changed_synergy.matriarch.reverse_rite.0": "Told you it was reversible! If you're ready to run on two legs again, hold still and I'll pull the coat back off.",
+  "camp.changed_synergy.archivist.reverse_rite.0": "As promised, this flight was merely a temporary perspective. Stay still while I carefully draw the feathered form away.",
+  "camp.changed_synergy.pathfinder.reverse_rite.0": "A promise is a promise. Being a jerboa is fun, but your human hands are needed just as much. Hold still for a moment.",
+  "camp.changed_synergy.resident.reverse_rite.0": "The Chief can help undo a borrowed coat. Let's make sure you return safely.",
+  "camp.changed_synergy.desert_resident.reverse_rite.0": "The Pathfinder will gladly help you get your human hands back. Hold still.",
+  "message.changed_synergy.camp.trust_deposit": "Deposited supplies into shared stores (+%s local trust)",
+  "command.changed_synergy.telepathy.inspect": "Telepathy for %1$s: Unlocked: %2$s, Completed: %3$s, GlobalEnabled: %4$s, Transfurred: %5$s",
+  "command.changed_synergy.telepathy.granted": "Granted permanent telepathic network understanding to %s.",
+  "command.changed_synergy.telepathy.revoked": "Revoked telepathic network understanding from %s."
 }

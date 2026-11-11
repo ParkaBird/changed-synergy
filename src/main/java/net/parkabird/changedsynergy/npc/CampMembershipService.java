@@ -53,8 +53,11 @@ public final class CampMembershipService {
     }
     /** Local actions affect this household; diplomacy and unrelated camps cannot alter membership. */
     public static void adjust(ChangedEntity npc,ServerPlayer player,int amount) {
-        if(amount==0||!NaturalCampService.member(npc)||net.parkabird.changedsynergy.init.ChangedSynergyGameRules.noCivilizationMode(player.level()))return;
-        var data=membership(player);String home=StoryNpcService.homeKey(npc);var trust=data.getCompound("LocalTrust");
+        if(NaturalCampService.member(npc))adjust(StoryNpcService.homeKey(npc),player,amount);
+    }
+    public static void adjust(String home,ServerPlayer player,int amount) {
+        if(amount==0||home==null||home.isEmpty()||net.parkabird.changedsynergy.init.ChangedSynergyGameRules.noCivilizationMode(player.level()))return;
+        var data=membership(player);var trust=data.getCompound("LocalTrust");
         int updated=Math.max(-100,Math.min(100,trust.getInt(home)+amount));trust.putInt(home,updated);data.put("LocalTrust",trust);
         if(home.equals(data.getString("HomeKey"))) {
             if(updated<=HOSTILE)leave(player);
@@ -146,5 +149,5 @@ public final class CampMembershipService {
         }else if(value instanceof ListTag list)for(var child:list)if(containsStory(child))return true;
         return false;
     }
-    public static void leave(ServerPlayer player){var data=membership(player);for(String field:java.util.List.of("HomeKey","ChiefKey","Bounds","Dimension","Suspended"))data.remove(field);CampMembershipData.get(player.server).setDirty();}
+    public static void leave(ServerPlayer player){if(NpcRites.reversible(player))NpcRites.revertReversibleForm(player);var data=membership(player);for(String field:java.util.List.of("HomeKey","ChiefKey","Bounds","Dimension","Suspended"))data.remove(field);CampMembershipData.get(player.server).setDirty();}
 }

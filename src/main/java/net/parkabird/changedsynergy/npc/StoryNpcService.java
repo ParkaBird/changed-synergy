@@ -49,6 +49,7 @@ public final class StoryNpcService {
     @SubscribeEvent(priority=EventPriority.LOWEST) public static void join(EntityJoinLevelEvent event) {
         if(!(event.getLevel() instanceof ServerLevel level)||!(event.getEntity() instanceof ChangedEntity mob))return;
         var profile=profile(mob);if(profile==null)return;
+        installConversationGoal(mob);
         StructureResidentGoal.install(mob);
         var resident=mob.getPersistentData().getCompound(StructureResidentGoal.DATA);
         if(!resident.getBoolean("Resolved"))return;
@@ -189,7 +190,18 @@ public final class StoryNpcService {
         private final ChangedEntity mob;
         ConversationGoal(ChangedEntity mob){this.mob=mob;setFlags(EnumSet.of(Flag.MOVE,Flag.LOOK));}
         @Override public boolean canUse(){return mob.getTarget()==null&&!mob.isSleeping()&&NpcConversations.holds(mob);}
-        @Override public void start(){mob.getNavigation().stop();CreaturePeerInteractionService.cancel(mob);}
-        @Override public void tick(){mob.getNavigation().stop();var player=NpcConversations.listener(mob);if(player!=null)mob.getLookControl().setLookAt(player,30,30);}
+        @Override public void start(){
+            mob.getNavigation().stop();
+            mob.getMoveControl().setWantedPosition(mob.getX(), mob.getY(), mob.getZ(), 0.0);
+            mob.setDeltaMovement(0.0, mob.getDeltaMovement().y, 0.0);
+            CreaturePeerInteractionService.cancel(mob);
+        }
+        @Override public void tick(){
+            mob.getNavigation().stop();
+            mob.getMoveControl().setWantedPosition(mob.getX(), mob.getY(), mob.getZ(), 0.0);
+            mob.setDeltaMovement(0.0, mob.getDeltaMovement().y, 0.0);
+            var player=NpcConversations.listener(mob);
+            if(player!=null)mob.getLookControl().setLookAt(player,30,30);
+        }
     }
 }

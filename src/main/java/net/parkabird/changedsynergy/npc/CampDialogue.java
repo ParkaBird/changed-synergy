@@ -37,6 +37,7 @@ public final class CampDialogue extends SimpleJsonResourceReloadListener {
     private static NpcDefinitions.Choice choice(String id,String text,String next,String effect){return new NpcDefinitions.Choice(id,PREFIX+"choice."+text,next,"always",effect,List.of());}
     public static NpcDefinitions.Choice entry(){return choice("camp_life","life","camp_life","none");}
     public static NpcDefinitions.Choice formEntry(){return choice("camp_body","body","explain_form","none");}
+    public static NpcDefinitions.Choice reverseEntry(){return choice("camp_reverse_rite","reverse_rite","camp_reverse_rite","none");}
     public static boolean chief(ChangedEntity npc){var p=StoryNpcService.profile(npc);return p!=null&&p.chief();}
     public static String residentRoot(ChangedEntity npc,ServerPlayer player){
         var profile=CampLifeService.profile(npc);String role=npc.getPersistentData().getCompound(StructureResidentGoal.DATA).getString("DialogueRole");
@@ -88,6 +89,7 @@ public final class CampDialogue extends SimpleJsonResourceReloadListener {
                 for(int amount:new TreeSet<>(List.of(1,Math.min(8,offered.getCount()),Math.min(64,offered.getCount()))))if(amount>0)choices.add(choice("camp_give_"+amount,"give","camp_thanks","camp_donate"));
             }
             case "camp_transfer" -> {body.add(line(voice+".transfer"));if(pending)choices.add(choice("camp_confirm_transfer","confirm_transfer","root","camp_transfer"));choices.add(choice("camp_cancel_transfer","keep_home",root,"camp_cancel_transfer"));}
+            case "camp_reverse_rite" -> {body.add(line(voice+".reverse_rite"));choices.add(choice("camp_confirm_reverse_rite","confirm_reverse_rite","root","reverse_rite"));}
             case "camp_thanks" -> body.add(line(voice+".thanks"));
             case "camp_watch_thanks" -> body.add(line(voice+".watch_thanks"));
             case "camp_watch_wait" -> body.add(line(voice+".watch_wait"));

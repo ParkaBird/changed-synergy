@@ -1834,6 +1834,60 @@
         "pause": 0,
         "intensity": 0.2
       }
+    ],
+    "weaver.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.weaver.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0
+      }
+    ],
+    "matriarch.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.matriarch.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0
+      }
+    ],
+    "archivist.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.archivist.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0
+      }
+    ],
+    "pathfinder.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.pathfinder.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0
+      }
+    ],
+    "resident.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.resident.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0
+      }
+    ],
+    "desert_resident.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.desert_resident.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0
+      }
     ]
   }
 }

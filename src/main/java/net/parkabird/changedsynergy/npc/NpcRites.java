@@ -21,6 +21,43 @@ import net.parkabird.changedsynergy.origin.NativeOriginService;
 public final class NpcRites {
     private static CompoundTag data(ServerPlayer player){return CampMembershipData.get(player.server).player(player.getUUID());}
     public static boolean reversible(ServerPlayer player){return !data(player).getString("ReversibleForm").isEmpty();}
+    public static void clearReversibleForm(ServerPlayer player) {
+        data(player).remove("ReversibleForm");
+        backend(player, false);
+        CampMembershipData.get(player.server).setDirty();
+    }
+    public static void revertReversibleForm(ServerPlayer player) {
+        if (!reversible(player) || TrueTransfurCompat.blocksReversal(player)) return;
+        InvoluntaryTransfurNegotiation.applyPlayerReversal(player, false);
+        clearReversibleForm(player);
+    }
+    public static boolean beginRiteReversal(ChangedEntity npc, ServerPlayer player) {
+        if (!reversible(player) || !npc.isAlive() || !player.isAlive()) return false;
+        if (TrueTransfurCompat.blocksReversal(player)) {
+            net.parkabird.changedsynergy.dialogue.NpcDialogue.trigger(npc, player, net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue.BOND_REVERSE_UNSAFE);
+            return false;
+        }
+        long now = npc.level().getGameTime();
+        CompoundTag release = new CompoundTag();
+        release.putUUID("ReleasePlayer", player.getUUID());
+        release.putLong("ReleaseReverseAt", now + 40L);
+        release.putLong("ReleaseEndAt", now + 80L);
+        release.putBoolean("ReleaseReversed", false);
+        release.putBoolean("ReleaseRite", true);
+        npc.getPersistentData().put("ChangedSynergyReleaseHold", release);
+        player.closeContainer();
+
+        if (CreatureGrabService.tryStartNegotiatedRelease(npc, player, 80)) {
+            net.parkabird.changedsynergy.dialogue.NpcDialogue.trigger(npc, player, net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue.BOND_REVERSE_HOLD);
+            return true;
+        }
+
+        InvoluntaryTransfurNegotiation.applyPlayerReversal(player, false);
+        release.putBoolean("ReleaseReversed", true);
+        npc.getPersistentData().put("ChangedSynergyReleaseHold", release);
+        InvoluntaryTransfurNegotiation.finishReleaseHold(npc, player);
+        return true;
+    }
     /** Legacy marker only; new permanent rites use NativeOriginData. */
     public static boolean permanent(ServerPlayer player){return !data(player).getString("PermanentForm").isEmpty();}
     public static boolean canCopy(ChangedEntity npc,ServerPlayer player) {

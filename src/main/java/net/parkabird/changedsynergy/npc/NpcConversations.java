@@ -33,7 +33,7 @@ public final class NpcConversations {
         var original=s.profile.nodes().get(s.node);if(original==null)return s.profile.nodes().get("root");
         if(!CampLifeService.mainCamp(s.npc)||!(Set.of("root","return","membership").contains(s.node)||s.node.equals(CampDialogue.residentRoot(s.npc,s.player))))return original;
         var choices=new ArrayList<>(original.choices());choices.add(CampDialogue.entry());
-        if(s.node.equals("membership")&&CampMembershipService.member(s.npc,s.player))choices.add(CampDialogue.formEntry());
+        if(s.node.equals("membership")&&CampMembershipService.member(s.npc,s.player))choices.add(NpcRites.reversible(s.player)?CampDialogue.reverseEntry():CampDialogue.formEntry());
         return new NpcDefinitions.Node(original.lines(),List.copyOf(choices));
     }
     public static void open(ChangedEntity npc,ServerPlayer player) {
@@ -46,7 +46,7 @@ public final class NpcConversations {
         if(!ordinary&&record!=null&&record.getCompound("Progress").getCompound(player.getUUID().toString()).getBoolean("root"))session.node="return";
         close(player);player.closeContainer();sessions.put(player.getUUID(),session);
         CampLifeService.register(npc);CampLifeService.rememberStores(npc);CampApproachGoal.dismiss(player);
-        CreaturePersonality.rememberEncounter(npc,player);CreaturePeerInteractionService.cancel(npc);npc.getNavigation().stop();send(session);
+        CreaturePersonality.rememberEncounter(npc,player);CreaturePeerInteractionService.cancel(npc);StoryNpcService.installConversationGoal(npc);npc.getNavigation().stop();npc.setDeltaMovement(0,npc.getDeltaMovement().y,0);send(session);
     }
     private static boolean valid(Session s) {
         var body=TrueTransfurCompat.interactionBody(s.player);
@@ -83,6 +83,7 @@ public final class NpcConversations {
             boolean success=switch(selected.effect()) {
                 case "join","reversible","permanent" -> CampMembershipService.join(s.npc,player,selected.effect());
                 case "leave" -> {CampMembershipService.leave(player);yield true;}
+                case "reverse_rite" -> {close(player);player.closeContainer();yield NpcRites.beginRiteReversal(s.npc,player);}
                 case "camp_donate" -> CampLifeService.deliver(s.npc,player,s.offered,Integer.parseInt(selected.id().substring("camp_give_".length())),"");
                 case "camp_deliver" -> {var r=CampLifeService.request(s.npc,s.request);yield r!=null&&CampLifeService.deliver(s.npc,player,s.offered,r.getInt("Count"),s.request);}
                 case "camp_watch" -> CampLifeService.finishWatch(s.npc,player,s.request);

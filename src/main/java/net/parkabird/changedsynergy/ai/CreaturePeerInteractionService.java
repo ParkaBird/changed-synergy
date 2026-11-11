@@ -580,6 +580,7 @@ public final class CreaturePeerInteractionService {
                 || CreatureSettlementService.hasCargo(creature) || PlayerOutpostGoal.hasCargo(creature)
                 || PlayerOutpostWorkGoal.hasCargo(creature) || PlayerOutpostService.isWorking(creature)
                 || campDuty(creature) || ProvisionerTradeService.isTrading(creature)
+                || CreatureLifeMemory.role(creature) == CreatureLifeMemory.GroupRole.CHIEF
                 || creature.getPersistentData().hasUUID("ChangedSynergyRestOwner")
                 || HypnosisQteService.getActiveVictim(creature) != null) return false;
         boolean gameHold = own != null && own.holder != null && (own.holder == creature || own.runner == creature);

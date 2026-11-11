@@ -43,6 +43,30 @@ public final class TelepathyService {
         }
     }
 
+    public static int getTransfurCount(ServerPlayer player) {
+        return data(player).getInt(TRANSFUR_COUNT);
+    }
+
+    public static boolean isUnlocked(ServerPlayer player) {
+        return data(player).getBoolean(UNLOCKED);
+    }
+
+    public static void grant(ServerPlayer player) {
+        CompoundTag data = data(player);
+        data.putBoolean(UNLOCKED, true);
+        grantAdvancement(player);
+    }
+
+    public static void revoke(ServerPlayer player) {
+        CompoundTag data = data(player);
+        data.putBoolean(UNLOCKED, false);
+        data.putInt(TRANSFUR_COUNT, 0);
+        var advancement = player.server.getAdvancements().getAdvancement(ADVANCEMENT);
+        if (advancement != null) {
+            player.getAdvancements().revoke(advancement, "understand");
+        }
+    }
+
     public static void restoreAdvancement(ServerPlayer player) {
         if (canUnderstand(player)) {
             grantAdvancement(player);

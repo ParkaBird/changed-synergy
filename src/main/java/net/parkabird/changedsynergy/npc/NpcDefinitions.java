@@ -20,7 +20,7 @@ public final class NpcDefinitions extends SimpleJsonResourceReloadListener {
                           List<String> equipment,Map<String,Node> nodes) {}
     private static Map<String,Profile> profiles=Map.of();
     private static final Set<String> CONDITIONS=Set.of("always","chief","can_join","cannot_join","member","can_reversible","can_permanent","understands","stranger","human","transformed","day","night_human","night_transformed","human_join","transformed_join");
-    private static final Set<String> EFFECTS=Set.of("none","close","join","reversible","permanent","leave");
+    private static final Set<String> EFFECTS=Set.of("none","close","join","reversible","permanent","leave","reverse_rite");
     private NpcDefinitions(){super(new Gson(),"story_npcs");}
     @SubscribeEvent public static void reload(AddReloadListenerEvent event){event.addListener(new NpcDefinitions());}
     public static Profile get(String id){return profiles.get(id);}
