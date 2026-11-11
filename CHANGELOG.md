@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.5-Beta.2-hotfix.1
+
+- Added dialogue-triggered reversible rite reversal with community Chiefs, using a Chief holding-reversal sequence matching the radial wheel. Leaving or losing community membership also automatically reverts any borrowed reversible camp form.
+- Excluded community Chiefs (**Weaver**, **Matriarch**, **Archivist**, and **Pathfinder**) from the **Play** interaction option in the radial wheel as well as autonomous peer play interactions with players and other latex residents.
+- Fixed Story NPCs sliding or wandering away mid-conversation; NPCs now remain stationary throughout active dialogue.
+- Added `/changedsynergy telepathy inspect|grant|revoke <player>` operator commands to inspect or manage permanent latex telepathic network understanding.
+- Optimized `/locate structure` performance by pre-checking anchor biomes before terrain sampling, reducing clearing check density, and relaxing terrain slope thresholds on the **Forest Treehouse** and **Hyena's Hideout**, preventing severe server-thread freezes during structure lookup.
+
 ## 1.1.5-Beta.2
 
 
