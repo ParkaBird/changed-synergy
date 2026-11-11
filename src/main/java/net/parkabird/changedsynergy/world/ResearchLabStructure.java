@@ -90,6 +90,13 @@ public final class ResearchLabStructure extends Structure {
         int[] offsets = mountainCamp() || redSandCamp() ? new int[]{0, -16, 16} : new int[]{0};
         for (int dx : offsets) for (int dz : offsets) {
             var anchor = context.chunkPos().getMiddleBlockPosition(0).offset(dx, 0, dz);
+            if ((mountainCamp() || redSandCamp()) && (dx != 0 || dz != 0)) {
+                int approxY = context.chunkGenerator().getBaseHeight(anchor.getX(), anchor.getZ(),
+                        Heightmap.Types.WORLD_SURFACE_WG, context.heightAccessor(), context.randomState());
+                if (!context.validBiome().test(context.biomeSource().getNoiseBiome(
+                        net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(approxY),
+                        net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler()))) continue;
+            }
             var position = groundPosition(context, size, rotation, anchor);
             if (position.isEmpty()) continue;
             var pos = position.get();
@@ -143,8 +150,8 @@ public final class ResearchLabStructure extends Structure {
             y = ground[4] - 1 - groundLevel;
             if (clearingRadius > 0) {
                 // Sample the whole clearing, not only the nine template corners.
-                for (int x = -clearingRadius; x < size.getX() + clearingRadius; x += 3)
-                    for (int z = -clearingRadius; z < size.getZ() + clearingRadius; z += 3) {
+                for (int x = -clearingRadius; x < size.getX() + clearingRadius; x += 6)
+                    for (int z = -clearingRadius; z < size.getZ() + clearingRadius; z += 6) {
                         var sample = StructureTemplate.transform(new BlockPos(x, 0, z), Mirror.NONE, rotation, BlockPos.ZERO).offset(origin);
                         int floor = context.chunkGenerator().getBaseHeight(sample.getX(), sample.getZ(),
                                 Heightmap.Types.OCEAN_FLOOR_WG, context.heightAccessor(), context.randomState());

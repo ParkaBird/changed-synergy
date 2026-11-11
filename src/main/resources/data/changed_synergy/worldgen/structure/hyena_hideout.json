@@ -18,5 +18,5 @@
   },
   "template": "changed_synergy:hyena_hideout",
   "ground_level": 3,
-  "max_terrain_slope": 3
+  "max_terrain_slope": 5
 }

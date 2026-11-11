@@ -901,7 +901,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
     }
 
     private void playTogether(ServerPlayer origin) {
-        if (creature != null && (CreatureLifeMemory.role(creature) == CreatureLifeMemory.GroupRole.CHIEF || getRole() == CreatureLifeMemory.GroupRole.CHIEF)) return;
+        if (creature != null && (CreatureLifeMemory.role(creature) == CreatureLifeMemory.GroupRole.CHIEF || getRole() == CreatureLifeMemory.GroupRole.CHIEF || net.parkabird.changedsynergy.npc.CampDialogue.chief(creature))) return;
         if (!bonded && !CreaturePersonality.hasTrustedRelationship(creature, origin)) return;
         long remaining = CreaturePersonality.playCooldownRemaining(
                 creature,

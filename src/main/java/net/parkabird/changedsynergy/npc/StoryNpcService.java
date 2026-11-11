@@ -49,6 +49,9 @@ public final class StoryNpcService {
     @SubscribeEvent(priority=EventPriority.LOWEST) public static void join(EntityJoinLevelEvent event) {
         if(!(event.getLevel() instanceof ServerLevel level)||!(event.getEntity() instanceof ChangedEntity mob))return;
         var profile=profile(mob);if(profile==null)return;
+        if(profile.chief() && CreatureLifeMemory.role(mob) != CreatureLifeMemory.GroupRole.CHIEF) {
+            CreatureLifeMemory.setRole(mob, CreatureLifeMemory.GroupRole.CHIEF);
+        }
         installConversationGoal(mob);
         StructureResidentGoal.install(mob);
         var resident=mob.getPersistentData().getCompound(StructureResidentGoal.DATA);

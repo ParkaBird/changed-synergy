@@ -6,6 +6,6 @@
   "spawn_overrides": {},
   "template": "changed_synergy:forest_treehouse",
   "ground_level": 0,
-  "max_terrain_slope": 2,
+  "max_terrain_slope": 5,
   "clearing_radius": 3
 }

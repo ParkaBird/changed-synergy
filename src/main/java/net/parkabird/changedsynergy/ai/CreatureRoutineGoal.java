@@ -477,8 +477,8 @@ public final class CreatureRoutineGoal extends Goal {
                         candidate -> candidate != mob
                                 && candidate.isAlive()
                                 && CreatureCommunityData.sameCommunity(mob, candidate)
-                                && (!youngster || CreatureLifeMemory.role(candidate)
-                                        != GroupRole.YOUNGSTER))
+                                && (!youngster || (CreatureLifeMemory.role(candidate)
+                                        != GroupRole.YOUNGSTER && CreatureLifeMemory.role(candidate) != GroupRole.CHIEF && !net.parkabird.changedsynergy.npc.CampDialogue.chief(candidate))))
                 .stream()
                 .min(Comparator.comparingDouble(mob::distanceToSqr))
                 .orElse(null);

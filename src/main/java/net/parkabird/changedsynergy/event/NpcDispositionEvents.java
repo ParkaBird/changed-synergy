@@ -99,11 +99,8 @@ public final class NpcDispositionEvents {
             return;
         }
 
-        boolean organicTransformedTarget = LatexSocialMemory.isOrganic(creature)
-                && ProcessTransfur.isPlayerTransfurred(player);
         if (!socialFusion && creature.isAlliedTo(player)
-                && !LatexSocialMemory.isProvoked(creature, player)
-                && !organicTransformedTarget) {
+                && !LatexSocialMemory.isProvoked(creature, player)) {
             return;
         }
 
@@ -159,11 +156,8 @@ public final class NpcDispositionEvents {
             return true;
         }
 
-        boolean transformedOrganicTarget = LatexSocialMemory.isOrganic(creature)
-                && ProcessTransfur.isPlayerTransfurred(player);
         if (creature.isAlliedTo(player)
-                && !LatexSocialMemory.isProvoked(creature, player)
-                && !transformedOrganicTarget) {
+                && !LatexSocialMemory.isProvoked(creature, player)) {
             return false;
         }
 
@@ -185,11 +179,6 @@ public final class NpcDispositionEvents {
         }
         if (LatexSocialMemory.isProvoked(creature, player)) {
             return true;
-        }
-        if (LatexSocialMemory.isOrganic(creature)) {
-            // Unprovoked humans were rejected by the neutral gate above.
-            // Transfurred outsiders remain ordinary combat-capable targets.
-            return transformedOrganicTarget;
         }
 
         LatexSocialRelation relation = LatexSocialRelation.between(creature, player);
@@ -310,11 +299,8 @@ public final class NpcDispositionEvents {
             return true;
         }
 
-        boolean transformedOrganicTarget = LatexSocialMemory.isOrganic(creature)
-                && ProcessTransfur.isPlayerTransfurred(player);
         return creature.isAlliedTo(player)
-                && !LatexSocialMemory.isProvoked(creature, player)
-                && !transformedOrganicTarget;
+                && !LatexSocialMemory.isProvoked(creature, player);
     }
 
     private static void maintainNativeCompanion(ChangedEntity companion) {
