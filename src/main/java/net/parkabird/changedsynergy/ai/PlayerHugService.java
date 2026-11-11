@@ -149,7 +149,7 @@ public final class PlayerHugService {
                 || carrier.level() != target.level() || carrier.isPassenger() || carrier.isVehicle() || carrier.isSleeping()
                 || target.isPassenger() || target.isVehicle() || target.isSleeping() || target.isSpectator()
                 || target instanceof net.minecraft.world.entity.Mob mob && mob.isLeashed()
-                || !carrier.getBoundingBox().inflate(.65, .3, .65).intersects(target.getBoundingBox()) || !carrier.hasLineOfSight(target)) return false;
+                || !(EagleOwlTraits.airborne(carrier)?EagleOwlTraits.reach(carrier):carrier.getBoundingBox().inflate(.65, .3, .65)).intersects(target.getBoundingBox()) || !carrier.hasLineOfSight(target)) return false;
         if (carrier.getPersistentData().getLong("ChangedSynergyFriendlyHugAfter") > carrier.level().getGameTime()
                 || target.getPersistentData().getLong("ChangedSynergyFriendlyHugAfter") > target.level().getGameTime()) return false;
         var carrierOwner = owner(carrier); var targetOwner = owner(target);

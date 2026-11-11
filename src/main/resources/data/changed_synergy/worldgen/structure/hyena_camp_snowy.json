@@ -1,0 +1,22 @@
+{
+  "type": "changed_synergy:research_lab",
+  "biomes": "#changed_synergy:has_structure/hyena_camp_snowy",
+  "step": "surface_structures",
+  "terrain_adaptation": "none",
+  "spawn_overrides": {
+    "monster": {
+      "bounding_box": "full",
+      "spawns": [
+        {
+          "type": "changed_synergy:latex_spotted_hyena_male",
+          "weight": 8,
+          "minCount": 1,
+          "maxCount": 2
+        }
+      ]
+    }
+  },
+  "template": "changed_synergy:hyena_camp_snowy",
+  "ground_level": 0,
+  "max_terrain_slope": 2
+}

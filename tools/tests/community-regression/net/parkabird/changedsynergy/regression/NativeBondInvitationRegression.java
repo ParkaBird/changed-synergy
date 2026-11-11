@@ -70,7 +70,7 @@ public final class NativeBondInvitationRegression {
             check(VoluntaryBondTransfurService.canOffer(first, owner), "Existing human invitation remains available");
             var form = ProcessTransfur.setPlayerTransfurVariant(owner,
                     ChangedTransfurVariants.PURE_WHITE_LATEX_WOLF.get(), null, 1.0F, false);
-            check(!NativeBondInvitationService.canOffer(first, owner), "Ordinary transformed player cannot claim native bond route");
+            check(NativeBondInvitationService.canOffer(first, owner), "Ordinary transformed player can invite a bond without a native-origin or TT requirement");
             var identity = new NativeOriginData.Identity();
             identity.state = "native";
             identity.form = identity.current = form.getParent().getFormId().toString();

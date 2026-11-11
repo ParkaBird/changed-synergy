@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": ["LSL", "WBW", "L L"],
+  "key": {
+    "L": {"item": "minecraft:leather"},
+    "S": {"item": "minecraft:string"},
+    "W": {"item": "minecraft:orange_wool"},
+    "B": {"item": "minecraft:bone"}
+  },
+  "result": {"item": "changed_synergy:hyena_trailcloth_outfit"}
+}

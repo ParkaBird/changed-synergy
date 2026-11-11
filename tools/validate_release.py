@@ -160,7 +160,7 @@ def check_authorship_and_metadata(audit: Audit, files: list[Path]) -> None:
                     f"non-ParkaBird @author in {path.relative_to(ROOT)}: "
                     f"{declared_author.strip()}"
                 )
-        if re.search(r"(?i)(?:[a-z]:\\users\\|/users/|/home/)[^\s\"'<>]+", text):
+        if re.search(r"(?i)(?<![a-zA-Z0-9_])(?:[a-z]:\\users\\|/(?:home|Users)/[a-z0-9_.-]+(?:/|\\))[^\s\"'<>]+", text):
             audit.error(f"publishable file contains a user-home path: {path.relative_to(ROOT)}")
 
     properties = (ROOT / "gradle.properties").read_text(encoding="utf-8")

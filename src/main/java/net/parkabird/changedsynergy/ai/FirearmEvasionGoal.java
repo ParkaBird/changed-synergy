@@ -3,7 +3,6 @@ package net.parkabird.changedsynergy.ai;
 import java.util.EnumSet;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.FirearmCompat;
 import net.parkabird.changedsynergy.event.HuntAIEvents;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,7 +33,7 @@ public final class FirearmEvasionGoal extends Goal {
         if (!ChangedSynergyConfig.COMMON.firearmEvasion.get()
                 || mob.tickCount < nextDodgeTick
                 || mob.isInWaterOrBubble()
-                || ChangedAddonCompat.isGrabberBusy(mob)
+                || CreatureGrabService.isGrabberBusy(mob)
                 || !(mob.getTarget() instanceof ServerPlayer player)
                 || !HuntAIEvents.isHuntAIEnabled(mob)
                 || !HuntAIEvents.isEligibleHunter(mob)
@@ -61,7 +60,7 @@ public final class FirearmEvasionGoal extends Goal {
                 && mob.distanceToSqr(dodgePoint) > 2.0D
                 && !mob.getNavigation().isDone()
                 && !mob.isInWaterOrBubble()
-                && !ChangedAddonCompat.isGrabberBusy(mob)
+                && !CreatureGrabService.isGrabberBusy(mob)
                 && FirearmCompat.isHoldingFirearm(threat);
     }
 

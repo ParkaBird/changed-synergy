@@ -38,8 +38,8 @@ import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
+import net.parkabird.changedsynergy.entity.SpottedHyenaDiet;
 import net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
 import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
@@ -226,6 +226,7 @@ public final class CreatureComfortGoal extends Goal {
     @Override
     public void stop() {
         mob.getNavigation().stop();
+        if(NaturalCampService.laboratoryResident(mob)&&seatedByGoal)CompanionAutoEatGoal.cleanup(mob);
         if (seatedByGoal) endSeatedActivity(mob);
         if (mob.level() instanceof ServerLevel level) {
             scheduleNext(level.getGameTime(), 600, 801);
@@ -252,7 +253,8 @@ public final class CreatureComfortGoal extends Goal {
         for (BlockPos cursor : BlockPos.betweenClosed(
                 origin.offset(-SEARCH_RADIUS, -VERTICAL_RADIUS, -SEARCH_RADIUS),
                 origin.offset(SEARCH_RADIUS, VERTICAL_RADIUS, SEARCH_RADIUS))) {
-            if (level.hasChunkAt(cursor) && predicate.test(level.getBlockState(cursor))) {
+            if (level.hasChunkAt(cursor) && (!mob.getPersistentData().getCompound(StructureResidentGoal.DATA).getBoolean("Resolved")
+                    || NaturalCampService.restBounds(mob).contains(net.minecraft.world.phys.Vec3.atCenterOf(cursor))) && predicate.test(level.getBlockState(cursor))) {
                 candidates.add(cursor.immutable());
             }
         }
@@ -260,7 +262,8 @@ public final class CreatureComfortGoal extends Goal {
             searchStarts[selectedMode.ordinal()] = 0;
             return false;
         }
-        candidates.sort(Comparator.comparingDouble(origin::distSqr));
+        candidates.sort(Comparator.<BlockPos>comparingInt(p -> selectedMode == Mode.REST ? CreatureRestPlaces.rank(mob.level(),p) : 0)
+                .thenComparingDouble(origin::distSqr));
         int start = Math.floorMod(searchStarts[selectedMode.ordinal()], candidates.size());
         int count = Math.min(MAX_PATH_PROBES, candidates.size());
         searchStarts[selectedMode.ordinal()] = (start + count) % candidates.size();
@@ -299,6 +302,8 @@ public final class CreatureComfortGoal extends Goal {
     private void beginRest() {
         BlockState state = mob.level().getBlockState(target);
         boolean seated = false;
+        if (state.is(net.minecraft.tags.BlockTags.WOOL_CARPETS) && mob.level() instanceof ServerLevel level)
+            seated = CreatureRestPlaces.carpetFree(mob,level,target) && CreatureRestPlaces.sitOnGround(mob,level,target);
         if (mob.level().getBlockEntity(target) instanceof PillowBlockEntity pillow) {
             seated = state.getBlock() instanceof Pillow
                     && state.hasProperty(Pillow.OCCUPIED)
@@ -321,6 +326,17 @@ public final class CreatureComfortGoal extends Goal {
                 mob.level().getGameTime() + restTicks);
         ACTIVE_RESTS.add(mob);
         actionTicks = Math.max(actionTicks, restTicks + 1);
+        if(NaturalCampService.laboratoryResident(mob)&&mob.level().getGameTime()>=mob.getPersistentData().getLong("ChangedSynergyResearcherNextMeal")){
+            var inventory=net.parkabird.changedsynergy.world.inventory.BondedInventoryService.inventory(mob,null);
+            for(int i=0;i<inventory.getContainerSize();i++){
+                var stack=inventory.getItem(i);var food=SpottedHyenaDiet.foodProperties(stack,mob);
+                if(!stack.isEmpty()&&stack.isEdible()&&food!=null&&food.getNutrition()>0&&food.getEffects().stream().noneMatch(e->e.getFirst()!=null&&!e.getFirst().getEffect().isBeneficial())
+                        &&!stack.is(net.minecraft.world.item.Items.GOLDEN_APPLE)&&!stack.is(net.minecraft.world.item.Items.ENCHANTED_GOLDEN_APPLE)&&!stack.is(net.minecraft.world.item.Items.CHORUS_FRUIT)&&!stack.is(net.minecraft.world.item.Items.SUSPICIOUS_STEW)&&!RelationshipFavorService.isGoldenOrange(stack)){
+                    if(CompanionAutoEatGoal.beginEating(mob,inventory,i)>0)mob.getPersistentData().putLong("ChangedSynergyResearcherNextMeal",mob.level().getGameTime()+6000);
+                    break;
+                }
+            }
+        }
         NpcDialogue.emoteOnly(mob, Emote.SLEEPY);
     }
 
@@ -442,8 +458,9 @@ public final class CreatureComfortGoal extends Goal {
                 || mob.isLeashed()
                 || CreatureSettlementService.hasCargo(mob)
                 || mob.getTarget() != null
+                || net.parkabird.changedsynergy.npc.NpcConversations.holds(mob)
                 || SocialAudienceGoal.isActive(mob)
-                || ChangedAddonCompat.isGrabberBusy(mob)
+                || CreatureGrabService.isGrabberBusy(mob)
                 || HypnosisQteService.getActiveVictim(mob) != null) {
             return false;
         }
@@ -474,6 +491,7 @@ public final class CreatureComfortGoal extends Goal {
     }
 
     private static boolean isAvailableRestSeatState(BlockState state) {
+        if (state.is(net.minecraft.tags.BlockTags.WOOL_CARPETS)) return true;
         if (state.getBlock() instanceof Pillow) {
             return state.hasProperty(Pillow.OCCUPIED)
                     && !state.getValue(Pillow.OCCUPIED);

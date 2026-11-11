@@ -5,11 +5,9 @@ import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import net.ltxprogrammer.changed.Changed;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.variant.TransfurVariant;
 import net.ltxprogrammer.changed.init.ChangedRegistry;
-import net.ltxprogrammer.changed.network.packet.SyncTransfurPacket;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -57,12 +55,13 @@ public final class NativeOriginService {
     private static net.parkabird.changedsynergy.network.NativeOriginPolicyPacket lastPolicy;
 
     private static net.parkabird.changedsynergy.network.NativeOriginPolicyPacket policy(net.minecraft.server.MinecraftServer server) {
-        var natives = server.getPlayerList().getPlayers().stream().filter(NativeOriginService::isNative)
+        var natives = server.getPlayerList().getPlayers().stream().filter(NativeOriginPolicy::allows)
                 .map(ServerPlayer::getUUID).collect(java.util.stream.Collectors.toUnmodifiableSet());
         var instinct = server.getPlayerList().getPlayers().stream().filter(NativeOriginPolicy::allowsInstinct)
                 .map(ServerPlayer::getUUID).collect(java.util.stream.Collectors.toUnmodifiableSet());
         return new net.parkabird.changedsynergy.network.NativeOriginPolicyPacket(
-                server.overworld().getGameRules().getBoolean(ChangedSynergyGameRules.NATIVE_ORIGINS), natives,instinct);
+                server.overworld().getGameRules().getBoolean(ChangedSynergyGameRules.NATIVE_ORIGINS), natives,instinct,
+                server.getPlayerList().getPlayers().stream().filter(net.parkabird.changedsynergy.npc.NpcRites::reversible).map(ServerPlayer::getUUID).collect(java.util.stream.Collectors.toUnmodifiableSet()));
     }
     private static final class Selection {
         final UUID nonce = UUID.randomUUID();
@@ -91,6 +90,20 @@ public final class NativeOriginService {
         Identity identity = identity(server);
         return identity != null && identity.state.equals("native");
     }
+    /** Register a chosen native body in place; rituals do not relocate the player. */
+    public static void adoptNativeBody(ServerPlayer player, TransfurVariant<?> form) {
+        var entry = NativeOriginCatalog.describe(player.level().registryAccess(), form);
+        Identity previous = identity(player);
+        Identity identity = new Identity();
+        identity.state = "native";
+        identity.form = identity.current = form.getFormId().toString();
+        identity.faction = entry.faction(); identity.region = entry.region();
+        identity.home = player.level() == player.server.overworld() ? player.blockPosition()
+                : player.server.overworld().getSharedSpawnPos();
+        if (previous != null) { identity.roleName = previous.roleName; identity.globalChat = previous.globalChat; }
+        var data = NativeOriginData.get(player.server);
+        data.players.put(player.getUUID(), identity); data.setDirty();
+    }
     public static boolean pending(Player player) { return SELECTING.containsKey(player.getUUID()); }
     public static boolean sameFaction(ChangedEntity creature, ServerPlayer player) {
         Identity identity = identity(player);
@@ -98,7 +111,7 @@ public final class NativeOriginService {
                 && FactionReputation.groupId(creature).equals(account(identity));
     }
     public static String account(Identity identity) {
-        return identity.faction.equals("light") ? "light:" + identity.region : identity.faction;
+        return identity.faction.equals("light") ? "light:" + net.parkabird.changedsynergy.ai.FactionDiplomacy.canonicalRegion(identity.region) : identity.faction;
     }
     public static boolean protectedMember(ChangedEntity creature, ServerPlayer player) {
         return sameFaction(creature, player) && !FactionReputation.isHostile(creature, player)
@@ -109,6 +122,7 @@ public final class NativeOriginService {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void login(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player) || player instanceof FakePlayer) return;
+        net.parkabird.changedsynergy.npc.NpcRites.migratePermanent(player);
         ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), policy(player.server));
         NativeOriginData data = NativeOriginData.get(player.server);
         Identity identity = data.players.get(player.getUUID());
@@ -175,6 +189,7 @@ public final class NativeOriginService {
         if (!enabled(player) || pending(player) || !player.isAlive() || TakeoverService.active(player)
                 || ProcessTransfur.getPlayerTransfurVariantSafe(player)
                         .map(instance -> instance.isTemporaryFromSuit()).orElse(false)) return false;
+        net.parkabird.changedsynergy.npc.NpcRites.migratePermanent(player);
         NativeOriginData data = NativeOriginData.get(player.server);
         data.players.computeIfAbsent(player.getUUID(), ignored -> {
             Identity identity = new Identity(); identity.state = "human"; data.setDirty(); return identity;
@@ -238,6 +253,11 @@ public final class NativeOriginService {
         identity.state = "human";
         data.players.put(player.getUUID(), identity); data.setDirty();
         if (resetBody) {
+            var rites = net.parkabird.changedsynergy.npc.CampMembershipData.get(player.server);
+            var previousRites = rites.player(player.getUUID()).copy();
+            var ritual = rites.player(player.getUUID());
+            ritual.remove("PermanentForm"); ritual.remove("PermanentCurrentForm"); ritual.remove("ReversibleForm");
+            rites.setDirty();
             // Commit human policy before removal so native/TrueTransfur reversal guards allow it.
             boolean changed = net.parkabird.changedsynergy.compat.SurvivalProtocolCompat.changeOrigin(player, "", () -> {
                 ProcessTransfur.removePlayerTransfurVariant(player);
@@ -247,6 +267,7 @@ public final class NativeOriginService {
                 if (previousIdentity == null) data.players.remove(player.getUUID());
                 else data.players.put(player.getUUID(), previousIdentity);
                 data.setDirty();
+                rites.players.put(player.getUUID(), previousRites); rites.setDirty();
                 send(player, 2, "form_failed");
                 return;
             }
@@ -338,23 +359,15 @@ public final class NativeOriginService {
 
     private static boolean apply(ServerPlayer player, TransfurVariant<?> form) {
         if (form == null) return false;
-        return net.parkabird.changedsynergy.compat.SurvivalProtocolCompat.changeOrigin(player, form.getFormId().toString(), () -> {
-        // Temporary initialization skips ordinary conversion rewards and the transformer event.
-        var instance = ProcessTransfur.setPlayerTransfurVariant(player, form, null, 1.0F, true,
-                variant -> variant.willSurviveTransfur = true);
-        if (instance == null || instance.getParent() != form) return false;
-        instance.willSurviveTransfur = true;
-        instance.transfurProgression = instance.transfurProgressionO = 1.0F;
-        instance.setTemporaryForSuit(false);
-        player.refreshDimensions();
-        Changed.PACKET_HANDLER.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player), SyncTransfurPacket.Builder.of(player));
-        return true;
-        });
+        return net.parkabird.changedsynergy.compat.SurvivalProtocolCompat.changeOrigin(player, form.getFormId().toString(),
+                () -> TrueTransfurCompat.initializePersistentBody(player,form,null,1F));
     }
 
     public static void restore(ServerPlayer player) {
         Identity identity = identity(player);
-        if (identity == null || !identity.state.equals("native") || !player.isAlive()) return;
+        if (identity == null || !identity.state.equals("native") || !player.isAlive()
+                || TakeoverService.active(player) || TrueTransfurCompat.isRebirthing(player)
+                || TrueTransfurCompat.isInstinctControlled(player)) return;
         ResourceLocation id = ResourceLocation.tryParse(identity.current.isEmpty() ? identity.form : identity.current);
         TransfurVariant<?> form = id == null ? null : ChangedRegistry.TRANSFUR_VARIANT.get().getValue(id);
         if (form == null) {

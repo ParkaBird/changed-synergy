@@ -1,0 +1,13 @@
+{
+  "source": "watchtower.nbt",
+  "source_sha256": "9c4442794b1c9e030442018076dc1a9deb40d8354c0c636e158a36af305fd0c4",
+  "output_sha256": "84de0e64bc694a98f2cf812dfce74ab98fb94487e07d4eba26d4dfd4905ce61a",
+  "size": [
+    20,
+    29,
+    20
+  ],
+  "ground_level": 0,
+  "residents": 0,
+  "decorations": 3
+}

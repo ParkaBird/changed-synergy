@@ -1,0 +1,76 @@
+{
+  "oasis": {
+    "source_sha256": "894966b89bd8e8f5ff7409d7a3b606f596cc485786efe8f8b22611ea490299f3",
+    "output_sha256": "2ab00905aca4eddde354c060585990e03814149716cd5721ff8e15d1bf6c7eac",
+    "ground_level": 2,
+    "residents": [
+      [
+        "latex_jerboa",
+        9.5,
+        3,
+        16.5
+      ],
+      [
+        "changed:latex_fennec_fox",
+        11.5,
+        3,
+        16.5
+      ]
+    ],
+    "public_reserve": [
+      11,
+      3,
+      17
+    ],
+    "original_loot_barrel": [
+      11,
+      3,
+      17
+    ],
+    "original_loot_table": "minecraft:chests/village/village_cartographer",
+    "treasure_added": false
+  },
+  "muddy_campsite": {
+    "source_sha256": "12752377427a33ba33082ef98b67f961c61bde8ca5895eef1c9ae5e052bff4e9",
+    "output_sha256": "600c621d7072f45803f5105b05a0a5e580dfc88e98fbcb30b42d30c3f12dbab0",
+    "ground_level": 4,
+    "residents": [
+      [
+        "latex_jerboa",
+        6.5,
+        5,
+        10.5
+      ],
+      [
+        "changed:latex_red_dragon",
+        5.5,
+        5,
+        13.5
+      ],
+      [
+        "changed:green_lizard",
+        8.5,
+        5,
+        13.5
+      ],
+      [
+        "changed:latex_fennec_fox",
+        9.5,
+        5,
+        13.5
+      ]
+    ],
+    "public_reserve": [
+      8,
+      5,
+      15
+    ],
+    "original_loot_barrel": [
+      8,
+      5,
+      15
+    ],
+    "original_loot_table": "minecraft:chests/village/village_cartographer",
+    "treasure_added": false
+  }
+}

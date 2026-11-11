@@ -26,7 +26,6 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.ChangedVanillaCompat;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.FishingSite;
 import net.parkabird.changedsynergy.ai.CompanionWorkDialogue.WorkKind;
@@ -439,7 +438,7 @@ public final class FallbackBondedWorkGoal extends Goal {
                 && !pet.isPassenger() && !pet.isLeashed()
                 && !SocialAudienceGoal.isActive(pet)
                 && !BondedSuitService.isSuitingOwner(pet, owner)
-                && !ChangedAddonCompat.isGrabberBusy(pet)
+                && !CreatureGrabService.isGrabberBusy(pet)
                 && HypnosisQteService.getActiveVictim(pet) == null;
     }
 

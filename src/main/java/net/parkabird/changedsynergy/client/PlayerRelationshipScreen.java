@@ -24,6 +24,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.HunterFaction;
 import net.parkabird.changedsynergy.ai.PlayerRelationshipSettings.Contact;
+import net.parkabird.changedsynergy.client.RelationshipPanel.InfoCard;
+import net.parkabird.changedsynergy.client.RelationshipPanel.PreparedCard;
 import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
 import net.parkabird.changedsynergy.network.OpenAbsorptionNegotiationPacket;
 import net.parkabird.changedsynergy.world.inventory.PlayerRelationshipMenu;
@@ -139,12 +141,8 @@ public final class PlayerRelationshipScreen
             float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
         renderManagerCards(graphics, mouseX, mouseY);
-        var hint = Component.empty();
-        if (getCount() > 8) hint.append(Component.translatable("menu.changed_synergy.relationship.more_options"));
-        if (menu.isTransfurred()) {
-            if (!hint.getString().isEmpty()) hint.append(" · ");
-            hint.append(Component.translatable("menu.changed_synergy.relationship.switch_to_abilities"));
-        }
+        Component hint = menu.isTransfurred()?RadialWheelAnimations.scrollHint(this,"menu.changed_synergy.relationship.switch_to_abilities")
+                :getCount()>8?Component.translatable("menu.changed_synergy.relationship.more_options"):Component.empty();
         if (!hint.getString().isEmpty()) renderSwitchHint(graphics, hint, height - 18);
     }
 
@@ -364,17 +362,17 @@ public final class PlayerRelationshipScreen
             contactLines.add(Component.translatable(
                     "menu.changed_synergy.relationship.info.no_contacts"));
         } else {
+            Component contactName=contact.name().isBlank()?Component.translatable("menu.changed_synergy.relationship.unknown_contact"):
+                    Component.translatable(contact.bonded()?"menu.changed_synergy.relationship.bonded_name":contact.typeId().equals("minecraft:player")?"menu.changed_synergy.relationship.player_name":"menu.changed_synergy.relationship.contact_name",contact.name());
+            if(contact.campmate())contactName=Component.empty().append(contactName).append(" ").append(Component.translatable("menu.changed_synergy.relationship.camp_badge").withStyle(net.minecraft.ChatFormatting.BOLD));
             contactLines.add(Component.translatable(
                     "menu.changed_synergy.relationship.info.selected",
-                    contact.name().isBlank()
-                            ? Component.translatable(
-                                    "menu.changed_synergy.relationship.unknown_contact")
-                            : Component.translatable(contact.bonded() ? "menu.changed_synergy.relationship.bonded_name" : contact.typeId().equals("minecraft:player") ? "menu.changed_synergy.relationship.player_name" : "menu.changed_synergy.relationship.contact_name", contact.name())));
+                    contactName));
             contactLines.add(Component.translatable(
                     "menu.changed_synergy.relationship.info.relation",
                     Component.translatable(contact.bonded()
                             ? "menu.changed_synergy.relationship.bonded"
-                            : "menu.changed_synergy.relationship.friend"),
+                            : contact.campmate()?"menu.changed_synergy.relationship.campmate":"menu.changed_synergy.relationship.friend"),
                     contact.familiarity()));
             contactLines.add(Component.translatable(
                     "menu.changed_synergy.relationship.info.species",
@@ -439,7 +437,7 @@ public final class PlayerRelationshipScreen
         int textWidth = cardWidth - 26;
         List<PreparedCard> prepared = new ArrayList<>();
         for (int index = 0; index < cards.size(); index++) {
-            prepared.add(prepareCard(cards.get(index), textWidth));
+            prepared.add(RelationshipPanel.prepareCard(font, cards.get(index), textWidth));
         }
         int gap = 10;
         int totalHeight = prepared.stream().mapToInt(PreparedCard::height).sum()
@@ -549,15 +547,6 @@ public final class PlayerRelationshipScreen
         }
         EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(id);
         return type == null ? Component.literal(typeId) : type.getDescription();
-    }
-
-    private PreparedCard prepareCard(InfoCard card, int textWidth) {
-        List<FormattedCharSequence> lines = new ArrayList<>();
-        for (Component line : card.lines()) {
-            lines.addAll(font.split(line, textWidth));
-        }
-        return new PreparedCard(card.title(), List.copyOf(lines),
-                RelationshipPanel.GEL_TEXT_PADDING + Math.max(1, lines.size()) * 9);
     }
 
     private void renderInfoCard(
@@ -684,12 +673,4 @@ public final class PlayerRelationshipScreen
             int textureSize) {
     }
 
-    private record InfoCard(Component title, List<Component> lines) {
-    }
-
-    private record PreparedCard(
-            Component title,
-            List<FormattedCharSequence> lines,
-            int height) {
-    }
 }

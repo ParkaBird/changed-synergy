@@ -105,6 +105,7 @@ public final class CreatureMorphContinuity {
         copyTag(source, target, FACILITY_ORANGE_ROOM);
         copyTag(source, target, FACILITY_STORAGE_POS);
         copyCompound(source, target, BONDED_INVENTORY);
+        copyCompound(source, target, StructureResidentGoal.DATA);
         if (interruptedMeal) CompanionAutoEatGoal.transferMealInventory(previous,replacement);
         for (String key : java.util.List.of("ChangedSynergyPlayerOutpostWorkBag",
                 "ChangedSynergyPlayerOutpostCargo", "ChangedSynergyPlayerOutpostWorkOutput",
@@ -149,6 +150,7 @@ public final class CreatureMorphContinuity {
         CreaturePersonality.reconcileNativePetRelationship(replacement);
         CreatureIdentity.ensure(replacement);
         CreatureLifeMemory.ensure(replacement);
+        StructureResidentGoal.install(replacement);
         CreatureCommunityData.bind(replacement);
         if (!bondedPlayers.isEmpty()) {
             BondedCreatureLifecycle.track(replacement);

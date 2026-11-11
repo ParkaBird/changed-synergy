@@ -13,12 +13,24 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 
+@net.minecraftforge.fml.common.Mod.EventBusSubscriber(modid=ChangedSynergyMod.MOD_ID)
 public final class ChangedSynergyAbilities {
     public static final DeferredRegister<AbstractAbility<?>> REGISTRY =
             ChangedRegistry.ABILITY.createDeferred(ChangedSynergyMod.MOD_ID);
 
     public static final RegistryObject<net.parkabird.changedsynergy.ability.SwordfishRushAbility> SWORDFISH_RUSH =
             REGISTRY.register("swordfish_rush", net.parkabird.changedsynergy.ability.SwordfishRushAbility::new);
+
+    /** Share the existing flight ability and its tuning without requiring Addon Plus. */
+    public static AbstractAbility<?> wingFlap(){return ChangedRegistry.ABILITY.get().getValue(net.minecraft.resources.ResourceLocation.parse("changed_addon:wing_flap"));}
+
+    @net.minecraftforge.eventbus.api.SubscribeEvent
+    public static void removedWingFlap(net.minecraftforge.registries.MissingMappingsEvent event){
+        for(var mapping:event.<AbstractAbility<?>>getMappings(ChangedRegistry.ABILITY.get().getRegistryKey(),ChangedSynergyMod.MOD_ID)){
+            if(!mapping.getKey().getPath().equals("wing_flap"))continue;
+            var original=wingFlap();if(original==null)mapping.ignore();else mapping.remap(original);
+        }
+    }
 
     public static final RegistryObject<SimpleCreateItemAbility> SPIN_SILK =
             REGISTRY.register("spin_silk", () -> new SimpleCreateItemAbility(

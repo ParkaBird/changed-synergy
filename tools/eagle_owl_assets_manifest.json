@@ -1,0 +1,87 @@
+{
+  "body": {
+    "separated_flat_surfaces": [
+      "Base",
+      "Head",
+      "Head",
+      "Head",
+      "RightArm",
+      "LeftArm",
+      "RightArm",
+      "LeftArm",
+      "Head",
+      "Head",
+      "Head",
+      "Head",
+      "Head",
+      "Head",
+      "LeftArm",
+      "RightArm",
+      "RightEarTuft",
+      "LeftEarTuft",
+      "RightEarTuftBack",
+      "LeftEarTuftBack"
+    ],
+    "duplicate_cubes_removed": 4,
+    "source": "UnifiedLatexEagleOwl.bbmodel",
+    "sha256": "e730f362bcd4b1e9446e86dbc245274f9717b44c54cb94a11bba596c1306c0ed",
+    "runtime_cubes": 44
+  },
+  "outfit": {
+    "separated_flat_surfaces": [
+      "Base",
+      "Head",
+      "Head",
+      "Head",
+      "RightArm",
+      "LeftArm",
+      "RightArm",
+      "LeftArm",
+      "Head",
+      "Head",
+      "Head",
+      "Head",
+      "Head",
+      "Head",
+      "LeftArm",
+      "RightArm",
+      "RightEarTuft",
+      "LeftEarTuft",
+      "RightEarTuftBack",
+      "LeftEarTuftBack",
+      "ScarfTailA",
+      "ScarfTailB",
+      "CrossStrapFront",
+      "CrossStrapBack"
+    ],
+    "duplicate_cubes_removed": 0,
+    "source": "UnifiedLatexEagleOwl_Outfit.bbmodel",
+    "sha256": "8daf07a4bf1f904a7640836c5a1672753ebcd25fded640e1f95df637b9c63bae",
+    "runtime_cubes": 24
+  },
+  "eagle_owl_perch_stand": {
+    "source": "eagle_owl_perch_stand.bbmodel",
+    "sha256": "f8bfc4f0fe2eddf776a5d6768a94a39bf8f9cacd0cbd11acc8611b260a95d63c",
+    "parts": [
+      "lower",
+      "upper"
+    ]
+  },
+  "eagle_owl_perch_rail": {
+    "source": "eagle_owl_perch_rail.bbmodel",
+    "sha256": "cf3da43da0aa64f7a0898e8f4fc0b7ff91a59cd99f5d1f0d143db31da9a30434",
+    "parts": [
+      "head",
+      "foot"
+    ]
+  },
+  "closed_eye_texture_updates": {
+    "UnifiedLatexEagleOwl": "b445ba5c13f7d154615902db5175be0e5d954de2ba5fd3147102f8529339d996",
+    "LatexSpottedHyenaFemaleUnified": "c340517c1f7e7559957370dcce5e328806a64c2ef0e5a4f22c98b8500254cb41",
+    "LatexSpottedHyenaMaleUnified": "d8a3fd41d9a9baf8d8264887fff3c900b6788218b2a1b973ca2091f325ec9c04",
+    "LatexSilkMothUnified": "57a93a6ad315e5c65f2104f7ce6d63977f08d26300f4ca44e1a536ee56b367cc",
+    "UnifiedLatexSwordfish": "3a4ff9264eef95b5602aaffbeb678ec8f0178b362f7a62515a2d94cb1f80ca26",
+    "LatexMuntjacFemaleUnified": "7e665e91c5e5c890f54d4039c2b007f94ed7e9a51bbc9c9c65a44680bad7347f",
+    "LatexWaterDeerUnified": "0a37a1cc332b59ab916fdba639c0afbdd0f9dcbd7b105b088db5b74256d38342"
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "hyena_hideout": {
+    "source_filename": "hyena_hideout.nbt",
+    "source_sha256": "dd0e1d13cc4301da708162564a7857b48a828d570de618e510a6c9f35678d738",
+    "output_sha256": "efa170b8c26ce14afb5538fb59e3aee3d427cb9a34cda1e90b5623559cf8f9e0",
+    "size": [
+      33,
+      11,
+      33
+    ],
+    "blocks": 11979,
+    "entities": 12,
+    "changes": {
+      "removed empty Visual Workbench data": 1,
+      "cleared saved occupant identity and optional snapshots": 7,
+      "removed empty latex-cover records": 11979,
+      "added persistent hyena residents": 5,
+      "anchored landmark resident and default outfit": 1,
+      "structure resident boundaries and camp metadata": 1,
+      "restored missing ground column beside well chest": 4,
+      "removed draft-book chest": [
+        1,
+        4,
+        0
+      ],
+      "chief Slim amber eyes": 1,
+      "carpet_bedrolls_replaced_with_orange_beds": 6
+    },
+    "community_storage": {
+      "positions": [
+        [
+          11,
+          4,
+          18
+        ],
+        [
+          11,
+          4,
+          19
+        ]
+      ],
+      "facing": "east",
+      "empty": true,
+      "loot_table": false
+    },
+    "private_storage_positions": [
+      [
+        10,
+        4,
+        10
+      ]
+    ]
+  },
+  "hyena_camp_tropical": {
+    "source_filename": "hyena_camp1.nbt",
+    "source_sha256": "bf2e9069f58245748f1e2faf41b1029f180b0768109ad0e8dcad8e0dc65e5fba",
+    "output_sha256": "ca4420f758eebcfcd849d626442ccc1eb74e4cf0deb548e0975490fb723684b0",
+    "size": [
+      15,
+      9,
+      9
+    ],
+    "blocks": 1215,
+    "entities": 2,
+    "changes": {
+      "removed empty latex-cover records": 1215,
+      "added persistent hyena residents": 2,
+      "structure resident boundaries and camp metadata": 1,
+      "landmark map loot pool": 1
+    },
+    "public_storage": [
+      [
+        3,
+        1,
+        1
+      ]
+    ]
+  },
+  "hyena_camp_open": {
+    "source_filename": "hyena_camp2.nbt",
+    "source_sha256": "2fac68408f46dd58d450283649bd6aea94c9dff02a9bb5289603dc625b557e62",
+    "output_sha256": "c278869c598ba1aa2d1e3bf5c2ed9f3b5335638bfe013f16e478a3fcad8bba6a",
+    "size": [
+      10,
+      11,
+      10
+    ],
+    "blocks": 1100,
+    "entities": 2,
+    "changes": {
+      "removed empty Visual Workbench data": 1,
+      "removed empty latex-cover records": 1100,
+      "added persistent hyena residents": 2,
+      "structure resident boundaries and camp metadata": 1
+    },
+    "public_storage": [
+      [
+        5,
+        1,
+        2
+      ]
+    ]
+  },
+  "hyena_camp_snowy": {
+    "source_filename": "hyena_camp3.nbt",
+    "source_sha256": "1416b199c36bd0c8209bd7bafdadc05f8359e30bd8a249adc687deeeb8159931",
+    "output_sha256": "8b6fa56e244f9b7a8b273ccf264a5c1155ace633a7ad581f945e4224526430c5",
+    "size": [
+      15,
+      6,
+      7
+    ],
+    "blocks": 630,
+    "entities": 2,
+    "changes": {
+      "removed empty Visual Workbench data": 1,
+      "removed empty latex-cover records": 630,
+      "added persistent hyena residents": 2,
+      "structure resident boundaries and camp metadata": 1
+    },
+    "public_storage": [
+      [
+        2,
+        1,
+        4
+      ]
+    ]
+  }
+}

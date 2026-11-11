@@ -1,5 +1,7 @@
 package net.parkabird.changedsynergy.ai;
 
+import static net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.canonicalFormId;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -150,7 +152,7 @@ public final class BondedRevivalService {
         CompoundTag record = BondedRevivalData.get(crafter.server).record(token);
         if (record == null || !record.getBoolean("LatexSample")
                 || !STATE_BROKEN.equals(record.getString("State"))
-                || !root.getString(FORM).equals(vessel.getOrCreateTag().getString("form"))) {
+                || !canonicalFormId(root.getString(FORM)).equals(canonicalFormId(vessel.getOrCreateTag().getString("form")))) {
             return false;
         }
         vessel.getOrCreateTag().put(MASK_ROOT, root.copy());
@@ -330,7 +332,7 @@ public final class BondedRevivalService {
         if (!player.isAlive()
                 || player.isSpectator()
                 || current == null
-                || !record.getString("Form").equals(
+                || !canonicalFormId(record.getString("Form")).equals(
                         current.getParent().getFormId().toString())) {
             player.sendSystemMessage(Component.translatable(
                     "message.changed_synergy.revival.cannot_rebuild", name));

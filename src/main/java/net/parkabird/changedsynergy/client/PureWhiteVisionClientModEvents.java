@@ -20,6 +20,6 @@ public final class PureWhiteVisionClientModEvents {
     public static void registerReloadListener(
             RegisterClientReloadListenersEvent event) {
         event.registerReloadListener((ResourceManagerReloadListener)
-                resourceManager -> PureWhiteVisionRenderer.requestReload());
+                resourceManager -> {PureWhiteVisionRenderer.requestReload();EagleOwlVisionClient.requestReload();});
     }
 }

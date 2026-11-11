@@ -37,6 +37,8 @@ For a partial update, use `--source white_lab_tower=white_lab_tower.nbt --source
 
 Notes, clipboards and disc-writing screens adapt to their content, with scrolling for longer records. Records previously shortened for the old readers are restored. The housekeeping heading no longer has a following newline. Data-disc Markdown remains unchanged. The English story-fragment export gives each record its structure, a prose description of its location, medium and existing attribution.
 
+Written books keep the vanilla reader and its font size. All five structure books are checked against the native 114-pixel text width and 128-pixel text height. The overflowing third page of `Homogeneity` continues onto an additional page, increasing the book from four pages to five. No prose or signatures are removed; the books contain 27 pages in total. Existing books already saved in worlds retain their saved contents.
+
 `python tools/apply_research_documents.py` applies this prose to the current resources, including the loot-generated Swordfish disc, and refreshes the output hashes. The template importer applies the same document patches after adaptation, locating containers by local position and inventory slot so later imports do not silently restore old lore. A missing or changed holder fails the import for review. `python tools/tests/research_documents_test.py` verifies the text and all 22 numeric keypad codes. These tools require `nbtlib` only for maintenance.
 
 Previously generated buildings and the user's editing save are not rewritten when the mod updates.

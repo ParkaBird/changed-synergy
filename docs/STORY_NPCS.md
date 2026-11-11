@@ -1,0 +1,64 @@
+# Fixed NPCs and local camp membership
+
+The forest treehouse's canopy Silk Moth, the hideout's female Spotted Hyena and the observatory's Eagle Owl are Chiefs. The green laboratory's attic Gas Wolf is a resident researcher whose ordinary role is Wanderer, with no special profession. Each structure instance has its own individual, relationships and conversation history. Fixed characters use their position labels instead of personal names: Weaver, Matriarch, Archivist and Researcher. Existing instances receive these labels without replacing their identities. Book signatures remain author credits.
+
+The Silk Moth is calm and polite, the Hyena protective and polite, and the Archivist and the researcher curious and polite. Their conversations use the revised authored dialogue trees and the records in their homes. The Moth has mist-blue Tall eyes (#90B8C2), the Matriarch copper-orange Slim eyes (#B8744C), and the researcher mint-green Original eyes (#65C98C). The Archivist retains orange Original eyes. Presets update when an old character loads and survive return. The structures' written stories remain verbatim.
+
+Chief is explicitly assigned; ordinary role selection never produces one. Fixed NPCs keep their authored clothes, eyes, routines and activity boundaries. They accept normal affection interactions but cannot become bonded followers or give the player control of their body. Fusion and absorption cannot consume them. Their default clothes are bound to the role and do not become repeatable loot.
+
+## Conversations
+
+The social wheel offers **Talk** in place of ordinary small talk. All four previous conversation trees have been replaced. The dialogue window reuses the hand-drawn social card, preserves its corners at wider sizes and takes its colors from the speaking creature's native species theme. The title strip contains the speaker and local trust; the framed body contains only dialogue. The dialogue frame stays anchored at the bottom; replies sit above it, with the compact control hint and page/choice counter above the reply list. The hint aligns to the reply text's left inset and the counter to its right inset, sharing one baseline. Reply space is reserved before typing starts so revealing replies does not move the conversation.
+
+Dialogue uses distinct emotion colors: warm gold, orange, rose, cool blue and green, with teal, struck-through thoughts. Colors adapt for contrast on light and dark panels. Spoken text appears character by character with punctuation pauses; an understood thought fades in as a complete sentence beneath the spoken passage, without a separate Thought label or server page. Speaking labels are omitted too. Forty authored beat markers across all three languages give long answers deliberate turns of thought, even when more words would fit. Layout is calculated before revealing text. Only small-viewport overflow adds further pages, preferring sentence and clause boundaries and keeping a whole thought with the nearest spoken clause when possible. No prose is shortened. Reply rows wrap and scroll independently of the body; the smallest logical GUI size uses native-sized text to preserve reading space.
+
+Click or press Enter/Space to complete the current page, then advance. Use the mouse or Up/Down/Tab and Enter for choices; scroll to see further choices. Esc leaves. Reduced UI Motion removes positional text effects. The world keeps running; danger, sleep, grabs, distance, lost sight, death or disconnect ends the session. Each NPC receives one player at a time.
+
+Unfiltered thoughts appear only through the existing understanding check. Owl greetings also distinguish daytime drowsiness from human and transformed nighttime visitors.
+
+All four have learned human speech. Existing telepathy rules still govern mental lines. Essential information is also spoken, and speaking to them does not unlock permanent telepathy.
+The Archivist has separate greetings for human and transformed visitors. Each character's third background topic unlocks after the first two topics are completed, including when their final choice is Goodbye. Completion belongs to that player and NPC instance and persists across return and reload.
+
+## Local camp membership
+
+Each Chief speaks for the household living in that structure. Membership registers one home camp and does not register a regional faction. A visitor with neutral or positive local trust and no direct hostility can join; there is no regional-reputation entry threshold. Native birth identity, regional faction reputation, diplomacy, individual affection and bonds retain their own rules.
+
+Local trust is recorded separately for every camp, including different instances of the same structure. It ranges from -100 to 100. Admission gives a baseline human **0**, a visitor already in a transformed body **2**, a reversible-transfur applicant **5**, and a confirmed permanent-transfur applicant **8** local trust. A player can receive each camp's highest applicable admission amount only once. A later route grants only the difference; leaving, changing chiefs, returning, reloading and respawning cannot refill it. These bonuses never change regional faction reputation.
+
+Accepted social interactions and witnessed offences involving a camp's residents affect local trust without modifying regional reputation. Regional administration and diplomacy remain independent. Members and respected visitors can borrow free sleeping places; suspension removes the member privilege. At -15, shared privileges are suspended until trust returns to neutral; at -40, membership ends. A different camp's distrust cannot expel a member from this home.
+
+Members can share the dedicated Community Supplies double chest beside their home's campfire and available sleeping places. Residents and donation hand-ins use that reserve exclusively, including after other loot chests have been opened. Marked personal containers and NPC equipment retain their protections; lecterns and other readable story media are freely accessible. Admission introduces the player to each resident with one affection point once; the relationship roster marks current campmates separately from bonds. Leaving retains relationships, trust and admission history.
+
+The Chief can admit the visitor unchanged or offer a reversible copy of their form. The offering NPC remains present. The explicit reversible ritual stays reversible with TrueTransfur installed and never weakens an existing permanent body.
+
+The permanent route appears only when the TrueTransfur backend supports it. Selecting it opens a second conversation in the speaker's own voice. That page explains permanence, ordinary reversal, the option to reconsider, and the Owl's color-vision trade-off where relevant. Only its final confirmation commits the ritual. The server revalidates the visible choice, session revision and eligibility. Backend failure rolls back without admission or reward. The permanent route commits a native latex identity and uses Native Origin's body initialization, dimension refresh and form synchronization. It initializes TT player control, retains permanent reversal protection independently of the lethal-reversal setting, and restores the latest non-temporary form on login or respawn. Recovery waits for instinct control and rebirth to finish. These permissions do not depend on the human-start instinct setting. The selected species becomes the Native Origin identity; camp membership remains separate. Ordinary reversal commands are intercepted before removal. An authorized Native Origin re-selection can safely return the player to human without changing camp trust or reward history.
+
+Successful dialogue-selected reversible and permanent rituals play the form's native transfur sound once, including for the transforming player. Browsing, cancellation, rejected requests and failed backend commits remain silent. The normal first voluntary-transfur affection bonus is retained. Rituals do not create a bond. Reversible rituals keep the existing human origin; permanent rituals adopt native latex identity. Leaving does not remove a permanent body.
+
+Old faction-linked registrations migrate only their explicit home camp. Missing local trust starts at zero; no regional score is imported. Existing local trust and paid admission amounts are preserved. Old faction and permanent-reward keys are consumed once into household history. Names, relationships and reward history are preserved. Legacy PermanentForm/PermanentCurrentForm body records migrate once into NativeOriginData, then are retired; they no longer run a second restoration loop.
+
+## Persistence and return
+
+World SavedData files are `changed_synergy_story_npcs` and `changed_synergy_memberships`. An NPC key combines profile, original dimension and structure origin; physical bodies carry a generation number. Moving across dimensions preserves the original key. Returning bodies update the existing relationship UUID alias system for offline contacts.
+
+Confirmed death or disappearance schedules a return after **24,000 server game ticks** (20 minutes at 20 TPS). No chunks are force-loaded. Both home and last-known entity storage must be loaded before an absent body can be treated as missing. A loaded live body, including a transported one, prevents return. Unsafe home positions postpone return; nearby safe positions are checked inside the building without editing blocks.
+
+Names, personality, relationships, offences and dialogue progress survive return. Default clothes remain; additional dropped equipment is removed from the return snapshot. Old bodies cannot load alongside the current generation. Existing authored residents upgrade when loaded, preserving their names and items. Loaded structure starts can register a missing legacy resident, subject to the same return delay and loading checks.
+
+## Authoring
+
+`tools/authoring/story_npc_dialogue.json` is the English/Chinese/Russian authoring source. `tools/authoring/build_story_npc_dialogue.py` compiles it into the four profiles under `data/changed_synergy/story_npcs/` and the English/Chinese/Russian translation files, retiring obsolete conversation keys. The 82 supplied utterances are retained without shortening; new connective lines follow their character voices.
+
+Nodes declare spoken or mental lines, translated fragments, local emotion/effect settings, pauses and visible choices. Prerequisite nodes are completed per player and NPC instance. Server-side conditions include visitor form, understanding, day/night, camp membership and ritual eligibility. The researcher has no enrolment effects. Ecological faction assignment remains in species/population data; dialogue profiles no longer carry an unused faction field.
+
+Graphs and choices are validated on reload. Sessions close when profiles reload; clients cannot submit arbitrary effects or destination nodes. See `NPC_TEXT_EFFECTS.md` for the effect vocabulary. Reduced UI Motion removes spatial animation, and long content continues on additional pages.
+
+The persistent membership file remains `changed_synergy_memberships`; its implementation is now `CampMembershipData` and `CampMembershipService`. Network protocol **66** carries campmate roster flags, each fragment's speech channel, paragraph boundary and authored beat marker, local trust and the speaker's species-theme colors. Clients and servers must run the same build.
+
+## Household life
+
+See `CAMP_LIFE.md` for donation, resident requests, invitations, sleeping privileges and save migration. Three main households participate; smaller camps keep their existing routines. New English writing is authored separately in `tools/authoring/camp_life_dialogue.json`, with matching Chinese and Russian text, and exported with `export_camp_life_english.py`. The supplied story prose and its performance metadata remain unchanged.
+
+Ordinary authored camp residents may retain both their camp membership relationship and a personal bond, with both roster badges. This does not relax the fixed characters’ restrictions above. Chiefs offer one ordinary household outfit at local trust 40 to eligible home members, once per player and home.
+
+The supplied Balanced Edition replaces 125 explicit entries across English, Chinese and Russian. The initial file ends at the Ordinary Residents heading. The supplied continuation adds another 126 entries covering resident dialogue, menu wording, Chief ambient lines and the shared reactions explicitly provided. Other writing remains intact. The Chinese Weaver label is now 织匠. Consent speeches have separate consequence, alternative and final-confirmation beats; thought overlays and reduced-motion behavior remain in place.

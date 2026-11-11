@@ -9,15 +9,17 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 import net.parkabird.changedsynergy.origin.NativeOriginPolicy;
 
-public record NativeOriginPolicyPacket(boolean selective, Set<UUID> natives, Set<UUID> instinctPlayers) {
+public record NativeOriginPolicyPacket(boolean selective, Set<UUID> natives, Set<UUID> instinctPlayers,Set<UUID> reversibleRites) {
+    public NativeOriginPolicyPacket(boolean selective,Set<UUID> natives,Set<UUID> instinctPlayers){this(selective,natives,instinctPlayers,Set.of());}
     public NativeOriginPolicyPacket(boolean selective,Set<UUID> natives){this(selective,natives,natives);}
     public static void encode(NativeOriginPolicyPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBoolean(packet.selective); buffer.writeCollection(packet.natives, FriendlyByteBuf::writeUUID);
         buffer.writeCollection(packet.instinctPlayers,FriendlyByteBuf::writeUUID);
+        buffer.writeCollection(packet.reversibleRites,FriendlyByteBuf::writeUUID);
     }
     public static NativeOriginPolicyPacket decode(FriendlyByteBuf buffer) {
         boolean selective = buffer.readBoolean();
-        return new NativeOriginPolicyPacket(selective,readIds(buffer),readIds(buffer));
+        return new NativeOriginPolicyPacket(selective,readIds(buffer),readIds(buffer),readIds(buffer));
     }
     private static Set<UUID> readIds(FriendlyByteBuf buffer) {
         int count = buffer.readVarInt();
@@ -32,6 +34,7 @@ public record NativeOriginPolicyPacket(boolean selective, Set<UUID> natives, Set
             NativeOriginPolicy.clientSelective = packet.selective;
             NativeOriginPolicy.clientNatives = packet.natives;
             NativeOriginPolicy.clientInstincts = packet.instinctPlayers;
+            NativeOriginPolicy.clientReversibleRites = packet.reversibleRites;
         }));
         context.setPacketHandled(true);
     }

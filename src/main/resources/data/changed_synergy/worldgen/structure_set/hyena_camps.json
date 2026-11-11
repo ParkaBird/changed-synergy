@@ -1,0 +1,26 @@
+{
+  "structures": [
+    {
+      "structure": "changed_synergy:hyena_camp_tropical",
+      "weight": 1
+    },
+    {
+      "structure": "changed_synergy:hyena_camp_open",
+      "weight": 1
+    },
+    {
+      "structure": "changed_synergy:hyena_camp_snowy",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 24,
+    "separation": 8,
+    "salt": 192610292,
+    "exclusion_zone": {
+      "other_set": "changed_synergy:hyena_hideouts",
+      "chunk_count": 4
+    }
+  }
+}

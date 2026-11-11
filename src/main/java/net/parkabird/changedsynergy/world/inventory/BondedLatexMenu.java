@@ -39,6 +39,7 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
     private boolean canReverseOwner;
     private boolean suitingOwner;
     private boolean audienceReleased;
+    private String seatAction = "";
 
     public BondedLatexMenu(int id, Inventory inventory, ChangedEntity pet) {
         super(ChangedSynergyMenus.BONDED_LATEX.get(), id);
@@ -55,6 +56,9 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
         this.canReverseOwner = inventory.player instanceof ServerPlayer serverPlayer
                 && InvoluntaryTransfurNegotiation.canBondedReversal(
                         pet, serverPlayer);
+        this.seatAction = inventory.player instanceof ServerPlayer serverPlayer && pet != null
+                ? net.parkabird.changedsynergy.ai.CompanionSeatingService.action(pet, serverPlayer)
+                : "";
         this.suitingOwner = inventory.player instanceof ServerPlayer serverPlayer
                 && BondedSuitService.isSuitingOwner(pet, serverPlayer);
     }
@@ -73,11 +77,16 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
         this.ownerTransfurred = extraData.readBoolean();
         this.canReverseOwner = extraData.readBoolean();
         this.suitingOwner = extraData.readBoolean();
+        this.seatAction = extraData.isReadable() ? extraData.readUtf() : "";
     }
 
     @Nullable
     public ChangedEntity getPet() {
         return pet;
+    }
+
+    public String getSeatAction() {
+        return seatAction;
     }
 
     public boolean isFollowing() {
@@ -133,14 +142,6 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
 
     /** Native dark latex and Addon pets store the same four wheel settings separately. */
     public static int[] stateFor(ChangedEntity pet) {
-        if (pet instanceof AbstractDarkLatexEntity darkLatex) {
-            return new int[]{
-                    darkLatex.getTargetType().ordinal(),
-                    darkLatex.getAttackType().ordinal(),
-                    darkLatex.getAttackCondition().ordinal(),
-                    darkLatex.getCurrentFavor().ordinal()
-            };
-        }
         int[] state = BondedPetSettings.stateFor(pet);
         if (LatexSocialMemory.isOrganic(pet)) {
             state[1] = LatexSocialMemory.organicRescueMode(pet).ordinal();
@@ -150,7 +151,9 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
 
     public void applyLocalCommand(String command) {
         switch (command) {
+
             case "cycle_follow" -> {
+
                 following = !following;
                 shoreWaiting = false;
             }
@@ -210,13 +213,19 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
             case "view_inventory" -> BondedInventoryService.open(origin, pet);
             case "open_social_wheel" ->
                     LatexSocialEvents.openBondedSocialMenu(origin, pet);
+            case "social_seat", "social_cancel_seat", "social_disembark" ->
+                    net.parkabird.changedsynergy.ai.CompanionSeatingService.command(origin, pet, command);
+
             case "cycle_follow" -> {
+
+                net.parkabird.changedsynergy.ai.CompanionSeatingService.newCommand(pet, origin);
                 following = !LatexSocialMemory.isFollowingOwner(pet);
                 LatexSocialMemory.setFollowingOwner(pet, following);
                 shoreWaiting = false;
                 pet.getNavigation().stop();
             }
             case "wait_on_shore" -> {
+                net.parkabird.changedsynergy.ai.CompanionSeatingService.newCommand(pet, origin);
                 LatexSocialMemory.setWaitingOnShore(pet, origin);
                 following = false;
                 shoreWaiting = LatexSocialMemory.isWaitingOnShore(pet);

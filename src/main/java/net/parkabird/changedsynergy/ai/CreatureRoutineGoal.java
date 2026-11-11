@@ -26,7 +26,6 @@ import net.parkabird.changedsynergy.ai.CreatureLifeMemory.RoutineState;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.FishingSite;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.GlowBerrySite;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.MinecartSupplyTarget;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.ChangedVanillaCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
@@ -81,6 +80,7 @@ public final class CreatureRoutineGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        if (NaturalCampService.member(mob) || StructureResidentGoal.isNonWorkingResident(mob)) return false;
         if (!(mob.level() instanceof ServerLevel)
                 || PlayerOutpostService.hasAssignment(mob)
                 || !SynergyPerformanceTracker.featureEnabled(Feature.COMMUNITY)
@@ -241,7 +241,7 @@ public final class CreatureRoutineGoal extends Goal {
     private RoutineState selectActivity() {
         GroupRole role = CreatureLifeMemory.role(mob);
         return switch (role) {
-            case WANDERER -> RoutineState.IDLE;
+            case WANDERER, CHIEF -> RoutineState.IDLE;
             case SCOUT -> RoutineState.SCOUTING;
             case GUARD -> RoutineState.GUARDING;
             case YOUNGSTER -> RoutineState.PLAYING;
@@ -991,7 +991,7 @@ public final class CreatureRoutineGoal extends Goal {
                 || mob.isLeashed()
                 || target != null
                 || SocialAudienceGoal.isActive(mob)
-                || (ChangedAddonCompat.isGrabberBusy(mob) && !TakeoverService.allowsWork(mob))
+                || (CreatureGrabService.isGrabberBusy(mob) && !TakeoverService.allowsWork(mob))
                 || HypnosisQteService.getActiveVictim(mob) != null) {
             return false;
         }

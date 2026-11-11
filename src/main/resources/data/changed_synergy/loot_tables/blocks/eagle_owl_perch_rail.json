@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "changed_synergy:eagle_owl_perch_rail"
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:block_state_property",
+          "block": "changed_synergy:eagle_owl_perch_rail",
+          "properties": {
+            "half": "lower"
+          }
+        },
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ]
+    }
+  ]
+}

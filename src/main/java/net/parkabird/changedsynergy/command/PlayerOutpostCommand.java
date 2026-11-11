@@ -77,6 +77,11 @@ public final class PlayerOutpostCommand {
             facilities.then(Commands.literal(facility).executes(context -> linkFacility(context.getSource(), facility)));
         }
         root.then(facilities);
+        var unlinks = Commands.literal("unlink").executes(context -> unlinkFacility(context.getSource(), null));
+        for (String facility : new String[]{"storage", "bed", "rest"}) {
+            unlinks.then(Commands.literal(facility).executes(context -> unlinkFacility(context.getSource(), facility)));
+        }
+        root.then(unlinks);
         for (String area : new String[]{"farm", "hunt", "gather", "haul"}) {
             root.then(Commands.literal(area)
                     .then(Commands.literal("corner1").executes(context -> area(context.getSource(), area, 1)))
@@ -128,6 +133,39 @@ public final class PlayerOutpostCommand {
         return root;
     }
 
+
+    private static int unlinkFacility(CommandSourceStack source, String facility)
+            throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = player(source);
+        Outpost outpost = owned(source, player);
+        if (outpost == null) return 0;
+        ServerLevel level = player.serverLevel();
+        if (!outpost.active(level)) return error(source, "inactive");
+        BlockPos pos = lookedAt(player);
+        if (pos == null || !outpost.contains(pos)) return error(source, "range");
+        if (facility == null) {
+            facility = facilityAt(level, pos);
+            if (facility == null) return error(source, "facility");
+        }
+        PlayerOutpostData data = PlayerOutpostData.get(player.server);
+        boolean removed = false;
+        switch (facility) {
+            case "storage" -> removed = data.removeStorage(outpost, pos);
+            case "bed" -> {
+                BlockPos bedPos = net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.restingPlace(level, pos);
+                if (bedPos != null && outpost.beds.remove(bedPos)) { data.setDirty(); removed = true; }
+            }
+            case "rest" -> {
+                BlockPos restPos = net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.restingPlace(level, pos);
+                if (restPos != null && outpost.restPoints.remove(restPos)) { data.setDirty(); removed = true; }
+            }
+            default -> { return error(source, "facility"); }
+        }
+        if (!removed) return error(source, "range");
+        success(source, "unlinked", Component.translatable("command.changed_synergy.outpost.facility." + facility), pos.toShortString());
+        return 1;
+    }
+
     private static int linkFacility(CommandSourceStack source, String facility)
             throws com.mojang.brigadier.exceptions.CommandSyntaxException {
         ServerPlayer player = player(source);
@@ -146,11 +184,12 @@ public final class PlayerOutpostCommand {
         switch (facility) {
             case "storage" -> {
                 if (PlayerOutpostData.container(level, pos) == null
-                        || CreatureCommunityData.snapshotAtCache(level, pos).isPresent()) return error(source, "container");
+                        || CreatureCommunityData.snapshotAtCache(level, pos).isPresent()
+                        || net.parkabird.changedsynergy.ai.NaturalCampService.isStorage(level,pos)) return error(source, "container");
                 data.setStorage(outpost, pos);
             }
             case "bed", "rest" -> {
-                if (facility.equals("bed") ? !(block instanceof BedBlock)
+                if (facility.equals("bed") ? !net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.isBed(level.getBlockState(pos))
                         : !net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.isRestPoint(level.getBlockState(pos)))
                     return error(source, facility);
                 pos = net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.restingPlace(level, pos);
@@ -158,6 +197,7 @@ public final class PlayerOutpostCommand {
                 data.refreshRestPlaces(level, outpost);
                 if (facility.equals("bed")) data.setBed(outpost, pos);
                 else data.addRestPoint(outpost, pos);
+                data.refreshRestPlaces(level,outpost);
             }
             case "campfire" -> {
                 if (!(level.getBlockEntity(pos) instanceof net.minecraft.world.level.block.entity.CampfireBlockEntity)) return error(source, "cooking");
@@ -304,7 +344,7 @@ public final class PlayerOutpostCommand {
 
     private static String facilityAt(ServerLevel level, BlockPos pos) {
         var state = level.getBlockState(pos);
-        if (state.getBlock() instanceof BedBlock) return "bed";
+        if (net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.isBed(state)) return "bed";
         if (net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.isRestPoint(state)) return "rest";
         if (level.getBlockEntity(pos) instanceof net.minecraft.world.level.block.entity.CampfireBlockEntity) return "campfire";
         if (state.getBlock() instanceof net.minecraft.world.level.block.ComposterBlock) return "composter";
@@ -329,10 +369,11 @@ public final class PlayerOutpostCommand {
         if (!home.active(level) || !home.contains(pos)) return "outpost";
         String facility = facilityAt(level, pos);
         if (facility == null || pos.equals(home.marker)) return "outpost";
-        if (facility.equals("storage") && CreatureCommunityData.snapshotAtCache(level, pos).isPresent()) return "outpost";
+        if (facility.equals("storage") && (CreatureCommunityData.snapshotAtCache(level, pos).isPresent()
+                || net.parkabird.changedsynergy.ai.NaturalCampService.isStorage(level,pos))) return "outpost";
         BlockPos normalized = facility.equals("bed") || facility.equals("rest")
                 ? net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.restingPlace(level, pos) : pos;
-        boolean linked = normalized == null || home.beds.contains(normalized) || home.restPoints.contains(normalized)
+        boolean linked = normalized == null || home.beds.contains(normalized) || home.restPoints.contains(normalized) || home.storages.contains(pos)
                 || pos.equals(home.storage) || pos.equals(home.cooking) || pos.equals(home.composter);
         return linked ? "outpost" : "link_outpost";
     }
@@ -521,6 +562,7 @@ public final class PlayerOutpostCommand {
             storage += " (" + items + ")";
         }
         PlayerOutpostData.get(player.server).refreshRestPlaces(home, outpost);
+        PlayerOutpostData.get(player.server).refreshStorages(home, outpost);
         success(source, "facilities", storage, outpost.beds.size(), outpost.restPoints.size());
         success(source, "production_facilities", outpost.cooking == null ? "—" : outpost.cooking.toShortString(),
                 outpost.composter == null ? "—" : outpost.composter.toShortString());

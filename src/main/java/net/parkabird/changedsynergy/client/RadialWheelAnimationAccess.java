@@ -16,9 +16,17 @@ public interface RadialWheelAnimationAccess {
 
     int changedSynergy$getViewOffset();
 
+    float changedSynergy$getScrollOffset();
+
+    void changedSynergy$scrollOptions(double delta);
+
     boolean changedSynergy$canConfirm();
 
     UiSpring changedSynergy$getHorizontalSpring();
 
     void changedSynergy$continueSlide(UiSpring horizontal);
+
+    void changedSynergy$openImmediately();
+
+    boolean changedSynergy$isInstantArrival();
 }

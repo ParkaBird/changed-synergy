@@ -1,0 +1,1527 @@
+{
+  "source": "Synergy_ Complete Camp & NPC Dialogue Rewrite (Balanced Edition).md",
+  "source_sha256": "d26e26de214e848e1b75ac9bcf804414fbf3004ccd11d013631863eb8465a410",
+  "entries": {
+    "speaker.canopy_chief": {
+      "before": {
+        "en_us": "43ecf1576d25b8719350726ec2e5407a47f99d475e413d5f0dd9eccc2142de65",
+        "zh_cn": "91febf63ba650e3f56f63a0cd212f8434b6744f09764a6d1df78926b3bebc07a",
+        "ru_ru": "9cc590990fe0d00aa0626a23db8d89492b20af636099bdc74bab7ff841d00a7f"
+      },
+      "after": {
+        "en_us": "43ecf1576d25b8719350726ec2e5407a47f99d475e413d5f0dd9eccc2142de65",
+        "zh_cn": "91febf63ba650e3f56f63a0cd212f8434b6744f09764a6d1df78926b3bebc07a",
+        "ru_ru": "9cc590990fe0d00aa0626a23db8d89492b20af636099bdc74bab7ff841d00a7f"
+      }
+    },
+    "speaker.hyena_chief": {
+      "before": {
+        "en_us": "18b617c1d59449ba616238bf16d65618e8210cdaa0520883b88f4a0f4f46fa22",
+        "zh_cn": "2e23eb184d1a703f74a7fb2a6a03a1fa9c6121c8a18a80bde42662173638b1ef",
+        "ru_ru": "7812d1f1aa15e3a0c417bc41bcf307bf938cf28cf1f9f9ae406dd8567284f764"
+      },
+      "after": {
+        "en_us": "18b617c1d59449ba616238bf16d65618e8210cdaa0520883b88f4a0f4f46fa22",
+        "zh_cn": "2e23eb184d1a703f74a7fb2a6a03a1fa9c6121c8a18a80bde42662173638b1ef",
+        "ru_ru": "7812d1f1aa15e3a0c417bc41bcf307bf938cf28cf1f9f9ae406dd8567284f764"
+      }
+    },
+    "speaker.observatory_chief": {
+      "before": {
+        "en_us": "88188255522dd7473bf7ac2d87f8c47e8aea9b09fb200834529fc985d1445892",
+        "zh_cn": "91f9685e6c751536dae79be4e2f81e7583ead663922b52a39f85a7e7daad86de",
+        "ru_ru": "7c5b9aa1f97416682181d63ed27d82f306f0c6e67b29919b3ca5b98d32091213"
+      },
+      "after": {
+        "en_us": "88188255522dd7473bf7ac2d87f8c47e8aea9b09fb200834529fc985d1445892",
+        "zh_cn": "91f9685e6c751536dae79be4e2f81e7583ead663922b52a39f85a7e7daad86de",
+        "ru_ru": "7c5b9aa1f97416682181d63ed27d82f306f0c6e67b29919b3ca5b98d32091213"
+      }
+    },
+    "speaker.lab_researcher": {
+      "before": {
+        "en_us": "918fcd73c354a24535c25b8bcdcc9bbaf752f6c93acd51ca80c69d62fce901db",
+        "zh_cn": "fb2f4efd84e7f43c3d355b8d90559bd58eb7a16c312e45b2c31558d0a4a9f9a4",
+        "ru_ru": "3e320c88b7fd8f22ad57c2cfb3d62b32ca8975535d4814e05241207e90c99c1a"
+      },
+      "after": {
+        "en_us": "918fcd73c354a24535c25b8bcdcc9bbaf752f6c93acd51ca80c69d62fce901db",
+        "zh_cn": "fb2f4efd84e7f43c3d355b8d90559bd58eb7a16c312e45b2c31558d0a4a9f9a4",
+        "ru_ru": "3e320c88b7fd8f22ad57c2cfb3d62b32ca8975535d4814e05241207e90c99c1a"
+      }
+    },
+    "story.canopy_chief.enrol.line.2": {
+      "before": {
+        "en_us": "06702f58b672cf4abc6a5e3a810b61efe503c93b1cc233071b1a91a11a06b1ff",
+        "zh_cn": "b44030795154f26599a5f3b189990a696a188e3f599d3e665bcf9930caf99a9f",
+        "ru_ru": "a5350e8e332b598736a5eeb970717b4c070556a59bde2a92773802c5967485b0"
+      },
+      "after": {
+        "en_us": "71807ac33b9eca973fb8d37b77d8560b7606a6d4cfae3204db3e282c7f0f715d",
+        "zh_cn": "bbb93fff43d3bd5e65774744d7a33086803e5e051e82b535f4fd9bc186805d2e",
+        "ru_ru": "0390ff76a115e3294856fe2063c033da8af421f86b2a1b0c1cd385cb11c45601"
+      }
+    },
+    "story.canopy_chief.confirm_permanent.line.0": {
+      "before": {
+        "en_us": "1a39cb403677635b68f940b36bd15b2691088c75083ac84c9a6850115f4591e6",
+        "zh_cn": "627b0b1568642f017cd2188373bb342cc77d7ff3d2caceafa6a7d42e87fbdf71",
+        "ru_ru": "291dbce99e2efa13352ae3a882abba89db837eb7992d04a3834b82f797610799"
+      },
+      "after": {
+        "en_us": "c6c034441afceb4b0cfd80945590b3430fe7cc7f0023bc5b0a196b72a92b9f37",
+        "zh_cn": "bfdb8d056cf8c2884cfd1976598b33067e99d44455e7a7bb0808fd8fe17a6dc7",
+        "ru_ru": "49a5825a929fda1ef77075509b51a826b8cc1b381520d0a653438472f5b7f197"
+      }
+    },
+    "story.canopy_chief.confirm_permanent.choice.confirm_permanent": {
+      "before": {
+        "en_us": "854a089a250c590ff0dc1217330d044402101024e6dbbfa7c384d296a6536137",
+        "zh_cn": "a3b5a3e1f8af7c3c41d02c805758f12169f6d3cf5cca0672e780b793f07ee688",
+        "ru_ru": "4d0a22bcc13010b6cde5056a32447370f21cadb02ed59445fac1a89f6c37d046"
+      },
+      "after": {
+        "en_us": "7d928019068dab07957337e623d7ff3b993a624e3608d86e292cf9acee682731",
+        "zh_cn": "15323bc989b9d8077185d1bfae69c75436ae138820fbd84cbf9da892fd073b78",
+        "ru_ru": "a9112b5dbdcc0be3e74b5ab44816e87dcc90bc075508ca605a686dde882368be"
+      }
+    },
+    "story.canopy_chief.confirm_permanent.choice.reconsider": {
+      "before": {
+        "en_us": "03478ec98db46d3cc69d7c79df957a2d1d5b910c40a9b59ff901ac3246e05929",
+        "zh_cn": "f0436ae3ff0e0d41ca1acf67f8885b3ca0c451d9dcdcd78f033c7ea361690245",
+        "ru_ru": "ad6a6a32d491bb33b289904f8b3f9f7f614478b873af2a28f2ebcad2cd21adc1"
+      },
+      "after": {
+        "en_us": "e0e225ff08d0e3810260ec7ba7d3feccba0024c00a703450f043803eb6eb6039",
+        "zh_cn": "f0436ae3ff0e0d41ca1acf67f8885b3ca0c451d9dcdcd78f033c7ea361690245",
+        "ru_ru": "ad6a6a32d491bb33b289904f8b3f9f7f614478b873af2a28f2ebcad2cd21adc1"
+      }
+    },
+    "story.canopy_chief.welcome_permanent.line.0": {
+      "before": {
+        "en_us": "d26cc9acfad60fc7692a22e86b4e54ae936f4163cc09b320a31918a556180570",
+        "zh_cn": "d80fe3ded26475e38367b5dc726a8905f06ec3e6c37577b552592a7cb22e38ce",
+        "ru_ru": "a8482564b990ad7f2374d317852d268460f5e02913d84dbd1db54907b77a2eb9"
+      },
+      "after": {
+        "en_us": "d26cc9acfad60fc7692a22e86b4e54ae936f4163cc09b320a31918a556180570",
+        "zh_cn": "d80fe3ded26475e38367b5dc726a8905f06ec3e6c37577b552592a7cb22e38ce",
+        "ru_ru": "a8482564b990ad7f2374d317852d268460f5e02913d84dbd1db54907b77a2eb9"
+      }
+    },
+    "story.canopy_chief.welcome_permanent.line.1": {
+      "before": {
+        "en_us": "07185664b9d8d26ac66dcdecbaa65b48f00d870968598390399268837bbc6ad7",
+        "zh_cn": "dc074dcf9ff363de11968bb9915a46f3dad30e4369576b0ee59c108a3ed22780",
+        "ru_ru": "2092acff5c913a36a4af9c85a814f81e4cb5a5e3d10b12144a13cb23e68d5e5f"
+      },
+      "after": {
+        "en_us": "07185664b9d8d26ac66dcdecbaa65b48f00d870968598390399268837bbc6ad7",
+        "zh_cn": "dc074dcf9ff363de11968bb9915a46f3dad30e4369576b0ee59c108a3ed22780",
+        "ru_ru": "2092acff5c913a36a4af9c85a814f81e4cb5a5e3d10b12144a13cb23e68d5e5f"
+      }
+    },
+    "story.canopy_chief.welcome_permanent.choice.back": {
+      "before": {
+        "en_us": "b4768d66031a367906f5b7a0afdb6049db3ea469afeb55f468f3524b2977aa4a",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "2a2b0ffbd5573414ffda151c6b032921d10ece0911963313150078a09295e31f"
+      },
+      "after": {
+        "en_us": "0b40c0bf0d3838be98945dd6b4e39ab070afd92bcfd2f12d5c1cd0bcf0dabb4b",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "3daba89adffa13909a4a8bc0431542a6392bf554b65f938eed0acb56999a33df"
+      }
+    },
+    "story.canopy_chief.welcome_permanent.choice.goodbye": {
+      "before": {
+        "en_us": "0eaf27c67ce56df01261d80ab9408b0b80c51cd7eb377b3bfd95e930a6ea902c",
+        "zh_cn": "0c254666dd93248d80f4f022751e2e39063c6e0b0818488e1b03f37d93b40279",
+        "ru_ru": "c83dd43adeef2f580986fbe04b5176a96643217773e6ab6e32060a89327cead4"
+      },
+      "after": {
+        "en_us": "0eaf27c67ce56df01261d80ab9408b0b80c51cd7eb377b3bfd95e930a6ea902c",
+        "zh_cn": "0c254666dd93248d80f4f022751e2e39063c6e0b0818488e1b03f37d93b40279",
+        "ru_ru": "c83dd43adeef2f580986fbe04b5176a96643217773e6ab6e32060a89327cead4"
+      }
+    },
+    "story.canopy_chief.membership.line.0": {
+      "before": {
+        "en_us": "82d001077e0bfdff55f91ab2ed41e764469d8e605471ce8fb1b084261a82a4a4",
+        "zh_cn": "cfe099d141427a317e14854819903ca28603e92a7bf54eb757e3ee0cd4c3580d",
+        "ru_ru": "8cac02acfd9a9e9d3416dcc546444e84e01e65af215588689c1702fd4059486b"
+      },
+      "after": {
+        "en_us": "4ff1700dbd7b17b6721679ed02813de39be6cf8f493d79f42bbf2b64fdf2d868",
+        "zh_cn": "ba44b500e38b66297575748f3638ff16f218f067ad73e293adb5783f41d3a06e",
+        "ru_ru": "c3b829e50da396313bf71bc96673a91c4f5c4be19fbb5642d579599f8ea9d4da"
+      },
+      "supplied": {
+        "en_us": "e7d8f47e27b6bf277427efef03f6ac9fc55f318896ee484db1d267a1e14959ad",
+        "zh_cn": "5ebbdb0290bcf2394ad712c20e8b659f550ac0ffa7461612d4b19bf882256299",
+        "ru_ru": "ecbca662ecb22dad457b83a40555dd9c5539be91ff79e02ada64102b2df0f982"
+      },
+      "adjustment": "Later user request: story carriers are freely readable; retain personal-storage privacy only."
+    },
+    "story.canopy_chief.membership.choice.leave_menu": {
+      "before": {
+        "en_us": "0f4d14fc0609ff2f071768fa8f88a75d5e47ae78b0d612d54d79c1009c3d3dbe",
+        "zh_cn": "8419037409b279b2c4a4ab7b34ff16f315bd2346fb57adaa8ff9efc378316f47",
+        "ru_ru": "4c8bf296016dcfe0cf3299dd9705b496abe7ab94f44a4c4eeba9a5ce32c1fd27"
+      },
+      "after": {
+        "en_us": "8de17267bc19e742dde8b4c3ae4488d35955f8b94f686b35a5c75599ed815e60",
+        "zh_cn": "d4a1690732728780f5647087642cb1ab35434c36765c37e609263e4f9e306af7",
+        "ru_ru": "13e445cf5708da105af5775a3f0340af2f07d5eae124c8fee302e9faee3e5ce2"
+      }
+    },
+    "story.canopy_chief.membership.choice.back": {
+      "before": {
+        "en_us": "b4768d66031a367906f5b7a0afdb6049db3ea469afeb55f468f3524b2977aa4a",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "2a2b0ffbd5573414ffda151c6b032921d10ece0911963313150078a09295e31f"
+      },
+      "after": {
+        "en_us": "0b40c0bf0d3838be98945dd6b4e39ab070afd92bcfd2f12d5c1cd0bcf0dabb4b",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "3daba89adffa13909a4a8bc0431542a6392bf554b65f938eed0acb56999a33df"
+      }
+    },
+    "story.canopy_chief.confirm_leave.line.0": {
+      "before": {
+        "en_us": "b16777723262f79339812854a30ba30cfb0433b4ba27c2c7856369218331a4d6",
+        "zh_cn": "ecb5005c72a537353c572cd35d26335be36b613005663b62364dffe39ac701c7",
+        "ru_ru": "98135e03525d5d34c11bd068f5a1a7487ec29ea0c78dac21746e82d87402e6a5"
+      },
+      "after": {
+        "en_us": "a0b6fb3434d250e28fa99b815a3f94844803114f2fb66585008d2ef221329252",
+        "zh_cn": "1d4802e2be55c1f10c1bc245cc10240bdf4e515046026f83a3358a80c607bcef",
+        "ru_ru": "c46775c7d60ed685e66774780987e62b432a42e577a9443661d090fbc5900ec7"
+      }
+    },
+    "story.canopy_chief.confirm_leave.choice.confirm_leave": {
+      "before": {
+        "en_us": "b15ec0b4ebee5ddbb95295b794d3610369b1d2ec030a9742a3486acf5fd8c223",
+        "zh_cn": "8ffbc3dc209aebe82454d3e1458536bc0bea795f98b27ebc1b8db22a78c2eec4",
+        "ru_ru": "d72d405a427fbd1ea6b95acbfd976a9d12fd78c0019e391a098d9813c6d37396"
+      },
+      "after": {
+        "en_us": "df5f8eef6dba5f200116d113028c6e46908ae183d38e934cd2403064c8040b79",
+        "zh_cn": "1c9a653d8ff75907daaffb54ef45969e771895335cc25519b532becb712bc8d9",
+        "ru_ru": "04ae9286cd8f651674574f7d90e73940d40be2d622be710e4082fd0eec9471cc"
+      }
+    },
+    "story.canopy_chief.confirm_leave.choice.back": {
+      "before": {
+        "en_us": "b4768d66031a367906f5b7a0afdb6049db3ea469afeb55f468f3524b2977aa4a",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "2a2b0ffbd5573414ffda151c6b032921d10ece0911963313150078a09295e31f"
+      },
+      "after": {
+        "en_us": "0b40c0bf0d3838be98945dd6b4e39ab070afd92bcfd2f12d5c1cd0bcf0dabb4b",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "3daba89adffa13909a4a8bc0431542a6392bf554b65f938eed0acb56999a33df"
+      }
+    },
+    "story.canopy_chief.left.line.0": {
+      "before": {
+        "en_us": "ddcdd2199543fe35c58cd919d12154f7c0c609e98ed5c27ff5bf08f7b22df632",
+        "zh_cn": "e813260f2adb907c9ca58787aad20ddc140a150f26cf94548dd2f93e0c9a6cf6",
+        "ru_ru": "af311cd85848c99d220c0578556ef42846d2829e7c4abdee82978162ce4dad33"
+      },
+      "after": {
+        "en_us": "ec9a679d9eb426498f09a388fe922ac0e97ace2c0769ade38402e0389ac0b93c",
+        "zh_cn": "83a3ad1d302e7f70737bfbc8eb1de4263d5bd41e0ccab9561c22732f7c2ab717",
+        "ru_ru": "2a3dd36a7c905bb1199f2c9e3a0e833d05086ea26ac0b7166b1452fec0e62257"
+      }
+    },
+    "story.canopy_chief.left.choice.back": {
+      "before": {
+        "en_us": "b4768d66031a367906f5b7a0afdb6049db3ea469afeb55f468f3524b2977aa4a",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "2a2b0ffbd5573414ffda151c6b032921d10ece0911963313150078a09295e31f"
+      },
+      "after": {
+        "en_us": "0b40c0bf0d3838be98945dd6b4e39ab070afd92bcfd2f12d5c1cd0bcf0dabb4b",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "3daba89adffa13909a4a8bc0431542a6392bf554b65f938eed0acb56999a33df"
+      }
+    },
+    "story.canopy_chief.left.choice.goodbye": {
+      "before": {
+        "en_us": "0eaf27c67ce56df01261d80ab9408b0b80c51cd7eb377b3bfd95e930a6ea902c",
+        "zh_cn": "0c254666dd93248d80f4f022751e2e39063c6e0b0818488e1b03f37d93b40279",
+        "ru_ru": "c83dd43adeef2f580986fbe04b5176a96643217773e6ab6e32060a89327cead4"
+      },
+      "after": {
+        "en_us": "0eaf27c67ce56df01261d80ab9408b0b80c51cd7eb377b3bfd95e930a6ea902c",
+        "zh_cn": "0c254666dd93248d80f4f022751e2e39063c6e0b0818488e1b03f37d93b40279",
+        "ru_ru": "c83dd43adeef2f580986fbe04b5176a96643217773e6ab6e32060a89327cead4"
+      }
+    },
+    "story.hyena_chief.enrol.line.2": {
+      "before": {
+        "en_us": "f5d8a5499b7550a2271ac381f452769ad5af05a35f02929be350af56a8a22be9",
+        "zh_cn": "6249ef88036a1d62e35c7290789c11c7f4ca3d8b5a07b20afd2dda3bc62fbf8d",
+        "ru_ru": "3ac551dd9d5aae0fde4afd7856c90a505ef2bd3ab628711332eea45033bcc448"
+      },
+      "after": {
+        "en_us": "ab817d7dc520d5f3f9e224c859077b95028cb4dfccf9f861502a15487d12b724",
+        "zh_cn": "4fd5565d569afa11463aac2d5e45a81d075c126d3a57d971aae7053dacfd053c",
+        "ru_ru": "536ffc6f80052fe23f91cbfdf1c30b15a05af02d4a2404233610e624cec64386"
+      }
+    },
+    "story.hyena_chief.confirm_permanent.line.0": {
+      "before": {
+        "en_us": "e58d256802c4adfb009bf6e807f3453b93db81198e0ccd12309476fa0834d18c",
+        "zh_cn": "da2bfb025d68f7f734ba7970a9deda1f14c53f2a68d74168efabd7517e83ae16",
+        "ru_ru": "7cfb1104bb997438a503ca355c239fd2d61f6cecd1489c85d7b049d48b068cdb"
+      },
+      "after": {
+        "en_us": "8e2663044e5aa4c1eda21a86b7deac529f5ac821dccee6525f6b33c111c949ef",
+        "zh_cn": "511c026fea52de04fb8fc3dc17ae0d745e5b0512173f990639dbbff8ce80f178",
+        "ru_ru": "f937faba693e205e6fde755b8ce6e61cee2e338074125f9fa1e02936cbd49b67"
+      }
+    },
+    "story.hyena_chief.confirm_permanent.choice.confirm_permanent": {
+      "before": {
+        "en_us": "854a089a250c590ff0dc1217330d044402101024e6dbbfa7c384d296a6536137",
+        "zh_cn": "a3b5a3e1f8af7c3c41d02c805758f12169f6d3cf5cca0672e780b793f07ee688",
+        "ru_ru": "4d0a22bcc13010b6cde5056a32447370f21cadb02ed59445fac1a89f6c37d046"
+      },
+      "after": {
+        "en_us": "7d928019068dab07957337e623d7ff3b993a624e3608d86e292cf9acee682731",
+        "zh_cn": "15323bc989b9d8077185d1bfae69c75436ae138820fbd84cbf9da892fd073b78",
+        "ru_ru": "a9112b5dbdcc0be3e74b5ab44816e87dcc90bc075508ca605a686dde882368be"
+      }
+    },
+    "story.hyena_chief.confirm_permanent.choice.reconsider": {
+      "before": {
+        "en_us": "03478ec98db46d3cc69d7c79df957a2d1d5b910c40a9b59ff901ac3246e05929",
+        "zh_cn": "f0436ae3ff0e0d41ca1acf67f8885b3ca0c451d9dcdcd78f033c7ea361690245",
+        "ru_ru": "ad6a6a32d491bb33b289904f8b3f9f7f614478b873af2a28f2ebcad2cd21adc1"
+      },
+      "after": {
+        "en_us": "e0e225ff08d0e3810260ec7ba7d3feccba0024c00a703450f043803eb6eb6039",
+        "zh_cn": "f0436ae3ff0e0d41ca1acf67f8885b3ca0c451d9dcdcd78f033c7ea361690245",
+        "ru_ru": "ad6a6a32d491bb33b289904f8b3f9f7f614478b873af2a28f2ebcad2cd21adc1"
+      }
+    },
+    "story.hyena_chief.welcome_permanent.line.0": {
+      "before": {
+        "en_us": "4606a37cf1ed8e38541203051e940974802daef4c175e810c76f5d5b3ff7e24c",
+        "zh_cn": "0a6253bbde30996294560e47ea6f834fd761b05bad72850bedec7de9fb0d2f7c",
+        "ru_ru": "aba5f69e9366f047728637c6831aa68c525ffef53120ba49ca04e4523c09e92b"
+      },
+      "after": {
+        "en_us": "4606a37cf1ed8e38541203051e940974802daef4c175e810c76f5d5b3ff7e24c",
+        "zh_cn": "0a6253bbde30996294560e47ea6f834fd761b05bad72850bedec7de9fb0d2f7c",
+        "ru_ru": "aba5f69e9366f047728637c6831aa68c525ffef53120ba49ca04e4523c09e92b"
+      }
+    },
+    "story.hyena_chief.welcome_permanent.line.1": {
+      "before": {
+        "en_us": "dd1bf12ac29d31895a0dc3080b6b4120b4a61acedbca4a0b895a412709393a93",
+        "zh_cn": "a9f263d908d7d124e3574545a7ac33b4f49404948e1877f14a1e7839fa0eca22",
+        "ru_ru": "c41f218693630de68d088beda00d7bc3d19a6b9bb6cb4c3efe52446e20994bf0"
+      },
+      "after": {
+        "en_us": "dd1bf12ac29d31895a0dc3080b6b4120b4a61acedbca4a0b895a412709393a93",
+        "zh_cn": "a9f263d908d7d124e3574545a7ac33b4f49404948e1877f14a1e7839fa0eca22",
+        "ru_ru": "c41f218693630de68d088beda00d7bc3d19a6b9bb6cb4c3efe52446e20994bf0"
+      }
+    },
+    "story.hyena_chief.welcome_permanent.choice.back": {
+      "before": {
+        "en_us": "b4768d66031a367906f5b7a0afdb6049db3ea469afeb55f468f3524b2977aa4a",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "2a2b0ffbd5573414ffda151c6b032921d10ece0911963313150078a09295e31f"
+      },
+      "after": {
+        "en_us": "0b40c0bf0d3838be98945dd6b4e39ab070afd92bcfd2f12d5c1cd0bcf0dabb4b",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "3daba89adffa13909a4a8bc0431542a6392bf554b65f938eed0acb56999a33df"
+      }
+    },
+    "story.hyena_chief.welcome_permanent.choice.goodbye": {
+      "before": {
+        "en_us": "8c886148df9d34363f23a1cac05c827835aa761f23f01b88b99df59bbae27730",
+        "zh_cn": "bc27d3fcecb6660e2fe87a1899d1ebffc1d9219617cef87cafbf7586c3cdc82a",
+        "ru_ru": "50dceb55a449c456183a8d8d65e2ac1a02e140769a2c92f08f856b970487d088"
+      },
+      "after": {
+        "en_us": "8c886148df9d34363f23a1cac05c827835aa761f23f01b88b99df59bbae27730",
+        "zh_cn": "bc27d3fcecb6660e2fe87a1899d1ebffc1d9219617cef87cafbf7586c3cdc82a",
+        "ru_ru": "50dceb55a449c456183a8d8d65e2ac1a02e140769a2c92f08f856b970487d088"
+      }
+    },
+    "story.hyena_chief.membership.line.0": {
+      "before": {
+        "en_us": "82d001077e0bfdff55f91ab2ed41e764469d8e605471ce8fb1b084261a82a4a4",
+        "zh_cn": "cfe099d141427a317e14854819903ca28603e92a7bf54eb757e3ee0cd4c3580d",
+        "ru_ru": "8cac02acfd9a9e9d3416dcc546444e84e01e65af215588689c1702fd4059486b"
+      },
+      "after": {
+        "en_us": "b6c8e371a8d5a31f5bd273b176cad72dc367634421b62e8dc5a5d66549d9ac07",
+        "zh_cn": "90f45fa54b38adf41e8fbe538210bcb81f32e8a5c4dbed616c5ed9cb65023244",
+        "ru_ru": "9c9d5818871f82f262032b5cb876568d99d85030c9590f8345733809bb606175"
+      },
+      "supplied": {
+        "en_us": "4716ea98b039e84f25278994ca72f101da899d6203d460c9cf39bade42790b3b",
+        "zh_cn": "8ccdb0f3b14501b0c2d8bb064049ee7be2489d43eb9e60d8e23b7ff5c246bc18",
+        "ru_ru": "e4523b4584fb4444235f500a956f4ed949e07e2bdcb406dd55b5a9f31ec574a0"
+      },
+      "adjustment": "Later user request: story carriers are freely readable; retain personal-storage privacy only."
+    },
+    "story.hyena_chief.membership.choice.leave_menu": {
+      "before": {
+        "en_us": "0f4d14fc0609ff2f071768fa8f88a75d5e47ae78b0d612d54d79c1009c3d3dbe",
+        "zh_cn": "8419037409b279b2c4a4ab7b34ff16f315bd2346fb57adaa8ff9efc378316f47",
+        "ru_ru": "4c8bf296016dcfe0cf3299dd9705b496abe7ab94f44a4c4eeba9a5ce32c1fd27"
+      },
+      "after": {
+        "en_us": "fccc9a51d77b710f0d74fa36affe8577e6c7db463a76644e4949b4d671145a5f",
+        "zh_cn": "fdbc2c922d7edbbcbeda9ff59580567654e6db9ee7d685923da8ce8eadd46835",
+        "ru_ru": "a0abd973e652c8f4504541966ed90631d5616e0393c1d0bd10ed9d2a287d017e"
+      }
+    },
+    "story.hyena_chief.membership.choice.back": {
+      "before": {
+        "en_us": "b4768d66031a367906f5b7a0afdb6049db3ea469afeb55f468f3524b2977aa4a",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "2a2b0ffbd5573414ffda151c6b032921d10ece0911963313150078a09295e31f"
+      },
+      "after": {
+        "en_us": "0b40c0bf0d3838be98945dd6b4e39ab070afd92bcfd2f12d5c1cd0bcf0dabb4b",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "3daba89adffa13909a4a8bc0431542a6392bf554b65f938eed0acb56999a33df"
+      }
+    },
+    "story.hyena_chief.confirm_leave.line.0": {
+      "before": {
+        "en_us": "b16777723262f79339812854a30ba30cfb0433b4ba27c2c7856369218331a4d6",
+        "zh_cn": "ecb5005c72a537353c572cd35d26335be36b613005663b62364dffe39ac701c7",
+        "ru_ru": "98135e03525d5d34c11bd068f5a1a7487ec29ea0c78dac21746e82d87402e6a5"
+      },
+      "after": {
+        "en_us": "31b26dcfa8b787c48eae8f4cf1d1d3a1b6b692a9c6e4b9fb367f43643e26f2a4",
+        "zh_cn": "4b28045d9d1a186db033bede8fceee044ba2127bb1dc2eb57192388b8d25c371",
+        "ru_ru": "480d25fce825bc4cd68aab7b6f9cfee6a6b3abb1d64908c740564b6719c560c0"
+      }
+    },
+    "story.hyena_chief.confirm_leave.choice.confirm_leave": {
+      "before": {
+        "en_us": "b15ec0b4ebee5ddbb95295b794d3610369b1d2ec030a9742a3486acf5fd8c223",
+        "zh_cn": "8ffbc3dc209aebe82454d3e1458536bc0bea795f98b27ebc1b8db22a78c2eec4",
+        "ru_ru": "d72d405a427fbd1ea6b95acbfd976a9d12fd78c0019e391a098d9813c6d37396"
+      },
+      "after": {
+        "en_us": "df5f8eef6dba5f200116d113028c6e46908ae183d38e934cd2403064c8040b79",
+        "zh_cn": "1c9a653d8ff75907daaffb54ef45969e771895335cc25519b532becb712bc8d9",
+        "ru_ru": "04ae9286cd8f651674574f7d90e73940d40be2d622be710e4082fd0eec9471cc"
+      }
+    },
+    "story.hyena_chief.confirm_leave.choice.back": {
+      "before": {
+        "en_us": "b4768d66031a367906f5b7a0afdb6049db3ea469afeb55f468f3524b2977aa4a",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "2a2b0ffbd5573414ffda151c6b032921d10ece0911963313150078a09295e31f"
+      },
+      "after": {
+        "en_us": "0b40c0bf0d3838be98945dd6b4e39ab070afd92bcfd2f12d5c1cd0bcf0dabb4b",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "3daba89adffa13909a4a8bc0431542a6392bf554b65f938eed0acb56999a33df"
+      }
+    },
+    "story.hyena_chief.left.line.0": {
+      "before": {
+        "en_us": "ddcdd2199543fe35c58cd919d12154f7c0c609e98ed5c27ff5bf08f7b22df632",
+        "zh_cn": "e813260f2adb907c9ca58787aad20ddc140a150f26cf94548dd2f93e0c9a6cf6",
+        "ru_ru": "f0533e8facde4e59cbf33eedf8e87ef3b7e306bf18e57ae18b609b0248f04102"
+      },
+      "after": {
+        "en_us": "d63092a6e092f73194a5be769bfd46bec63e7043cde859a522f16c4ecf99afbc",
+        "zh_cn": "ba3b4c6ee746c8de05a104ba18e5a37df94001c66e3a52b2ddfc0bf42c902765",
+        "ru_ru": "6ad951371c3dca87d5debb08351f18ea24efff3e35237bb0e681f969cebd7d30"
+      }
+    },
+    "story.hyena_chief.left.choice.back": {
+      "before": {
+        "en_us": "b4768d66031a367906f5b7a0afdb6049db3ea469afeb55f468f3524b2977aa4a",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "2a2b0ffbd5573414ffda151c6b032921d10ece0911963313150078a09295e31f"
+      },
+      "after": {
+        "en_us": "0b40c0bf0d3838be98945dd6b4e39ab070afd92bcfd2f12d5c1cd0bcf0dabb4b",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "3daba89adffa13909a4a8bc0431542a6392bf554b65f938eed0acb56999a33df"
+      }
+    },
+    "story.hyena_chief.left.choice.goodbye": {
+      "before": {
+        "en_us": "8c886148df9d34363f23a1cac05c827835aa761f23f01b88b99df59bbae27730",
+        "zh_cn": "bc27d3fcecb6660e2fe87a1899d1ebffc1d9219617cef87cafbf7586c3cdc82a",
+        "ru_ru": "50dceb55a449c456183a8d8d65e2ac1a02e140769a2c92f08f856b970487d088"
+      },
+      "after": {
+        "en_us": "8c886148df9d34363f23a1cac05c827835aa761f23f01b88b99df59bbae27730",
+        "zh_cn": "bc27d3fcecb6660e2fe87a1899d1ebffc1d9219617cef87cafbf7586c3cdc82a",
+        "ru_ru": "50dceb55a449c456183a8d8d65e2ac1a02e140769a2c92f08f856b970487d088"
+      }
+    },
+    "story.observatory_chief.enrol.line.2": {
+      "before": {
+        "en_us": "db86133c461cf84c278821275f99758be37f2909938d4a6a0d2228468da068f0",
+        "zh_cn": "95d56e305fafc9435cd23a11cd6c1bc41684da0b5dfac502ef9b03bd3341b97d",
+        "ru_ru": "558f397e4f7577da3659b183389a52678dedc2ce38e1f2d760a6502df93f38a1"
+      },
+      "after": {
+        "en_us": "8a05022f504e58e0365b764a536db98549d0911000e7037ba94bc70f9c09c7aa",
+        "zh_cn": "52c89cb446f7158492725c6f158c0d405e755ba6dae51b93d6c8dbac2c73940a",
+        "ru_ru": "746f32c71b8dfd9b4a8c7b92e4ab4abeca3aa9fe1938286598327959edea6552"
+      }
+    },
+    "story.observatory_chief.confirm_permanent.line.0": {
+      "before": {
+        "en_us": "1596a4cf3a09b436bc3429aa52f156e2c8caeace667f40d0fe734357aa0a00d4",
+        "zh_cn": "1b3540e67d81a35976089a484521bf97d21d0859da885f89a20918f399ba9538",
+        "ru_ru": "02d99ef8c1f9a46ebeae0ce71adfcabf8a80b3ba1d565319251170b49787612a"
+      },
+      "after": {
+        "en_us": "a2ce18dfd6b754198877eae334cbeafce5dcc9ba097591de2a2c20a8ea30a411",
+        "zh_cn": "370d7504a65fa014d74ff2f55588a2e06dce6d4ddecbc0be3091181c43d68af6",
+        "ru_ru": "948bde4169db43e382a8f7796b9908f2f365c1d74e518de5198015a21ea13f45"
+      }
+    },
+    "story.observatory_chief.confirm_permanent.choice.confirm_permanent": {
+      "before": {
+        "en_us": "854a089a250c590ff0dc1217330d044402101024e6dbbfa7c384d296a6536137",
+        "zh_cn": "a3b5a3e1f8af7c3c41d02c805758f12169f6d3cf5cca0672e780b793f07ee688",
+        "ru_ru": "4d0a22bcc13010b6cde5056a32447370f21cadb02ed59445fac1a89f6c37d046"
+      },
+      "after": {
+        "en_us": "7d928019068dab07957337e623d7ff3b993a624e3608d86e292cf9acee682731",
+        "zh_cn": "15323bc989b9d8077185d1bfae69c75436ae138820fbd84cbf9da892fd073b78",
+        "ru_ru": "a9112b5dbdcc0be3e74b5ab44816e87dcc90bc075508ca605a686dde882368be"
+      }
+    },
+    "story.observatory_chief.confirm_permanent.choice.reconsider": {
+      "before": {
+        "en_us": "03478ec98db46d3cc69d7c79df957a2d1d5b910c40a9b59ff901ac3246e05929",
+        "zh_cn": "f0436ae3ff0e0d41ca1acf67f8885b3ca0c451d9dcdcd78f033c7ea361690245",
+        "ru_ru": "ad6a6a32d491bb33b289904f8b3f9f7f614478b873af2a28f2ebcad2cd21adc1"
+      },
+      "after": {
+        "en_us": "e0e225ff08d0e3810260ec7ba7d3feccba0024c00a703450f043803eb6eb6039",
+        "zh_cn": "f0436ae3ff0e0d41ca1acf67f8885b3ca0c451d9dcdcd78f033c7ea361690245",
+        "ru_ru": "ad6a6a32d491bb33b289904f8b3f9f7f614478b873af2a28f2ebcad2cd21adc1"
+      }
+    },
+    "story.observatory_chief.welcome_permanent.line.0": {
+      "before": {
+        "en_us": "04af48b7fe21ea49a29469d1188b4c74e8b9766e89ecdadadef8f8f792d9b467",
+        "zh_cn": "829da35f34a2cc214d8b4b268ec8bc77c5afe8e4c8fac302d3c354817f2b1cd1",
+        "ru_ru": "19d6613e25c6556bf08dc3432fa1ab223d5ee560562c31cf31fdce6a73214efd"
+      },
+      "after": {
+        "en_us": "04af48b7fe21ea49a29469d1188b4c74e8b9766e89ecdadadef8f8f792d9b467",
+        "zh_cn": "9fbd78081fe0d0d92b8399b9dbe3b3295de9595d5faf2f9d2b0500fe791947c1",
+        "ru_ru": "19d6613e25c6556bf08dc3432fa1ab223d5ee560562c31cf31fdce6a73214efd"
+      }
+    },
+    "story.observatory_chief.welcome_permanent.line.1": {
+      "before": {
+        "en_us": "1582930cefb75c095558d29257672a75d1be2ddbe71f992eae706692a7f017b5",
+        "zh_cn": "927ada23a8dbbbd3983da094c10e2defc525d24adc3e6258db28ac51d6a287c8",
+        "ru_ru": "60606f914b7ea7926c7a6191bd48f319880cf1b5c81fb9aa78c0c7618e87d759"
+      },
+      "after": {
+        "en_us": "1582930cefb75c095558d29257672a75d1be2ddbe71f992eae706692a7f017b5",
+        "zh_cn": "927ada23a8dbbbd3983da094c10e2defc525d24adc3e6258db28ac51d6a287c8",
+        "ru_ru": "60606f914b7ea7926c7a6191bd48f319880cf1b5c81fb9aa78c0c7618e87d759"
+      }
+    },
+    "story.observatory_chief.welcome_permanent.choice.back": {
+      "before": {
+        "en_us": "b4768d66031a367906f5b7a0afdb6049db3ea469afeb55f468f3524b2977aa4a",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "2a2b0ffbd5573414ffda151c6b032921d10ece0911963313150078a09295e31f"
+      },
+      "after": {
+        "en_us": "0b40c0bf0d3838be98945dd6b4e39ab070afd92bcfd2f12d5c1cd0bcf0dabb4b",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "3daba89adffa13909a4a8bc0431542a6392bf554b65f938eed0acb56999a33df"
+      }
+    },
+    "story.observatory_chief.welcome_permanent.choice.goodbye": {
+      "before": {
+        "en_us": "9666a296b5c10f6c39e0901d52b88a91d5a5985fe992156bf0d37f6e953b5631",
+        "zh_cn": "3b34c9ae4dd59b053ed4187a6caf0e737331d5affae34a90ec0345207744cb61",
+        "ru_ru": "a98166705064aae2d5f3198df8fcaaa161f884c366b8114cea021150c150d3d9"
+      },
+      "after": {
+        "en_us": "9666a296b5c10f6c39e0901d52b88a91d5a5985fe992156bf0d37f6e953b5631",
+        "zh_cn": "3b34c9ae4dd59b053ed4187a6caf0e737331d5affae34a90ec0345207744cb61",
+        "ru_ru": "a98166705064aae2d5f3198df8fcaaa161f884c366b8114cea021150c150d3d9"
+      }
+    },
+    "story.observatory_chief.membership.line.0": {
+      "before": {
+        "en_us": "82d001077e0bfdff55f91ab2ed41e764469d8e605471ce8fb1b084261a82a4a4",
+        "zh_cn": "cfe099d141427a317e14854819903ca28603e92a7bf54eb757e3ee0cd4c3580d",
+        "ru_ru": "8cac02acfd9a9e9d3416dcc546444e84e01e65af215588689c1702fd4059486b"
+      },
+      "after": {
+        "en_us": "52b88f04ec9e738fe403d2b4ee5ce2aec5c64993bf93e8b9c5eda5c3f84dbe7a",
+        "zh_cn": "1541304608a02161874384296ed2e7a9e8df972cb6a76a4ff3240ae6dcb1977a",
+        "ru_ru": "3e0b723ad91918f9c2ffe4f15264a6dfab56e1037e54be751b056a2073528591"
+      },
+      "supplied": {
+        "en_us": "e369758e6c0a51920173137d858121cd6dd3817986d1bb6f210727e9b53f440b",
+        "zh_cn": "7da2fa5c13f06d43b2b763ceea6c7371e54b54425d69d38acc055ccc37728154",
+        "ru_ru": "af975c5e37bfa3a9abc8c45b7b5cda6722f9ae526cd144d495ff02e0a8d7e579"
+      },
+      "adjustment": "Later user request: story carriers are freely readable; retain personal-storage privacy only."
+    },
+    "story.observatory_chief.membership.choice.leave_menu": {
+      "before": {
+        "en_us": "0f4d14fc0609ff2f071768fa8f88a75d5e47ae78b0d612d54d79c1009c3d3dbe",
+        "zh_cn": "8419037409b279b2c4a4ab7b34ff16f315bd2346fb57adaa8ff9efc378316f47",
+        "ru_ru": "4c8bf296016dcfe0cf3299dd9705b496abe7ab94f44a4c4eeba9a5ce32c1fd27"
+      },
+      "after": {
+        "en_us": "088ce42b829d697956dab7b6d7ce7b0dead6614d36e99a239d2e0f7cca8f0021",
+        "zh_cn": "09ca3dcee16645a75fcfc2bdc2d737d6cfab578d3d8195473d6e0b9d212820d1",
+        "ru_ru": "a35851e46fd1b7bbc33503ed07f9a867199c6626e269cd679c842e8e1de50862"
+      }
+    },
+    "story.observatory_chief.membership.choice.back": {
+      "before": {
+        "en_us": "b4768d66031a367906f5b7a0afdb6049db3ea469afeb55f468f3524b2977aa4a",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "2a2b0ffbd5573414ffda151c6b032921d10ece0911963313150078a09295e31f"
+      },
+      "after": {
+        "en_us": "0b40c0bf0d3838be98945dd6b4e39ab070afd92bcfd2f12d5c1cd0bcf0dabb4b",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "3daba89adffa13909a4a8bc0431542a6392bf554b65f938eed0acb56999a33df"
+      }
+    },
+    "story.observatory_chief.confirm_leave.line.0": {
+      "before": {
+        "en_us": "b16777723262f79339812854a30ba30cfb0433b4ba27c2c7856369218331a4d6",
+        "zh_cn": "ecb5005c72a537353c572cd35d26335be36b613005663b62364dffe39ac701c7",
+        "ru_ru": "98135e03525d5d34c11bd068f5a1a7487ec29ea0c78dac21746e82d87402e6a5"
+      },
+      "after": {
+        "en_us": "a575ae156ad893a4c08c8067d6a936bd2f4ac448c65f3ca4b4a8039948c1d198",
+        "zh_cn": "982c6eef4fadad66f8af702a4f2bb5d4a3470f7383435721ccbc5cf50b4e5a6f",
+        "ru_ru": "ad0f48ea72d4a9beed0ea8105e97d0d63bcc1f6c7819d4483268f66a92fe17fb"
+      }
+    },
+    "story.observatory_chief.confirm_leave.choice.confirm_leave": {
+      "before": {
+        "en_us": "b15ec0b4ebee5ddbb95295b794d3610369b1d2ec030a9742a3486acf5fd8c223",
+        "zh_cn": "8ffbc3dc209aebe82454d3e1458536bc0bea795f98b27ebc1b8db22a78c2eec4",
+        "ru_ru": "d72d405a427fbd1ea6b95acbfd976a9d12fd78c0019e391a098d9813c6d37396"
+      },
+      "after": {
+        "en_us": "df5f8eef6dba5f200116d113028c6e46908ae183d38e934cd2403064c8040b79",
+        "zh_cn": "1c9a653d8ff75907daaffb54ef45969e771895335cc25519b532becb712bc8d9",
+        "ru_ru": "04ae9286cd8f651674574f7d90e73940d40be2d622be710e4082fd0eec9471cc"
+      }
+    },
+    "story.observatory_chief.confirm_leave.choice.back": {
+      "before": {
+        "en_us": "b4768d66031a367906f5b7a0afdb6049db3ea469afeb55f468f3524b2977aa4a",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "2a2b0ffbd5573414ffda151c6b032921d10ece0911963313150078a09295e31f"
+      },
+      "after": {
+        "en_us": "0b40c0bf0d3838be98945dd6b4e39ab070afd92bcfd2f12d5c1cd0bcf0dabb4b",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "3daba89adffa13909a4a8bc0431542a6392bf554b65f938eed0acb56999a33df"
+      }
+    },
+    "story.observatory_chief.left.line.0": {
+      "before": {
+        "en_us": "ddcdd2199543fe35c58cd919d12154f7c0c609e98ed5c27ff5bf08f7b22df632",
+        "zh_cn": "e813260f2adb907c9ca58787aad20ddc140a150f26cf94548dd2f93e0c9a6cf6",
+        "ru_ru": "af311cd85848c99d220c0578556ef42846d2829e7c4abdee82978162ce4dad33"
+      },
+      "after": {
+        "en_us": "d97d46058189d455db62aabeee23c7a937aa65d63ea7456246d3a9381b4e50dc",
+        "zh_cn": "0af4346f8b227935ac61f8642011b95222646952a96bdf1f31b1f11f7bd22b49",
+        "ru_ru": "f5485c0942217a989d86ea2e1f1215f011d1a4365c44d97e063e302ab8a4302f"
+      }
+    },
+    "story.observatory_chief.left.choice.back": {
+      "before": {
+        "en_us": "b4768d66031a367906f5b7a0afdb6049db3ea469afeb55f468f3524b2977aa4a",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "2a2b0ffbd5573414ffda151c6b032921d10ece0911963313150078a09295e31f"
+      },
+      "after": {
+        "en_us": "0b40c0bf0d3838be98945dd6b4e39ab070afd92bcfd2f12d5c1cd0bcf0dabb4b",
+        "zh_cn": "a1315a0212d12d46c59f05d3c1820291ceeb26f41ac089d38e82be1f9caa398a",
+        "ru_ru": "3daba89adffa13909a4a8bc0431542a6392bf554b65f938eed0acb56999a33df"
+      }
+    },
+    "story.observatory_chief.left.choice.goodbye": {
+      "before": {
+        "en_us": "9666a296b5c10f6c39e0901d52b88a91d5a5985fe992156bf0d37f6e953b5631",
+        "zh_cn": "3b34c9ae4dd59b053ed4187a6caf0e737331d5affae34a90ec0345207744cb61",
+        "ru_ru": "a98166705064aae2d5f3198df8fcaaa161f884c366b8114cea021150c150d3d9"
+      },
+      "after": {
+        "en_us": "9666a296b5c10f6c39e0901d52b88a91d5a5985fe992156bf0d37f6e953b5631",
+        "zh_cn": "3b34c9ae4dd59b053ed4187a6caf0e737331d5affae34a90ec0345207744cb61",
+        "ru_ru": "a98166705064aae2d5f3198df8fcaaa161f884c366b8114cea021150c150d3d9"
+      }
+    },
+    "camp.status.beds": {
+      "before": {
+        "en_us": "de3c65c8145c4f9206c190422e7af75dbcd94c69da7bda2f4607b548744a920b",
+        "zh_cn": "e3bfb62f7f40734419f341e51e5caed6a4a432d0748c28fb0d6df9b632d2b67a",
+        "ru_ru": "8398799c9b18fcaf5a2fc6c155fdd3a5fd4f3e6ea0ddf5adb38c788ec9877f31"
+      },
+      "after": {
+        "en_us": "1776b3bde598f2ab2a224818148753dc19b09cbc6dc4337c81a8a632e8709bee",
+        "zh_cn": "2b742a36c0502a321e77ad55a854013da24510c465ef3735b495ead2aa26c0fe",
+        "ru_ru": "4808f4ecf54340c9f03a91af4f93d8cf6daa8ba6190839aae3ac5f5531e0addd"
+      }
+    },
+    "camp.status.member": {
+      "before": {
+        "en_us": "7973dcbe57611efe1199d5d6cddbc71732573c5d3a551a324fea716bbb96683f",
+        "zh_cn": "b3a73f8e8ffc2d95256f60efdb3122dd494e1ef58836d211a77afbce474fd4cf",
+        "ru_ru": "50b65ba870b756360fe1f520cbdad728375766d8286697b0cae72c550aba7120"
+      },
+      "after": {
+        "en_us": "c48d96dbf177130d44f40bbbc7e3ebeedb834315a9d0bca5f22b6c1cb6a5559a",
+        "zh_cn": "c82db8178421726c1b28a57a1bd93e839b4d691308862d1bf8c0e5290fb41bdd",
+        "ru_ru": "a03279798097302106091ce3eb89c942b85402876d5d2491f57955ef93596c4f"
+      }
+    },
+    "camp.status.guest": {
+      "before": {
+        "en_us": "fb4e1c3e8ed1c27a55df389a52068f0a0e8c766422982b07648ca5a9d340f4df",
+        "zh_cn": "af71fd0eb589989172b1fd88d244b8bfc36324c4ff4989b1b392235130ae8788",
+        "ru_ru": "c4e5c31c1792c72339a8f77f59eae32a3546b52f178e669d8fec7af1e88a3c26"
+      },
+      "after": {
+        "en_us": "abc88eb1182016be995b3ec571dbdf1033907999efdcc233c74433f0fdc100fc",
+        "zh_cn": "906d166201053bd136939cd1827bb6c1c93e7622b14691f150ec04a23773be86",
+        "ru_ru": "6161f24163e2c2bbe0472e11881db6eba47c75f157e408de48cacdf5f6af86dc"
+      }
+    },
+    "camp.status.outfit_changed": {
+      "before": {
+        "en_us": "3871f4feb80f4c5528fae090d2face5859324dc6cefa9d2c2fe96e7bff10ecba",
+        "zh_cn": "f355c61d2b74fab337d209603d82a6fe082f9bef35124517ca55370f795b7a33",
+        "ru_ru": "fdcfbcb8cd4703afdb943c292cbfc0ea137cf1dbdf4554bdcc9dd6d246567b65"
+      },
+      "after": {
+        "en_us": "4c2400f0ce9895810c840d3dec5eb9cfcef93435e141a845cc189d426b3b46e4",
+        "zh_cn": "798ca304a47aca9b8a3d6da76e4dda00a5c879e0791dda03893e5508767e7a76",
+        "ru_ru": "9a956894849444725ce5a0a204225cae29d2f05daf021647e90d7907da127551"
+      }
+    },
+    "camp.weaver.greeting": {
+      "before": {
+        "en_us": "f629f381864e98e3cabf0b19857b110e74de104721fdd61ed14f9811c277147c",
+        "zh_cn": "4ac050d2b6adc5bd91823ff4a12c7f19d5b5caaf824b271e5abb916212976435",
+        "ru_ru": "f8ea189ee5008101c6eb1b6e4bfd424c0290d82d6b741fdd3f8e1435bfe81bf2"
+      },
+      "after": {
+        "en_us": "5b979acd1e13ef9367e8c23621ebd9929613475c03f0c18ec437be6b9a167641",
+        "zh_cn": "30a125c8ad18dfb1399a418e102152c9b4fa2723495737f3b7490a7010992120",
+        "ru_ru": "edc90db4542d103c3b96e96da031d80c53d21fc74f7752706f9c489916b5ef3e"
+      }
+    },
+    "camp.weaver.food_low": {
+      "before": {
+        "en_us": "36d6c0545c6b5ec07385d687e2e9df67c9012de4a3ed480d5cf93527e21c317c",
+        "zh_cn": "3fc0d471396a9e496287dd7dedd3ad32c5b60a858bbaefc40cf1a8a5fc7087ee",
+        "ru_ru": "ab7f152ec5bb792c7f8225b809ae084215c18c3364d098b95582079084d8fb70"
+      },
+      "after": {
+        "en_us": "c4c50047c2d8b4a9e7381aefca70e011c38fffa766402313637f88f197c11b78",
+        "zh_cn": "ada1010797b8ea02c4933e9ca83fa0c81690f061a305705c3416e2b13ebf90e5",
+        "ru_ru": "4494cb20ba78ea4cde71c217c1372471506fa4f63d0231370a13bbc6ad82a364"
+      }
+    },
+    "camp.weaver.food_enough": {
+      "before": {
+        "en_us": "fd2ebc44bd913dd022a9e194f9eabdeba3c500e852e1b7809feb4af579a307f0",
+        "zh_cn": "596d1a37f4ce0beed2018110e44be387a52bbd03469a78d7cadafd6580236238",
+        "ru_ru": "d70446c3f6088544c019cffe2d1bb4202094a3e485dd39da9e1c7253dad132f3"
+      },
+      "after": {
+        "en_us": "90ca831f7011a97f8a5d8b816b7f23c18b30ed4a532e8fdc839de29cf6cf3cdb",
+        "zh_cn": "9dd25af96a7a2b531c02ac8ee185a68e19a78d8052179b524a277ff193755fe7",
+        "ru_ru": "de0e11a99851e0bd3a762fad3d646952fe737c958f1da84e6c5659b877c32122"
+      }
+    },
+    "camp.weaver.food_plenty": {
+      "before": {
+        "en_us": "af65138cb27e7c7ff14e4a595c189b8ab2836d8fdc217ba0f935e57d9fae3c77",
+        "zh_cn": "3b3cd67eef6102fe36369786b3bf53fe4786bcaa84852eb91e717e4fe6dcc814",
+        "ru_ru": "ec3382fe739f3c5146a5a3b85131e05baeb77f0a23de238409d15c52a9d13134"
+      },
+      "after": {
+        "en_us": "907296d536d9d4388b55493f86767970a1e93496132a6d1786205311458d813f",
+        "zh_cn": "b94f7461d29315d9a2958f26c78eac432c82c9feca90ac9f39e6c251dcb53b32",
+        "ru_ru": "577eaebc2b87ef2909ecfdf43b6305a9945e0240e48d415462fd1e9b71ed7803"
+      }
+    },
+    "camp.weaver.safe": {
+      "before": {
+        "en_us": "67535053c131ddfa898ca6314fec8733b06b3355adae61b1a94b022fd9a07c79",
+        "zh_cn": "b6a4b78bff4d43dab051625895adf594b1478543153475ba672a175085cbc78d",
+        "ru_ru": "affd62bda84859667e2ed76406f7f4856f291f64a2b61c4fa5c397c01ff5dc78"
+      },
+      "after": {
+        "en_us": "5f027b918e043a7812e398e5d71c2ac52ff7a7768100880b5ed53436a30b1100",
+        "zh_cn": "8d902a7e6eb6151531cfd7d2547a3e05bb741b978d410ba6ec5cc0bad0a54338",
+        "ru_ru": "ec63834ebc922c3c16b9161f4302e68b73af7faf0c225312ae791cbcf3eb3fbd"
+      }
+    },
+    "camp.weaver.danger": {
+      "before": {
+        "en_us": "e9c6ca66795efaa14a9995a4b323fb7f89d5faf378e530ffd756c058df7d2096",
+        "zh_cn": "61964da0613b1e2af7e9493b2e6219fa506e4ba8c3622152ed0a6e55a1b82f1d",
+        "ru_ru": "c6afcfe102f3cb02c52498f86842a3a4e573add9fc613f3cb0382dfa9f3fbf0b"
+      },
+      "after": {
+        "en_us": "93aefc3cd1a1f98d5511ea99749b8c41b8a328fcc92fc8f2fd6e720f5245277f",
+        "zh_cn": "384dd49b19ea470a955ad3ffcb2083f8886736b5bcb12e8dd57c205191378799",
+        "ru_ru": "f9f3d0bcad3b7c0f643f257343bb26b2cbdc9e5ae0c502131828b360fd7fccac"
+      }
+    },
+    "camp.weaver.remember": {
+      "before": {
+        "en_us": "54e017a201533f496c7be69ccf8e7f694c541a853ec39011775f920091f2dfc9",
+        "zh_cn": "22b6e75f38ab5a441eaec7d3a2a5ad3062bd2ec40e03ab69148ed2e39b41e985",
+        "ru_ru": "9b6b34fcd8fe482a8a36c3c5e3d9ed4e4a08d73625e26bcc9fc7464874c53382"
+      },
+      "after": {
+        "en_us": "b37d449043abce03c8166d2529659f6745c544645224d95c9ecb32bc33c7458c",
+        "zh_cn": "cf7cd0a029a1c03b84a5106a26d4f1f114259e68fe5928ab16b0d1524f472a22",
+        "ru_ru": "fb80d0d12315a9606b024418d986a4722503c3c576c9381b65743e83128f627c"
+      }
+    },
+    "camp.weaver.requests": {
+      "before": {
+        "en_us": "5d9cf1473f3c44e33406765a9d329a93820307843d0c122eabd615f022acd4a3",
+        "zh_cn": "39f1d74a5fdcb1f6dfe5ea11462b67066dcca36db72e87dc1f971efd79988b4c",
+        "ru_ru": "01d34957c832997ae62f4287dd0e68e19979534f20f7e93e3b558b814278d412"
+      },
+      "after": {
+        "en_us": "e302a99c9cf03b5682cb3cf2c062cfd13d39af6dfc927514e9d3449c93c344e2",
+        "zh_cn": "cd8c021ec60b449212e3c6e76fd42c32b7ba64a84fc3c80dfc52b2ebd69ed05d",
+        "ru_ru": "7a550d1cb6641ff14a2196bb1afd98c2f9e5622421daa1823a450d2c9283a7a2"
+      }
+    },
+    "camp.weaver.no_requests": {
+      "before": {
+        "en_us": "ff495134954ec1f599a06ccfdd7c042ae0cbe13cda83309ff90700ae126ab338",
+        "zh_cn": "ff7a5d9b891a6adff0ac5a5b3f1192032b2a283751c94557720e8ac70aea0f99",
+        "ru_ru": "6983f00d4f82f74f077b4e3dd2c67931d026510f6a1cb62c3b1adfdd0ba5d621"
+      },
+      "after": {
+        "en_us": "183a01993baf40ee16bcd12cb0411528b5a95d0c8f30ec538b12de8cf9ee5584",
+        "zh_cn": "4ae7c3f650ec61dd57384f4ea51af385d7132f7cf6c490b85852a7cfc60b5304",
+        "ru_ru": "1be9a5edaab40c68a7d26d56c6d08b4d0934ed1fbf00cb57efa268285063b708"
+      }
+    },
+    "camp.weaver.handled": {
+      "before": {
+        "en_us": "073572725de585870a42ac2217ae1079bb4fe5b3d1ead4db84c6a2925726fa85",
+        "zh_cn": "cdec8328a4fb0f2b314772f1dc8ce62a904dfc909315d4fda4240b3754573241",
+        "ru_ru": "38892615e16ea1473e6b4e1a118c51df66017e4019a118012ca2de8f62441f4c"
+      },
+      "after": {
+        "en_us": "5cfb53cf1ca0c41c537484d9c970fd0949efc001aa0d6ebd2e9674ec3e104c5b",
+        "zh_cn": "2e7d8efa1e2ee0f20c48452f7e6b84152e8c1d75e04136cdcb016cccc0bd3a34",
+        "ru_ru": "d028c7ff8c8284a4ea740adec155a8942f0281ec4960a7362dace09dae211481"
+      }
+    },
+    "camp.weaver.watch": {
+      "before": {
+        "en_us": "196af08f69232b4aefd09e4e2c1336cdc35319b3ff3f1fa1912abc7daab6cbec",
+        "zh_cn": "2101cc1dc19c30c5cb27acaa49fcf4a583c8f79c6740bb6059c78ee3c75d0b2b",
+        "ru_ru": "514478a02216bf983c51e86b80a84635822bc2531b0dd6ad883800f1ada8ba76"
+      },
+      "after": {
+        "en_us": "ac63a7f946b13f6450e7c93d7c3e37372ab24cad3256bfa093eb521c497f6231",
+        "zh_cn": "dbec5c514fd43ecf22ae7d5010225f3114ab16c1566636d31b15ae4650c129e0",
+        "ru_ru": "7a23d5d0d3c4ca7ab9172f5407b81f9097a295ee3355a456d9407c6ec42c44ff"
+      }
+    },
+    "camp.weaver.request": {
+      "before": {
+        "en_us": "ccaa8d3ce924281083be1f2727370ae815fadca4dcdd39b5c0505793d0067531",
+        "zh_cn": "613a9cb793f3353e59cad04c182f574b3738f53ced3d4576c7cd2df674527388",
+        "ru_ru": "88c1c038dd89e298c6d6ba41185fcb95e8b08fdc48631eac4b234d06f2aa6c15"
+      },
+      "after": {
+        "en_us": "af64a049634c003e443a9e8b1ea433d558bc3118e34671093760f27dd7daf6ac",
+        "zh_cn": "c8616fbcd82effb67175079447b32b81da6c5396122f87ae2af320100d6b5655",
+        "ru_ru": "441939e5b000110c77818c341e83a21b963bebd57c97be025abc9b22ab936f97"
+      }
+    },
+    "camp.weaver.choose_item": {
+      "before": {
+        "en_us": "5ab4c825f896bf5d66b2e545abadee949ca483ac95d37c2d6269edc8f32692c1",
+        "zh_cn": "1197df7c78b0e9b413a273d2a5f81873430525a4efbbeeed819257428bc1eb2a",
+        "ru_ru": "5812f73caa7242427b669295d23d30b979b65a2f804ae0d3b16c8375a80b1845"
+      },
+      "after": {
+        "en_us": "4128ef3a892e654bf52a6c62d8aeec2265f72a6aa69f76aa9ea60dbc3baa70ef",
+        "zh_cn": "fa0e832dda1d09f26c126924f7b30f0ba5714e3f44e3eb45b64ffd6f2f615496",
+        "ru_ru": "69ef7e5a4ed0958eb5e3b2e100c018d0a87d42ae65c3e51c8080e3fb7c8d6e77"
+      }
+    },
+    "camp.weaver.donate": {
+      "before": {
+        "en_us": "ca62fecabc7f256f81e12e78b0560df0265878e6239e4e5a3550d9d11b54c25d",
+        "zh_cn": "0d373c39817c748b78e6eaf4edecee61e62af912b40756636b0e2163c8e2746a",
+        "ru_ru": "be2b0c8a1fc1192cbe83223038686f4d4060f44471cc01624021c4ae716e02e2"
+      },
+      "after": {
+        "en_us": "659eee697edc2b55c99e218e594944b073dee5e21033b11d0e57eb0b761d3b7a",
+        "zh_cn": "dc078c9586567c56762fab1c5d3f19f4a76f603eecf1957ec5f5ac7daafe7b6e",
+        "ru_ru": "8ec14f47b0c70766f2dc0cc69abc8adcb1fdc461f723b1b3a040360e7f4a1cec"
+      }
+    },
+    "camp.weaver.transfer": {
+      "before": {
+        "en_us": "98f7e34e5189c6da7ca60eecdf275aab092fb3367bf6bf9d29cafe430f52e929",
+        "zh_cn": "886b2e855de30bb4a11ce61ce007d5634dcc683ebf7026d0e7950626bd9b5a2a",
+        "ru_ru": "2d2d05b3e7463a8915a4161b1063fbf7ceb59228fb53f7f91de04894f09f6c6b"
+      },
+      "after": {
+        "en_us": "42dcb5aeee8d3fbb77b1b505aa866f57456441fe9b4e92cdd72b1ec3f3f9a215",
+        "zh_cn": "40b3f084fef2300af3454d35ae61b3eb4c23a3657cc1a453e65a43db0dc658e9",
+        "ru_ru": "cbea952579311aded4b16770494f275fba1a201f39be9d483093a32b1bc040e4"
+      }
+    },
+    "camp.weaver.thanks": {
+      "before": {
+        "en_us": "ebae49b4b2bdab01e984dc891983813b7478d7fb3712ecb269164af02486a630",
+        "zh_cn": "dce51aa17fc81e7e7adc2017f509dcb0777c5519ca6534facd954c854c53eec5",
+        "ru_ru": "7097dd8bae630069a6144c53ac76704409b09db7bfd207f09fc6b79dd74c5a1a"
+      },
+      "after": {
+        "en_us": "dc0b7035510e087f54b49c0e177c1dd7b959c1fdeb98644676d6ca0f2ac3702b",
+        "zh_cn": "1bbc744bb5b276b623caf96fee10f79a0e85143410777f6b185f7a1eebc7c36b",
+        "ru_ru": "e5c5c2ab1cb4c5f86b3c3327551011b58c7e680d3883cede96fb1d00f3b77367"
+      }
+    },
+    "camp.weaver.declined": {
+      "before": {
+        "en_us": "b0e707140f0eb337929f3042ef15441302f4cc2a61196adcc86fdaa5fb58105d",
+        "zh_cn": "dffd4f41b21351418211b9fcbed64efbab761f0d56cb31aa415eb3992e4839bf",
+        "ru_ru": "c50a227badf80b42419eb544043d7ee4db707254b54ba405041809944cc441c8"
+      },
+      "after": {
+        "en_us": "c54f42a1acfb0ab012035a0927e39e6da451e1df1a75d27a190eb5c9d1a7663a",
+        "zh_cn": "f329558ccfbe44fb99507c86c8cf6746feee5ef89def5c0f4c03672cfee3b4c4",
+        "ru_ru": "bbafca960fc0083009b7e4aa715f0241aaf876e3d2ef91c1db137e38494ce92e"
+      }
+    },
+    "camp.weaver.changed": {
+      "before": {
+        "en_us": "f09ffa828cd402c092569a8845d96de1a4671db2c235378004c8780cc3328eef",
+        "zh_cn": "2a1decb97775e8aa0ca2d7ebf5273103f320f40620fccf8cceba1ccbef7b0869",
+        "ru_ru": "262a604709890370be6a8783a6b5e8102448f688d27dd0bf391ad74b7c4dc712"
+      },
+      "after": {
+        "en_us": "41d816ccfb3b38b88d5edbf23e665b6f9cf400830ecc1f991bb84a9d755efdda",
+        "zh_cn": "f8211d00028b9a92af0cea52fe99442adc2949590de1cf759e6920357a428d0b",
+        "ru_ru": "2ac77329bbb1b73711e122974393c37e327971c105ab5e9282ae04c527314bf8"
+      }
+    },
+    "camp.weaver.meal": {
+      "before": {
+        "en_us": "243c1a7b19adedc1bfddccd8b343a9511bd64d6b323b6f9d371decaeb1316058",
+        "zh_cn": "f79fccc4e565bdddd55b1cd51df30f872029698c4a671cd134cd725fa5de36d2",
+        "ru_ru": "502240724efb0ef3e5637cf51d7cbe1817e434038fe3aa53a19a658f02a22db0"
+      },
+      "after": {
+        "en_us": "72c0ca78e129013b68c59365bf9d522a804fcced3157fde894105e1bb63ae3c9",
+        "zh_cn": "04c4afa3ba5e62b826d3cb871586ead376cc29106ccd1c2d5be57a70c04e8555",
+        "ru_ru": "8f3daa58dedd00800ca199e9efe572855e1fca1092aa1bcf26957d72135385d7"
+      }
+    },
+    "camp.weaver.watch_thanks": {
+      "before": {
+        "en_us": "acc8a0116aac627ddb506338f1c8c3567b7a672af435252be61bc90fc64590b1",
+        "zh_cn": "f65d0f28f9b88898621810a455c494d53184d2efe4266f95cb9b44ed135b15ba",
+        "ru_ru": "8a936d5e7465822b1f1e84f959ad60f61687a511284cfc36429a2c5669db7d35"
+      },
+      "after": {
+        "en_us": "0c515211cf9f733f7ddb0829050bc35d73fddcb3d7095c8836b0e8a9b61b9add",
+        "zh_cn": "b34c59008ed7d74bff1dca580df78f34bcb03d5edd69e56b13654a25391aa1e6",
+        "ru_ru": "62132df41409ce2a56d8afbb40a804f5c1457dd761c4d789e5853637bc46c215"
+      }
+    },
+    "camp.weaver.watch_wait": {
+      "before": {
+        "en_us": "ff72b86fdc55c27eeff26efe88ba1bcb4008dfd8ad18d6daedb461c3139f237f",
+        "zh_cn": "2ec287c1c62b4f8eb4bcfa035aa1e6f47da1cfecaf85f30349f1408db089ac1f",
+        "ru_ru": "f9d9a32719e3c2a06a35c3acb37ba8ff21becf68925c7e3b1eb7091edb3acaf7"
+      },
+      "after": {
+        "en_us": "5793057efabce7de94f3e32a45d4c855e8bd5a2fb6a808063e0c2dcabc947d66",
+        "zh_cn": "4ca26d01d5b242e2e564687af243255faad654f90442829da635213999195cad",
+        "ru_ru": "f036a51092254b03a83337327b7e5126b30da052aa7daeddd8d141fb3b3e5d6f"
+      }
+    },
+    "camp.weaver.outfit": {
+      "before": {
+        "en_us": "ec7ed60572ca0bad9e884cbfd44b368a55362e6814071b7e6ce17cdbae5b0cba",
+        "zh_cn": "4fb4c24c1f1acaccff78513665c11afe0bc7d9957e920b922fcb5cee95469846",
+        "ru_ru": "a1fab9a38a11ff96f08206bfc96ac8ba77e9e8579d279682478ae4c5c3a77e39"
+      },
+      "after": {
+        "en_us": "b9dd36e63a67f07dfc55918d8885c31a8998b15393fc76d04565534a6ac9b57d",
+        "zh_cn": "c355bb353bd68364b1331823bdacb59e2574ed431969673f63eee7726fcfbdab",
+        "ru_ru": "1717c8456f12b5c9d2730b203d5ee71ea5962db53e1c2f24f1b1ba109689c574"
+      }
+    },
+    "camp.matriarch.greeting": {
+      "before": {
+        "en_us": "f9b18898002d160367d0a5326dcf613564675809fd80c0c7481d324d6042a1c6",
+        "zh_cn": "15bac3f5dad07cf3d2317495f519799886a300da93d5a93dff53cbb75603c90f",
+        "ru_ru": "7f8c9004137a7f84c05a751be5e81f42461483c4da25baf342ee6a216f2fced9"
+      },
+      "after": {
+        "en_us": "2e67b148ab641ee595a4fe1285946f356158e69a0e964540c277e34f9d18e68c",
+        "zh_cn": "727388cbffb9cbd20ffa89bf989a842a98f34ccdd88163b271eea1fa3fda35fd",
+        "ru_ru": "366640c7e15e1ab9d7f90ff88b5c2af84fdfcb0c3486f888d1196db072bd6c97"
+      }
+    },
+    "camp.matriarch.food_low": {
+      "before": {
+        "en_us": "da2d1fc4a48bd81acc5f6b3be6602eba5d2e839abbd832774bcd07b315b5797c",
+        "zh_cn": "6f7dae3220db3e2b6e862c144d59a66ee9bbeae168bc26ed5d7386b02273a33a",
+        "ru_ru": "cf5596894b52b78450434e621426d6a17e6bbc99e76d02b96a4b92571403b069"
+      },
+      "after": {
+        "en_us": "32c3e87a9723b267c45b8e98f97acccfdf1a349d07394908a42084d5c6662927",
+        "zh_cn": "7f9036b2326831fb7eae3faae55f80fd8f7c9da19ae0545e9ab1e92339773161",
+        "ru_ru": "795db9ba4fa90521ed06fa10c3ae561748316966dd8c44b8d9685522460898e7"
+      }
+    },
+    "camp.matriarch.food_enough": {
+      "before": {
+        "en_us": "04ca40d54a2a5aab33e5df2d2adab48ba81bbd1674ace6256555cb24a5f84161",
+        "zh_cn": "13456a7e37562d65ccf1a67307cfc660bcb2afb01c51e8148750aea57bcd9333",
+        "ru_ru": "e502ff4f11c7bdfade5ff29c5937175152ba8cc841854d7a98d5958305b7318f"
+      },
+      "after": {
+        "en_us": "b8c3729d00d359f688cc3669124722857bb211486de37310fd5b6bf978624c9f",
+        "zh_cn": "aa9cbc389f554bc928c9e125cffdd142e88d53ec9c03a38dc84033dcce70298c",
+        "ru_ru": "ebaf69f8141ca33dbfe408180387672baaa35c199ec2ba9bc388a0fae645cc1f"
+      }
+    },
+    "camp.matriarch.food_plenty": {
+      "before": {
+        "en_us": "a6a1b1a2236c96ae7771904f996902bb29ecb26ea52d43a463f82fbdcb81b913",
+        "zh_cn": "95a157d0df9a68d06507c69592de9125b5e4d72aef8f16f4a752ecb7dc91496e",
+        "ru_ru": "7b2cfae8d413e8e1d837b1c5e6dd2231f508ca3cfbafe104598f88f12563d239"
+      },
+      "after": {
+        "en_us": "4279430add3333463360aa1d9a010e9d53f19e764ed5f6d668c254b9bb95df11",
+        "zh_cn": "16b911a887fb13dd0f7bd934bf080340d229004d745add5b1522771ac6041d0b",
+        "ru_ru": "48009e7e3143cec55c2fa150858ff804aade9dcafc44cd38f76afe07063da8c5"
+      }
+    },
+    "camp.matriarch.safe": {
+      "before": {
+        "en_us": "b65af2004f1569596a82ee7d3399b16e785508c231df02d13fe44edb315b125a",
+        "zh_cn": "934f44f3981c8f99290368c18f5d963c1a4be846ebc81c8140a1a0e4ce8aec27",
+        "ru_ru": "60b6bd68f70aec3450488b7578554ea1fbb34c56c42cd395517053d8256165c5"
+      },
+      "after": {
+        "en_us": "effa7503571e1fc6f52c33c41360c5be6f2eaaa936cb92dc7f6026f5b8553b69",
+        "zh_cn": "4402113367bef3b05e038b21fc7562fa4ae61984fcac2bec6e875611e4ef0c0d",
+        "ru_ru": "c488bfb115a2ecc18d15133610fceedf2cf0b59cd9a4daff339f519928ef3238"
+      }
+    },
+    "camp.matriarch.danger": {
+      "before": {
+        "en_us": "3c96a097a9e03426c6ae5376c6b3ceef0d7a10be420ec12315287549b61e6ded",
+        "zh_cn": "dd6272acda943960c18f5125150298a59595ab1a4e9aa4095485c2daaaca910a",
+        "ru_ru": "991bf8e4ade526f5c0c9e9cd672dd079aff1c1605a41b730b519784a418afea3"
+      },
+      "after": {
+        "en_us": "b4a6a06ed2c9462f76aa7c7357c3a7dedf45227b5ffcb8c8893c83369613bd01",
+        "zh_cn": "6df3a991d8db938a987af06a25be07bb055fef30ed143c3d358b3dbffa6e184c",
+        "ru_ru": "61110075ded68c987f795f23341c745ce9c3766d94b869728db8df75036e80e1"
+      }
+    },
+    "camp.matriarch.remember": {
+      "before": {
+        "en_us": "796292b7c1698fb94ed7c9f0332723935008feedbb20a59207ee2dc5156ea4e7",
+        "zh_cn": "574e2df86424baad2b1854da94fd82e8ea8a54349f19174e53a9d7faa532b403",
+        "ru_ru": "e6187b4324d2efabf57d86b25198fa1887352b3cf347d3b5ebc30ab2879acfa0"
+      },
+      "after": {
+        "en_us": "8214e1c36375f8ac2e298ffbd8bbd952a37ef168a105760f9cb164b03f8b4635",
+        "zh_cn": "151d2286e53ed50dbc738c19e67db19b2fc31da82bbfea41cfa16186e08d8eb6",
+        "ru_ru": "7d606ee8c7854e1b7997b9acbadde1160d9286e7487dc0244424739ffaf0b362"
+      }
+    },
+    "camp.matriarch.requests": {
+      "before": {
+        "en_us": "3334f08562562e526be605dbacbf34fb80380cdef99eb5d520921adc05958989",
+        "zh_cn": "de1e7cbf7baa6d8e9057ddc27aeae0c82f1d82d4a09f2c176ae7a36cb3ad80b1",
+        "ru_ru": "3dbe2d2ce0c79861d796b7872e281611264db43242ceb35d59819e550c6c3d91"
+      },
+      "after": {
+        "en_us": "e3f05fa5db279af13c7e9edbe495b694bf1176b4575b83c084ba8cf9fe151982",
+        "zh_cn": "ca7e0542975a7880991ba544a4bc49b6254bc97491307def214b12caf1e05200",
+        "ru_ru": "90bd2893012b074ed3f1689c42a6863e97f30ad1e4cb1ff68421d047b0bf1b19"
+      }
+    },
+    "camp.matriarch.no_requests": {
+      "before": {
+        "en_us": "f44d0a484c169dc0dd116c6129c8682ce0c5d7e9dd965845dba0081a40c78d19",
+        "zh_cn": "6bebb2fc54371f9676fb1d5863b7fb20ec888540eb6db0ca757ab7f1bb93eb7a",
+        "ru_ru": "7d37aa26d98f0da76a8f43ba1e83409538c25bd426b3565c20f91f623418e338"
+      },
+      "after": {
+        "en_us": "1362eac08535c58a9ef4ebe2f69528c8f3fcece059e4c7bfff2e354612830444",
+        "zh_cn": "59ddc52b66a20aa27e2d3c2ca8e8cca25722ca1bb555c054d7d127150912cfdd",
+        "ru_ru": "f3a053627dd11abb15538f1451bec30bd16c88125e96e37aa0f92d9b053d5768"
+      }
+    },
+    "camp.matriarch.handled": {
+      "before": {
+        "en_us": "2ec5d379280a0834bb1d1f2d9698a49a17b4fd0a4bd09166a0c34a0cb6c546f6",
+        "zh_cn": "522ece9dca199419e2c620b80b15949f2a69859b3685158de4578c71e087811f",
+        "ru_ru": "64dffd429f1e39a3f9e212ba65097be27d2c24d6ab935294c1e7869fc501646b"
+      },
+      "after": {
+        "en_us": "700b3a41a72e2b6acc9f5b8eef6ce4873243e79f57a7daf5fb6ecb28df1cf266",
+        "zh_cn": "44faa5e90e2061a3e85732a0dcb48e7ec8fc508464ddf56ed043fcce0b0ee4c9",
+        "ru_ru": "450f12cafe24ea71ff0d7fa2b0cec9217266d5ac69adea8f7350cd0a23d40907"
+      }
+    },
+    "camp.matriarch.watch": {
+      "before": {
+        "en_us": "58a81febc72cce318c1e1ba38f1bed6399dcc36edc7d229510bac2a33acbe152",
+        "zh_cn": "35f277adc6a2a4637b781ab6b66174d85c50791c75aedbf8422e371166118bbc",
+        "ru_ru": "ada317fbda3c0b5127ef093b3e9506dd4b62fad3382a85f2390ebf73e66547d4"
+      },
+      "after": {
+        "en_us": "f465011699a9fbcb9891feb14f7096d47a36d34b9fd58709158270d7df95bd99",
+        "zh_cn": "d94953382584481e9e317674e565e2f3c455a0320b830481c4e7b9dc2affb942",
+        "ru_ru": "bff0287cf0db8767e88b1db325bd2540e13a6c07a3b66a46defb0c1cffe59c5a"
+      }
+    },
+    "camp.matriarch.request": {
+      "before": {
+        "en_us": "d1ffbbde94ac306d63fda444cbea84b7a1e7e705451a8c1496eb5646f780d767",
+        "zh_cn": "f8608d358c9963990ed248ba53029e19ef0e876c1f31f553d05cf6f55247a466",
+        "ru_ru": "7ab0fa42b699e2e053fd4ea2d5063f05a91809469fe0dd40940bfda0f9e33105"
+      },
+      "after": {
+        "en_us": "d3c87d560d0d89887f571f94b4147e2e1b2ce62f89b1facb651555c61a415b87",
+        "zh_cn": "e06ce8faa6deddf3abfda0e47b7236cc96853fa13c69b7ad7314a1166fad7051",
+        "ru_ru": "1e442f472dddd40c4bfec1910637ce4f84c643323694c3da4ffc6219e6f560f5"
+      }
+    },
+    "camp.matriarch.choose_item": {
+      "before": {
+        "en_us": "653cd34915ff1d6ccd3a7781fa4190786c80a3d4c48ded5557de0debb83025cf",
+        "zh_cn": "5e58193cc2bb572d8358137d464dee39851a0762e731b6ca7433c6b6a1c3762c",
+        "ru_ru": "6210d027a8411d0d9fbe1a11d50b5606438188ab90088a9f889a06af3f75e269"
+      },
+      "after": {
+        "en_us": "8df89195e80e33318cece33d3da9c36aba05a2c7eb6e4d6bb1d770d4e0214f43",
+        "zh_cn": "5e58193cc2bb572d8358137d464dee39851a0762e731b6ca7433c6b6a1c3762c",
+        "ru_ru": "0523e646d064b2cff83d7905daa76b899ee3c42537d472ba934454d72043bfad"
+      }
+    },
+    "camp.matriarch.donate": {
+      "before": {
+        "en_us": "3fae8243072ceb23dd3df7b5c9e0d36c8baeb1b071f78f2b03159e6045a42ac9",
+        "zh_cn": "3790b6dd95dbdbea20404739332455abbe04948b23432654a671bc8853c193da",
+        "ru_ru": "5fb2e7fb384f1b34616c41c48dda088e1764c41e3db2792a97a927b49f92ccfa"
+      },
+      "after": {
+        "en_us": "053cc5e36cb516f4c6461b6188e1cf60d4b0a40ef79bb22d0e3891a73ae4d599",
+        "zh_cn": "46554ad2486f7dc00be66c1862566aeaffcc8ff713359632d34b1a8c891538a2",
+        "ru_ru": "9edec8b76df7e7a577bb00b9559e61d42ca04d5675e10b8520061eeb1f255ab4"
+      }
+    },
+    "camp.matriarch.transfer": {
+      "before": {
+        "en_us": "0224d66c47a247b0b894e275179ac69841b0ff38d06ee5d62c8b38deb0adca97",
+        "zh_cn": "30ce58c96248f31abc96e916253873e5177442c3bdaa281538265e170b85f6d3",
+        "ru_ru": "c8e8a2eb7bb1c1d7019ae3ac3d238aada239f7e02d64da8927750cdadc25fb5d"
+      },
+      "after": {
+        "en_us": "cf4338ca9c0288e3dd2d3b9e0fd1bc812c87ce81885cba8096cf591bc9ff20c5",
+        "zh_cn": "c0eb1751575bcdc1c2e3dbdfcbd64845e430aed9b089fed2eb5a387793111b33",
+        "ru_ru": "6163a5a74b203d66f06eee1da1118cde934454f19e5659831ccf91634f87898f"
+      }
+    },
+    "camp.matriarch.thanks": {
+      "before": {
+        "en_us": "638f5f7281646015031f5f690da0dbba5d7ca6d9d2c9dce5723ea2b501cf63ac",
+        "zh_cn": "56ef6b8017f3010af0f647f3cc35a497245d37a16ff958de06496a00007a0572",
+        "ru_ru": "459f3a1a47dc2e63e1abf7bad18d5cb5ce7ddec23bca8e7bd67450282f1a1713"
+      },
+      "after": {
+        "en_us": "ca24945eb90fc1dcd5751948106fc565842aad4cc370aa625f709d41d84aa575",
+        "zh_cn": "535d8e86d3b0da81e18b9bf77672375fa117a1d9d49afaff7cf63a697758615a",
+        "ru_ru": "a7e7f8099fdde2808eba307d775c8a107ee831804e2c53cbfa5760d0e277025b"
+      }
+    },
+    "camp.matriarch.declined": {
+      "before": {
+        "en_us": "d415fe7e71ce6ba7ad17ed6c6658429f5bfc7f9fc9d41df339e69b26e7e6df3a",
+        "zh_cn": "74c6ff00fc9e1177a42b8650ebb57840ae27c4997bea98157bc6ed2af0b3d4c7",
+        "ru_ru": "673f02d6b326b4ca93a2cee707408b35fbca5b99b88507889a08a25ae32ab52e"
+      },
+      "after": {
+        "en_us": "c1c323bdbd76cabc6a5cd263d0c184f8285eaf60e8e2715b29cb8533ff95d461",
+        "zh_cn": "5969e34dd6a7a0a52fb8d1b83ea15f8bd8937f3dbffe60158f43526c0797701e",
+        "ru_ru": "0a70445a44747a2ea614a0da6660113e14441ea7925b98df5d3a2502a7d85929"
+      }
+    },
+    "camp.matriarch.changed": {
+      "before": {
+        "en_us": "a1d28e14407459f343d9170b829a9de0b4278a4c4107c1bc5193e8a14ecb7606",
+        "zh_cn": "54da074520ff85578e2fc944d241992485e7b0b4419deebd448b16d49d8e4163",
+        "ru_ru": "49567adfca71ba9010ebf8efb0a41af1cdad0bd41182dd217c63b21915bc29fa"
+      },
+      "after": {
+        "en_us": "e34a1918a1446fcd95da35547f096cebb324e36666a1682174ad5ce1012055e9",
+        "zh_cn": "8cec1d49a54c9332c97065b13ff92c72ff238b070d56067eea65907670d9873b",
+        "ru_ru": "1d98fa0b03d82d57c0bfa2106dbb5cd2dbd7b5a8cf3ba2c8aa48cf8242f6abb0"
+      }
+    },
+    "camp.matriarch.meal": {
+      "before": {
+        "en_us": "1a90edaaa0f73a714344165c6e752e233084b84fc00ae14a119ad70e076d1693",
+        "zh_cn": "49a25f2e712c916f8566238f3e38bc6d257ef0a5541fca04959e7424de838bd3",
+        "ru_ru": "5fca8dbfd91068452e6ea0d0679ff8e395e005ccdbbc6b463a34dade37f5dc00"
+      },
+      "after": {
+        "en_us": "51771533d06dda6fcc4ee838cf040b25ef16ed19c8d3c6ce58a0c0e5f5e9b29d",
+        "zh_cn": "f191199aca87f6be6b833a29fe3a62f0cb8b621a41d22df3b3927d13788d025c",
+        "ru_ru": "951b22f587409c7358f1f284806f23c0a62e6483667c40367f4719cf03e4cb9c"
+      }
+    },
+    "camp.matriarch.watch_thanks": {
+      "before": {
+        "en_us": "76271786ea5c8f71d3e97a335437dee4c78f2b96b1b3fe9d31da7bb87ec5c2ce",
+        "zh_cn": "c29a77e3814f58660cb41093793b3a2024ae22a8230aa8145fcc271da998f887",
+        "ru_ru": "d2d038474f5787ad05454fab538fce7827d8636135d0e077ec42963d83a9fb24"
+      },
+      "after": {
+        "en_us": "f899b2d72e646ce0847f377e64f7c7f855d0b594bd9ede42c2b2835a5e48c3ab",
+        "zh_cn": "f8bd09bb9f658266cb1afbf6b10738ccc0e6eccb14b2178554a669e0bf59b04b",
+        "ru_ru": "bb9cf798f68f1dd69e7893acc7819372311c96b214d1683a23f78f1f2e9dd456"
+      }
+    },
+    "camp.matriarch.watch_wait": {
+      "before": {
+        "en_us": "1c77d9b965f3bb0aaa19710d669a8fb447b007bd063a2031175e5d46714a664c",
+        "zh_cn": "e0f4f3b34584b0b4c5bcf33920ad674834013c7c3a53b4c3d7232fa4194988e2",
+        "ru_ru": "33ac9ae187f85bbd3c9cb7b97b78267cd1a0853dd11dd1f59e35eacd8da34567"
+      },
+      "after": {
+        "en_us": "285b00459ffcecbcde020d75041dcb6b973a61a83874176b70259bb80f9c9c9e",
+        "zh_cn": "8a45b6f6077dbcca8e79289ef2626eeddda888aa41d7d5a6d4979d0a871b5361",
+        "ru_ru": "0f90a846376cd49be1b312debe05fd7262dfd221409d82d6eab48c4bc744e863"
+      }
+    },
+    "camp.matriarch.outfit": {
+      "before": {
+        "en_us": "5bd7a63a60fadcd82d4eb1f4434993dbe06183799c2fdd078545ace867aaa8aa",
+        "zh_cn": "d037846af92dcf22d9f196f989c22fd97bdb3325fbfd42802dd7fdcb2f9631ce",
+        "ru_ru": "21c2a7131bc8711e87abcc6a3353ebe7860223562e474d98e88c6c47075253c2"
+      },
+      "after": {
+        "en_us": "0e438501021a68580768eb87cb5d15631c3da46c173bdbdb23cadb94c4c3dd6f",
+        "zh_cn": "96335b3a8cb815c24ed8a6e5b834b288d0e70b1999caea3f84dad1261ad0b61a",
+        "ru_ru": "85a38deb631aa989f3bbc9af900d878589ff6460e2d3da7b939df00e780f86cb"
+      }
+    },
+    "camp.archivist.greeting": {
+      "before": {
+        "en_us": "39a5b2003cb4135964ddb0d224154cd1fd9f32c71139e6f3317b7c349f447f98",
+        "zh_cn": "0c7613e3ff3d2e7ea66f08ba0f8ff48ef0c4001f404ffb857f3be2f014730a5e",
+        "ru_ru": "897a6c160ee90f1eda7563a026179380a49ccee05d3b0a98b6e4688c3255f85b"
+      },
+      "after": {
+        "en_us": "ca577e7e9b0d985296d43fcaefb38db3e22c462587bc02a404c6186d9980956e",
+        "zh_cn": "0914e262418fbab1cf8547c3d3437f435954bd6062a30fe4f31e8e1fabbaf314",
+        "ru_ru": "9a89ff19ffab9c9125384197b01f5f7e63bfed8b706e777d5d945e1c3c8feb81"
+      }
+    },
+    "camp.archivist.food_low": {
+      "before": {
+        "en_us": "527675625c475c1e644bf59063f5806de09be4617c1fc2c1c86e2f797bbe6ddd",
+        "zh_cn": "6f0f7adc190e88bb3c9d825533fda88f086f5be547e896a26d4234ab3e8b85a9",
+        "ru_ru": "e974a2da5485ce5af7e9c63124f5d65caf6137e8e08372b2574af4358c74f5ff"
+      },
+      "after": {
+        "en_us": "a6035bdfa7cf9b2137095af5cf45127df8fa4ef2b65f06e5c011372cfb45757b",
+        "zh_cn": "41bbfad35f9cbd561f1e42760402a3457566a0ed0d75a7a4ce6aaa897c704d7e",
+        "ru_ru": "24e59fad79207b6e7341393d75ddf2f53c4f1717991fbb93922f12ebb67e14c7"
+      }
+    },
+    "camp.archivist.food_enough": {
+      "before": {
+        "en_us": "e71d3ce5b09eb633b36d2cab9ff2025ee603728be70fea2cd9414e62c1575b46",
+        "zh_cn": "7ee1d28e1d3f828180dc0375fbc666204e3eeb905d7d30592d0adbe6dd435488",
+        "ru_ru": "8afed8449a9c5d5d04abf9d4382712789a319c873b0b7cb136467328eaa7eaa2"
+      },
+      "after": {
+        "en_us": "f55ac91a0267e3b8612ebcbd3071029f89ad723324ecf45034712fe3a7bea3ad",
+        "zh_cn": "aed55dbb14402ede7428593ad638f177e01eca0f6ebde63e7bf09bc181c4d87e",
+        "ru_ru": "6a1aeb858c1cadfa8097ccd31f3e20bc9956cdfec2ec407cc7edd20b774162ee"
+      }
+    },
+    "camp.archivist.food_plenty": {
+      "before": {
+        "en_us": "cdf811bf9aba943adfff17fb674ed4f586af166b46969f314721a3975fa9c132",
+        "zh_cn": "f726995bed7fa3dbff7a9fc2916fd44742c636eaa046a410364760dc6227b3ca",
+        "ru_ru": "16fb563d5f05adea690cf50536be97cfbc38996e1f1a78ccbf6bd6641fe7d7b9"
+      },
+      "after": {
+        "en_us": "83db01e040c6470141766b97787a2576430550bb018d7321c99b3c63a9970b30",
+        "zh_cn": "7921e8d47ce8413df9c5a2a53628d9fa73ce85df118fd9a5b25898f59781938f",
+        "ru_ru": "b0c548104a246e9398fb0669bdf7115c7c68539f017aaff5651f3bd2ffc26e7e"
+      }
+    },
+    "camp.archivist.safe": {
+      "before": {
+        "en_us": "535998bc82f99ebe1115417dc2d1c3c5b0bd77a3cc43c92f790e0c4566a9e714",
+        "zh_cn": "6c6b85c5227d257fb3e93607bcc412be87c2dd1bbd518930d99f02ce841c82c6",
+        "ru_ru": "85969d78ce4980577bb5dd66fb09ba67a28323a8c43d687f58c7bacf1564c21c"
+      },
+      "after": {
+        "en_us": "41443baf1f124f5f4ea7b8668a0c14a136218f4fc98b159107599e0dc2d8279f",
+        "zh_cn": "3ba16cc265a1535c14e9904a059b96df7ecd17c8d2a464b7bdd0a48c5c40e144",
+        "ru_ru": "3261dcba6a60f6c33413ee0e3a80890758be793ef7758ee0e60975e64571df92"
+      }
+    },
+    "camp.archivist.danger": {
+      "before": {
+        "en_us": "40d7e4832861e669a7da0a009ccab8e89dec92a1e068861074ecb97ee0a11559",
+        "zh_cn": "9e83d8af9ba0e4cb18c3f57a6031c85d6adcce7ed7aac0e0685c016d61bffe41",
+        "ru_ru": "1eba557cc60edad561d22359624e6862da371251c0241eae8847e855c5d1bdff"
+      },
+      "after": {
+        "en_us": "39490d3e82932254c02847fd6a71443a4f564e55dbb75241d98bbeac341ef7bb",
+        "zh_cn": "c52f0b2dc2d0b3c1183d605a4d7d53b0a3a0185a1bc37facf7f26c362c473528",
+        "ru_ru": "d00ef0476036d8ee10cef5fd9fd3003ccc10062574dc98a2f4e04d217ab6f38d"
+      }
+    },
+    "camp.archivist.remember": {
+      "before": {
+        "en_us": "9d69003d3264f9a6c8bfb8d14ccd48ff4376fe064610167d4e7d330dca349a0f",
+        "zh_cn": "82465391d3cac4337c3f8119caaf37d355fc08656ba491080e040304ca7d0c34",
+        "ru_ru": "497ca1863f28704e580723ba8f44b9967d0c02a3446f660e4f19bb85adfde7bd"
+      },
+      "after": {
+        "en_us": "178707025a8d7719518fd081d8655cbc6ee3240dccedd6008203e60a0479e346",
+        "zh_cn": "c6ea1737b169f22bf0b78d8a00277f7c413b7294fa8b3294868a8431be368964",
+        "ru_ru": "7cf9d5297685964df024cb05bdc75d3ae8213aeef7f137de27680c3bc3c46e07"
+      }
+    },
+    "camp.archivist.requests": {
+      "before": {
+        "en_us": "4790a5b2cbe4dcd79f15e0295038bd435dd21d5f909021c052af2389a7bf5695",
+        "zh_cn": "31edb5fa0ee45106a1b5519f14a912e3f56bd1c5ae11c63c1e0612653d0ba0f8",
+        "ru_ru": "65e69d08af70cd85e5fcf8423d4fb1cae7a32130dae97c5d042c4ccd150fe369"
+      },
+      "after": {
+        "en_us": "22bec404d3908e611db49a3174f3f7f3174df255c5511497b4fd59fb70704c2d",
+        "zh_cn": "7d22e7b7c99603361bdf079bcc580b0a2c7239e8ab241f3d0bb02c47c585e8a3",
+        "ru_ru": "0fcfc6ddc38a1bf2bd0cb4cdbad60bcefd6e55b01a5e8cdd426501e1544c1143"
+      }
+    },
+    "camp.archivist.no_requests": {
+      "before": {
+        "en_us": "40a0b8878e935c3991604b67b3ccad7b2106b101e78fbd14fa345c138dbbd96d",
+        "zh_cn": "0de8c449656cd4c18efd93923c53e54945e3b7f9e9273866b6109f073dd917bd",
+        "ru_ru": "7652bc8706dcaff31d2c1920d4c3c944b7048f8d61e2a4626689a6c18903d3c3"
+      },
+      "after": {
+        "en_us": "85401713df689e821a5a95d0c5f2fbfa75dfff82bfc6a0e71bd4f9235ca2596f",
+        "zh_cn": "f5a598cb38c48edc50473b45db0f77289a4078d49cbfdc7ebe754a2e201492d2",
+        "ru_ru": "aa6cfbca3ad73cca1ae21e82e31bb620efd77b0f0158e063a0439ab262c0a178"
+      }
+    },
+    "camp.archivist.handled": {
+      "before": {
+        "en_us": "c8669663b5305a04977063b27c6520af6b10433a06810152fd3b9c3aa37bd601",
+        "zh_cn": "d40ae86628409a21c73a02e37760f9469318f341c714efc1719b5b72ac169039",
+        "ru_ru": "3c536cda286236aeab7e2243e5a6485f80230eee767d840b818617554df4e991"
+      },
+      "after": {
+        "en_us": "9de57edc6131700d68f292c75296b2134046e5fa2a18ceaf95ac56c636b833f7",
+        "zh_cn": "ddbdd794f049674ec1d1fffbc0bfcac089c892bdcdf3810a649ad2e7392103dc",
+        "ru_ru": "dd24b9665b0ab5cdee3b18a803f916bf2deeaa5c1625243d409edf3ea111670b"
+      }
+    },
+    "camp.archivist.watch": {
+      "before": {
+        "en_us": "b79fca43ec55c4c6d96de4c014ec34bad3bf231119a965a72def9df423e6e88e",
+        "zh_cn": "f8cce3aee2777971775fb271f160ca7bcf55878220635250cba7045972bd05c8",
+        "ru_ru": "eac918cc2b29b86169765d95e655249acc29197281029245108b5f62407f0ae4"
+      },
+      "after": {
+        "en_us": "d8aad36ab84561acc6cd162838760e8e02ed0a833de92c463a0de1766536984c",
+        "zh_cn": "91383180e9b6ec7b4fadd6d63e3236cbe84ff1edcb10d60f54119e44f3dab81e",
+        "ru_ru": "e3e39405ccf7d94c7cf57d26e89bcf9a3a4577207cfcca14aa973d45f2a7c2d0"
+      }
+    },
+    "camp.archivist.request": {
+      "before": {
+        "en_us": "d77f37e151f524e3e5595dca89ffa997b7cd0b1f1b775e5046891d0933a9109b",
+        "zh_cn": "2e2ad387e9b6d5b106ce9b006a0fcc08255a902dab33084c3770e00c61b93f25",
+        "ru_ru": "6e62098c81b814793859c484280b72ebb3972bde7f83277f3ea1d7d8cd794a2d"
+      },
+      "after": {
+        "en_us": "e845c16c95b852943183e4faecfd55877334dda46337726646acdc815f64cfde",
+        "zh_cn": "c287db3c8706091005e99a807dccaa2cd5991011ccea10d6c9952467bb4c044a",
+        "ru_ru": "c698fd5f664a611e424368e2cf216b1b17d5627bf24ad471d43f7b211274e284"
+      }
+    },
+    "camp.archivist.choose_item": {
+      "before": {
+        "en_us": "f230f21048e9f14319d1fdfc02331f54e2b0bb274d41e1367403dc0c77d87e44",
+        "zh_cn": "5793f9d7fee59dc117ee56d527ae5b198dd6b359af704f97933fe9606b477a88",
+        "ru_ru": "d69255d4cd1b24a4051871bc48b7c529562597faff953349cce6ac5a983c2c88"
+      },
+      "after": {
+        "en_us": "0708062f34a342d76fec0a0e9a388e42a55bb00f36b40c57807981a01de459eb",
+        "zh_cn": "474221e5921f39dc2d67b078cd05fec33386da772e132fb889ced5ff8f94e7f0",
+        "ru_ru": "bd76da692a8f10bb2fd0ee4a0591a82a82543b3d17693cb294aec822e76aa056"
+      }
+    },
+    "camp.archivist.donate": {
+      "before": {
+        "en_us": "a6e41783bfa5b3be4aec76dcada95921eb71582d0f032cf5c4bfb4db433c6251",
+        "zh_cn": "166b678eb2a9b3b52c15794e6ac36310cf8cd9b4c0b9e446917e6ce3d76b60c6",
+        "ru_ru": "7db64c89ee710d5361ad2e4a1a2383bd3e10fd38a69ea64aa2e6fbecd8b4ff96"
+      },
+      "after": {
+        "en_us": "a082d30af9dbbde24296ead57845cfd82f6077ad0aae0c246bb2fb6b4cb0fb80",
+        "zh_cn": "cf67df507cb639bb807900445d4b4f8fba0f72dda435b8d37e38455bd88b34ea",
+        "ru_ru": "01f29dee1df1612309cf773562e4fdd3de3be1370426d29404b7dc3e9575e23e"
+      }
+    },
+    "camp.archivist.transfer": {
+      "before": {
+        "en_us": "341d3ace71d8c44388250a7ed606e33b2ae403306548816218cb30ee7a5cde53",
+        "zh_cn": "1503515dd3d641068cccc5ca3345824ec1581dfb9d23549b67e7142cf0f8222a",
+        "ru_ru": "3465fa4e0e6e3cdfdd498e8d40eab41dbe59c3b164addbc393b5e326d436944d"
+      },
+      "after": {
+        "en_us": "3c332c5586f78ce23c18c28069e37054083da743952d4552f5569308a6c25456",
+        "zh_cn": "523c661d3bade9d365fb550c962b91a2e45b577a21374d51423015a1ba103f95",
+        "ru_ru": "fd7c78a9121eeb55458690d1fb42e6635565f746553592b154394e199583dcbd"
+      }
+    },
+    "camp.archivist.thanks": {
+      "before": {
+        "en_us": "4ac3da4c5b9c499c5269ae9882fcb7bcfaa89fbec6fe8b03e59bb3a80911dee5",
+        "zh_cn": "0a12be6a6da794b451ee62126ad20a4ae09e6c89a1b749fd454eb2bcbcbd3dc0",
+        "ru_ru": "25a5a3fb54a4bada9a5631b7f1f1ef40539a74581fcbf3b59d576e1d8b7a57ff"
+      },
+      "after": {
+        "en_us": "d9148b01547ad3f970ad41d79b0eb4bb1d2895b34cf71d2c713035d3c6c051c2",
+        "zh_cn": "af7d7d0055cee2f373039f70e0e259de59f0a9384a649da5c2b7cae41ce57246",
+        "ru_ru": "03f3bf094ad2b1396aa4e202febb8facafbd39797f493532aed204f79deb7cff"
+      }
+    },
+    "camp.archivist.declined": {
+      "before": {
+        "en_us": "c2eb73c152ec3994530657cf4f0ecb6e06eca2e7209e31e9392062b8ca484d68",
+        "zh_cn": "5997d4ab941d18f04da8b9ce3eefcf95d1b2bf8578063cc87f2f631f2646dfbe",
+        "ru_ru": "f712db9e9e57cc73074ab83cc20d588e14bb0107370a82328bb7926b2cec6088"
+      },
+      "after": {
+        "en_us": "3ce754c6674edc91d40dd53c588c363d36e67ccfec97661593fb4d0f52e50b5e",
+        "zh_cn": "929e786d18f0b37daee1e8c5063dc8d4d7dc92de8a33d552394e95cfd4fea28f",
+        "ru_ru": "3e15ef0388ba0ecc6f072f7ad81414d7a83ce391d65aee327268c672742a124e"
+      }
+    },
+    "camp.archivist.changed": {
+      "before": {
+        "en_us": "92ecdf8c879088b31f7ba7e2d5fbe7b3d17685b60231effd480e3d73c7ec11f5",
+        "zh_cn": "338a99a5ed230b106106e76a281fc56a9b7631c6633c487cf489cd6dab0f26d0",
+        "ru_ru": "d751b766e6e87d46ca285b0251e01aa7858a50e9b2c4eba20ff4da91c64d581f"
+      },
+      "after": {
+        "en_us": "ced696abecf3e245ede4810f8369166688037ac148a84727171e5dc07bf6b0b6",
+        "zh_cn": "0fee5c3a10e9785161dfdf581f5cdfc7b68bed1478b6c174ca1d67f1add075dd",
+        "ru_ru": "4b6d46feb9bbac4573de610bb37ade594da5fda55c33382eebfab836db4600f3"
+      }
+    },
+    "camp.archivist.meal": {
+      "before": {
+        "en_us": "685d8348941d04866ec9e7fe01c850d93d3ccaa7706b6e3263f6929eedebe546",
+        "zh_cn": "d583541a1b871b9e7b09c839a4a598ce9b1710cbf20cec1b6862d9f24c7ad001",
+        "ru_ru": "55438bb4a8826394ac2592a7667598f0e39c4ff677f9ab49853937468b94b064"
+      },
+      "after": {
+        "en_us": "b417dae5e156c6dbc1c7e4ad7340aec342cff2e5c01dc0b1828d9c6245d28156",
+        "zh_cn": "5f0b09037bb6b41d464682d4cbe05b980ea7feefe4bc151be79d6d4105c41fab",
+        "ru_ru": "e1381beb087482dc8badc82e31d911db140e9df89c72633cbcb754fc7c717683"
+      }
+    },
+    "camp.archivist.watch_thanks": {
+      "before": {
+        "en_us": "f242f7da6a94b1bc2b088e8e6b57dbb7f6d1be4c50896d1be5b11d5960fd069f",
+        "zh_cn": "95b1314d665adb5f6d224bcfbb6df9b2614c41cebe478b1830712724e8f06f6a",
+        "ru_ru": "dd497230217d7736a32615c9178a054c1e41d78843e14b54d81e28336bcbd950"
+      },
+      "after": {
+        "en_us": "8cd9f37f2e8ca72819a8bdf04208a8a53c944c79baebf659f980fe8c4b564fd2",
+        "zh_cn": "d0756ffe9e001fa29a3dcb07c239a019673a2170b79f52768559c9ddbb80b295",
+        "ru_ru": "5dca68da5c0fef5ca6bbd4b1b2f67841242b5dfbf35a015e88d392bd4212a116"
+      }
+    },
+    "camp.archivist.watch_wait": {
+      "before": {
+        "en_us": "9d5ad08e6cd9e02802e30040a253e54d18fb97e1db37ec7c3993b767ac4f0651",
+        "zh_cn": "fd2b585dc5f66db4626c00501352c3e0592ff2b56e4b7f0605203c7c39868c80",
+        "ru_ru": "24670bade392a64be0aff6c9f5ef5af629939a5f563bb885ccf3654be48ae878"
+      },
+      "after": {
+        "en_us": "afcd4598b459e5ffb60de8b304e01ca14a7c5becbd457e6adb17bd959547d27b",
+        "zh_cn": "e4a68c9ab136cdfeb935cbded8c504db066ff50c02f089789379d36ce1ebc68d",
+        "ru_ru": "6ca9905fabfd0266dd31adc1052e38e8537b615ff3f4cfe0a996af93c51e4a7c"
+      }
+    },
+    "camp.archivist.outfit": {
+      "before": {
+        "en_us": "5db530196e19a3696626a98be510546db62495584df00206cd2851e60ff7f0a4",
+        "zh_cn": "86e674f29b446c4ba71a9f987dfc8c51ac5dbecd7f7cb274ba686ef5f81aaf6b",
+        "ru_ru": "4be900584c8c7a2d0c3192da30c3cf6248b08e596a3a9e74ccd110e55e187fd4"
+      },
+      "after": {
+        "en_us": "b7431c8f1a4e14b33eb2bb0dfa82a84ee2c624723af3db3cbeeec3537ae73c3e",
+        "zh_cn": "ad1ef5113a3b3f476c7f8ea117fdba7ac0d2f53b1b11718a7dedbc6092b4cb46",
+        "ru_ru": "35af6e39de62772e888c596caf766ba0861b257d97e41a55538f2a1d53fa1255"
+      }
+    }
+  },
+  "unprovided_content_preserved": true,
+  "story_routes_and_conditions_preserved": true,
+  "pacing_breaks": 42
+}

@@ -1,5 +1,7 @@
 package net.parkabird.changedsynergy.origin;
 
+import static net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.canonicalFormId;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -38,10 +40,13 @@ public final class NativeOriginData extends SavedData {
             identity.state = tag.getString("State");
             // Unknown saved states must never reopen selection on an existing player.
             if (!identity.state.equals("pending") && !identity.state.equals("native")) identity.state = "human";
-            identity.form = tag.getString("Form");
-            identity.current = tag.getString("Current");
+            identity.form = canonicalFormId(tag.getString("Form"));
+            identity.current = canonicalFormId(tag.getString("Current"));
             identity.faction = tag.getString("Faction");
-            identity.region = tag.getString("Region");
+            identity.region = identity.faction.equals("light")
+                    ? net.parkabird.changedsynergy.ai.FactionDiplomacy.canonicalRegion(tag.getString("Region"))
+                    : tag.getString("Region");
+            if (!identity.region.equals(tag.getString("Region"))) data.setDirty();
             identity.home = BlockPos.of(tag.getLong("Home"));
             identity.roleName = tag.getString("RoleName");
             identity.globalChat = tag.getBoolean("GlobalChat");

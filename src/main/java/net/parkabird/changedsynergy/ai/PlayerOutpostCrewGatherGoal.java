@@ -38,7 +38,6 @@ import net.parkabird.changedsynergy.ai.PlayerOutpostData.CrewJob;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Member;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Outpost;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Role;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.world.inventory.PlayerOutpostCargoInventory;
 
@@ -99,12 +98,13 @@ public final class PlayerOutpostCrewGatherGoal extends Goal {
         if (PlayerOutpostWorkGoal.hasCargo(mob) && member.role != Role.SUPPLY && member.role != Role.HOLD
                 && (level.getServer().getPlayerList().getPlayer(camp.owner) != null
                         || ChangedSynergyConfig.COMMON.playerOutpostWorkWhileOwnerOffline.get())
-                && camp.active(level) && camp.storage != null && camp.storage.distSqr(mob.blockPosition()) <= 64
-                && PlayerOutpostData.container(level, camp.storage) != null
-                && approach(level, camp.storage)) {
-            action = Action.DEPOSIT; block = camp.storage;
-            member.workStatus = "returning";
-            return true;
+                && camp.active(level)) {
+            BlockPos targetStorage = PlayerOutpostGoal.findBestStorage(level, mob, camp, PlayerOutpostCargoInventory.inventory(mob).workItems());
+            if (targetStorage != null && targetStorage.distSqr(mob.blockPosition()) <= 64 && approach(level, targetStorage)) {
+                action = Action.DEPOSIT; block = targetStorage;
+                member.workStatus = "returning";
+                return true;
+            }
         }
         if (member.role != Role.CREW || startedJob == CrewJob.COMBAT || !gatheringEnabled()
                 || !PlayerOutpostWorkGoal.workerSlotAvailable(mob, camp)
@@ -120,7 +120,7 @@ public final class PlayerOutpostCrewGatherGoal extends Goal {
                 && PlayerOutpostService.operational(mob) && mob.isAlive() && !mob.isNoAi()
                 && mob.getTarget() == null && !mob.isSleeping() && !mob.isLeashed()
                 && (!mob.isPassenger() || PlayerOutpostRestGoal.isResting(mob)) && !mob.isVehicle()
-                && !TakeoverService.carrying(mob) && !ChangedAddonCompat.isGrabberBusy(mob)
+                && !TakeoverService.carrying(mob) && !CreatureGrabService.isGrabberBusy(mob)
                 && GrabEntityAbility.getGrabber(mob) == null && !CreatureSettlementService.hasCargo(mob)
                 && !SocialAudienceGoal.isActive(mob) && HypnosisQteService.getActiveVictim(mob) == null
                 && !mob.getPersistentData().hasUUID("ChangedSynergyRestOwner")
@@ -214,8 +214,9 @@ public final class PlayerOutpostCrewGatherGoal extends Goal {
                 || !gatheringEnabled() || !hasRoom() || !safeOwner(level, 16)
                 || !PlayerOutpostWorkGoal.workerSlotAvailable(mob, camp)
                 || !ForgeEventFactory.getMobGriefingEvent(level, mob)) return false;
-        if (camp.active(level) && camp.storage != null && camp.storage.distSqr(mob.blockPosition()) <= 64
-                && PlayerOutpostData.container(level, camp.storage) != null) return false;
+        BlockPos bestStorage = PlayerOutpostGoal.findBestStorage(level, mob, camp, PlayerOutpostCargoInventory.inventory(mob).workItems());
+        if (camp.active(level) && bestStorage != null && bestStorage.distSqr(mob.blockPosition()) <= 64
+                && PlayerOutpostData.container(level, bestStorage) != null) return false;
         // Continue a finite nearby vein/fruit patch without surrendering MOVE to following.
         List<BlockPos> candidates = new ArrayList<>();
         for (BlockPos pos : BlockPos.betweenClosed(block.offset(-2, -2, -2), block.offset(2, 2, 2))) {
@@ -329,7 +330,7 @@ public final class PlayerOutpostCrewGatherGoal extends Goal {
     @Override public boolean canContinueToUse() {
         if (!(mob.level() instanceof ServerLevel level) || !available(level) || action == null || remaining <= 0
                 || member.role != startedRole || member.crewJob != startedJob || stand == null || !level.hasChunkAt(stand)) return false;
-        if (action == Action.DEPOSIT) return camp.active(level) && block.equals(camp.storage) && PlayerOutpostWorkGoal.hasCargo(mob);
+        if (action == Action.DEPOSIT) return camp.active(level) && (camp.storages.contains(block) || block.equals(camp.storage)) && PlayerOutpostWorkGoal.hasCargo(mob);
         if (!gatheringEnabled() || !safeOwner(level, 32) || !PlayerOutpostWorkGoal.workerSlotAvailable(mob, camp)
                 || !ForgeEventFactory.getMobGriefingEvent(level, mob)) return false;
         if (action == Action.LOOT) return true;

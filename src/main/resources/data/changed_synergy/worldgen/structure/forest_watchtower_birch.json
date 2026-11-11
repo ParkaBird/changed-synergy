@@ -1,0 +1,11 @@
+{
+  "type": "changed_synergy:research_lab",
+  "biomes": "#changed_synergy:has_structure/forest_watchtowers_birch",
+  "step": "surface_structures",
+  "terrain_adaptation": "none",
+  "spawn_overrides": {},
+  "template": "changed_synergy:forest_watchtower_birch",
+  "ground_level": 0,
+  "max_terrain_slope": 2,
+  "clearing_radius": 2
+}

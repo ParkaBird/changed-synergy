@@ -1,0 +1,11 @@
+{
+  "type": "changed_synergy:research_lab",
+  "biomes": "#changed_synergy:has_structure/desert_refuges",
+  "step": "surface_structures",
+  "terrain_adaptation": "none",
+  "spawn_overrides": {},
+  "template": "changed_synergy:desert_refuge",
+  "ground_level": 25,
+  "max_terrain_slope": 5,
+  "clearing_radius": 0
+}

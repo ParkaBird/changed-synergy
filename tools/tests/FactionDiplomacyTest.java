@@ -11,6 +11,31 @@ public class FactionDiplomacyTest {
         if (!value) throw new AssertionError(reason);
     }
     public static void main(String[] args) {
+        check(FactionDiplomacy.REGIONS.size() == 13, "one arid regional account replaces two");
+        check(FactionDiplomacy.canonicalRegion("desert").equals("arid")
+                && FactionDiplomacy.canonicalRegion("badlands").equals("arid"), "legacy region aliases");
+        check(FactionDiplomacy.canonicalRegion("forest").equals("forest"), "other regions unchanged");
+        for (String region : java.util.List.of("desert", "badlands", "arid")) {
+            check(FactionDiplomacy.canonicalAccount("light:" + region).equals("light:arid"), "native account alias");
+            check(FactionDiplomacy.canonicalAccount("faction:light:" + region).equals("faction:light:arid"), "reputation alias");
+        }
+        for (int first = -100; first <= 100; first++) for (int second = -100; second <= 100; second++) {
+            int expected = first < 0 || second < 0 ? Math.min(first, second) : Math.max(first, second);
+            check(FactionDiplomacy.mergeAridStanding(first, second) == expected, "standing merge policy");
+        }
+        for (int aquatic : new int[]{69,70,80,90,100}) for (int arid : new int[]{69,70,80,90,100})
+                for (int forest : new int[]{69,70,80,90,100}) {
+            var scores = new HashMap<>(Map.of("faction:aquatic",aquatic,"faction:light:arid",arid,"faction:light:forest",forest));
+            FactionDiplomacy.normalize(scores);
+            if (arid > aquatic && arid > forest && arid >= 70) {
+                check(scores.get("faction:light:arid") == arid, "strongest arid alliance survives");
+            } else if (Math.max(aquatic,forest) >= 70) {
+                check(scores.get("faction:aquatic") == aquatic && scores.get("faction:light:forest") == forest,
+                        "a defeated shared rival cannot penalize either surviving alliance");
+            }
+            var snapshot = new HashMap<>(scores);FactionDiplomacy.normalize(scores);
+            check(snapshot.equals(scores), "shared-rival normalization idempotent");
+        }
         for (var pair : FactionDiplomacy.RIVALRIES) {
             Map<String, Integer> scores = new HashMap<>();
             scores.put(pair.first(), 70); scores.put(pair.second(), 100);

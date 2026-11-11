@@ -58,6 +58,15 @@
           "name": "minecraft:paper"
         }
       ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:loot_table",
+          "name": "changed_synergy:entities/common_white_latex"
+        }
+      ]
     }
   ]
 }

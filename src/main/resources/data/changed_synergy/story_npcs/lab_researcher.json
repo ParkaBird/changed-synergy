@@ -1,0 +1,1979 @@
+{
+  "template": "green_lab",
+  "species": "changed:gas_wolf_male",
+  "trait": "CURIOUS",
+  "chief": false,
+  "equipment": [
+    "changed:lab_coat",
+    "changed:red_neck_tie"
+  ],
+  "nodes": {
+    "root": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.0.0",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.0.1",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 240
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.0.2",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.0.3",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 200
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.0.4",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.0.5",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.0.6",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 0.85,
+              "intensity": 0,
+              "pause": 240
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.0.7",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.0.8",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 200
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.0.9",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.0.10",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 150
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.1.0",
+              "emotion": "excited",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.1.1",
+              "emotion": "excited",
+              "effect": "shout",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.1.2",
+              "emotion": "excited",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.1.3",
+              "emotion": "fearful",
+              "effect": "shake",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.1.4",
+              "emotion": "excited",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.1.5",
+              "emotion": "determined",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.1.6",
+              "emotion": "excited",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.1.7",
+              "emotion": "shy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.1.8",
+              "emotion": "excited",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.2.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 140
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.2.1",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.2.2",
+              "emotion": "shy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 180
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.2.3",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.3.0",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.3.1",
+              "emotion": "excited",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.3.2",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.3.3",
+              "emotion": "determined",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.3.4",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.3.5",
+              "emotion": "curious",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.root.3.6",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "lab_researcher_about",
+          "text": "npc.changed_synergy.lab_researcher.root.choice.lab_researcher_about",
+          "next": "about",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "lab_researcher_farewell",
+          "text": "npc.changed_synergy.lab_researcher.root.choice.lab_researcher_farewell",
+          "next": "farewell",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "lab_researcher_experiment",
+          "text": "npc.changed_synergy.lab_researcher.root.choice.lab_researcher_experiment",
+          "next": "experiment",
+          "condition": "always",
+          "effect": "none",
+          "requires": [
+            "about",
+            "farewell"
+          ]
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.lab_researcher.root.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "about": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.0.0",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.0.1",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 190
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.0.2",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.0.3",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.0.4",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 160
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.0.5",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.0.6",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.0.7",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 0.85,
+              "intensity": 0.8,
+              "pause": 280
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.0.8",
+              "emotion": "shy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 180
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.0.9",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.0.10",
+              "emotion": "shy",
+              "effect": "droop",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 160
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.0.11",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.1.0",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.1.1",
+              "emotion": "excited",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.1.2",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.1.3",
+              "emotion": "determined",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.1.4",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.1.5",
+              "emotion": "shy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.about.1.6",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "tail",
+          "text": "npc.changed_synergy.lab_researcher.about.choice.tail",
+          "next": "tail",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.lab_researcher.about.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.lab_researcher.about.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "tail": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.0.0",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.0.1",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 170
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.0.2",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.0.3",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 170
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.0.4",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.0.5",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.0.6",
+              "emotion": "shy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 200
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.0.7",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.1.0",
+              "emotion": "shy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.1.1",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.1.2",
+              "emotion": "shy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.1.3",
+              "emotion": "excited",
+              "effect": "shake",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.tail.1.4",
+              "emotion": "shy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.lab_researcher.tail.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.lab_researcher.tail.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "farewell": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.farewell.0.0",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.01,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.farewell.0.1",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 200
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.farewell.0.2",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.01,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.farewell.0.3",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.01,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.farewell.0.4",
+              "emotion": "sad",
+              "effect": "none",
+              "speed": 0.92,
+              "intensity": 0,
+              "pause": 180
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.farewell.0.5",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.01,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.farewell.0.6",
+              "emotion": "fearful",
+              "effect": "none",
+              "speed": 0.9,
+              "intensity": 0,
+              "pause": 150
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.farewell.0.7",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.01,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.farewell.0.8",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 190
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.farewell.0.9",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.01,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.farewell.0.10",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.farewell.0.11",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.01,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "returned",
+          "text": "npc.changed_synergy.lab_researcher.farewell.choice.returned",
+          "next": "returned",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.lab_researcher.farewell.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.lab_researcher.farewell.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "returned": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.0.0",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.0.1",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 150
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.0.2",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.0.3",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.0.4",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 150
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.0.5",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.0.6",
+              "emotion": "curious",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 160
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.0.7",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.1.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.1.1",
+              "emotion": "shy",
+              "effect": "tremble",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.1.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.1.3",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.1.4",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.1.5",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.returned.1.6",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.lab_researcher.returned.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.lab_researcher.returned.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "experiment": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.0",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.1",
+              "emotion": "curious",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 150
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.2",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.3",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.4",
+              "emotion": "curious",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 180
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.5",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.6",
+              "emotion": "surprised",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 140
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.7",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.8",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.9",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 180
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.10",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.11",
+              "emotion": "determined",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 200
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.0.12",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.1.0",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.1.1",
+              "emotion": "curious",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.1.2",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.1.3",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.experiment.1.4",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "muntjacs",
+          "text": "npc.changed_synergy.lab_researcher.experiment.choice.muntjacs",
+          "next": "muntjacs",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "crystal",
+          "text": "npc.changed_synergy.lab_researcher.experiment.choice.crystal",
+          "next": "crystal",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "initials",
+          "text": "npc.changed_synergy.lab_researcher.experiment.choice.initials",
+          "next": "initials",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.lab_researcher.experiment.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.lab_researcher.experiment.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "muntjacs": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.0.0",
+              "emotion": "curious",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 170
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.0.1",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.0.2",
+              "emotion": "curious",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 150
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.0.3",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.0.4",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.0.5",
+              "emotion": "surprised",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 200
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.0.6",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.0.7",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.0.8",
+              "emotion": "determined",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 190
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.0.9",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.0.10",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 170
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.0.11",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.1.0",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.1.1",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.1.2",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.1.3",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.muntjacs.1.4",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "reports",
+          "text": "npc.changed_synergy.lab_researcher.muntjacs.choice.reports",
+          "next": "experiment",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.lab_researcher.muntjacs.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.lab_researcher.muntjacs.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "crystal": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.0.0",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.0.1",
+              "emotion": "determined",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 190
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.0.2",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.0.3",
+              "emotion": "curious",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 170
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.0.4",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.0.5",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 190
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.0.6",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.0.7",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.0.8",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 0.9,
+              "intensity": 0.8,
+              "pause": 250
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.0.9",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.0.10",
+              "emotion": "dreamy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 170
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.1.0",
+              "emotion": "shy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.1.1",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.1.2",
+              "emotion": "shy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.1.3",
+              "emotion": "excited",
+              "effect": "shout",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.crystal.1.4",
+              "emotion": "shy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "reports",
+          "text": "npc.changed_synergy.lab_researcher.crystal.choice.reports",
+          "next": "experiment",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.lab_researcher.crystal.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.lab_researcher.crystal.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "initials": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.initials.0.0",
+              "emotion": "curious",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 160
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.initials.0.1",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.initials.0.2",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 170
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.initials.0.3",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "reports",
+          "text": "npc.changed_synergy.lab_researcher.initials.choice.reports",
+          "next": "experiment",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.lab_researcher.initials.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.lab_researcher.initials.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "goodbye": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.goodbye.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 150
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.goodbye.0.1",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.goodbye.0.2",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 220
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.goodbye.0.3",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.goodbye.0.4",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 180
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.goodbye.0.5",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.goodbye.0.6",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 150
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.goodbye.1.0",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.goodbye.1.1",
+              "emotion": "excited",
+              "effect": "shout",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.goodbye.1.2",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.goodbye.1.3",
+              "emotion": "excited",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.goodbye.1.4",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.lab_researcher.goodbye.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "return": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.0.0",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.0.1",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 240
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.0.2",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.0.3",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 200
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.0.4",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.0.5",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.0.6",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 0.85,
+              "intensity": 0,
+              "pause": 240
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.0.7",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.0.8",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 200
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.0.9",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.0.10",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 150
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.1.0",
+              "emotion": "excited",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.1.1",
+              "emotion": "excited",
+              "effect": "shout",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.1.2",
+              "emotion": "excited",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.1.3",
+              "emotion": "fearful",
+              "effect": "shake",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.1.4",
+              "emotion": "excited",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.1.5",
+              "emotion": "determined",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.1.6",
+              "emotion": "excited",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.1.7",
+              "emotion": "shy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.1.8",
+              "emotion": "excited",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.2.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 140
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.2.1",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.2.2",
+              "emotion": "shy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 180
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.2.3",
+              "emotion": "neutral",
+              "effect": "none",
+              "speed": 1.04,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.3.0",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.3.1",
+              "emotion": "excited",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.3.2",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.3.3",
+              "emotion": "determined",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.3.4",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.3.5",
+              "emotion": "curious",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.lab_researcher.return.3.6",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "lab_researcher_about",
+          "text": "npc.changed_synergy.lab_researcher.return.choice.lab_researcher_about",
+          "next": "about",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "lab_researcher_farewell",
+          "text": "npc.changed_synergy.lab_researcher.return.choice.lab_researcher_farewell",
+          "next": "farewell",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "lab_researcher_experiment",
+          "text": "npc.changed_synergy.lab_researcher.return.choice.lab_researcher_experiment",
+          "next": "experiment",
+          "condition": "always",
+          "effect": "none",
+          "requires": [
+            "about",
+            "farewell"
+          ]
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.lab_researcher.return.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    }
+  }
+}

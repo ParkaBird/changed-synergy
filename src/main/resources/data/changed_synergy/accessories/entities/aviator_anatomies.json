@@ -1,0 +1,14 @@
+{
+  "entities": [
+    "changed:latex_snake",
+    "changed:latex_mermaid_shark",
+    "changed:latex_manta_ray_female",
+    "changed:latex_siren",
+    "changed:latex_gnoll_taur",
+    "changed:white_latex_centaur"
+  ],
+  "slots": [
+    "changed:body",
+    "changed:full_body"
+  ]
+}

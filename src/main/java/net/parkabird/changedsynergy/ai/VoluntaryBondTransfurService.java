@@ -49,7 +49,7 @@ public final class VoluntaryBondTransfurService {
     }
 
     private static boolean canTransfur(ChangedEntity creature, ServerPlayer player) {
-        return player.isAlive() && !player.isSpectator()
+        return !net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(creature) && player.isAlive() && !player.isSpectator()
                 && !net.parkabird.changedsynergy.origin.NativeOriginService.pending(player)
                 && creature.isAlive()
                 && !creature.isRemoved()

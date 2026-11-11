@@ -1,0 +1,70 @@
+{
+  "source": "Synergy_Desert_Refuge_Dialogue.md",
+  "source_sha256": "7acb5e9ab2f6fb87976cbd7a8d26debe2ec6a23ff6ad947a0799803f81741515",
+  "removed_quote_indices": [
+    6,
+    7
+  ],
+  "revised_quote_indices": [
+    12,
+    14,
+    10,
+    25
+  ],
+  "revised_followup_indices": [
+    3,
+    6,
+    1,
+    2
+  ],
+  "quote_utterances": 39,
+  "followup_utterances": 8,
+  "camp_utterances": 55,
+  "nodes": 31,
+  "mechanical_text_corrections": [
+    "crouch -> hold jump key in two passages",
+    "remove repeated spare in food-low line"
+  ],
+  "english_utterance_hashes": [
+    "3c220cf48384c072013072f96f783f18de6424c57cfa537aff636660ec4c26c7",
+    "53b6e2313ffed297b71a2c5e519fcd3710b1330e70b9df0f7bf354ef9843e3dc",
+    "35e44bfa368123cd5583fe58b930915e70cdc15922d758c514211a9e244ca9e1",
+    "a2489875a0470f4a53e56c249c7062a35317cdfebd50592bb55970930c779f86",
+    "be0b84a377851fcf2674d20cfabe857af4564db5e1fbc81e6c25ffe2c298db5c",
+    "cbf542c45339ac3e55cd74dace1dc3ced4a03559be4afd746d210f21c477e16e",
+    "2bce880d96ed132f81dbc3190784f30a3fcf6555717cae1969ed2cd6bba66906",
+    "6077210b8892fc0026a2c6525d69568f9a25faffdf673191553cd837d099caf8",
+    "3dec051f928a5b64dbf88d931db7c1d318959c61c94152b485e3f43203c28b32",
+    "5ac0b989a7ad58b77d5e3ae6b845aecfb740b056e03f75e066c838bd0fd5b016",
+    "d6cc896131cc1016d786d6acd9960ab65f271dd3d61360200c56c33732bb53c6",
+    "ff607c4e0f4af80585adeff1e27ba8213e342bc30fba5b5708edd9baca81ab55",
+    "4185212bdd8558f86d379d3a69a7003d6673fd4cb41831a79d8e8808b87d51c0",
+    "a2a9a4a44ee05a51e1bbdff7fe4856483125f4a7c87ca68a399d75a9b32e1ca7",
+    "a27293337473f4558ebd363eeba67fdd16f7bb5cdd341b0e72a75a3900a7e983",
+    "b4d6ed72e519ffa8de6a9e6a7ba5225c08c70f835a07bb4899f1c8aca5c34ece",
+    "cab3757019e8fbb274d737b7d9b17cd71e20af8062fecfd5e6b8072173e8c9fd",
+    "2c9150bb9de59fad6359acc701860806316d10ede29b6223dcf3b07ae2750702",
+    "fb6fda1a2d8de787d5cbd9a690a7c70cee4f9def8c023dc2dd413b94ed642fc1",
+    "1ef61e153dedee5d3fbacf2e400f64c56e535f8e3d85f6ad92ddc57cf4a27f04",
+    "449912dd46d312776dab048794fea43fca30ef85ba00993db9b2c5d5e6f1eab4",
+    "a24069d4097ec04dc633025c0cb63fbe20bbb918a5ed22ba34fb06ba77cadeee",
+    "2f1c6ed070c001982f0ceaea34d50f5f114ac6af2a09006cfa1c5e93f619a51a",
+    "8cfbabcd94bbb72041dfaf6104e84e45ca06e38813839c436162f31bd6f5fa71",
+    "69aaec19819e86f8f9192ec7b38cf53adb427ce9e510eee9eea43a9316917d6a",
+    "075cd12d27e4f6825e1ae7157d8f00b225c5d53cfb4375f4f91ba025ae38badc",
+    "d72f41401faaa105801e0fdf78f900ad3f621e3d1a57bab71e9b9031305cc383",
+    "cd898b9d974fcf6c5ba863126cc1f59075797c87553a8f763bfeaa578aee6013",
+    "1bef5962593a4c70dad3c6fe7f54ba27ea957221fbaf1c7454225c27ff58d122",
+    "baa0b77eafc86a2c25c3901bf137d501995ac0ae7156b1e569dcc4d766e322bf",
+    "9e89fd106978a60a196cec21bc1ef70bc37df96e6add0a90faf6b5a904740227",
+    "c7d159171ec09879a2a56b48a4499da221961634b05294a6ae3c0b4038b6bd53",
+    "b61fc6db65344bb9a3b88c15bb226f17c1b830ce7239bc50913a9a4ac823bc2a",
+    "b9d04885eba671fcff4e309b48a489e5022c40e214cc2d08b8072406fe80e63b",
+    "a552a83f5d215db75c19f39c62cadf42c5c9d9c213c267bf4a05b1dc7cd711be",
+    "fb8720344bafa3d68b79ada10b4c28bd63cd503a17080abbf10f092de1bc3c21",
+    "8ec0f7a072e79f942e6618708fda98928c925d5bbdaf6b65ef62525dca792efa",
+    "4c3d27faaf8fb08989d01de36b3c712ea3fe8679ce271e0d575a6a91c9fe3f7c",
+    "794e9ee06a63ef90374a5f19589d8e0cb93614c36e85df2a16d956a1839752b3"
+  ],
+  "scope": "new desert dialogue and existing community mechanics; the three established Chiefs are unchanged"
+}

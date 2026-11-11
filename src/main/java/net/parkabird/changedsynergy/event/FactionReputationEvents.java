@@ -183,8 +183,9 @@ public final class FactionReputationEvents {
                 && event.getSource().getEntity() instanceof ServerPlayer player
                 && LatexSocialMemory.isSocialLatex(creature)) {
             if (net.parkabird.changedsynergy.ai.PlayfulFriendTransfurGoal.isDefense(creature, player)) return;
-            if (!net.parkabird.changedsynergy.ai.TakeoverConflictMemory.protectsSelfDefense(creature, player))
+            if (!net.parkabird.changedsynergy.ai.TakeoverConflictMemory.protectsSelfDefense(creature, player)) {
                 FactionReputation.adjust(creature, player, -15);
+            }
             return;
         }
         if (event.getEntity() instanceof Mob defeated
@@ -193,7 +194,7 @@ public final class FactionReputationEvents {
                 && defeated.getTarget() instanceof ChangedEntity defended
                 && LatexSocialMemory.isSocialLatex(defended)
                 && defended.isAlive()) {
-            FactionReputation.adjust(defended, player, 2);
+            if(!net.parkabird.changedsynergy.npc.CampLifeService.defended(defended,player))FactionReputation.adjust(defended, player, 2);
         }
     }
 
@@ -217,6 +218,7 @@ public final class FactionReputationEvents {
         if (net.parkabird.changedsynergy.ai.HumanBoundaryService.isSoftBoundaryHit(
                 creature, player, event.getSource(), event.getAmount())) return;
         FactionHostilityGrace.noteAggression(creature, player);
+        net.parkabird.changedsynergy.npc.CampMembershipService.breakChiefPeace(creature, player);
         var memory = creature.getPersistentData();
         if (memory.hasUUID(LAST_REPUTATION_ATTACKER)
                 && player.getUUID().equals(

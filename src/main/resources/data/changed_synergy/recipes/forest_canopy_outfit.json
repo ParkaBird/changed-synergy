@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SES",
+    "LWL",
+    "L L"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:string"
+    },
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "W": {
+      "item": "minecraft:green_wool"
+    }
+  },
+  "result": {
+    "item": "changed_synergy:forest_canopy_outfit"
+  }
+}

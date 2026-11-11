@@ -18,7 +18,7 @@
       "reviewed structure documents": 8,
       "supported aquatic laboratory furniture": 2
     },
-    "output_sha256": "6a971db814b0beeadc1c6cd1db2c10491f88c739b9d89a0775e154232ab5f1e6"
+    "output_sha256": "c9124b19122e55e00c34b872210d6258db99d87da2019a6ff56face40346a36e"
   },
   "white_lab_tower": {
     "source_filename": "white_lab_tower.nbt",
@@ -61,7 +61,7 @@
       "Crossader painting layout revision": 1,
       "Crossader extra resident cleanup": 6
     },
-    "output_sha256": "d56973ffe54bebb1de597988457bfe4896f9a8cb14de2951a304827642d6d521",
+    "output_sha256": "594f5684dfc0907ea992286e9805edd4920ad8e874748b39b6d9c79e423941d7",
     "layout_revision": {
       "source_filename": "red_lab_tower(1).nbt",
       "source_sha256": "f6ddd3c0ac1340ea208065256138877322366d945f4af8cffed3723d00f7b9b3",
@@ -85,8 +85,10 @@
       "replaced saved seat with its occupants": 1,
       "reviewed structure documents": 6,
       "dark latex crystal display": 3,
-      "replaced remaining Addon equipment/puddles": 1
+      "replaced remaining Addon equipment/puddles": 1,
+      "anchored landmark resident and default outfit": 1,
+      "structure resident boundaries and camp metadata": 1
     },
-    "output_sha256": "bd340e5bcb8d3551dafc5372661769f1147d64544a6e3d16b3d55b30cfc50278"
+    "output_sha256": "9e989ee9047c79951d1f488a52aa05031e57147ba7d70a6640c16a2067efe202"
   }
 }

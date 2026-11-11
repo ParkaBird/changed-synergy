@@ -7,6 +7,7 @@ import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.parkabird.changedsynergy.client.archive.ArchiveGeometry;
 import net.parkabird.changedsynergy.client.archive.ArchiveOriginModels;
@@ -26,9 +27,20 @@ public final class NativeOriginScreen extends Screen {
     private static final int[] COLORS = {0xFF9B9C99, 0xFFF4F4F2, 0xFF71659C,
             0xFFDCCB73, 0xFFA2524F, 0xFF4C88B2};
     private static final String[] CATEGORY_NAMES = {"human", "white", "dark", "variant", "organic", "aquatic"};
+    private static final ResourceLocation RANDOM_NOTE = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/random_note.png");
+    private static final ResourceLocation BUTTON_TEX = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/button.png");
+    private static final ResourceLocation PORTRAIT_FRAME = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/portrait_frame.png");
+    private static final ResourceLocation DOLL_FRAME = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/doll_frame.png");
+    private static final ResourceLocation PARAMETER_FRAME = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/parameter_frame.png");
+    private static final ResourceLocation SCROLLBAR_TEX = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/scrollbar.png");
+    private static final ResourceLocation DIALOG_FRAME = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/dialog_frame.png");
+    private static final ResourceLocation TOOLTIP_TEX = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/tooltip.png");
+    private static final ResourceLocation WELCOME_DECORATION = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/welcome_decoration.png");
+    private static final ResourceLocation NAVIGATION_TEX = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/navigation.png");
     private enum View { WELCOME, DESKTOP, FILE }
     private enum Motion { INTRO, OUTRO, OPEN, CLOSE }
     private record Page(int category, int number, Entry detail) {}
+    private static final Page HUMAN_PAGE = new Page(0, 0, null);
     private record FolderPose(double x, double y, double angle, double scale) {
         FolderPose mix(FolderPose other, double amount) {
             double t = UiMotion.transition(amount);
@@ -45,11 +57,13 @@ public final class NativeOriginScreen extends Screen {
         final int direction;
         final double duration;
         final long begun = Util.getMillis();
+        long capturedAt;
         boolean captured;
         Turn(Page from, Page to, int direction, double duration) {
             this.from = from; this.to = to; this.direction = direction; this.duration = duration;
         }
         double elapsed() { return (Util.getMillis() - begun) / 1000.0; }
+        double fraction(long now){return captured?Math.max(0,(now-capturedAt)/1000.0/duration):0;}
     }
 
     private NativeOriginStatePacket state;
@@ -64,7 +78,7 @@ public final class NativeOriginScreen extends Screen {
     private boolean settled;
     private Turn turn;
     private FolderPose pose = HIDDEN;
-    private double open, desktopAlpha, welcomeAlpha = 1, recoil, hoverWeight;
+    private double open, desktopAlpha, welcomeAlpha = 1, hoverWeight;
     private double fanLeft, fanRight;
     private final UiSpring folderHover = new UiSpring(0), leftFanMotion = new UiSpring(0), rightFanMotion = new UiSpring(0);
     private long lastFrame = Util.getMillis();
@@ -77,6 +91,7 @@ public final class NativeOriginScreen extends Screen {
     private boolean draggingDialogScroll;
     private int randomChoice = -1;
     private boolean slipHovered;
+    private ArchiveGeometry.Point currentPaperMouse = new ArchiveGeometry.Point(-9999, -9999);
     private ArchiveGeometry.Fit fit;
 
     public NativeOriginScreen(NativeOriginStatePacket state) {
@@ -127,11 +142,8 @@ public final class NativeOriginScreen extends Screen {
     private void settle(double elapsed, double when) {
         if (elapsed < when) return;
         if (!settled) { ArchiveUiSounds.settle(); settled = true; }
-        double t = elapsed - when;
-        recoil = t < .14 ? -5 * Math.sin(t * Math.PI * 34) * Math.exp(-26 * t) * (1 - t / .14) : 0;
     }
     private void updateMotion(double delta) {
-        recoil = 0;
         if (UiMotion.reduced() && motion != null) {
             view = switch (motion) { case INTRO, CLOSE -> View.DESKTOP; case OPEN -> View.FILE; case OUTRO -> View.WELCOME; };
             motion = null; open = view == View.FILE ? 1 : 0;
@@ -267,12 +279,15 @@ public final class NativeOriginScreen extends Screen {
         double delta = Math.min(.05, (now - lastFrame) / 1000.0); lastFrame = now;
         updateMotion(delta);
         var localMouse = local(mouseX, mouseY);
+        currentPaperMouse = localMouse;
         slipHovered = view == View.FILE && paper.category == 0 && !locked() && !confirmation && randomSlipAt(localMouse);
         if (view == View.DESKTOP && motion == null) {
             boolean hover = inside(localMouse.x(), localMouse.y(), -24, -26, 866, PAPER_H + 126);
             if (hover && !folderHovered) ArchiveUiSounds.hover();
             folderHovered = hover;
         }
+        papers.hoverFolder(folderHovered);
+        papers.hoverTab(view == View.FILE && !locked() && !confirmation ? tab(localMouse) : -1);
         boolean canFan = view == View.FILE && !locked() && !confirmation && paper.category != 0;
         boolean leftFan = canFan && (corner(localMouse, -1) || ArchiveGeometry.stackPageAt(localMouse, paper.number, pageCount(paper.category), paper.detail != null, fanLeft, 0) >= 0);
         boolean rightFan = canFan && (corner(localMouse, 1) || ArchiveGeometry.stackPageAt(localMouse, paper.number, pageCount(paper.category), paper.detail != null, 0, fanRight) >= 0);
@@ -288,13 +303,15 @@ public final class NativeOriginScreen extends Screen {
             papers.transition(active.from.category, active.to.category);
             Page reverse = active.direction > 0 ? active.to : active.from;
             papers.capture(minecraft, snapshot -> content(snapshot, active.direction > 0 ? active.from : active.to, false),
-                    hasMothNotes(reverse) ? snapshot -> {
+                    (reverse.category != 0 && hasLogNotes(reverse)) ? snapshot -> {
                         snapshot.pose().pushPose(); snapshot.pose().translate(PAPER_W, 0, 0);
-                        mothNotes(snapshot); snapshot.pose().popPose();
+                        logNotes(snapshot, reverse); snapshot.pose().popPose();
                     } : null);
+            active.capturedAt = now = Util.getMillis();
             active.captured = true; ArchiveUiSounds.page();
         }
-        if (turn != null && turn.elapsed() >= .12 + turn.duration) {
+        double turnFraction=turn==null?0:turn.fraction(now);
+        if (turn != null && turn.captured && turnFraction >= 1) {
             if (turn.to.detail != null || turn.to.category == 0) resetDoll();
             paper = turn.to; turn = null; papers.finishTransition();
             if (closeAfterTurn) { closeAfterTurn = false; beginMotion(Motion.CLOSE); }
@@ -305,21 +322,22 @@ public final class NativeOriginScreen extends Screen {
         if (welcomeAlpha > 0) welcome(graphics, welcomeAlpha);
         if (desktopAlpha > 0) desktop(graphics, desktopAlpha);
         if (view != View.WELCOME || motion != null) {
-            graphics.pose().pushPose(); graphics.pose().translate(pose.x, pose.y + recoil, 0);
+            graphics.pose().pushPose(); graphics.pose().translate(pose.x, pose.y, 0);
             graphics.pose().mulPose(Axis.ZP.rotationDegrees((float)pose.angle));
             graphics.pose().scale((float)pose.scale, (float)pose.scale, 1);
             graphics.pose().translate(-PAPER_W / 2, -PAPER_H / 2, 0);
             Page source = turn == null ? paper : turn.captured ? turn.to : turn.from;
             // The turning sheet supplies the new left page; it is not already resting there.
             Page left = turn != null && turn.captured && turn.direction > 0 ? turn.from : source;
-            papers.progress(turn == null || !turn.captured ? 0 : UiMotion.transition((turn.elapsed() - .12) / turn.duration));
-            if (!ArchivePaperRenderer.coverInFront(open)) papers.cover(graphics, open, this::randomSlip);
+            double turnProgress=ArchiveGeometry.turnProgress(turnFraction);
+            papers.progress(turn == null || !turn.captured ? 0 : turnProgress);
+            if (!ArchivePaperRenderer.coverInFront(open)) papers.cover(graphics, open, this::insideCover);
             papers.shell(graphics, open, source.category, COLORS, source.number, pageCount(source.category), source.detail != null,
                     left.detail != null ? 1 : left.number, turn == null ? fanLeft : 0, turn == null ? fanRight : 0);
-            if (hasMothNotes(left)) {
+            if (left.category != 0 && hasLogNotes(left)) {
                 graphics.pose().pushPose();
                 graphics.pose().scale((float)-Math.cos(Math.PI * UiMotion.transition((open - .65) / .35)), 1, 1);
-                mothNotes(graphics); graphics.pose().popPose();
+                logNotes(graphics, left); graphics.pose().popPose();
             }
             // Resting paper stays printed; the moving cover provides the occlusion.
             Page shown = turn != null && turn.captured && turn.direction > 0 ? turn.to : paper;
@@ -329,10 +347,10 @@ public final class NativeOriginScreen extends Screen {
                 Page back = turn.direction > 0 ? turn.to : turn.from;
                 int stock = turn.from.category == turn.to.category || back.detail != null || back.number > 0
                         ? 0xFFFDFBF5 : back.category > 0 ? COLORS[back.category - 1] : 0xFFDAC189;
-                papers.curl(graphics, UiMotion.transition((turn.elapsed() - .12) / turn.duration),
+                papers.curl(graphics, turnProgress,
                         turn.direction, turn.from.category, turn.to.category, COLORS, stock);
             }
-            if (ArchivePaperRenderer.coverInFront(open)) papers.cover(graphics, open, this::randomSlip);
+            if (ArchivePaperRenderer.coverInFront(open)) papers.cover(graphics, open, this::insideCover);
             if (view == View.FILE && motion == null && turn == null) {
                 if (state.phase() == 2 && !confirmation) notice(graphics);
                 if (confirmation) confirmation(graphics);
@@ -350,6 +368,41 @@ public final class NativeOriginScreen extends Screen {
         graphics.drawString(font, exitLabel(), width - font.width(exitLabel()) - 10, height - 14, 0xFF9F9F9F, false);
     }
     private static int alpha(int color, double opacity) { return (color & 0xFFFFFF) | ((int)(Mth.clamp(opacity, 0, 1) * 255) << 24); }
+    private static void blitRegion(GuiGraphics g, ResourceLocation tex, double x, double y, double w, double h,
+                                   double u, double v, double uw, double vh, double texW, double texH, int tint) {
+        if (w <= 0 || h <= 0) return;
+        ArchivePaperRenderer.spriteQuad(g, x, y, x + w, y + h, u / texW, v / texH, (u + uw) / texW, (v + vh) / texH,
+                tint, ArchivePaperRenderer.textureId(tex));
+    }
+    private static void blitNineSlice(GuiGraphics g, ResourceLocation tex, double x, double y, double w, double h,
+                                      double u, double v, double uw, double vh, double slice, double texW, double texH, int tint) {
+        double s = Math.min(slice, Math.min(w * 0.5, h * 0.5));
+        double cw = Math.max(0, w - s * 2), ch = Math.max(0, h - s * 2);
+        double cuw = uw - slice * 2, cvh = vh - slice * 2;
+        blitRegion(g, tex, x, y, s, s, u, v, slice, slice, texW, texH, tint);
+        blitRegion(g, tex, x + s, y, cw, s, u + slice, v, cuw, slice, texW, texH, tint);
+        blitRegion(g, tex, x + w - s, y, s, s, u + uw - slice, v, slice, slice, texW, texH, tint);
+        blitRegion(g, tex, x, y + s, s, ch, u, v + slice, slice, cvh, texW, texH, tint);
+        blitRegion(g, tex, x + s, y + s, cw, ch, u + slice, v + slice, cuw, cvh, texW, texH, tint);
+        blitRegion(g, tex, x + w - s, y + s, s, ch, u + uw - slice, v + slice, slice, cvh, texW, texH, tint);
+        blitRegion(g, tex, x, y + h - s, s, s, u, v + vh - slice, slice, slice, texW, texH, tint);
+        blitRegion(g, tex, x + s, y + h - s, cw, s, u + slice, v + vh - slice, cuw, slice, texW, texH, tint);
+        blitRegion(g, tex, x + w - s, y + h - s, s, s, u + uw - slice, v + vh - slice, slice, slice, texW, texH, tint);
+    }
+    private static void blitFrameBorder(GuiGraphics g, ResourceLocation tex, double x, double y, double w, double h,
+                                        double u, double v, double uw, double vh, double slice, double texW, double texH, int tint) {
+        double s = Math.min(slice, Math.min(w * 0.5, h * 0.5));
+        double cw = Math.max(0, w - s * 2), ch = Math.max(0, h - s * 2);
+        double cuw = uw - slice * 2, cvh = vh - slice * 2;
+        blitRegion(g, tex, x, y, s, s, u, v, slice, slice, texW, texH, tint);
+        blitRegion(g, tex, x + s, y, cw, s, u + slice, v, cuw, slice, texW, texH, tint);
+        blitRegion(g, tex, x + w - s, y, s, s, u + uw - slice, v, slice, slice, texW, texH, tint);
+        blitRegion(g, tex, x, y + s, s, ch, u, v + slice, slice, cvh, texW, texH, tint);
+        blitRegion(g, tex, x + w - s, y + s, s, ch, u + uw - slice, v + slice, slice, cvh, texW, texH, tint);
+        blitRegion(g, tex, x, y + h - s, s, s, u, v + vh - slice, slice, slice, texW, texH, tint);
+        blitRegion(g, tex, x + s, y + h - s, cw, s, u + slice, v + vh - slice, cuw, slice, texW, texH, tint);
+        blitRegion(g, tex, x + w - s, y + h - s, s, s, u + uw - slice, v + vh - slice, slice, slice, texW, texH, tint);
+    }
     private void welcome(GuiGraphics g, double opacity) {
         double age = (Util.getMillis() - welcomeBegan) / 1000.0;
         double prompt = UiMotion.transition((age - .24) / .45);
@@ -359,7 +412,7 @@ public final class NativeOriginScreen extends Screen {
         label(g, archive("welcome").copy().withStyle(net.minecraft.ChatFormatting.BOLD), 162, 370, 100, alpha(0xFFFFFFFF, opacity * UiMotion.transition((age - .06) / .45)), 1470);
         label(g, archive("subtitle"), 180, 612, 49, alpha(0xFFFFFFFF, opacity * UiMotion.transition((age - .12) / .45)), 1500);
         label(g, archive("intro"), 182, 690, 27, alpha(0xFF949494, opacity * UiMotion.transition((age - .18) / .45)), 1500);
-        g.fill(182, 784, 182 + (int)(52 * prompt), 786, alpha(0xFFFFFFFF, opacity * prompt));
+        blitRegion(g, WELCOME_DECORATION, 162, 773, 240 * prompt, 24, 0, 0, 360, 24, 360, 24, alpha(0xFFFFFFFF, opacity * prompt));
         label(g, archive("enter"), 182, 806, 24, alpha(0xFFCCCCCC, opacity * prompt), 1400);
         g.pose().popPose();
     }
@@ -369,31 +422,124 @@ public final class NativeOriginScreen extends Screen {
         label(g, archive("subtitle"), 162, 210, 30, alpha(0xFFAAAAAA, opacity), 1000);
         label(g, archive("folder_count", state.entries().size()), 1250, 170, 20, alpha(0xFF999999, opacity), 540);
         g.fill(160, 280, 1770, 282, alpha(0xFF404040, opacity));
+        blitRegion(g, WELCOME_DECORATION, 785, 269, 360, 24, 0, 0, 360, 24, 360, 24, alpha(0xFFFFFFFF, opacity));
         label(g, archive("open"), 162, 960, 22, alpha(0xFF999999, opacity), 1000);
         g.pose().popPose();
     }
     private void content(GuiGraphics g, Page page, boolean interactive) {
         if (page.category == 0 || page.detail != null) dossier(g, page, interactive); else roster(g, page, interactive);
     }
-    private static boolean hasMothNotes(Page page) {
-        return page.detail != null && page.detail.form().equals(
-                net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.LATEX_SILK_MOTH.getId());
+    private record LogNoteConfig(String prefix, List<String> departments) {}
+
+    private static int departmentColor(String department) {
+        return switch (department) {
+            case "science" -> 0xFF08639C;
+            case "technology" -> 0xFF2C7572;
+            case "humanity" -> 0xFF944549;
+            case "society" -> 0xFF9A7835;
+            default -> 0xFF1F2529;
+        };
     }
-    private void mothNotes(GuiGraphics g) {
+
+    private static LogNoteConfig logNoteFor(Page page) {
+        if (page == null) return null;
+        if (page.category == 0) {
+            return new LogNoteConfig("human_notes", List.of("technology", "science", "humanity", "society"));
+        }
+        if (page.detail == null) return null;
+        ResourceLocation form = page.detail.form();
+        if (form.equals(net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.LATEX_SILK_MOTH.getId())) {
+            return new LogNoteConfig("silk_moth_notes", List.of("science", "technology", "humanity", "society"));
+        }
+        if (form.equals(net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.LATEX_SWORDFISH.getId())) {
+            return new LogNoteConfig("swordfish_notes", List.of("science", "society", "humanity", "technology"));
+        }
+        if (form.equals(net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.LATEX_EAGLE_OWL.getId())) {
+            return new LogNoteConfig("eagle_owl_notes", List.of("science", "technology", "humanity", "society"));
+        }
+        if (form.equals(net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.LATEX_MUNTJAC.getId())) {
+            return new LogNoteConfig("muntjac_male_notes", List.of("science", "technology", "humanity", "society"));
+        }
+        if (form.equals(net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.LATEX_MUNTJAC_FEMALE.getId())) {
+            return new LogNoteConfig("muntjac_female_notes", List.of("science", "technology", "humanity", "society"));
+        }
+        if (form.equals(net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_MALE.getId())) {
+            return new LogNoteConfig("spotted_hyena_male_notes", List.of("humanity", "science", "technology", "society"));
+        }
+        if (form.equals(net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_FEMALE.getId())) {
+            return new LogNoteConfig("spotted_hyena_female_notes", List.of("science", "society", "humanity", "technology"));
+        }
+        return null;
+    }
+
+    private static boolean hasLogNotes(Page page) {
+        return logNoteFor(page) != null;
+    }
+
+    private void logNotes(GuiGraphics g, Page page) {
+        LogNoteConfig note = logNoteFor(page);
+        if (note == null) return;
         g.pose().pushPose(); g.pose().translate(-658, 268, 0);
         g.pose().mulPose(Axis.ZP.rotationDegrees(-2));
-        g.fill(5, 7, 555, 449, 0x253D3325);
-        g.fill(0, 0, 550, 442, 0xFFF2EBD5);
-        g.renderOutline(0, 0, 550, 442, 0xFFBFB39A);
-        g.fill(188, -12, 360, 14, 0x99D5C8A6);
+        blitRegion(g, ArchivePaperRenderer.PAGE_SHADOW, 5, 7, 550, 442, 0, 0, 64, 64, 128, 64, 0x55FFFFFF);
+        blitRegion(g, RANDOM_NOTE, 0, 0, 550, 442, 0, 330, 550, 442, 550, 780, 0xFFFFFFFF);
+        blitRegion(g, RANDOM_NOTE, 188, -12, 172, 26, 320, 0, 172, 26, 550, 780, 0xFFFFFFFF);
         label(g, archive("silk_moth_notes.title").copy().withStyle(net.minecraft.ChatFormatting.BOLD),
                 29, 40, 24, 0xFF1F2529, 492);
-        g.fill(29, 80, 521, 82, 0xFFCEC1A3);
-        label(g, archive("silk_moth_notes.science"), 29, 108, 26, 0xFF08639C, 492);
-        label(g, archive("silk_moth_notes.technology"), 29, 162, 26, 0xFF2C7572, 492);
-        label(g, archive("silk_moth_notes.humanity"), 29, 216, 26, 0xFF944549, 492);
-        wrapped(g, archive("silk_moth_notes.society"), 29, 282, 26, 0xFF9A7835, 492, 415, 1.35F);
+        blitRegion(g, PARAMETER_FRAME, 29, 79, 492, 6, 0, 0, 128, 6, 128, 32, 0xFFFFFFFF);
+
+        renderLogNoteEntries(g, note);
+
         g.pose().popPose();
+    }
+
+    private void renderLogNoteEntries(GuiGraphics g, LogNoteConfig note) {
+        int x = 29, startY = 100, bottom = 422, width = 492;
+        List<Component> components = new ArrayList<>();
+        List<Integer> colors = new ArrayList<>();
+        for (String dept : note.departments()) {
+            components.add(archive(note.prefix() + "." + dept));
+            colors.add(departmentColor(dept));
+        }
+
+        boolean anyWide = components.stream().anyMatch(NativeOriginScreen::wideGlyphs);
+        float size = anyWide ? 24.0F : 21.0F;
+        float minSize = anyWide ? 16.0F : 13.5F;
+        float lineSpacing = 1.25F;
+        float entryGap = 9.0F;
+
+        while (size > minSize) {
+            float totalH = 0;
+            float scale = size / 9.0F;
+            int splitWidth = Math.max(1, (int)(width / scale));
+            for (int i = 0; i < components.size(); i++) {
+                int lineCount = font.split(components.get(i), splitWidth).size();
+                totalH += lineCount * (size * lineSpacing);
+                if (i < components.size() - 1) totalH += entryGap;
+            }
+            if (startY + totalH <= bottom) break;
+            size -= 0.5F;
+        }
+
+        float scale = size / 9.0F;
+        int splitWidth = Math.max(1, (int)(width / scale));
+        float currentY = startY;
+
+        for (int i = 0; i < components.size(); i++) {
+            Component comp = components.get(i);
+            int color = colors.get(i);
+            var lines = font.split(comp, splitWidth);
+            for (var line : lines) {
+                if (currentY + size > bottom) break;
+                g.pose().pushPose();
+                g.pose().translate(x, (int)currentY, 0);
+                g.pose().scale(scale, scale, 1);
+                g.drawString(font, line, 0, 0, color, false);
+                g.pose().popPose();
+                currentY += size * lineSpacing;
+            }
+            currentY += entryGap;
+        }
     }
     private void roster(GuiGraphics g, Page page, boolean interactive) {
         var entries = categories.get(page.category);
@@ -405,7 +551,11 @@ public final class NativeOriginScreen extends Screen {
             int index = record - 1;
             if (index >= entries.size()) break;
             int x = 44 + cell % 3 * 233, y = 122 + cell / 3 * 236;
-            g.fill(x - 2, y - 2, x + 216, y + 194, INK); g.fill(x, y, x + 214, y + 192, 0xFFE6E4DE);
+            boolean cellHovered = interactive && !confirmation && (cell == focusedRecord
+                    || inside(currentPaperMouse.x(), currentPaperMouse.y(), x, y, 214, 219));
+            boolean cellDisabled = !state.available() || (record == 0 && (entries.isEmpty() || page.category == 1));
+            int frameV = cellDisabled ? 288 : (cellHovered ? 96 : 0);
+            blitNineSlice(g, PORTRAIT_FRAME, x - 2, y - 2, 218, 196, 0, frameV, 96, 96, 12, 96, 384, 0xFFFFFFFF);
             if (record == 0) {
                 Component symbol = Component.literal("?");
                 float size = 104, scale = size / 9;
@@ -414,12 +564,12 @@ public final class NativeOriginScreen extends Screen {
                         entries.isEmpty() || !state.available() || page.category == 1 ? MUTED : COLORS[page.category], 214);
                 if (wideGlyphs(archive("random_category"))) label(g, archive("random_category"), x, y + 196, 26, INK, 214);
                 else wrapped(g, archive("random_category"), x, y + 196, 18, INK, 214, y + 241, 1.12F);
-                if (interactive && cell == focusedRecord) g.renderOutline(x - 3, y - 3, 220, 198, 0xFF967751);
+                if (cellHovered) blitFrameBorder(g, PORTRAIT_FRAME, x - 3, y - 3, 220, 198, 0, 96, 96, 96, 12, 96, 384, 0xFFFFFFFF);
                 continue;
             }
             Entry entry = entries.get(index);
             models.renderPortrait(g, entry, x, y, 214, 192);
-            if (interactive && cell == focusedRecord) g.renderOutline(x - 3, y - 3, 220, 198, 0xFF967751);
+            blitFrameBorder(g, PORTRAIT_FRAME, x - 2, y - 2, 218, 196, 0, frameV, 96, 96, 12, 96, 384, 0xFFFFFFFF);
             label(g, Component.literal(String.format(java.util.Locale.ROOT, "%02d", index + 1)), x, y + 196, 18, MUTED, 30);
             Component name = ArchiveOriginModels.name(entry);
             if (wideGlyphs(name)) label(g, name, x + 35, y + 195, 26, INK, 179);
@@ -433,8 +583,14 @@ public final class NativeOriginScreen extends Screen {
         if (!state.available()) label(g, text("missing_backend"), 44, 1065, 16, MUTED, 686);
         if (pageCount(page.category) > 1) {
             label(g, archive("page_controls"), 250, 1067, 19, MUTED, 310);
-            if (page.number > 0) label(g, Component.literal("‹"), 24, PAGE_ARROW_Y, 28, MUTED, 40);
-            if (page.number + 1 < pageCount(page.category)) label(g, Component.literal("›"), 720, PAGE_ARROW_Y, 28, MUTED, 40);
+            if (page.number > 0) {
+                boolean hoverPrev = interactive && corner(currentPaperMouse, -1);
+                blitRegion(g, NAVIGATION_TEX, 18, PAGE_ARROW_Y - 2, 36, 24, 0, hoverPrev ? 24 : 0, 36, 24, 72, 72, 0xFFFFFFFF);
+            }
+            if (page.number + 1 < pageCount(page.category)) {
+                boolean hoverNext = interactive && corner(currentPaperMouse, 1);
+                blitRegion(g, NAVIGATION_TEX, 714, PAGE_ARROW_Y - 2, 36, 24, 36, hoverNext ? 24 : 0, 36, 24, 72, 72, 0xFFFFFFFF);
+            }
         }
     }
     private void dossier(GuiGraphics g, Page page, boolean interactive) {
@@ -442,14 +598,16 @@ public final class NativeOriginScreen extends Screen {
         boolean active = page.equals(paper);
         label(g, human ? archive("priority") : categoryName(page.category).copy().append(" / ").append(archive("dossier")), 44, 44, 22, MUTED, 686);
         label(g, ArchiveOriginModels.name(entry).copy().withStyle(net.minecraft.ChatFormatting.BOLD), 44, 80, 32, INK, 686);
-        g.fill(43, 134, 460, 563, INK); g.fill(44, 135, 459, 562, 0xFFE6E4DE);
+        blitNineSlice(g, DOLL_FRAME, 42, 133, 419, 431, 0, 0, 128, 128, 16, 128, 128, 0xFFFFFFFF);
         models.renderDoll(g, entry, 44, 135, 415, 427, active ? yaw : 0, active ? pitch : 0, active ? zoom : 1, active && previewCrouch);
+        blitFrameBorder(g, DOLL_FRAME, 42, 133, 419, 431, 0, 0, 128, 128, 16, 128, 128, 0xFFFFFFFF);
         label(g, archive(human ? "human_origin" : "native_origin"), 487, 158, 26, INK, 239);
         wrapped(g, archive("model_controls"), 487, 214, 25, MUTED, 239, 385);
         if (entry != null) {
             if (!state.available()) wrapped(g, text("missing_backend"), 487, 480, 18, 0xFF945246, 239, 558);
         }
-        g.fill(44, 584, 730, 586, 0xFFAAA79F); label(g, archive("parameters"), 44, 604, 25, INK, 620);
+        blitRegion(g, PARAMETER_FRAME, 44, 582, 686, 6, 0, 0, 128, 6, 128, 32, 0xFFFFFFFF);
+        label(g, archive("parameters"), 44, 604, 25, INK, 620);
         List<ArchiveOriginModels.Field> fields = models.fields(entry);
         int top = 651, bottom = 991, rowH = 47, count = (bottom - top) / rowH;
         int maxScroll = Math.max(0, fields.size() - count);
@@ -459,20 +617,22 @@ public final class NativeOriginScreen extends Screen {
             var field = fields.get(i); int y = top + (i - first) * rowH;
             label(g, field.label(), 44, y, 24, MUTED, 240); label(g, field.value(), 291, y, 24, INK, 411);
             if (field.ratio() >= 0) {
-                g.fill(291, y + 28, 705, y + 32, 0xFFD5D1C6);
-                g.fill(291, y + 28, 291 + (int)(414 * Mth.clamp(field.ratio(), 0, 1)), y + 32, field.color());
-            } else g.fill(44, y + 33, 705, y + 34, 0xFFC9C5B9);
+                blitRegion(g, PARAMETER_FRAME, 291, y + 27, 414, 6, 0, 8, 128, 8, 128, 32, 0xFFFFFFFF);
+                int fillW = (int)(414 * Mth.clamp(field.ratio(), 0, 1));
+                if (fillW > 0) blitRegion(g, PARAMETER_FRAME, 291, y + 27, fillW, 6, 0, 18, 128 * Mth.clamp(field.ratio(), 0, 1), 8, 128, 32, field.color());
+            } else blitRegion(g, PARAMETER_FRAME, 44, y + 32, 661, 4, 0, 0, 128, 6, 128, 32, 0xFFFFFFFF);
         }
         if (maxScroll > 0) {
             int h = bottom - top, thumb = Math.max(24, h * count / fields.size());
             int sy = top + (h - thumb) * first / maxScroll;
-            g.fill(725, top, 729, bottom, 0xFFD7D3C8); g.fill(725, sy, 729, sy + thumb, MUTED);
+            blitRegion(g, SCROLLBAR_TEX, 724, top, 6, bottom - top, 0, 0, 8, 64, 32, 64, 0xFFFFFFFF);
+            blitRegion(g, SCROLLBAR_TEX, 724, sy, 6, thumb, 8, 0, 8, 64, 32, 64, 0xFFFFFFFF);
         }
         button(g, 44, 1021, 686, 42, archive(human ? "choose_human" : "choose_native"), human || state.available());
         if (!human) label(g, archive(state.canCancel() ? "return_register_optional" : "return_register"), 44, 1070, 15, MUTED, 620);
     }
     private void notice(GuiGraphics g) {
-        g.fill(38, 736, 736, 1011, 0xF4F7F2E5);
+        blitNineSlice(g, DIALOG_FRAME, 38, 736, 698, 275, 0, 0, 128, 128, 16, 128, 128, 0xFFFFFFFF);
         scrollableText(g, state.message(), 59, 758, 24, 0xFF945246, 645, noHabitat() ? 915 : 965);
         if (noHabitat()) button(g, 59, 958, 644, 42, text("fallback"), canChoose());
     }
@@ -483,22 +643,24 @@ public final class NativeOriginScreen extends Screen {
         return inside(Math.cos(angle) * dx - Math.sin(angle) * dy,
                 Math.sin(angle) * dx + Math.cos(angle) * dy, 0, 0, 310, 158);
     }
+    private void insideCover(GuiGraphics g) {
+        randomSlip(g);
+        logNotes(g, HUMAN_PAGE);
+    }
     /** A folded raffle slip attached to the inside cover, in the same paper space as the archive. */
     private void randomSlip(GuiGraphics g) {
         g.pose().pushPose(); g.pose().translate(-690, 872, 0); g.pose().mulPose(Axis.ZP.rotationDegrees(-4));
-        g.fill(4, 6, 314, 164, 0x33000000);
-        g.fill(0, 0, 310, 158, slipHovered ? 0xFFFFFCED : 0xFFF3ECD7);
-        g.renderOutline(0, 0, 310, 158, 0xFFA18D69);
-        g.fill(15, 20, 295, 21, 0xFFB5A386);
-        label(g, archive("random_draw"), 18, 32, 18, MUTED, 220);
+        blitRegion(g, ArchivePaperRenderer.PAGE_SHADOW, 4, 6, 310, 158, 0, 0, 64, 64, 128, 64, 0x66FFFFFF);
+        blitRegion(g, RANDOM_NOTE, 0, 0, 310, 158, 0, slipHovered ? 160 : 0, 310, 158, 550, 780, 0xFFFFFFFF);
+        label(g, archive("random_draw"), 30, 28, 18, MUTED, 210);
         label(g, archive("random_all"), 18, 62, 30, INK, 220);
         label(g, archive("random_all_pool"), 18, 107, 18, MUTED, 270);
         label(g, Component.literal("?"), 258, 41, 44, 0xFF927D59, 42);
-        for (int i = 0; i < 20; i++) g.fill(290 + i, 0, 310, 20 - i, 0xFFD4C6A8);
         g.pose().popPose();
     }
     private void confirmation(GuiGraphics g) {
-        g.fill(22, 22, 752, 1072, 0xD8F7F2E5); g.fill(48, 288, 726, 842, 0xFFFDFBF5); g.renderOutline(48, 288, 678, 554, INK);
+        g.fill(22, 22, 752, 1072, 0xD8F7F2E5);
+        blitNineSlice(g, DIALOG_FRAME, 48, 288, 678, 554, 0, 0, 128, 128, 16, 128, 128, 0xFFFFFFFF);
         label(g, archive("confirm_title"), 74, 318, 29, INK, 620);
         label(g, randomChoice >= 0 ? randomChoice == 0 ? archive("random_all") : categoryName(randomChoice).copy().append(" / ").append(archive("random_draw"))
                 : ArchiveOriginModels.name(paper.category == 0 ? null : paper.detail), 74, 378, 27, INK, 620);
@@ -524,8 +686,9 @@ public final class NativeOriginScreen extends Screen {
         if (maxDialogScroll > 0) {
             int h = bottom - y, thumb = Math.max(24, h * dialogVisibleLines / dialogLines);
             int sy = y + (h - thumb) * dialogScroll / maxDialogScroll;
-            g.fill(x + width - 5, y, x + width - 1, bottom, 0xFFD7D3C8);
-            g.fill(x + width - 5, sy, x + width - 1, sy + thumb, MUTED);
+            int thumbU = draggingDialogScroll ? 24 : (dialogScrollAt(currentPaperMouse) ? 16 : 8);
+            blitRegion(g, SCROLLBAR_TEX, x + width - 6, y, 6, bottom - y, 0, 0, 8, 64, 32, 64, 0xFFFFFFFF);
+            blitRegion(g, SCROLLBAR_TEX, x + width - 6, sy, 6, thumb, thumbU, 0, 8, 64, 32, 64, 0xFFFFFFFF);
             label(g, archive("scroll_help"), x, bottom + 10, 18, MUTED, width);
         }
     }
@@ -555,10 +718,12 @@ public final class NativeOriginScreen extends Screen {
         dialogScroll = Mth.clamp((int)Math.round((y - dialogTextY - thumb / 2.0) * maxDialogScroll / Math.max(1, h - thumb)), 0, maxDialogScroll);
     }
     private void status(GuiGraphics g) {
-        g.fill(22, 22, 752, 1072, 0xECF7F2E5); label(g, archive("preparing"), 58, 370, 30, INK, 645);
+        blitNineSlice(g, DIALOG_FRAME, 22, 22, 730, 1050, 0, 0, 128, 128, 16, 128, 128, 0xFFFFFFFF);
+        label(g, archive("preparing"), 58, 370, 30, INK, 645);
         wrapped(g, state.message(), 58, 430, 25, MUTED, 645, 730);
         int x = 58 + (int)((Util.getMillis() % 1400) * 536 / 1400);
-        g.fill(58, 750, 703, 754, 0xFFD3CDBD); g.fill(x, 750, x + 100, 754, COLORS[paper.category]);
+        blitRegion(g, PARAMETER_FRAME, 58, 749, 645, 6, 0, 8, 128, 8, 128, 32, 0xFFFFFFFF);
+        blitRegion(g, PARAMETER_FRAME, x, 749, 100, 6, 0, 18, 32, 8, 128, 32, COLORS[paper.category]);
     }
     private void label(GuiGraphics g, Component component, double x, double y, float size, int color, double maxWidth) {
         if ((color >>> 24) < 4) return;
@@ -591,16 +756,20 @@ public final class NativeOriginScreen extends Screen {
         return component.getString().codePoints().anyMatch(c -> c >= 0x2E80 && c <= 0x9FFF || c >= 0xAC00 && c <= 0xD7AF);
     }
     private void button(GuiGraphics g, int x, int y, int w, int h, Component name, boolean enabled) {
-        g.fill(x, y, x + w, y + h, enabled ? INK : MUTED); label(g, name, x + 13, y + 10, 21, 0xFFF9F5E9, w - 26);
+        boolean hovered = enabled && !locked() && inside(currentPaperMouse.x(), currentPaperMouse.y(), x, y, w, h);
+        int stateV = !enabled ? 108 : (hovered ? 36 : 0);
+        blitNineSlice(g, BUTTON_TEX, x, y, w, h, 0, stateV, 96, 36, 10, 96, 144, 0xFFFFFFFF);
+        label(g, name, x + 13, y + 10, 21, 0xFFF9F5E9, w - 26);
     }
     private void tooltip(GuiGraphics g, Component component, int guiX, int guiY) {
         var canvas = fit.logical(guiX, guiY); int w = Math.min(420, (int)(font.width(component) * 2.5) + 26);
         int x = Mth.clamp((int)canvas.x() + 20, 12, 1908 - w), y = Mth.clamp((int)canvas.y() + 15, 12, 1035);
-        g.fill(x, y, x + w, y + 38, 0xFF242323); label(g, component, x + 12, y + 9, 21, 0xFFF9F5E9, w - 24);
+        blitNineSlice(g, TOOLTIP_TEX, x, y, w, 38, 0, 0, 96, 38, 10, 96, 38, 0xFFFFFFFF);
+        label(g, component, x + 12, y + 9, 21, 0xFFF9F5E9, w - 24);
     }
     private ArchiveGeometry.Point local(double guiX, double guiY) {
         if (fit == null) fit = ArchiveGeometry.fit(width, height);
-        return ArchiveGeometry.canvasToPaper(fit.logical(guiX, guiY), new ArchiveGeometry.Point(pose.x, pose.y + recoil), Math.toRadians(pose.angle), pose.scale);
+        return ArchiveGeometry.canvasToPaper(fit.logical(guiX, guiY), new ArchiveGeometry.Point(pose.x, pose.y), Math.toRadians(pose.angle), pose.scale);
     }
     private static boolean inside(double x, double y, double left, double top, double w, double h) {
         return x >= left && x < left + w && y >= top && y < top + h;

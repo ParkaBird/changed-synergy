@@ -1,0 +1,45 @@
+{
+  "style": "ranger",
+  "fourArm": {
+    "source": "LatexSilkMoth_ForestOutfit.bbmodel",
+    "source_sha256": "be7bae4f366cb6150d796c1dda707e4d2f630810bb88bba3c7c2ed7a51944401",
+    "cubes": 19,
+    "texture": "forest_canopy_four_arm.png",
+    "texture_size": {
+      "width": 256,
+      "height": 128
+    },
+    "texture_sha256": "c45c2892097b8c7c8f9d41e760668d6e103ec03c83e6f45684da5c99c90e8f6a"
+  },
+  "bipedal": {
+    "source": "LatexDeer_ForestOutfit.bbmodel",
+    "source_sha256": "0f8fcda59629a5663995a8ababf2b024b10ccafe0b478e75671e325285d7dc84",
+    "cubes": 18,
+    "texture": "forest_canopy_outfit.png",
+    "texture_size": {
+      "width": 224,
+      "height": 128
+    },
+    "texture_sha256": "ee92e580c40de8a67f9ec6460b95cda2c1fc1730848238ceeb0bb26c0abd450b"
+  },
+  "female": {
+    "source": "LightLatexWolfFemale_ForestOutfit.bbmodel",
+    "source_sha256": "be6737f1a2108258ba2313aba61c17bc8779f14647f7bf22e81c48b6162e8c11",
+    "cubes": 21,
+    "texture": "forest_canopy_female.png",
+    "texture_size": {
+      "width": 224,
+      "height": 128
+    },
+    "texture_sha256": "6ae43011d102383b28413b95390201bab14c406ada78a99141d1e771d507d5e0"
+  },
+  "synergyFemale": {
+    "source": "RangerOutfit_SynergyFemale.bbmodel",
+    "cubes": 20,
+    "source_sha256": "597d4a228393ae0a24aa85f92d8df19e8dbc4989cc383982059a2a673694260e"
+  },
+  "icon": {
+    "source": "black_forest_ranger_outfit_icon.png",
+    "sha256": "7239a6f39008ee781f470c955cf1338a2c8a7bc50a2cee599d3af75d0af42ac8"
+  }
+}

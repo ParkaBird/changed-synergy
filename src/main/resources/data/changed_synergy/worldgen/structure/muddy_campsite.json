@@ -1,0 +1,22 @@
+{
+  "type": "changed_synergy:research_lab",
+  "biomes": "#changed_synergy:has_structure/muddy_campsite",
+  "step": "surface_structures",
+  "terrain_adaptation": "none",
+  "spawn_overrides": {
+    "monster": {
+      "bounding_box": "full",
+      "spawns": [
+        {
+          "type": "changed_synergy:latex_jerboa",
+          "weight": 4,
+          "minCount": 1,
+          "maxCount": 2
+        }
+      ]
+    }
+  },
+  "template": "changed_synergy:muddy_campsite",
+  "ground_level": 4,
+  "max_terrain_slope": 2
+}

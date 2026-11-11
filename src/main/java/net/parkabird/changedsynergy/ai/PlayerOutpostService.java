@@ -97,6 +97,28 @@ public final class PlayerOutpostService {
                         && mob.tickCount - mob.getLastHurtByMobTimestamp() < 600;
     }
 
+    /** Guard duty protects its camp independently of the owner's companion attack settings. */
+    public static boolean isGuardDefenseTarget(ChangedEntity guard, LivingEntity target) {
+        if (!(target instanceof Monster) || target instanceof ChangedEntity
+                || target instanceof Creeper || target instanceof Ghast || !target.isAlive()
+                || target.isRemoved() || target.level() != guard.level() || guard.isAlliedTo(target)
+                || !assigned(guard) || !(guard.level() instanceof ServerLevel level)) return false;
+        var home = PlayerOutpostData.get(level.getServer()).byMember(guard.getUUID()).orElse(null);
+        if (home == null || home.members.get(guard.getUUID()).role != Role.GUARD
+                || !home.active(level) || !home.contains(guard.blockPosition()) || !home.contains(target.blockPosition())) return false;
+        var owner = level.getServer().getPlayerList().getPlayer(home.owner);
+        return (owner == null || !target.isAlliedTo(owner)) && BondedPetSettings.isHostileMonster(target, owner);
+    }
+
+    private static void tickGuard(ChangedEntity mob, ServerLevel level) {
+        if (!assigned(mob) || mob.getTarget() != null) return;
+        var home = PlayerOutpostData.get(level.getServer()).byMember(mob.getUUID()).orElse(null);
+        if (home == null || home.members.get(mob.getUUID()).role != Role.GUARD
+                || !home.active(level) || !home.contains(mob.blockPosition())) return;
+        CreatureRoleService.acquireGuardTarget(mob, level.getServer().getPlayerList().getPlayer(home.owner),
+                monster -> home.contains(monster.blockPosition()));
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onCombatTarget(LivingChangeTargetEvent event) {
         if (event.getEntity() instanceof ChangedEntity mob && !mob.level().isClientSide
@@ -329,6 +351,10 @@ public final class PlayerOutpostService {
         PlayerOutpostRestGoal.cleanupStale(mob);
         Outpost outpost = data.byMember(mob.getUUID()).orElse(null);
         if (outpost == null) {
+            if (NaturalCampService.member(mob) && !mob.getPersistentData().hasUUID(OUTPOST_OWNER)) {
+                restoreCompanionGoals(mob);
+                return;
+            }
             clearAssignment(mob);
             return;
         }
@@ -363,6 +389,7 @@ public final class PlayerOutpostService {
             mob.setTarget(null);
             mob.setAggressive(false);
         }
+        if (mob.tickCount % 20 == Math.floorMod(mob.getId(), 20)) tickGuard(mob, level);
         if (mob.tickCount % 100 != 0) return;
         PlayerOutpostRestGoal.cleanupStale(mob);
         PlayerOutpostMealGoal.cleanupStale(mob);
@@ -404,18 +431,6 @@ public final class PlayerOutpostService {
                     if (shouldFollow != following) applyRole(mob, owner, member.role, false);
                 }
             }
-        }
-        if (member.role == Role.GUARD && outpost.active(level)
-                && !ChangedSynergyConfig.COMMON.companionMonsterAssistOnly.get()
-                && outpost.contains(mob.blockPosition()) && mob.getTarget() == null) {
-            level.getEntitiesOfClass(Monster.class,
-                            new AABB(outpost.marker).inflate(12.0D, 6.0D, 12.0D),
-                            monster -> !(monster instanceof ChangedEntity)
-                                    && !(monster instanceof Creeper)
-                                    && monster.isAlive() && mob.canAttack(monster)
-                                    && BondedPetSettings.isHostileMonster(monster, owner))
-                    .stream().min(java.util.Comparator.comparingDouble(mob::distanceToSqr))
-                    .ifPresent(mob::setTarget);
         }
     }
 

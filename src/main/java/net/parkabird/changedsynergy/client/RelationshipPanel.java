@@ -1,8 +1,13 @@
 package net.parkabird.changedsynergy.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 
 /** Textured relationship cards retain their artwork and a softly rounded theme-colored halo. */
@@ -17,6 +22,19 @@ public final class RelationshipPanel {
     private static final ResourceLocation GOO_GLOW = texture("glow/goo");
     private static final ResourceLocation ORGANIC_CARD = texture("vertical/organic/card");
     private RelationshipPanel() {}
+
+    record InfoCard(Component title, List<Component> lines) {}
+
+    record PreparedCard(Component title, List<FormattedCharSequence> lines, int height) {}
+
+    static PreparedCard prepareCard(Font font, InfoCard card, int textWidth) {
+        List<FormattedCharSequence> lines = new ArrayList<>();
+        for (Component line : card.lines()) {
+            lines.addAll(font.split(line, textWidth));
+        }
+        return new PreparedCard(card.title(), List.copyOf(lines),
+                GEL_TEXT_PADDING + Math.max(1, lines.size()) * 9);
+    }
 
     public enum CardStyle {
         STATUS("status", 0), CONTACTS("contacts", 12), LOCATION("location", 24);
@@ -78,6 +96,49 @@ public final class RelationshipPanel {
         int alpha = Math.round((background >>> 24) * UiSpring.clamp(opacity));
         graphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, alpha << 24 | background & 0xFFFFFF);
         ring(graphics, x, y, width, height, Math.round(alpha * 0.72F) << 24 | background & 0xFFFFFF);
+    }
+
+    /** Reuse the social artwork at dialogue widths without stretching its corners. */
+    public static void drawDialogue(GuiGraphics graphics,int x,int y,int width,int height,int tint) {
+        drawDialogue(graphics, x, y, width, height, tint, false);
+    }
+
+    public static void drawDialogue(GuiGraphics graphics,int x,int y,int width,int height,int tint,boolean organic) {
+        drawShadow(graphics,x,y,width,height,organic?0xC6C6C6:tint,1);
+        RenderSystem.enableBlend();RenderSystem.defaultBlendFunc();
+        int blitTint = organic ? 0xFFFFFF : tint;
+        graphics.setColor((blitTint>>16&255)/255F,(blitTint>>8&255)/255F,(blitTint&255)/255F,1);
+        ResourceLocation texture = organic ? ORGANIC_CARD : CardStyle.CONTACTS.gooTexture;
+        int[] sourceX={0,16,CARD_WIDTH-16},sourceY={0,GEL_TOP,GEL_SOURCE_HEIGHT-GEL_BOTTOM};
+        int[] sourceW={16,CARD_WIDTH-32,16},sourceH={GEL_TOP,GEL_SOURCE_HEIGHT-GEL_TOP-GEL_BOTTOM,GEL_BOTTOM};
+        int[] destW={16,width-32,16},destH={GEL_TOP,height-GEL_TOP-GEL_BOTTOM,GEL_BOTTOM};
+        try {
+            int yy=y;
+            for(int row=0;row<3;row++) {
+                int xx=x;
+                for(int col=0;col<3;col++) {
+                    graphics.blit(texture,xx,yy,destW[col],destH[row],sourceX[col],sourceY[row],sourceW[col],sourceH[row],CARD_WIDTH,GEL_SOURCE_HEIGHT);
+                    xx+=destW[col];
+                }
+                yy+=destH[row];
+            }
+        } finally {graphics.setColor(1,1,1,1);RenderSystem.disableBlend();}
+    }
+
+    public static int readableText(int color,int surface) {
+        double bg=luminance(surface);int target=bg>.179?0:0xFFFFFF;
+        for(int step=0;step<10;step++) {
+            double fg=luminance(color);
+            if((Math.max(bg,fg)+.05)/(Math.min(bg,fg)+.05)>=4.5)return color;
+            int mixed=0;
+            for(int shift:new int[]{16,8,0})mixed|=Math.round((color>>shift&255)*.7F+(target>>shift&255)*.3F)<<shift;
+            color=mixed;
+        }
+        return target;
+    }
+
+    private static double luminance(int rgb) {
+        return .2126*linear((rgb>>16&255)/255D)+.7152*linear((rgb>>8&255)/255D)+.0722*linear((rgb&255)/255D);
     }
 
     private static void drawShadow(GuiGraphics graphics, int x, int y, int width, int height,

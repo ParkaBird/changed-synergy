@@ -69,7 +69,7 @@ public final class ProvisionerGiftService {
                 || provider.getTarget() != null
                 || provider.isAggressive()
                 || provider.isPassenger()
-                || ChangedAddonCompat.isGrabberBusy(provider)
+                || CreatureGrabService.isGrabberBusy(provider)
                 || !canPauseForGift(
                         provider, CreatureLifeMemory.routine(provider))) {
             return;

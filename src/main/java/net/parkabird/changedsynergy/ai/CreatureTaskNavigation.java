@@ -26,7 +26,7 @@ final class CreatureTaskNavigation {
                 || mob.position().distanceToSqr(previous.position()) >= 4.0D
                 || previous.retryAt() - now > 220L)) previous = null;
         if (previous != null && now < previous.retryAt()) return false;
-        var path = navigation.createPath(target, accuracy);
+        var path = NaturalCampService.path(mob, target, accuracy);
         // Distant deliveries may use partial paths, but a path ending at our feet is another failed search.
         boolean advances = path != null && (path.canReach()
                 || path.getNodeCount() >= 2 && path.getEndNode() != null

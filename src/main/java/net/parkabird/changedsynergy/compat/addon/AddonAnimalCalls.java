@@ -16,10 +16,24 @@ public final class AddonAnimalCalls {
     private AddonAnimalCalls() {}
 
     public static void play(ChangedEntity creature, String mood) {
+        playFrom(creature,creature,mood);
+    }
+    public static void playFrom(ChangedEntity creature, net.minecraft.world.entity.LivingEntity source, String mood) {
         if (net.parkabird.changedsynergy.ai.BondedSuitService.getSuitController(creature) != null) return;
         long now = creature.level().getGameTime();
         if (creature.getPersistentData().getLong(NEXT_CALL) > now
                 || creature.getRandom().nextFloat() > 0.4F) return;
+
+        SoundEvent sound = sound(creature, mood);
+        if (sound == null) return;
+        creature.getPersistentData().putLong(NEXT_CALL, now + 80L);
+        source.level().playSound(null, source.getX(),source.getY(),source.getZ(),sound, SoundSource.NEUTRAL,
+                0.45F, 0.9F + creature.getRandom().nextFloat() * 0.2F);
+    }
+
+    public static boolean supports(ChangedEntity creature) { return sound(creature, "neutral") != null; }
+
+    private static SoundEvent sound(ChangedEntity creature, String mood) {
 
         ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(creature.getType());
         String species = id == null ? "" : id.getPath();
@@ -46,12 +60,8 @@ public final class AddonAnimalCalls {
                     ? TransfurSoundAction.SPIDER_AMBIENT : null;
             default -> null;
         };
-        SoundEvent sound = action != null ? action.sound()
+        return action != null ? action.sound()
                 : species.contains("gecko")
                         ? ChangedAddonSoundEvents.GECKO_BEEP.get() : null;
-        if (sound == null) return;
-        creature.getPersistentData().putLong(NEXT_CALL, now + 80L);
-        creature.level().playSound(null, creature, sound, SoundSource.NEUTRAL,
-                0.45F, 0.9F + creature.getRandom().nextFloat() * 0.2F);
     }
 }

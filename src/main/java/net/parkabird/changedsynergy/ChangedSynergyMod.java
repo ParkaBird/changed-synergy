@@ -49,8 +49,11 @@ public final class ChangedSynergyMod {
         modBus.addListener(ChangedSynergyMod::onConfigLoading);
         modBus.addListener(ChangedSynergyMod::onCommonSetup);
         ChangedSynergyEntities.REGISTRY.register(modBus);
+        net.parkabird.changedsynergy.init.ChangedSynergyBlocks.REGISTRY.register(modBus);
         net.parkabird.changedsynergy.init.ChangedSynergyAbilities.REGISTRY.register(modBus);
         ChangedSynergyTransfurVariants.REGISTRY.register(modBus);
+        modBus.addListener(ChangedSynergyTransfurVariants::registerAliases);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(ChangedSynergyTransfurVariants::remapOldForms);
         ChangedSynergyItems.REGISTRY.register(modBus);
         ChangedSynergyMenus.REGISTRY.register(modBus);
         ChangedSynergyMobEffects.REGISTRY.register(modBus);
@@ -58,12 +61,16 @@ public final class ChangedSynergyMod {
         ChangedSynergySoundEvents.REGISTRY.register(modBus);
         net.parkabird.changedsynergy.world.ResearchLabStructure.TYPES.register(modBus);
         net.parkabird.changedsynergy.world.ResearchLabStructure.PIECES.register(modBus);
+        net.parkabird.changedsynergy.world.NearbyObservatoryMapFunction.TYPES.register(modBus);
     }
 
     private static void onCommonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(net.parkabird.changedsynergy.compat.curios.CuriosCompat::registerClothing);
         event.enqueueWork(LatexTerritoryBiomes::register);
         event.enqueueWork(() -> net.ltxprogrammer.changed.init.ChangedTransfurVariants.Gendered.registerPair(
                 ChangedSynergyTransfurVariants.LATEX_MUNTJAC, ChangedSynergyTransfurVariants.LATEX_MUNTJAC_FEMALE));
+        event.enqueueWork(() -> net.ltxprogrammer.changed.init.ChangedTransfurVariants.Gendered.registerPair(
+                ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_MALE, ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_FEMALE));
     }
 
     private static void onConfigLoading(ModConfigEvent.Loading event) {

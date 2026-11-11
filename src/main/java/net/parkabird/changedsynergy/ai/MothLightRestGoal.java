@@ -9,7 +9,6 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.pathfinder.Path;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.entity.LatexSilkMoth;
 import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
@@ -34,7 +33,7 @@ public final class MothLightRestGoal extends Goal {
                 && !PlayerOutpostService.assigned(moth)
                 && !(LatexSocialMemory.petOwnerUuid(moth).isPresent() && LatexSocialMemory.isFollowingOwner(moth))
                 && CreaturePersonality.socialPartner(moth)==null && !SocialAudienceGoal.isActive(moth)
-                && !CreaturePeerInteractionService.active(moth) && !ChangedAddonCompat.isGrabberBusy(moth)
+                && !CreaturePeerInteractionService.active(moth) && !CreatureGrabService.isGrabberBusy(moth)
                 && !TakeoverService.carrying(moth);
     }
     @Override public boolean canUse() {

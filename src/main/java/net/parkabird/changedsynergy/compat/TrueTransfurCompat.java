@@ -6,6 +6,8 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.Changed;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
+import net.ltxprogrammer.changed.entity.TransfurContext;
+import net.ltxprogrammer.changed.entity.variant.TransfurVariant;
 import net.ltxprogrammer.changed.entity.variant.TransfurVariantInstance;
 import net.ltxprogrammer.changed.network.packet.SyncTransfurPacket;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
@@ -111,6 +113,7 @@ public final class TrueTransfurCompat {
     }
 
     public static boolean blocksReversal(ServerPlayer player) {
+        if (net.parkabird.changedsynergy.npc.NpcRites.permanent(player)) return true;
         if (net.parkabird.changedsynergy.origin.NativeOriginService.isNative(player)
                 && net.parkabird.changedsynergy.origin.NativeOriginService.enabled(player)) return true;
         if (!net.parkabird.changedsynergy.origin.NativeOriginPolicy.allows(player)) return false;
@@ -147,6 +150,20 @@ public final class TrueTransfurCompat {
             controller.getMethod("getControlMode", ServerPlayer.class);
             return true;
         } catch (ReflectiveOperationException | LinkageError exception) { return false; }
+    }
+
+    /** Shared body initialization for a chosen native origin and a consenting permanent ritual. */
+    public static boolean initializePersistentBody(ServerPlayer player,TransfurVariant<?> form,
+            @Nullable TransfurContext context,float progress) {
+        var instance=ProcessTransfur.setPlayerTransfurVariant(player,form,context,progress,true,
+                variant->variant.willSurviveTransfur=true);
+        if(instance==null||instance.getParent()!=form)return false;
+        instance.willSurviveTransfur=true;
+        instance.transfurProgression=instance.transfurProgressionO=progress;
+        instance.setTemporaryForSuit(false);
+        player.refreshDimensions();
+        Changed.PACKET_HANDLER.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(()->player),SyncTransfurPacket.Builder.of(player));
+        return true;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

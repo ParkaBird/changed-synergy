@@ -26,12 +26,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Member;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Outpost;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Role;
 
-/** Night beds and interruptible daytime rests use the actual Changed seats. */
+/** Scheduled sleep and interruptible rests use the actual Changed beds and seats. */
 public final class PlayerOutpostRestGoal extends Goal {
     private static final String RESTING = "ChangedSynergyPlayerOutpostResting";
     private static final String SEAT = "ChangedSynergyPlayerOutpostRestSeat";
@@ -43,7 +42,7 @@ public final class PlayerOutpostRestGoal extends Goal {
     private int remaining;
     private int repath;
     private boolean seated;
-    private boolean night;
+    private boolean sleepingTime;
     private long nextAttempt;
     private int restCursor;
 
@@ -63,8 +62,8 @@ public final class PlayerOutpostRestGoal extends Goal {
         if (outpost == null || !outpost.active(level) || !outpost.contains(mob.blockPosition())
                 || !eligible(outpost.members.get(mob.getUUID()))) return false;
         PlayerOutpostData.get(level.getServer()).refreshRestPlaces(level, outpost);
-        night = !level.isDay();
-        if (night) {
+        sleepingTime = sleepTime(mob);
+        if (sleepingTime) {
             if (!ChangedSynergyConfig.COMMON.playerOutpostRest.get()) return false;
             bed = select(level, outpost.beds, false);
             if (bed == null && PlayerOutpostSupplyType.of(mob) == PlayerOutpostSupplyType.NECTAR)
@@ -83,7 +82,8 @@ public final class PlayerOutpostRestGoal extends Goal {
     private BlockPos select(ServerLevel level, java.util.Collection<BlockPos> places, boolean nearWork) {
         Member member = outpost.members.get(mob.getUUID());
         List<BlockPos> candidates = places.stream().filter(p -> free(level, p))
-                .sorted(Comparator.comparingDouble(p -> mob.distanceToSqr(Vec3.atCenterOf(p)))).toList();
+                .sorted(Comparator.<BlockPos>comparingInt(p -> CreatureRestPlaces.rank(level,p))
+                        .thenComparingDouble(p -> mob.distanceToSqr(Vec3.atCenterOf(p)))).toList();
         int start = candidates.isEmpty() ? 0 : Math.floorMod(restCursor, candidates.size());
         int probes = 0;
         for (int offset = 0; offset < candidates.size(); offset++) {
@@ -104,14 +104,14 @@ public final class PlayerOutpostRestGoal extends Goal {
     @Override public boolean canContinueToUse() {
         if (!(mob.level() instanceof ServerLevel level) || outpost == null || bed == null
                 || !PlayerOutpostService.operational(mob)
-                || !(night ? ChangedSynergyConfig.COMMON.playerOutpostRest.get()
+                || !(sleepingTime ? ChangedSynergyConfig.COMMON.playerOutpostRest.get()
                         : ChangedSynergyConfig.COMMON.playerOutpostIdleRest.get())
-                || level.isDay() == night || !outpost.active(level) || !available(mob) || remaining <= 0
+                || sleepTime(mob) != sleepingTime || !outpost.active(level) || !available(mob) || remaining <= 0
                 || PlayerOutpostData.get(level.getServer()).byMember(mob.getUUID()).orElse(null) != outpost
                 || !eligible(outpost.members.get(mob.getUUID())) || !outpost.contains(bed)
                 || !bed.equals(ACTIVE_RESTS.get(mob)) || !level.hasChunkAt(bed)
                 || !(outpost.beds.contains(bed) || outpost.restPoints.contains(bed))) return false;
-        if (mob.isSleeping()) return level.getBlockState(bed).getBlock() instanceof BedBlock
+        if (mob.isSleeping()) return isBed(level.getBlockState(bed))
                 && bed.equals(restingPlace(level, bed)) && mob.getSleepingPos().filter(bed::equals).isPresent();
         if (seated) return isRestPoint(level.getBlockState(bed)) && isResting(mob)
                 && bed.equals(restingPlace(level, ((SeatEntity)mob.getVehicle()).getAttachedBlockPos()));
@@ -131,7 +131,7 @@ public final class PlayerOutpostRestGoal extends Goal {
         // Orders can clear the reservation between the selector's alternating validity checks.
         // Do not lie down again during that last queued tick.
         if (!canContinueToUse()) { remaining = 0; return; }
-        if (!seated || night) remaining--;
+        if (!seated || sleepingTime) remaining--;
         if (mob.isSleeping() || seated) {
             Member member = outpost.members.get(mob.getUUID());
             if (member != null) member.workStatus = "resting";
@@ -148,7 +148,7 @@ public final class PlayerOutpostRestGoal extends Goal {
         mob.getNavigation().stop();
         ServerLevel level = (ServerLevel)mob.level();
         if (!free(level, bed)) { remaining = 0; return; }
-        if (level.getBlockState(bed).getBlock() instanceof BedBlock) {
+        if (isBed(level.getBlockState(bed))) {
             mob.startSleeping(bed);
             remaining = 12000;
         } else {
@@ -193,7 +193,7 @@ public final class PlayerOutpostRestGoal extends Goal {
         return mob.isAlive() && !mob.isNoAi() && !mob.isLeashed() && mob.getTarget() == null
                 && !PlayerOutpostGoal.onCampfire(mob)
                 && !mob.isVehicle() && (!mob.isPassenger() || isResting(mob))
-                && !TakeoverService.carrying(mob) && !ChangedAddonCompat.isGrabberBusy(mob)
+                && !TakeoverService.carrying(mob) && !CreatureGrabService.isGrabberBusy(mob)
                 && GrabEntityAbility.getGrabber(mob) == null && (suit == null || suit.grabbedEntity == null)
                 && !SocialAudienceGoal.isActive(mob) && HypnosisQteService.getActiveVictim(mob) == null
                 && !mob.getPersistentData().hasUUID("ChangedSynergyRestOwner");
@@ -211,6 +211,8 @@ public final class PlayerOutpostRestGoal extends Goal {
                     && pos.equals(entry.getValue())) return false;
         }
         BlockState state = level.getBlockState(pos);
+        if(state.getBlock() instanceof net.parkabird.changedsynergy.block.PerchBlock)return PerchSleepService.bird(mob)&&PerchSleepService.free(level,pos,mob);
+        if (state.is(net.minecraft.tags.BlockTags.WOOL_CARPETS)) return CreatureRestPlaces.carpetFree(mob,level,pos);
         if (state.getBlock() instanceof BedBlock)
             return level.dimensionType().bedWorks() && !state.getValue(BedBlock.OCCUPIED);
         if (state.getBlock() instanceof Pillow)
@@ -222,13 +224,25 @@ public final class PlayerOutpostRestGoal extends Goal {
                 && level.getBlockEntity(pos.above()) instanceof CardboardBoxTallBlockEntity box
                 && box.getSeatedEntity() == null;
     }
+    static boolean reserve(ChangedEntity mob,ServerLevel level,BlockPos pos) {
+        if(!free(mob,level,pos))return false;
+        ACTIVE_RESTS.put(mob,pos);return true;
+    }
+    static boolean reserved(ChangedEntity mob,BlockPos pos){return pos!=null&&pos.equals(ACTIVE_RESTS.get(mob));}
 
     public static boolean isRestPoint(BlockState state) {
-        return state.getBlock() instanceof Pillow || state.getBlock() instanceof OfficeChair
+        return state.is(net.minecraft.tags.BlockTags.WOOL_CARPETS) || state.getBlock() instanceof Pillow || state.getBlock() instanceof OfficeChair
                 || state.getBlock() instanceof CardboardBoxTall;
     }
+    public static boolean sleepTime(ChangedEntity mob) {
+        return mob instanceof net.parkabird.changedsynergy.entity.LatexEagleOwl ? mob.level().isDay() : !mob.level().isDay();
+    }
+
+    public static boolean isBed(BlockState state){return state.getBlock() instanceof BedBlock||state.getBlock() instanceof net.parkabird.changedsynergy.block.PerchBlock;}
 
     public static boolean sit(ChangedEntity mob, ServerLevel level, BlockPos pos) {
+        if (level.getBlockState(pos).is(net.minecraft.tags.BlockTags.WOOL_CARPETS))
+            return CreatureRestPlaces.carpetFree(mob,level,pos) && CreatureRestPlaces.sitOnGround(mob,level,pos);
         var entity = level.getBlockEntity(pos);
         return entity instanceof PillowBlockEntity pillow && pillow.sitEntity(mob)
                 || entity instanceof ChairBlockEntity chair && chair.sitEntity(mob)
@@ -240,6 +254,7 @@ public final class PlayerOutpostRestGoal extends Goal {
     public static boolean partsLoaded(Level level, BlockPos pos) {
         if (!level.hasChunkAt(pos)) return false;
         BlockState state = level.getBlockState(pos);
+        if(state.getBlock() instanceof net.parkabird.changedsynergy.block.PerchBlock perch)return level.hasChunkAt(perch.other(pos,state));
         if (state.getBlock() instanceof BedBlock)
             return level.hasChunkAt(pos.relative(state.getValue(BedBlock.PART) == BedPart.HEAD
                     ? state.getValue(BedBlock.FACING).getOpposite() : state.getValue(BedBlock.FACING)));
@@ -252,6 +267,7 @@ public final class PlayerOutpostRestGoal extends Goal {
     public static BlockPos restingPlace(Level level, BlockPos pos) {
         if (pos == null || !partsLoaded(level, pos)) return null;
         BlockState state = level.getBlockState(pos);
+        if(state.getBlock() instanceof net.parkabird.changedsynergy.block.PerchBlock perch)return perch.complete(level,pos,state)?perch.sleepPos(state,pos).immutable():null;
         if (state.getBlock() instanceof OfficeChair || state.getBlock() instanceof CardboardBoxTall) {
             BlockPos lower = state.getValue(OfficeChair.HALF) == DoubleBlockHalf.LOWER ? pos : pos.below();
             BlockState bottom = level.getBlockState(lower), top = level.getBlockState(lower.above());

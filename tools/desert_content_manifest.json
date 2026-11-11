@@ -1,0 +1,47 @@
+{
+  "Bipedal": {
+    "source": "LatexFennecFoxUnified_DesertOutfit.bbmodel",
+    "sha256": "d731e0cde751c689c28553c5fd4ed23b7bc906a929046c2355c3713a830754a8",
+    "garment_cubes": 18,
+    "reference_cubes": 31,
+    "texture": "desert_bipedal.png"
+  },
+  "FourArm": {
+    "source": "LatexSilkMothUnified_DesertOutfit.bbmodel",
+    "sha256": "0ec696720162bc05a5593507cc58d15e5ba5029a92af3b22e4a1983a7f73825b",
+    "garment_cubes": 19,
+    "reference_cubes": 48,
+    "texture": "desert_fourarm.png"
+  },
+  "Tail": {
+    "source": "LatexSnake_DesertOutfit.bbmodel",
+    "sha256": "5bb484ff1e263f42379144cf343e81c981bdf24f1a1ee39cd6a84cf24e1df360",
+    "garment_cubes": 16,
+    "reference_cubes": 14,
+    "texture": "desert_tail.png"
+  },
+  "Pup": {
+    "source": "GasWolfPup_DesertOutfit.bbmodel",
+    "sha256": "3106c2821fab38f216b5dfa0cbd5951a51f033b3d94106414733bdbbdf8e84cf",
+    "garment_cubes": 9,
+    "reference_cubes": 28,
+    "texture": "desert_pup.png"
+  },
+  "Jerboa": {
+    "source": "LatexJerboa_DesertOutfit.bbmodel",
+    "sha256": "34c7d49ba4c0dff6edba96ce67a6aa42caeef5141e86acaf6b8c84308316ada2",
+    "garment_cubes": 20,
+    "reference_cubes": 39,
+    "texture": "desert_jerboa.png"
+  },
+  "liveJerboa": {
+    "source": "LatexJerboa.bbmodel",
+    "sha256": "ddf9449057f7fd03bbda922e4736d73d692195a1fec6c74f721bd9913ce76206",
+    "cubes": 39,
+    "bones": 24,
+    "texture": [
+      96,
+      96
+    ]
+  }
+}

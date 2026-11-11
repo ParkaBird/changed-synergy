@@ -23,6 +23,16 @@ public final class CuriosCompat {
     public static boolean isLoaded() {
         return ModList.get().isLoaded("curios");
     }
+    public static void registerClothing(){if(isLoaded())CuriosClothingIntegration.register();}
+    public static net.ltxprogrammer.changed.data.AccessorySlotType clothingType(String identifier){return isLoaded()?NativeClothingInventory.type(identifier):null;}
+    public static boolean isEquipmentMenu(net.minecraft.world.inventory.AbstractContainerMenu menu){return isLoaded()&&CuriosApiBridge.isEquipmentMenu(menu);}
+    public static boolean clothingVisible(LivingEntity entity,net.ltxprogrammer.changed.data.AccessorySlotType type) {
+        return !isLoaded() || CuriosApiBridge.clothingVisible(entity,type);
+    }
+    public static boolean openClothing(net.minecraft.server.level.ServerPlayer player,net.minecraft.world.item.ItemStack request) {
+        if(!isLoaded())return false;
+        return CuriosApiBridge.openClothing(player,request);
+    }
 
     public static List<SlotDescriptor> slotDescriptors(
             @Nullable Player player,

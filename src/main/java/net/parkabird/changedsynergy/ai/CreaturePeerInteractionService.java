@@ -583,7 +583,7 @@ public final class CreaturePeerInteractionService {
                 || creature.getPersistentData().hasUUID("ChangedSynergyRestOwner")
                 || HypnosisQteService.getActiveVictim(creature) != null) return false;
         boolean gameHold = own != null && own.holder != null && (own.holder == creature || own.runner == creature);
-        if (!gameHold && (ChangedAddonCompat.isGrabberBusy(creature)
+        if (!gameHold && (CreatureGrabService.isGrabberBusy(creature)
                 || GrabEntityAbility.getGrabberSafe(creature).isPresent()
                 || BondedSuitService.ability(creature) != null && BondedSuitService.ability(creature).grabbedEntity != null)) return false;
         if (own == null && creature.getPose() != Pose.STANDING

@@ -9,7 +9,6 @@ import net.parkabird.changedsynergy.ai.LatexFusionIntent;
 import net.parkabird.changedsynergy.ai.BondedPetSettings;
 import net.parkabird.changedsynergy.ai.CreatureCacheGuardService;
 import net.parkabird.changedsynergy.ai.OrganicCombatRules;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -78,8 +77,7 @@ public abstract class OrganicTransfurRestrictionMixin {
             // protects identity. Keep Changed's normal transfur damage intact.
             return;
         }
-        if (ChangedAddonCompat.suppressBondedTransfurAttack(self)
-                || BondedPetSettings.suppressTransfurAttack(self)) {
+        if (BondedPetSettings.suppressTransfurAttack(self)) {
             callback.setReturnValue(false);
             return;
         }

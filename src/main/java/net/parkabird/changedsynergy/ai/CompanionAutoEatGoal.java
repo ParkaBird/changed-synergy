@@ -21,8 +21,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
+import net.parkabird.changedsynergy.entity.SpottedHyenaDiet;
 import net.parkabird.changedsynergy.world.inventory.BondedInventoryService;
 
 /** A real offhand meal; emergency rescue and critical self-recovery wrapping take priority. */
@@ -42,7 +42,7 @@ public final class CompanionAutoEatGoal extends Goal {
                 && mob.isAlive() && !mob.isNoAi() && !mob.isSleeping() && !mob.isPassenger() && !mob.isVehicle()
                 && mob.getUnderlyingPlayer()==null && !TrueTransfurCompat.isInstinctBody(mob)
                 && CreatureSocialProfile.allowsPersonalRelationship(mob) && !TakeoverService.carrying(mob)
-                && !ChangedAddonCompat.isGrabberBusy(mob) && GrabEntityAbility.getGrabberSafe(mob).isEmpty()
+                && !CreatureGrabService.isGrabberBusy(mob) && GrabEntityAbility.getGrabberSafe(mob).isEmpty()
                 && (BondedSuitService.ability(mob)==null || BondedSuitService.ability(mob).grabbedEntity==null)
                 && !CreaturePeerInteractionService.active(mob) && !ProvisionerTradeService.isTrading(mob)
                 && (LatexSocialMemory.hasActiveBond(mob) || CreaturePersonality.establishedRelationshipPlayerUuids(mob)
@@ -61,8 +61,8 @@ public final class CompanionAutoEatGoal extends Goal {
         slot=-1;
         for (int i=0;i<Math.min(24,inventory.getContainerSize());i++) {
             var food=inventory.getItem(i);
-            var properties=food.getFoodProperties(mob);
-            if (food.isEmpty() || !food.isEdible() || properties==null || properties.getNutrition()<=0
+            var properties=SpottedHyenaDiet.foodProperties(food,mob);
+            if (food.isEmpty() || !(food.isEdible() || SpottedHyenaDiet.isSpeciesFood(food,mob)) || properties==null || properties.getNutrition()<=0
                     || food.is(Items.SUSPICIOUS_STEW) || food.is(Items.CHORUS_FRUIT) || RelationshipFavorService.isGoldenOrange(food)
                     || properties.getEffects().stream().anyMatch(effect -> effect.getSecond()>0
                         && effect.getFirst()!=null && effect.getFirst().getEffect().getCategory()==MobEffectCategory.HARMFUL)
@@ -78,18 +78,21 @@ public final class CompanionAutoEatGoal extends Goal {
         return slot>=0;
     }
     @Override public void start() {
-        Container inventory=inventory(mob);
+        remaining = beginEating(mob,inventory(mob),slot);
+    }
+    static int beginEating(ChangedEntity mob, Container inventory, int slot) {
+        if (mob.isUsingItem() || active(mob)) return 0;
         ItemStack food=inventory.removeItem(slot,1);
         inventory.setChanged();
-        if (food.isEmpty()) {remaining=0;return;}
+        if (food.isEmpty()) return 0;
         var meal=new CompoundTag();
         meal.put("Food",food.save(new CompoundTag()));
         meal.put("Offhand",mob.getOffhandItem().save(new CompoundTag()));
         mob.getPersistentData().put(MEAL,meal);
         mob.setItemInHand(InteractionHand.OFF_HAND,food);
-        remaining=food.getUseDuration()+20;
         mob.getNavigation().stop();
         mob.startUsingItem(InteractionHand.OFF_HAND);
+        return food.getUseDuration()+20;
     }
     @Override public boolean canContinueToUse() {
         var meal=mob.getPersistentData().getCompound(MEAL);
@@ -109,7 +112,7 @@ public final class CompanionAutoEatGoal extends Goal {
         var meal=mob.getPersistentData().getCompound(MEAL);
         if (meal.getBoolean("Finished") || !ItemStack.isSameItemSameTags(event.getItem(),ItemStack.of(meal.getCompound("Food")))) return;
         meal.putBoolean("Finished",true);
-        var properties=event.getItem().getFoodProperties(mob);
+        var properties=SpottedHyenaDiet.foodProperties(event.getItem(),mob);
         if (properties!=null) mob.heal(healing(properties));
     }
     static float healing(FoodProperties properties) {

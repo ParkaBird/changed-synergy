@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 
 /** A non-bonded acquaintance can walk with one player when invited. */
 public final class SocialFollowGoal extends Goal {
@@ -36,6 +35,7 @@ public final class SocialFollowGoal extends Goal {
         }
         player = CreaturePersonality.socialPartner(mob);
         return player != null
+                && StructureResidentGoal.mayFollow(mob,player)
                 && player.isAlive()
                 && !player.isSpectator()
                 && mob.getTarget() == null
@@ -50,6 +50,7 @@ public final class SocialFollowGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return player != null
+                && StructureResidentGoal.mayFollow(mob,player)
                 && player.isAlive()
                 && !player.isSpectator()
                 && player.level() == mob.level()
@@ -145,7 +146,7 @@ public final class SocialFollowGoal extends Goal {
                 && !mob.isNoAi()
                 && !mob.isPassenger()
                 && !mob.isLeashed()
-                && !ChangedAddonCompat.isGrabberBusy(mob)
+                && !CreatureGrabService.isGrabberBusy(mob)
                 && HypnosisQteService.getActiveVictim(mob) == null;
     }
 }

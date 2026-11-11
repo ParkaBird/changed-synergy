@@ -55,7 +55,9 @@ public final class FactionReputation {
     /** Native players keep their birth faction even while travelling through another territory. */
     public static int scoreForAccount(ServerPlayer player,String account) {
         if(!enabled(player))return 0;
-        HunterFaction faction=java.util.Arrays.stream(HunterFaction.values()).filter(value->value.id().equals(account.split(":",2)[0])).findFirst().orElse(null);
+        account=FactionDiplomacy.canonicalAccount(account);
+        String factionId=account.split(":",2)[0];
+        HunterFaction faction=java.util.Arrays.stream(HunterFaction.values()).filter(value->value.id().equals(factionId)).findFirst().orElse(null);
         if(faction==null)return 0;
         String key="faction:"+account;CompoundTag reputation=data(player);
         initializeOrdinaryScore(reputation,faction,key,player.level());
@@ -83,36 +85,37 @@ public final class FactionReputation {
     public static boolean isRespected(
             ChangedEntity creature,
             ServerPlayer player) {
-        return score(creature, player) >= RESPECTED_THRESHOLD;
+        return NaturalCampService.member(creature)?net.parkabird.changedsynergy.npc.CampMembershipService.score(creature,player)>=40:score(creature,player)>=RESPECTED_THRESHOLD;
     }
 
     public static boolean isRecognized(
             ChangedEntity creature,
             ServerPlayer player) {
-        return score(creature, player) >= RECOGNIZED_THRESHOLD;
+        return NaturalCampService.member(creature)?net.parkabird.changedsynergy.npc.CampMembershipService.score(creature,player)>=20:score(creature,player)>=RECOGNIZED_THRESHOLD;
     }
 
     public static boolean isDistrusted(
             ChangedEntity creature,
             ServerPlayer player) {
-        return score(creature, player) <= DISTRUSTED_THRESHOLD;
+        return NaturalCampService.member(creature)?net.parkabird.changedsynergy.npc.CampMembershipService.score(creature,player)<=net.parkabird.changedsynergy.npc.CampMembershipService.DISTRUSTED:score(creature,player)<=DISTRUSTED_THRESHOLD;
     }
 
     public static boolean isHostile(
             ChangedEntity creature,
             ServerPlayer player) {
-        return score(creature, player) <= HOSTILE_THRESHOLD;
+        return NaturalCampService.member(creature)?net.parkabird.changedsynergy.npc.CampMembershipService.score(creature,player)<=net.parkabird.changedsynergy.npc.CampMembershipService.HOSTILE:score(creature,player)<=HOSTILE_THRESHOLD;
     }
 
     public static boolean isAllied(
             ChangedEntity creature,
             ServerPlayer player) {
-        return score(creature, player) >= ALLIED_THRESHOLD;
+        return NaturalCampService.member(creature)?net.parkabird.changedsynergy.npc.CampMembershipService.score(creature,player)>=70:score(creature,player)>=ALLIED_THRESHOLD;
     }
 
     public static Standing standing(
             ChangedEntity creature,
             ServerPlayer player) {
+        if(NaturalCampService.member(creature))return net.parkabird.changedsynergy.npc.CampMembershipService.standing(creature,player);
         return Standing.forScore(score(creature, player));
     }
 
@@ -143,6 +146,13 @@ public final class FactionReputation {
             ChangedEntity creature,
             ServerPlayer player,
             int amount) {
+        if(NaturalCampService.member(creature)){
+            net.parkabird.changedsynergy.npc.CampMembershipService.adjust(creature,player,amount);
+            return net.parkabird.changedsynergy.npc.CampMembershipService.score(creature,player);
+        }
+        return adjustRegional(creature,player,amount);
+    }
+    private static int adjustRegional(ChangedEntity creature,ServerPlayer player,int amount){
         if (!enabled(player)) {
             return 0;
         }
@@ -196,6 +206,7 @@ public final class FactionReputation {
             ChangedEntity creature,
             ServerPlayer player,
             int amount) {
+        if(NaturalCampService.member(creature))return adjust(creature,player,amount);
         if (amount <= 0 || !enabled(player)) {
             return adjust(creature, player, amount);
         }
@@ -227,11 +238,12 @@ public final class FactionReputation {
             ChangedEntity creature,
             ServerPlayer player,
             int value) {
-        return adjust(creature, player, value - score(creature, player));
+        return adjustRegional(creature, player, value - score(creature, player));
     }
 
     /** Citizenship starts at recognition; it does not grant alliance rewards. */
     public static void initializeOriginStanding(ServerPlayer player, String group) {
+        group=FactionDiplomacy.canonicalAccount(group);
         CompoundTag reputation = data(player);
         String key = "faction:" + group;
         reputation.putInt(key, Math.max(RECOGNIZED_THRESHOLD, reputation.getInt(key)));
@@ -240,6 +252,7 @@ public final class FactionReputation {
     /** A native player is a real faction member, not a spawned sample NPC. */
     public static void damageNativeMember(ServerPlayer attacker, String group, int amount) {
         if (!enabled(attacker)) return;
+        group = FactionDiplomacy.canonicalAccount(group);
         CompoundTag reputation = data(attacker);
         String key = "faction:" + group;
         int previous = reputation.contains(key) ? reputation.getInt(key)
@@ -392,6 +405,17 @@ public final class FactionReputation {
             String legacyKey = legacyWildBiomeKey(level, position);
             if (reputation.contains(legacyKey, Tag.TAG_INT)) {
                 initial = reputation.getInt(legacyKey);
+            }
+            if (key.equals("faction:light:arid")) {
+                Integer merged = null;
+                for (String stored : reputation.getAllKeys()) {
+                    if (!stored.startsWith("wild:") || !reputation.contains(stored, Tag.TAG_INT)) continue;
+                    var biome = ResourceLocation.tryParse(stored.substring(5));
+                    if ("arid".equals(LightFactionGroup.regionForBiome(level, biome)))
+                        merged = merged == null ? reputation.getInt(stored)
+                                : FactionDiplomacy.mergeAridStanding(merged, reputation.getInt(stored));
+                }
+                if (merged != null) initial = merged;
             }
         }
         reputation.putInt(key, initial);
@@ -548,12 +572,42 @@ public final class FactionReputation {
         // reliable way to divide one historical score among several local
         // affiliations, so discard the dormant key instead of guessing.
         reputation.remove(LEGACY_ORGANIC_FACTION_KEY);
+        migrateAridStanding(reputation);
         return reputation;
+    }
+
+    static void migrateAridStanding(CompoundTag data) {
+        String current = "faction:light:arid";
+        Integer merged = data.contains(current, Tag.TAG_INT) ? data.getInt(current) : null;
+        boolean changed = false;
+        for (String region : java.util.List.of("desert", "badlands")) {
+            String old = "faction:light:" + region;
+            if (data.contains(old, Tag.TAG_INT)) merged = merged == null ? data.getInt(old)
+                    : FactionDiplomacy.mergeAridStanding(merged, data.getInt(old));
+            if (data.contains(old)) { data.remove(old); changed = true; }
+            String remainder = INTERACTION_REMAINDER_PREFIX + old;
+            if (data.contains(remainder, Tag.TAG_INT)) {
+                String target = INTERACTION_REMAINDER_PREFIX + current;
+                data.putInt(target, Math.min(99, Math.max(0, Math.max(data.getInt(target), data.getInt(remainder)))));
+                data.remove(remainder);
+            }
+            String notice = "diplomacy_notice:" + old;
+            if (data.contains(notice, Tag.TAG_LONG)) {
+                String target = "diplomacy_notice:" + current;
+                data.putLong(target, Math.max(data.getLong(target), data.getLong(notice)));
+                data.remove(notice);
+            }
+        }
+        if (changed) {
+            if (merged != null) data.putInt(current, Math.max(MINIMUM, Math.min(MAXIMUM, merged)));
+            data.putBoolean("diplomacy_dirty", true);
+        }
     }
 
     private static boolean enabled(ServerPlayer player) {
         return ChangedSynergyGameRules.enabled(
-                player.level(), ChangedSynergyGameRules.FACTION_REPUTATION);
+                player.level(), ChangedSynergyGameRules.FACTION_REPUTATION)
+                && !ChangedSynergyGameRules.noCivilizationMode(player.level());
     }
 
     public enum Standing {

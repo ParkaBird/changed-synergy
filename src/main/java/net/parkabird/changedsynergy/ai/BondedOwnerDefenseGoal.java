@@ -2,8 +2,6 @@ package net.parkabird.changedsynergy.ai;
 
 import java.util.EnumSet;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
-import net.ltxprogrammer.changed.entity.ai.DarkLatexAttackCondition;
-import net.ltxprogrammer.changed.entity.beast.AbstractDarkLatexEntity;
 import net.ltxprogrammer.changed.ability.GrabEntityAbility;
 import net.ltxprogrammer.changed.init.ChangedAbilities;
 import net.minecraft.server.level.ServerPlayer;
@@ -102,18 +100,10 @@ public final class BondedOwnerDefenseGoal extends TargetGoal {
             LivingEntity candidate) {
         if (!PlayerOutpostService.mayAttackTarget(pet, candidate)) return false;
         if (candidate instanceof ChangedEntity other && LatexCreatureCombatRules.sharePlayerAlliance(pet, other)) return false;
+        if (PlayerOutpostService.isGuardDefenseTarget(pet, candidate)) return true;
         if (ChangedSynergyConfig.COMMON.companionMonsterAssistOnly.get()
                 && (!(candidate instanceof Enemy)
                         || !hasRecentConflict(pet, owner, candidate))) return false;
-        if (pet instanceof AbstractDarkLatexEntity darkLatex) {
-            DarkLatexAttackCondition condition = darkLatex.getAttackCondition();
-            if (condition == DarkLatexAttackCondition.NEVER
-                    || condition == DarkLatexAttackCondition.OWNER_IS_HOSTILE
-                            && !hasRecentConflict(pet, owner, candidate)) {
-                return false;
-            }
-            return BondedPetSettings.matchesTargetType(pet, owner, candidate, darkLatex.getTargetType().ordinal());
-        }
         return BondedPetSettings.allowsDefense(pet, owner, candidate);
     }
 

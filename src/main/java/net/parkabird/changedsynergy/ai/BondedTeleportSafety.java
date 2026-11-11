@@ -376,7 +376,7 @@ public final class BondedTeleportSafety {
         return Optional.of(position);
     }
 
-    static boolean isDangerous(BlockState state) {
+    public static boolean isDangerous(BlockState state) {
         Block block = state.getBlock();
         return state.is(BlockTags.FIRE)
                 || block == Blocks.CACTUS

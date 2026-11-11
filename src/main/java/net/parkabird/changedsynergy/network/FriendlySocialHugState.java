@@ -14,6 +14,8 @@ public final class FriendlySocialHugState {
     private FriendlySocialHugState() {
     }
 
+    public static void clear() { ACTIVE.clear(); }
+
     public static void update(
             int grabberId,
             int grabbedId,

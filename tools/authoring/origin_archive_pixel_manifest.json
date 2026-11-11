@@ -1,0 +1,135 @@
+{
+  "source_archive": "native-origin-archive-pixel-art-handoff-completed.zip",
+  "source_sha256": "8bfc55ca99037776208eac504a5a2fa0a3fd73a7280fd6c338037d24f572bc54",
+  "textures": {
+    "binding.png": {
+      "supplied_sha256": "f841405c7a42fc28b0b8cbef235a51633ddd285dd3854feb5ee11ed2c0b2c405",
+      "sha256": "f841405c7a42fc28b0b8cbef235a51633ddd285dd3854feb5ee11ed2c0b2c405"
+    },
+    "button.png": {
+      "supplied_sha256": "19c43348a1a7bc8429378aa4a14c772abd2da8d396ec2ac1523d9c06bd558ec1",
+      "sha256": "19c43348a1a7bc8429378aa4a14c772abd2da8d396ec2ac1523d9c06bd558ec1"
+    },
+    "dialog_frame.png": {
+      "supplied_sha256": "4263ddae226293a9c2810d78f1b1e964a5a6c9da17dc2d79df28fa6cd46b4ffb",
+      "sha256": "4263ddae226293a9c2810d78f1b1e964a5a6c9da17dc2d79df28fa6cd46b4ffb"
+    },
+    "divider_aquatic.png": {
+      "supplied_sha256": "f131c63272d49c936013586f41cf5e686310db2a57f15afb735e0bb34c3a0ef5",
+      "sha256": "f131c63272d49c936013586f41cf5e686310db2a57f15afb735e0bb34c3a0ef5"
+    },
+    "divider_aquatic_hover.png": {
+      "supplied_sha256": "bf0302b6a39dad846d29ae57054b90735356512d701ffcf5dd57326dee6d8528",
+      "sha256": "bf0302b6a39dad846d29ae57054b90735356512d701ffcf5dd57326dee6d8528"
+    },
+    "divider_dark.png": {
+      "supplied_sha256": "0854961205f3c3c4562544afc9075dd693f33ee07358fafcab539c634c1bec1c",
+      "sha256": "0854961205f3c3c4562544afc9075dd693f33ee07358fafcab539c634c1bec1c"
+    },
+    "divider_dark_hover.png": {
+      "supplied_sha256": "171f5f68edbda47f24da0664c262ce5b7e6e6599197ec09697a7ff8d4c173432",
+      "sha256": "171f5f68edbda47f24da0664c262ce5b7e6e6599197ec09697a7ff8d4c173432"
+    },
+    "divider_organic.png": {
+      "supplied_sha256": "8fbd8579977221637477b502e2cb617b77c64dce8f3747e280f6ad455e1d166c",
+      "sha256": "8fbd8579977221637477b502e2cb617b77c64dce8f3747e280f6ad455e1d166c"
+    },
+    "divider_organic_hover.png": {
+      "supplied_sha256": "a5e6d46c87a741b6fd05001bcd12b50ef6ffe185c61cd5cdf9ff3f49c8a16326",
+      "sha256": "a5e6d46c87a741b6fd05001bcd12b50ef6ffe185c61cd5cdf9ff3f49c8a16326"
+    },
+    "divider_priority.png": {
+      "supplied_sha256": "6b2045252dba6a04a98bd2957a9b578afe8f52a7b5bade47afc35259dd5572b8",
+      "sha256": "6b2045252dba6a04a98bd2957a9b578afe8f52a7b5bade47afc35259dd5572b8"
+    },
+    "divider_priority_hover.png": {
+      "supplied_sha256": "c3676c847f6b131f42cb8a9325c1d350f1b0573c0adc01356be03b5bcbf4f15d",
+      "sha256": "c3676c847f6b131f42cb8a9325c1d350f1b0573c0adc01356be03b5bcbf4f15d"
+    },
+    "divider_variant.png": {
+      "supplied_sha256": "eeb84c4adf8c3200cc34f4f89b3f3d3e34ed95a1e331a2ccb949bda6cf5caa09",
+      "sha256": "eeb84c4adf8c3200cc34f4f89b3f3d3e34ed95a1e331a2ccb949bda6cf5caa09"
+    },
+    "divider_variant_hover.png": {
+      "supplied_sha256": "623bb6b653895fbfc134a70f1ac2533b72c8f9700c28bb45e562bce2dedf6196",
+      "sha256": "623bb6b653895fbfc134a70f1ac2533b72c8f9700c28bb45e562bce2dedf6196"
+    },
+    "divider_white.png": {
+      "supplied_sha256": "6bf5a6dbcf0c134c116426087d3f6ea70fa81e47db931fdec913e174bb6b3562",
+      "sha256": "6bf5a6dbcf0c134c116426087d3f6ea70fa81e47db931fdec913e174bb6b3562"
+    },
+    "divider_white_hover.png": {
+      "supplied_sha256": "7a544574e197f9375a229c078367144e198ffa9b70e774069a6c6fabc5d50f6c",
+      "sha256": "7a544574e197f9375a229c078367144e198ffa9b70e774069a6c6fabc5d50f6c"
+    },
+    "doll_frame.png": {
+      "supplied_sha256": "c75e79509f3a52e100560764eb23109b296f05300835cab39cd6741b94075541",
+      "sha256": "c75e79509f3a52e100560764eb23109b296f05300835cab39cd6741b94075541"
+    },
+    "folder_back.png": {
+      "supplied_sha256": "3eb3d8c8711c555c99d6543a1cef85556c6293338538fce1132549cca0baada9",
+      "sha256": "3eb3d8c8711c555c99d6543a1cef85556c6293338538fce1132549cca0baada9"
+    },
+    "folder_front.png": {
+      "supplied_sha256": "dd77e05b0186048b9abb22cdf0fcb24206e6e277937bee52338acbedb23271e7",
+      "sha256": "625d28c188a18f850cf00f04592eb8c9ea599981706901d9c1368e080758091b"
+    },
+    "folder_front_hover.png": {
+      "supplied_sha256": "cacbd5487679d8f185ac13c3c0f27187badc4fde313ab1e3c9ceee2c619322c5",
+      "sha256": "0b6737874f78035eaf96511e13d689087f3a6a6fcd885a522642b3535c753673"
+    },
+    "folder_inner.png": {
+      "supplied_sha256": "b1cb2e1235412a1f6edd3ae983006cae74788501aeb760760fad4bd33e091051",
+      "sha256": "8125f45d34382eef23583fb6250d1590a282c6508d623f9cc7dc5a1b3075ff21"
+    },
+    "navigation.png": {
+      "supplied_sha256": "f46aeed3799f2eeaf9208e98d0ac93c08c43039ebfebc700ce23d248122dd97a",
+      "sha256": "f46aeed3799f2eeaf9208e98d0ac93c08c43039ebfebc700ce23d248122dd97a"
+    },
+    "page_shadow.png": {
+      "supplied_sha256": "9af6f9f861432681753b6f4a458ca36c2b7c256ea5374fc682e54783542b3056",
+      "sha256": "9af6f9f861432681753b6f4a458ca36c2b7c256ea5374fc682e54783542b3056"
+    },
+    "page_stack.png": {
+      "supplied_sha256": "f47ceded0d88528be613d7aeadd7172eb78b61081cb51f8586ce79675d10c5d2",
+      "sha256": "f47ceded0d88528be613d7aeadd7172eb78b61081cb51f8586ce79675d10c5d2"
+    },
+    "paper_back.png": {
+      "supplied_sha256": "5578d1f25c619a3315c2b9977a5be9aa7192f856d6fd58ea48db29bf7bfa067d",
+      "sha256": "5578d1f25c619a3315c2b9977a5be9aa7192f856d6fd58ea48db29bf7bfa067d"
+    },
+    "paper_surface.png": {
+      "supplied_sha256": "4b554de1c89119a2bb15e00dc23f928490d1b8b81e26d52091d832ab3da5146c",
+      "sha256": "4b554de1c89119a2bb15e00dc23f928490d1b8b81e26d52091d832ab3da5146c"
+    },
+    "parameter_frame.png": {
+      "supplied_sha256": "a53a30631e043bab831761da8e3f9a7bb32438a5c260b78df8d4f3edf44018a2",
+      "sha256": "a53a30631e043bab831761da8e3f9a7bb32438a5c260b78df8d4f3edf44018a2"
+    },
+    "portrait_frame.png": {
+      "supplied_sha256": "28bd651d469a29aadc107a3eb469fd36dd659f681b47cb546f93c086d169244c",
+      "sha256": "28bd651d469a29aadc107a3eb469fd36dd659f681b47cb546f93c086d169244c"
+    },
+    "random_note.png": {
+      "supplied_sha256": "c7ad461d90a6ac82a8427e450beae7b7477ecc625be374b005bbaeaf792076ad",
+      "sha256": "c7ad461d90a6ac82a8427e450beae7b7477ecc625be374b005bbaeaf792076ad"
+    },
+    "scrollbar.png": {
+      "supplied_sha256": "af7219432a5fe549b06446ecdd678a12514116c19ed3f2b0d07d9d30fe3290ab",
+      "sha256": "af7219432a5fe549b06446ecdd678a12514116c19ed3f2b0d07d9d30fe3290ab"
+    },
+    "tooltip.png": {
+      "supplied_sha256": "719fec431328cb751814d1f71265a4d55b81b9cc22920575fcf5c1e2e7b5197e",
+      "sha256": "719fec431328cb751814d1f71265a4d55b81b9cc22920575fcf5c1e2e7b5197e"
+    },
+    "welcome_decoration.png": {
+      "supplied_sha256": "811e5c77e0a1e11b3ed160ca4e2a88f447c662f6137f4223b7dc4189cbbd1d0f",
+      "sha256": "811e5c77e0a1e11b3ed160ca4e2a88f447c662f6137f4223b7dc4189cbbd1d0f"
+    }
+  },
+  "corner_plates_removed": [
+    "folder_front.png",
+    "folder_front_hover.png",
+    "folder_inner.png"
+  ]
+}

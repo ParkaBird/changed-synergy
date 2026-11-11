@@ -10,6 +10,7 @@ import net.ltxprogrammer.changed.client.gui.AbstractRadialScreen;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.util.Color3;
 import net.ltxprogrammer.changed.util.SingleRunnable;
+import net.parkabird.changedsynergy.client.CompanionSeatIcons;
 import net.parkabird.changedsynergy.world.inventory.BondedLatexMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -75,6 +76,19 @@ public final class BondedLatexScreen extends AbstractRadialScreen<BondedLatexMen
                     suitIcon,
                     this::suitTooltips,
                     menu::isSuitingOwner));
+        }
+        String seatAction = menu.getSeatAction();
+        if (!seatAction.isEmpty()) {
+            boolean isSeat = "social_seat".equals(seatAction);
+            var action = interaction(
+                    seatAction,
+                    CompanionSeatIcons.id(isSeat),
+                    () -> List.of(
+                            Component.translatable("menu.changed_synergy.social." + seatAction),
+                            Component.translatable("menu.changed_synergy.social." + seatAction + ".hint")),
+                    () -> false);
+            if (isSeat) entries.add(action);
+            else entries.add(0, action);
         }
         interactions = List.copyOf(entries);
     }
@@ -185,8 +199,7 @@ public final class BondedLatexScreen extends AbstractRadialScreen<BondedLatexMen
             int mouseY,
             float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
-        Component hint = Component.translatable(
-                "menu.changed_synergy.wheel.switch_to_social");
+        Component hint = RadialWheelAnimations.scrollHint(this,"menu.changed_synergy.wheel.switch_to_social");
         int textWidth = font.width(hint);
         int x = (width - textWidth) / 2;
         int y = height - 18;
@@ -254,6 +267,11 @@ public final class BondedLatexScreen extends AbstractRadialScreen<BondedLatexMen
             return;
         }
         ResourceLocation icon = interactions.get(section).texture();
+        if (interactions.get(section).command().equals("social_seat")
+                || interactions.get(section).command().equals("social_cancel_seat")
+                || interactions.get(section).command().equals("social_disembark")) {
+            icon = CompanionSeatIcons.resolve(icon);
+        }
         graphics.setColor(0.0F, 0.0F, 0.0F, 0.5F * alpha);
         graphics.blit(icon, (int)x - 21 + leftPos, (int)y - 21 + topPos,
                 0.0F, 0.0F, 48, 48, 48, 48);
@@ -282,6 +300,10 @@ public final class BondedLatexScreen extends AbstractRadialScreen<BondedLatexMen
             // of looking the pet up again from a client-side entity id.
             sendCommand(command);
             return false;
+        }
+        if ("social_seat".equals(command) || "social_cancel_seat".equals(command) || "social_disembark".equals(command)) {
+            sendCommand(command);
+            return true;
         }
         menu.applyLocalCommand(command);
         sendCommand(command);

@@ -90,6 +90,7 @@ public final class CreatureCommunityData extends SavedData {
 
     public static Optional<Snapshot> bind(ChangedEntity creature) {
         if (!(creature.level() instanceof ServerLevel level)
+                || NaturalCampService.member(creature) || StructureResidentGoal.isNonWorkingResident(creature)
                 || PlayerOutpostService.hasAssignment(creature)
                 || !LatexSocialMemory.isSocialLatex(creature)
                 || !ChangedSynergyGameRules.enabled(

@@ -10,6 +10,11 @@ public final class LatexMuntjac extends LatexDeer implements net.ltxprogrammer.c
         super(type, level);
     }
 
+    @Override protected void setAttributes(net.minecraft.world.entity.ai.attributes.AttributeMap attributes) {
+        super.setAttributes(attributes);
+        attributes.getInstance(net.ltxprogrammer.changed.init.ChangedAttributes.JUMP_STRENGTH.get()).setBaseValue(1.25);
+    }
+
     @Override public net.ltxprogrammer.changed.entity.Gender getGender() {
         return net.ltxprogrammer.changed.entity.Gender.MALE;
     }

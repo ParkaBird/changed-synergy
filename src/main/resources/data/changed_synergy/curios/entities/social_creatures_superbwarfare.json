@@ -86,7 +86,10 @@
     "changed:white_latex_wolf_male",
     "changed_synergy:latex_swordfish",
     "changed_synergy:latex_muntjac",
-    "changed_synergy:latex_muntjac_female"
+    "changed_synergy:latex_muntjac_female",
+    "changed_synergy:latex_spotted_hyena_male",
+    "changed_synergy:latex_spotted_hyena_female",
+    "changed_synergy:latex_eagle_owl"
   ],
   "slots": [
     "dog_tag",

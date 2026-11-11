@@ -1,0 +1,15 @@
+gradle.beforeProject { project ->
+    project.afterEvaluate {
+        def checks = project.sourceSets.create('simplificationChecks') {
+            java.srcDir(project.file('tools/tests/simplify-codebase'))
+            compileClasspath += project.sourceSets.main.output + project.sourceSets.main.compileClasspath
+            runtimeClasspath += project.sourceSets.main.output + project.sourceSets.main.compileClasspath
+        }
+        project.tasks.register('simplificationLayoutCheck', JavaExec) {
+            dependsOn project.tasks.named(checks.compileJavaTaskName)
+            classpath = checks.runtimeClasspath
+            mainClass.set('net.parkabird.changedsynergy.client.RelationshipCardLayoutCheck')
+            jvmArgs '-Djava.awt.headless=true'
+        }
+    }
+}

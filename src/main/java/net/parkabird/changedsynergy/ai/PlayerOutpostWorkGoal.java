@@ -305,7 +305,7 @@ public final class PlayerOutpostWorkGoal extends Goal {
                 && mob.getTarget() == null && !mob.isSleeping()
                 && (!mob.isPassenger() || PlayerOutpostRestGoal.isResting(mob)) && !mob.isLeashed()
                 && !mob.isVehicle() && !TakeoverService.carrying(mob)
-                && !net.parkabird.changedsynergy.compat.ChangedAddonCompat.isGrabberBusy(mob)
+                && !net.parkabird.changedsynergy.ai.CreatureGrabService.isGrabberBusy(mob)
                 && net.ltxprogrammer.changed.ability.GrabEntityAbility.getGrabber(mob) == null
                 && !SocialAudienceGoal.isActive(mob) && HypnosisQteService.getActiveVictim(mob) == null
                 && !mob.getPersistentData().hasUUID("ChangedSynergyRestOwner")
@@ -330,14 +330,15 @@ public final class PlayerOutpostWorkGoal extends Goal {
     }
 
     private boolean chooseDeposit(ServerLevel level) {
-        if (PlayerOutpostData.container(level, camp.storage) == null) { member.workStatus = "no_storage"; return false; }
-        return target(level, camp.storage, Action.DEPOSIT, "returning");
+        BlockPos targetPos = PlayerOutpostGoal.findBestStorage(level, mob, camp, bag(mob));
+        if (targetPos == null) { member.workStatus = "no_storage"; return false; }
+        return target(level, targetPos, Action.DEPOSIT, "returning");
     }
 
     private void deposit(ServerLevel level) {
-        if (block == null || !block.equals(camp.storage) || !level.hasChunkAt(block)
+        if (block == null || !level.hasChunkAt(block)
                 || !camp.contains(block) || mob.distanceToSqr(Vec3.atCenterOf(block)) > 16.0D) return;
-        Container chest = PlayerOutpostData.container(level, camp.storage);
+        Container chest = PlayerOutpostData.container(level, block);
         if (chest == null) { member.workStatus = "no_storage"; return; }
         List<ItemStack> remaining = new ArrayList<>();
         boolean delivered = false;
@@ -345,7 +346,7 @@ public final class PlayerOutpostWorkGoal extends Goal {
             ItemStack remainder = PlayerOutpostGoal.insert(chest, stack);
             if (remainder.getCount() < stack.getCount()) {
                 delivered = true;
-                PlayerOutpostStorageAccess.touch(mob, camp.storage);
+                PlayerOutpostStorageAccess.touch(mob, block);
             }
             if (!remainder.isEmpty()) remaining.add(remainder);
         }
@@ -353,13 +354,20 @@ public final class PlayerOutpostWorkGoal extends Goal {
         if (delivered && owner != null) net.parkabird.changedsynergy.advancement.SynergyAdvancements.grant(owner,
                 net.parkabird.changedsynergy.advancement.SynergyAdvancements.CAMP_DELIVERY);
         saveBag(mob, remaining);
-        member.workStatus = remaining.isEmpty() ? "idle" : "full_storage";
+        if (remaining.isEmpty()) {
+            member.workStatus = "idle";
+        } else {
+            BlockPos nextPos = PlayerOutpostGoal.findBestStorage(level, mob, camp, remaining);
+            if (nextPos != null && !nextPos.equals(block) && target(level, nextPos, Action.DEPOSIT, "returning")) return;
+            member.workStatus = "full_storage";
+        }
         if (!remaining.isEmpty()) nextScan = level.getGameTime() + 200L;
     }
 
     private boolean chooseHaul(ServerLevel level) {
         if (!ChangedSynergyConfig.COMMON.playerOutpostHauling.get()) { member.workStatus = "disabled"; return false; }
-        if (PlayerOutpostData.container(level, camp.storage) == null) { member.workStatus = "no_storage"; return false; }
+        BlockPos targetPos = PlayerOutpostGoal.findBestStorage(level, mob, camp, bag(mob));
+        if (targetPos == null) { member.workStatus = "no_storage"; return false; }
         List<ItemEntity> drops = level.getEntitiesOfClass(ItemEntity.class, camp.haulBounds(), this::haulableDrop)
                 .stream().sorted(Comparator.comparingDouble(mob::distanceToSqr)).toList();
         if (drops.isEmpty()) { haulCursor = 0; member.workStatus = "no_resources"; return false; }
@@ -598,7 +606,7 @@ public final class PlayerOutpostWorkGoal extends Goal {
 
     private void fetchFood(ServerLevel level) {
         if (!block.equals(camp.storage)) return;
-        Container chest = PlayerOutpostData.container(level, block);
+        Container chest = PlayerOutpostData.container(level, camp.storage);
         if (chest == null) return;
         List<ItemStack> items = bag(mob);
         for (int slot = 0; slot < chest.getContainerSize(); slot++) {
@@ -835,7 +843,8 @@ public final class PlayerOutpostWorkGoal extends Goal {
     private boolean currentTarget(ServerLevel level) {
         if (block == null || action == null || !level.hasChunkAt(block) || !camp.workContains(block)) return false;
         return switch (action) {
-            case DEPOSIT, FETCH_FOOD -> block.equals(camp.storage);
+            case DEPOSIT -> (camp.storages.contains(block) || block.equals(camp.storage)) && PlayerOutpostData.container(level, block) != null;
+            case FETCH_FOOD -> block.equals(camp.storage);
             case COOK -> block.equals(camp.cooking) && level.getBlockEntity(block) instanceof CampfireBlockEntity;
             case COMPOST -> block.equals(camp.composter) && compostReady(level);
             case FARM, FERTILIZE -> camp.farmContains(block);

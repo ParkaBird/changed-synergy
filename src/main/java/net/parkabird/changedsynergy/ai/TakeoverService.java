@@ -1,5 +1,7 @@
 package net.parkabird.changedsynergy.ai;
 
+import static net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.canonicalFormId;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -146,7 +148,7 @@ public final class TakeoverService {
             this.playerId = player.getUUID();
             this.carrierId = saved.hasUUID("Carrier") ? saved.getUUID("Carrier") : null;
             this.exoskeleton = saved.getCompound("Exoskeleton").copy();
-            this.targetForm = saved.getString("TargetForm");
+            this.targetForm = canonicalFormId(saved.getString("TargetForm"));
             this.inheritedEyes = saved.getCompound("InheritedEyes").copy();
             this.carrierName = saved.getString("CarrierName");
             this.transfurApplied = saved.getBoolean("TransfurApplied");
@@ -159,7 +161,7 @@ public final class TakeoverService {
             this.negotiationUsed = saved.getBoolean("NegotiationUsed");
             this.failedNegotiationAt = saved.contains("FailedNegotiationAt")
                     ? saved.getLong("FailedNegotiationAt") : -1;
-            this.originalForm = saved.getString("OriginalForm");
+            this.originalForm = canonicalFormId(saved.getString("OriginalForm"));
             this.originDimension = saved.getString("OriginDimension");
             Vec3 point = new Vec3(saved.getDouble("OriginX"), saved.getDouble("OriginY"), saved.getDouble("OriginZ"));
             this.origin = Double.isFinite(point.x) && Double.isFinite(point.y) && Double.isFinite(point.z)
@@ -530,7 +532,7 @@ public final class TakeoverService {
         // player as soon as the newer takeover ends.
         STARTING_PLAYERS.add(player.getUUID());
         boolean suited = false;
-        boolean wasSafe = ChangedAddonCompat.isSafeGrab(ability);
+        boolean wasSafe = CreatureGrabService.isSafeGrab(ability);
         try {
             releasePreviousGrabbers(player, carrier);
             ChangedAddonCompat.configureFriendlyGrab(ability, false);

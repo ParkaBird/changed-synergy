@@ -100,6 +100,7 @@ public final class NativeRoleplayService {
             Component message=Component.translatable("message.changed_synergy.npc_dialogue",speaker,line);
             ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(()->listener),new TelepathyDialoguePacket(message,speaker,line,color));
         }
+        net.parkabird.changedsynergy.event.NativeChatAnimalCalls.spoken(player);
         ChangedSynergyMod.LOGGER.info("[Role speech] {}: {}",player.getGameProfile().getName(),bounded);return true;
     }
     public static boolean emote(ServerPlayer player,Emote emote,boolean manual) {

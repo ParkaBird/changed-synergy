@@ -2,6 +2,15 @@ package net.parkabird.changedsynergy.ai;
 
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import java.util.LinkedHashSet;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.FishingRodItem;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.StemBlock;
+import net.minecraft.world.level.block.SweetBerryBushBlock;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.ability.GrabEntityAbility;
 import net.minecraft.core.BlockPos;
@@ -32,7 +41,6 @@ import net.parkabird.changedsynergy.ai.PlayerOutpostData.Member;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Outpost;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Role;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Work;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.FishingSite;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.GlowBerrySite;
@@ -115,7 +123,7 @@ public final class PlayerOutpostGoal extends Goal {
         destination = null;
         if (member.role == Role.SUPPLY && ChangedSynergyConfig.COMMON.playerOutpostSupplyWork.get()
                 && validStorage(level) && (!mob.isPassenger() || PlayerOutpostRestGoal.isResting(mob))) {
-            if (hasCargo(mob)) destination = outpost.storage;
+            if (hasCargo(mob)) destination = findBestStorage(level, mob, outpost, cargo(mob));
             if (destination == null && (level.isDay() || !outpost.contains(mob.blockPosition()))) {
                 if (!outpost.hasGatherArea() && outpost.marker.distSqr(mob.blockPosition()) > 18 * 18) {
                     destination = homeStand(level);
@@ -251,7 +259,7 @@ public final class PlayerOutpostGoal extends Goal {
                 if (!hasCargo(mob)) {
                     setCargo(mob, CreatureSettlementService.takeCargo(mob));
                 }
-                destination = outpost.storage;
+                destination = findBestStorage(level, mob, outpost, cargo(mob));
                 if (destination == null) {
                     remainingTicks = 0;
                     return;
@@ -260,27 +268,25 @@ public final class PlayerOutpostGoal extends Goal {
                 repath = 0;
             }
         }
-        if (member.role == Role.SUPPLY && hasCargo(mob) && outpost.storage != null
+        if (member.role == Role.SUPPLY && hasCargo(mob) && destination != null
                 && outpost.dimension.equals(level.dimension().location().toString())
-                && level.hasChunkAt(outpost.storage)
-                && mob.distanceToSqr(Vec3.atCenterOf(outpost.storage)) < 7.0D) {
-            Container container = PlayerOutpostData.container(level, outpost.storage);
+                && level.hasChunkAt(destination)
+                && mob.distanceToSqr(Vec3.atCenterOf(destination)) < 7.0D) {
+            Container container = PlayerOutpostData.container(level, destination);
             if (container != null) {
                 ItemStack source = cargo(mob);
                 ItemStack remainder = insert(container, source);
                 if (remainder.getCount() < source.getCount()) {
-                    PlayerOutpostStorageAccess.touch(mob, outpost.storage);
+                    PlayerOutpostStorageAccess.touch(mob, destination);
                     ServerPlayer owner = level.getServer().getPlayerList().getPlayer(outpost.owner);
                     if (owner != null) net.parkabird.changedsynergy.advancement.SynergyAdvancements.grant(owner,
                             net.parkabird.changedsynergy.advancement.SynergyAdvancements.CAMP_DELIVERY);
                 }
                 setCargo(mob, remainder);
                 if (!remainder.isEmpty()) {
-                    // Keep real cargo on the creature when the linked chest is full.
-                    member.workStatus = "full_storage";
-                    destination = null;
-                    nextAttemptTick = level.getGameTime() + 200L;
-                    mob.getNavigation().stop();
+                    destination = findBestStorage(level, mob, outpost, remainder);
+                    if (destination != null) { remainingTicks = Math.max(remainingTicks, 300); repath = 0; }
+                    else { member.workStatus = "full_storage"; destination = null; nextAttemptTick = level.getGameTime() + 200L; mob.getNavigation().stop(); }
                     return;
                 }
             }
@@ -337,7 +343,7 @@ public final class PlayerOutpostGoal extends Goal {
                 && !mob.isNoAi()
                 && (mob.getTarget() == null || member != null && member.role == Role.RETREAT)
                 && !mob.isSleeping() && (!mob.isPassenger() || PlayerOutpostRestGoal.isResting(mob))
-                && !mob.isVehicle() && !TakeoverService.carrying(mob) && !ChangedAddonCompat.isGrabberBusy(mob)
+                && !mob.isVehicle() && !TakeoverService.carrying(mob) && !CreatureGrabService.isGrabberBusy(mob)
                 && GrabEntityAbility.getGrabber(mob) == null
                 && !SocialAudienceGoal.isActive(mob) && HypnosisQteService.getActiveVictim(mob) == null
                 && !mob.getPersistentData().hasUUID("ChangedSynergyRestOwner")
@@ -346,7 +352,12 @@ public final class PlayerOutpostGoal extends Goal {
     }
 
     private boolean validStorage(ServerLevel level) {
-        return PlayerOutpostData.container(level, outpost.storage) != null;
+        PlayerOutpostData.get(level.getServer()).refreshStorages(level, outpost);
+        if (PlayerOutpostData.container(level, outpost.storage) != null) return true;
+        for (BlockPos pos : outpost.storages) {
+            if (outpost.contains(pos) && level.hasChunkAt(pos) && PlayerOutpostData.container(level, pos) != null) return true;
+        }
+        return false;
     }
 
     private void clearHarvest() {
@@ -557,7 +568,7 @@ public final class PlayerOutpostGoal extends Goal {
                     || !PlayerOutpostService.operational(mob)
                     || !PlayerOutpostService.assigned(mob) || !onCampfire(mob) || mob.isLeashed()
                     || mob.isPassenger() && !PlayerOutpostRestGoal.isResting(mob) && !PlayerOutpostMealGoal.ownsSeat(mob)
-                    || mob.isVehicle() || TakeoverService.carrying(mob) || ChangedAddonCompat.isGrabberBusy(mob)
+                    || mob.isVehicle() || TakeoverService.carrying(mob) || CreatureGrabService.isGrabberBusy(mob)
                     || GrabEntityAbility.getGrabber(mob) != null) return false;
             BlockPos origin = mob.blockPosition();
             java.util.List<BlockPos> choices = new java.util.ArrayList<>();
@@ -593,6 +604,148 @@ public final class PlayerOutpostGoal extends Goal {
         @Override public void stop() { mob.getNavigation().stop(); destination = null; }
     }
 
+    public static boolean acceptsAny(Container container, ItemStack source) {
+        if (container == null || source.isEmpty()) return false;
+        if (container instanceof PlayerOutpostItemStorage storage) return storage.acceptsAny(source);
+        for (int i = 0; i < container.getContainerSize(); i++) {
+            if (!container.canPlaceItem(i, source)) continue;
+            var old = container.getItem(i);
+            if (old.isEmpty() || (ItemStack.isSameItemSameTags(old, source) && old.getCount() < Math.min(container.getMaxStackSize(), source.getMaxStackSize()))) return true;
+        }
+        return false;
+    }
+
+    public static BlockPos findBestStorage(ServerLevel level, ChangedEntity mob, Outpost outpost, ItemStack stack) {
+        return findBestStorage(level, mob, outpost, stack.isEmpty() ? List.of() : List.of(stack));
+    }
+
+    public static BlockPos findBestStorage(ServerLevel level, ChangedEntity mob, Outpost outpost, List<ItemStack> items) {
+        if (level == null || mob == null || outpost == null) return null;
+        PlayerOutpostData.get(level.getServer()).refreshStorages(level, outpost);
+        List<ItemStack> nonNullItems = items.stream().filter(s -> !s.isEmpty()).toList();
+        Set<BlockPos> candidates = new LinkedHashSet<>(outpost.storages);
+        if (outpost.storage != null) candidates.add(outpost.storage);
+        if (candidates.isEmpty()) return null;
+        if (nonNullItems.isEmpty()) return outpost.storage != null ? outpost.storage : candidates.iterator().next();
+
+        BlockPos bestPos = null;
+        int bestScore = Integer.MIN_VALUE;
+
+        for (BlockPos pos : candidates) {
+            if (!outpost.contains(pos) || !level.hasChunkAt(pos)) continue;
+            Container chest = PlayerOutpostData.container(level, pos);
+            if (chest == null) continue;
+            boolean canAccept = false;
+            for (ItemStack item : nonNullItems) {
+                if (acceptsAny(chest, item)) { canAccept = true; break; }
+            }
+            if (!canAccept) continue;
+            int score = scoreContainer(chest, nonNullItems, pos.equals(outpost.storage), mob.distanceToSqr(Vec3.atCenterOf(pos)));
+            if (bestPos == null || score > bestScore) {
+                bestScore = score;
+                bestPos = pos;
+            }
+        }
+        return bestPos;
+    }
+
+    public static int scoreContainer(Container chest, List<ItemStack> items, boolean isPrimary, double distSqr) {
+        int totalSlots = chest.getContainerSize();
+        int emptySlots = 0, exactMatches = 0, sameCategory = 0, differentCategory = 0;
+        Set<StorageCategory> targetCategories = EnumSet.noneOf(StorageCategory.class);
+        for (ItemStack item : items) {
+            StorageCategory cat = StorageCategory.of(item);
+            if (cat != StorageCategory.OTHER) targetCategories.add(cat);
+        }
+
+        for (int i = 0; i < totalSlots; i++) {
+            ItemStack stored = chest.getItem(i);
+            if (stored.isEmpty()) { emptySlots++; continue; }
+            for (ItemStack item : items) {
+                if (ItemStack.isSameItemSameTags(stored, item)) { exactMatches++; break; }
+            }
+            StorageCategory storedCategory = StorageCategory.of(stored);
+            if (storedCategory != StorageCategory.OTHER) {
+                if (targetCategories.contains(storedCategory)) sameCategory++;
+                else if (!targetCategories.isEmpty()) differentCategory++;
+            }
+        }
+
+        int score = 0;
+        if (exactMatches > 0) score += 1000 + exactMatches * 50;
+        if (sameCategory > 0) score += 300 + sameCategory * 20;
+        if (differentCategory > 0) score -= 600 * differentCategory;
+        if (emptySlots == totalSlots) score += 100;
+        if (isPrimary) score += 5;
+        score -= (int)Math.min(10.0, distSqr / 64.0);
+        return score;
+    }
+
+    public enum StorageCategory {
+        FISH, FARM, MEAT, MINERAL, FORAGE, OTHER;
+        public static StorageCategory of(ItemStack stack) {
+            if (stack == null || stack.isEmpty()) return OTHER;
+            if (isFishItem(stack)) return FISH;
+            if (isFarmItem(stack)) return FARM;
+            if (isMeatItem(stack)) return MEAT;
+            if (isMineralItem(stack)) return MINERAL;
+            if (isForageItem(stack)) return FORAGE;
+            return OTHER;
+        }
+    }
+
+    public static boolean isFishItem(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        if (stack.getItem() instanceof FishingRodItem) return true;
+        if (stack.is(ItemTags.FISHES)) return true;
+        return stack.is(Items.COD) || stack.is(Items.SALMON) || stack.is(Items.TROPICAL_FISH) || stack.is(Items.PUFFERFISH)
+                || stack.is(Items.COOKED_COD) || stack.is(Items.COOKED_SALMON) || stack.is(Items.INK_SAC)
+                || stack.is(Items.GLOW_INK_SAC) || stack.is(Items.NAUTILUS_SHELL) || stack.is(Items.PRISMARINE_SHARD)
+                || stack.is(Items.PRISMARINE_CRYSTALS) || stack.is(Items.DRIED_KELP);
+    }
+
+    public static boolean isFarmItem(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        if (stack.getItem() instanceof BlockItem bi) {
+            var b = bi.getBlock();
+            if (b instanceof CropBlock || b instanceof StemBlock || b instanceof SweetBerryBushBlock) return true;
+        }
+        if (stack.is(ItemTags.VILLAGER_PLANTABLE_SEEDS)) return true;
+        return stack.is(Items.WHEAT) || stack.is(Items.CARROT) || stack.is(Items.POTATO) || stack.is(Items.BEETROOT)
+                || stack.is(Items.NETHER_WART) || stack.is(Items.COCOA_BEANS) || stack.is(Items.WHEAT_SEEDS)
+                || stack.is(Items.PUMPKIN_SEEDS) || stack.is(Items.MELON_SEEDS) || stack.is(Items.BEETROOT_SEEDS)
+                || stack.is(Items.TORCHFLOWER_SEEDS) || stack.is(Items.PITCHER_POD) || stack.is(Items.PUMPKIN)
+                || stack.is(Items.MELON) || stack.is(Items.MELON_SLICE) || stack.is(Items.BONE_MEAL)
+                || stack.is(Items.SUGAR_CANE) || stack.is(Items.BAMBOO) || stack.is(Items.CACTUS) || stack.is(Items.HAY_BLOCK);
+    }
+
+    public static boolean isMeatItem(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        return stack.is(Items.BEEF) || stack.is(Items.COOKED_BEEF) || stack.is(Items.PORKCHOP) || stack.is(Items.COOKED_PORKCHOP)
+                || stack.is(Items.MUTTON) || stack.is(Items.COOKED_MUTTON) || stack.is(Items.CHICKEN) || stack.is(Items.COOKED_CHICKEN)
+                || stack.is(Items.RABBIT) || stack.is(Items.COOKED_RABBIT) || stack.is(Items.LEATHER) || stack.is(Items.FEATHER)
+                || stack.is(Items.BONE) || stack.is(Items.ROTTEN_FLESH);
+    }
+
+    public static boolean isMineralItem(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        return stack.is(Items.COAL) || stack.is(Items.CHARCOAL) || stack.is(Items.RAW_IRON) || stack.is(Items.RAW_GOLD)
+                || stack.is(Items.RAW_COPPER) || stack.is(Items.IRON_INGOT) || stack.is(Items.GOLD_INGOT) || stack.is(Items.COPPER_INGOT)
+                || stack.is(Items.DIAMOND) || stack.is(Items.EMERALD) || stack.is(Items.LAPIS_LAZULI) || stack.is(Items.REDSTONE)
+                || stack.is(Items.QUARTZ) || stack.is(Items.AMETHYST_SHARD) || stack.is(Items.COBBLESTONE) || stack.is(Items.COBBLED_DEEPSLATE)
+                || stack.is(Items.DIRT) || stack.is(Items.GRAVEL) || stack.is(Items.SAND) || stack.is(Items.FLINT);
+    }
+
+    public static boolean isForageItem(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        return stack.is(Items.SWEET_BERRIES) || stack.is(Items.GLOW_BERRIES) || stack.is(Items.APPLE)
+                || RelationshipFavorService.isOrange(stack) || stack.is(Items.HONEYCOMB) || stack.is(Items.HONEY_BOTTLE);
+    }
+
+    public static boolean acceptsAll(Container container,ItemStack source){
+        if(container instanceof PlayerOutpostItemStorage storage)return storage.acceptsAll(source);
+        int remaining=source.getCount();for(int i=0;i<container.getContainerSize();i++){var old=container.getItem(i);if(container.canPlaceItem(i,source)&&(old.isEmpty()||ItemStack.isSameItemSameTags(old,source)))remaining-=Math.max(0,Math.min(container.getMaxStackSize(),source.getMaxStackSize())-old.getCount());}return remaining<=0;
+    }
     public static ItemStack insert(Container container, ItemStack source) {
         if (container instanceof PlayerOutpostItemStorage storage) return storage.insert(source);
         ItemStack remainder = source.copy();
@@ -721,7 +874,7 @@ public final class PlayerOutpostGoal extends Goal {
                     && camp.active(level) && camp.members.get(mob.getUUID()) == member && member.role == Role.SUPPLY
                     && mob.isAlive() && !mob.isNoAi() && !mob.isSleeping() && !mob.isPassenger()
                     && !mob.isVehicle() && !mob.isLeashed() && mob.getTarget() == null
-                    && !TakeoverService.carrying(mob) && !ChangedAddonCompat.isGrabberBusy(mob)
+                    && !TakeoverService.carrying(mob) && !CreatureGrabService.isGrabberBusy(mob)
                     && GrabEntityAbility.getGrabber(mob) == null && !wrapping()
                     && !SocialAudienceGoal.isActive(mob) && HypnosisQteService.getActiveVictim(mob) == null
                     && !mob.getPersistentData().hasUUID("ChangedSynergyRestOwner")

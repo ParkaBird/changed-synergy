@@ -1,0 +1,10 @@
+{
+  "structures": [{"structure": "changed_synergy:forest_watchtower", "weight": 1}],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 36,
+    "separation": 14,
+    "salt": 193611011,
+    "exclusion_zone": {"other_set": "changed_synergy:forest_treehouses", "chunk_count": 6}
+  }
+}

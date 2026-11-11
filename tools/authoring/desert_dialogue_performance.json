@@ -1,0 +1,267 @@
+{
+  "quote_overrides": {
+    "12": [
+      "The old discs and clipboards were here before we moved in. We don't know who left them. We keep the records where we found them and leave the sealed equipment alone.",
+      "旧光盘和剪切板在我们搬来之前就在了。我们不知道是谁留下的，就放在原处保存着。密封的设备也没去动。",
+      "Старые диски и записи были здесь до нас. Кто их оставил, мы не знаем. Оставили всё на своих местах, а запечатанное оборудование не трогаем."
+    ],
+    "14": [
+      "Nobody here knows who wrote those notes. They were already on the desks when we arrived, so we left them there.",
+      "这里没人知道那些便笺是谁写的。我们搬来时，它们就放在桌上，所以也没挪动。",
+      "Никто здесь не знает, кто написал эти записки. Когда мы пришли, они уже лежали на столах. Там и оставили."
+    ],
+    "10": [
+      "The bottom floor has bunks in the east dormitory and blue beds in the west study. The shared reserve is the double chest in the indoor garden on the middle floor. Its supplies are for the whole household, and you're welcome to read the books on the lecterns. The other chests and personal belongings stay with their owners. Asking first keeps the peace in an underground house.",
+      "最底层东边宿舍有上下铺，西边书房有蓝床。公共储备是中层室内菜园里的长箱，物资大家共用，讲台上的书也随便读。其他箱子和私人物品归各自主人。先问一声，住在地下也能和和气气。",
+      "На нижнем этаже есть койки в восточной спальне и синие кровати в западном кабинете. Общие запасы — в двойном сундуке огорода на среднем этаже. Ими пользуются все жильцы, книги на кафедрах тоже можно читать. Остальные сундуки и личные вещи остаются у владельцев. Сначала спроси, и в подземном доме будет мир."
+    ],
+    "25": [
+      "You're part of our household here. The shared reserve chest in the middle-floor garden and any unoccupied beds are open to you, while private storage stays with its owner. If you ever need to move on, you're free to leave whenever you wish. We'll remember the time we spent together, and your body remains your own.",
+      "你已经是这里的一员了。中层菜园的公共储备箱和空床都向你开放，私人储物仍归各自主人。哪天想继续上路，随时可以离开。我们会记得一起生活的日子，而你的身体始终由你自己做主。",
+      "Ты теперь часть нашего дома. Общий сундук в огороде на среднем этаже и свободные кровати открыты для тебя, личные вещи остаются у владельцев. Если решишь идти дальше, можешь уйти когда пожелаешь. Мы сохраним память о совместной жизни, а тело всегда останется твоим делом."
+    ]
+  },
+  "followup_overrides": {
+    "3": [
+      "I don't know who wrote it. It was already there before we put the rug down.",
+      "我不知道是谁写的。我们铺地毯之前，它就在那里了。",
+      "Кто написал — не знаю. Записка лежала там ещё до того, как мы расстелили ковёр."
+    ],
+    "6": [
+      "They're left over from before we lived here. We don't use the old equipment; we just keep these rooms aired and dry.",
+      "都是我们搬来之前留下的。旧设备我们不用，只是让这些房间保持通风、干燥。",
+      "Всё осталось с тех времён, когда нас здесь ещё не было. Старым оборудованием мы не пользуемся, только проветриваем комнаты и следим, чтобы было сухо."
+    ],
+    "1": [
+      "You're welcome to read the books on the shelves, but the chests by the beds belong to the residents. Shared supplies go in the double chest in the indoor garden on the middle floor.",
+      "架子上的书随便看，床边的箱子则是住户自己的。要存取公共物资，就去中层室内菜园的公共储备长箱。",
+      "Книги на полках читать можно, а прикроватные сундуки принадлежат жильцам. Общие припасы клади и бери в двойном сундуке огорода на среднем этаже."
+    ],
+    "2": [
+      "The double chest in the middle-floor garden is shared: crops, spare leather, paper, and whatever the neighbors bring to share. The chests by the blue beds are private. Leave those alone and we'll get along fine.",
+      "中层菜园的长箱是公用的，收成、备用皮革、纸，还有大家带来分享的东西都放那里。蓝床旁边的箱子是私人的，别乱动，咱们就能好好相处。",
+      "Двойной сундук в огороде на среднем этаже — общий: урожай, запасная кожа, бумага и всё, чем соседи делятся. Сундуки у синих кроватей личные. Не трогай их, и мы поладим."
+    ]
+  },
+  "quotes": {
+    "0": [
+      "calm",
+      "impact",
+      "first"
+    ],
+    "1": [
+      "surprised",
+      "wobble",
+      "last"
+    ],
+    "2": [
+      "calm",
+      "wave",
+      "first"
+    ],
+    "3": [
+      "whisper",
+      "whisper",
+      "first"
+    ],
+    "4": [
+      "calm",
+      "wobble",
+      "first"
+    ],
+    "5": [
+      "whisper",
+      "wobble",
+      "last"
+    ],
+    "8": [
+      "happy",
+      "bounce",
+      "first"
+    ],
+    "9": [
+      "whisper",
+      "wobble",
+      "last"
+    ],
+    "10": [
+      "calm",
+      "emphasis",
+      "first"
+    ],
+    "11": [
+      "shy",
+      "wobble",
+      "last"
+    ],
+    "12": [
+      "calm",
+      "droop",
+      "first"
+    ],
+    "13": [
+      "fearful",
+      "tremble",
+      "first"
+    ],
+    "14": [
+      "calm",
+      "emphasis",
+      "first"
+    ],
+    "15": [
+      "happy",
+      "bounce",
+      "last"
+    ],
+    "16": [
+      "calm",
+      "emphasis",
+      "first"
+    ],
+    "17": [
+      "calm",
+      "tremble",
+      "first"
+    ],
+    "18": [
+      "calm",
+      "emphasis",
+      "first"
+    ],
+    "19": [
+      "determined",
+      "pulse",
+      "first"
+    ],
+    "20": [
+      "happy",
+      "bounce",
+      "first"
+    ],
+    "21": [
+      "shy",
+      "wobble",
+      "last"
+    ],
+    "22": [
+      "happy",
+      "bounce",
+      "first"
+    ],
+    "23": [
+      "calm",
+      "float",
+      "first"
+    ],
+    "24": [
+      "surprised",
+      "impact",
+      "first"
+    ],
+    "25": [
+      "calm",
+      "pulse",
+      "last"
+    ],
+    "26": [
+      "calm",
+      "emphasis",
+      "first"
+    ],
+    "27": [
+      "calm",
+      "droop",
+      "last"
+    ],
+    "28": [
+      "calm",
+      "emphasis",
+      "first"
+    ],
+    "29": [
+      "whisper",
+      "whisper",
+      "first"
+    ],
+    "30": [
+      "whisper",
+      "wobble",
+      "last"
+    ],
+    "31": [
+      "calm",
+      "wave",
+      "first"
+    ],
+    "32": [
+      "dreamy",
+      "float",
+      "first"
+    ],
+    "33": [
+      "calm",
+      "emphasis",
+      "first"
+    ],
+    "34": [
+      "happy",
+      "bounce",
+      "first"
+    ],
+    "35": [
+      "fearful",
+      "impact",
+      "first"
+    ],
+    "36": [
+      "fearful",
+      "tremble",
+      "last"
+    ],
+    "37": [
+      "determined",
+      "emphasis",
+      "first"
+    ],
+    "38": [
+      "whisper",
+      "wobble",
+      "last"
+    ]
+  },
+  "followups": [
+    [
+      "calm",
+      "emphasis"
+    ],
+    [
+      "calm",
+      "emphasis"
+    ],
+    [
+      "determined",
+      "emphasis"
+    ],
+    [
+      "calm",
+      "none"
+    ],
+    [
+      "curious",
+      "wave"
+    ],
+    [
+      "happy",
+      "bounce"
+    ],
+    [
+      "calm",
+      "droop"
+    ],
+    [
+      "shy",
+      "wobble"
+    ]
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "structures": [
+    {
+      "structure": "changed_synergy:desert_refuge",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 34,
+    "separation": 8,
+    "salt": 194611061,
+    "spread_type": "triangular",
+    "exclusion_zone": {
+      "other_set": "changed:decayed_labs",
+      "chunk_count": 6
+    }
+  }
+}

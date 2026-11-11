@@ -1,0 +1,19 @@
+{
+  "structures": [
+    {
+      "structure": "changed_synergy:forest_treehouse",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 50,
+    "separation": 15,
+    "salt": 193610311,
+    "exclusion_zone": {
+      "other_set": "changed:decayed_labs",
+      "chunk_count": 6
+    },
+    "spread_type": "triangular"
+  }
+}

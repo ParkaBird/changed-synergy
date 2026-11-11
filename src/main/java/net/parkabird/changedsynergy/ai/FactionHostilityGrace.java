@@ -57,7 +57,7 @@ public final class FactionHostilityGrace {
         if (carrier != null) {
             String group = FactionReputation.groupId(carrier);
             if (data != null) data.remove(group);
-            PlayerPersistentData.get(player).getCompound(DAMAGE_LOCK).remove(group);
+            expiryData(player, DAMAGE_LOCK).remove(group);
         }
     }
 
@@ -67,7 +67,7 @@ public final class FactionHostilityGrace {
         if (!persisted.contains(DAMAGE_LOCK, Tag.TAG_COMPOUND)) {
             persisted.put(DAMAGE_LOCK, new CompoundTag());
         }
-        CompoundTag locks = persisted.getCompound(DAMAGE_LOCK);
+        CompoundTag locks = expiryData(player, DAMAGE_LOCK);
         long duration = configuredDuration();
         if (duration <= 0L) return;
         long expiry = Math.max(graceData(player).getLong(group),
@@ -77,7 +77,7 @@ public final class FactionHostilityGrace {
     }
 
     public static boolean damageLocked(ChangedEntity creature, ServerPlayer player) {
-        CompoundTag locks = PlayerPersistentData.get(player).getCompound(DAMAGE_LOCK);
+        CompoundTag locks = expiryData(player, DAMAGE_LOCK);
         String group = FactionReputation.groupId(creature);
         if (locks.getLong(group) > player.level().getGameTime()) {
             return true;
@@ -126,22 +126,22 @@ public final class FactionHostilityGrace {
         if (source != null && !source.isEmpty()) {
             PlayerPersistentData.get(clone).put(ROOT, source.copy());
         }
-        CompoundTag locks = PlayerPersistentData.get(original).getCompound(DAMAGE_LOCK);
+        CompoundTag locks = expiryData(original, DAMAGE_LOCK);
         if (!locks.isEmpty()) {
             PlayerPersistentData.get(clone).put(DAMAGE_LOCK, locks.copy());
         }
-        PlayerPersistentData.get(clone).put(AGGRESSION, PlayerPersistentData.get(original).getCompound(AGGRESSION).copy());
+        PlayerPersistentData.get(clone).put(AGGRESSION, expiryData(original, AGGRESSION).copy());
     }
 
     public static void noteAggression(ChangedEntity creature, ServerPlayer player) {
         CompoundTag root = PlayerPersistentData.get(player);
         if (!root.contains(AGGRESSION, Tag.TAG_COMPOUND)) root.put(AGGRESSION, new CompoundTag());
-        root.getCompound(AGGRESSION).putLong(FactionReputation.groupId(creature),
+        expiryData(player, AGGRESSION).putLong(FactionReputation.groupId(creature),
                 player.level().getGameTime() + 20L * 60L * 5L);
     }
 
     public static boolean wasAggressor(ChangedEntity creature, ServerPlayer player) {
-        return PlayerPersistentData.get(player).getCompound(AGGRESSION).getLong(FactionReputation.groupId(creature))
+        return expiryData(player, AGGRESSION).getLong(FactionReputation.groupId(creature))
                 > player.level().getGameTime();
     }
 
@@ -183,13 +183,23 @@ public final class FactionHostilityGrace {
         if (!persisted.contains(ROOT, Tag.TAG_COMPOUND)) {
             persisted.put(ROOT, new CompoundTag());
         }
-        return persisted.getCompound(ROOT);
+        return expiryData(player, ROOT);
     }
 
     private static CompoundTag existingData(ServerPlayer player) {
         CompoundTag persisted = PlayerPersistentData.get(player);
         return persisted.contains(ROOT, Tag.TAG_COMPOUND)
-                ? persisted.getCompound(ROOT) : null;
+                ? expiryData(player, ROOT) : null;
+    }
+
+    private static CompoundTag expiryData(ServerPlayer player, String key) {
+        CompoundTag data = PlayerPersistentData.get(player).getCompound(key);
+        for (String old : java.util.List.of("light:desert", "light:badlands")) {
+            if (!data.contains(old, Tag.TAG_LONG)) continue;
+            data.putLong("light:arid", Math.max(data.getLong("light:arid"), data.getLong(old)));
+            data.remove(old);
+        }
+        return data;
     }
 
 }

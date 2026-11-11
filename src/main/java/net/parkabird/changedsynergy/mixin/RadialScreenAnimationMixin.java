@@ -68,11 +68,13 @@ public abstract class RadialScreenAnimationMixin
     private boolean changedSynergy$pairedArrival;
     @Unique private boolean changedSynergy$continuousSwitch;
     @Unique private boolean changedSynergy$inheritedSlide;
+    @Unique private boolean changedSynergy$instantArrival;
     @Unique private final UiSpring changedSynergy$visibility = new UiSpring(0);
     @Unique private final UiSpring changedSynergy$panels = new UiSpring(1, 30, 1);
     @Unique private final UiSpring changedSynergy$center = new UiSpring(0, 30, 1);
     @Unique private UiSpring changedSynergy$horizontal = new UiSpring(0, 30, 1);
     @Unique private final UiSpring changedSynergy$paging = new UiSpring(0, 32, 1);
+    @Unique private double changedSynergy$pageTarget;
     @Unique private final UiSpring changedSynergy$tiltX = new UiSpring(0, 24, 0.9);
     @Unique private final UiSpring changedSynergy$tiltY = new UiSpring(0, 24, 0.9);
     @Unique private boolean changedSynergy$tiltPose;
@@ -97,6 +99,7 @@ public abstract class RadialScreenAnimationMixin
                     RadialWheelAnimations.consumeSwitchArrival(
                             changedSynergy$self());
             changedSynergy$openedAtNanos = System.nanoTime();
+            if (changedSynergy$instantArrival) changedSynergy$openedAtNanos -= 1_000_000_000L;
             changedSynergy$selectedSection = -1;
             if (changedSynergy$pairedArrival) {
                 for (var frame : changedSynergy$frames) frame.snap(1, changedSynergy$openedAtNanos);
@@ -104,7 +107,12 @@ public abstract class RadialScreenAnimationMixin
             }
             if (changedSynergy$inheritedSlide) changedSynergy$visibility.snap(1, changedSynergy$openedAtNanos);
             else changedSynergy$horizontal.snap(changedSynergy$restingOffset(), changedSynergy$openedAtNanos);
+            if (changedSynergy$instantArrival) {
+                changedSynergy$visibility.snap(1, changedSynergy$openedAtNanos);
+                for (var icon : changedSynergy$icons) icon.snap(1, changedSynergy$openedAtNanos);
+            }
             changedSynergy$paging.snap(viewOffset, changedSynergy$openedAtNanos);
+            changedSynergy$pageTarget=viewOffset;
         }
     }
 
@@ -210,6 +218,14 @@ public abstract class RadialScreenAnimationMixin
             callback.setReturnValue(Optional.empty());
         } else if (changedSynergy$self() instanceof AbilityRadialScreen ability && AbilityWheelInput.holding(ability)) {
             callback.setReturnValue(AbilityWheelInput.selection(ability, mouseX, mouseY));
+        } else if(changedSynergy$self().getCount()>8){
+            var screen=changedSynergy$self();float offset=changedSynergy$getScrollOffset();
+            var selected=Optional.<Integer>empty();
+            for(int section=(int)Math.floor(offset);section<8+(int)Math.ceil(offset)&&section<screen.getCount();section++){
+                var point=RadialWheelAnimations.optionPosition(section,offset);
+                if(Math.abs(mouseX-screen.width*.5-point.x)<=24&&Math.abs(mouseY-screen.height*.5-point.y)<=24){selected=Optional.of(section);break;}
+            }
+            callback.setReturnValue(selected);
         }
     }
 
@@ -243,13 +259,14 @@ public abstract class RadialScreenAnimationMixin
     @Inject(method = {"scrollUp", "scrollDown"}, at = @At("TAIL"), remap = false, require = 2)
     private void changedSynergy$retargetPage(CallbackInfo callback) {
         viewTransitionTicksLeft = 0;
+        changedSynergy$pageTarget=viewOffset;
         changedSynergy$paging.target(viewOffset, System.nanoTime());
         if (changedSynergy$self() instanceof AbilityRadialScreen ability) AbilityWheelInput.pageChanged(ability);
     }
 
     @Inject(method = "getViewOffset", at = @At("HEAD"), cancellable = true, remap = false)
     private void changedSynergy$springPage(CallbackInfoReturnable<Float> callback) {
-        if (UiMotion.reduced()) changedSynergy$paging.snap(viewOffset, System.nanoTime());
+        if (UiMotion.reduced()) changedSynergy$paging.snap(changedSynergy$pageTarget, System.nanoTime());
         callback.setReturnValue((float)changedSynergy$paging.displayValue(System.nanoTime(), 0.001));
     }
 
@@ -265,6 +282,7 @@ public abstract class RadialScreenAnimationMixin
             int modifiers,
             CallbackInfoReturnable<Boolean> callback) {
         Minecraft minecraft = Minecraft.getInstance();
+        if(keyCode==262||keyCode==263){callback.setReturnValue(true);return;}
         boolean closeKey = keyCode == 256
                 || minecraft.options.keyInventory.matches(keyCode, scanCode);
         if (!closeKey && changedSynergy$inheritedSlide && !changedSynergy$horizontal.settled(System.nanoTime(), 0.01)) {
@@ -366,10 +384,14 @@ public abstract class RadialScreenAnimationMixin
             float blue,
             float alpha) {
         LayerMotion motion = changedSynergy$iconMotion(section);
-        float visibleAlpha = motion.alpha();
+        double offset=changedSynergy$getScrollOffset(),position=section-offset;
+        float edgeAlpha=changedSynergy$clamp((float)Math.min(position+1,8-position));
+        float visibleAlpha = motion.alpha()*edgeAlpha;
         if (visibleAlpha <= 0.01F) {
             return;
         }
+        var point=RadialWheelAnimations.optionPosition(section,(float)offset);
+        x=point.x;y=point.y;
         changedSynergy$layerAlpha = visibleAlpha;
         graphics.setColor(1.0F, 1.0F, 1.0F, visibleAlpha);
         float wheelOffset = changedSynergy$getHorizontalOffset();
@@ -397,7 +419,7 @@ public abstract class RadialScreenAnimationMixin
                 red,
                 green,
                 blue,
-                alpha * visibleAlpha);
+                visibleAlpha);
         graphics.flush();
         iconView.popPose();
         com.mojang.blaze3d.systems.RenderSystem.applyModelViewMatrix();
@@ -475,6 +497,10 @@ public abstract class RadialScreenAnimationMixin
         changedSynergy$inheritedSlide = true;
     }
 
+    @Override public void changedSynergy$openImmediately() { changedSynergy$instantArrival = true; }
+
+    @Override public boolean changedSynergy$isInstantArrival() { return changedSynergy$instantArrival; }
+
     @Override
     public float changedSynergy$getLayerAlpha() {
         return changedSynergy$layerAlpha;
@@ -483,6 +509,16 @@ public abstract class RadialScreenAnimationMixin
     @Override
     public int changedSynergy$getViewOffset() {
         return viewOffset;
+    }
+
+    @Override public float changedSynergy$getScrollOffset(){return (float)changedSynergy$paging.displayValue(System.nanoTime(),.001);}
+
+    @Override public void changedSynergy$scrollOptions(double delta){
+        if(changedSynergy$closing||!Double.isFinite(delta))return;
+        changedSynergy$pageTarget=Math.max(0,Math.min(Math.max(0,changedSynergy$self().getCount()-8),changedSynergy$pageTarget-delta));
+        viewOffset=(int)Math.round(changedSynergy$pageTarget);viewTransitionTicksLeft=0;
+        changedSynergy$paging.target(changedSynergy$pageTarget,System.nanoTime());
+        if(changedSynergy$self() instanceof AbilityRadialScreen ability)AbilityWheelInput.pageChanged(ability);
     }
 
     @Override

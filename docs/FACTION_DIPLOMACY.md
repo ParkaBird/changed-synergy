@@ -12,8 +12,8 @@ By default, allying with one faction can reduce your standing with its rival:
 | --- | --- |
 | Dark | White |
 | Mountain | Cave |
-| Aquatic | Desert |
-| Forest | Badlands |
+| Aquatic | Arid areas |
+| Forest | Arid areas |
 | Taiga | Jungle |
 | Swamp | Savanna |
 | Plains | Snowy |
@@ -30,11 +30,19 @@ You can be friends with every faction and maintain multiple alliances that do no
 
 ## Friends in Every Corner
 
-Keep **40 or more** reputation with White, Dark, Aquatic and all 14 regional variant groups at the same time:
+Keep **40 or more** reputation with White, Dark, Aquatic and all 13 regional variant groups at the same time:
 
-Cave, Taiga, Swamp, Jungle, Savanna, Desert, Badlands, Snowy, Mountain, Beach, River, Ocean, Forest and Plains.
+Cave, Taiga, Swamp, Jungle, Savanna, Arid areas, Snowy, Mountain, Beach, River, Ocean, Forest and Plains.
 
 This advancement requires friendship, not an alliance with every faction. Individual alliance advancements are earned at 70.
+
+## Arid areas
+
+Desert and Badlands share one regional faction, **Arid areas**, including wild affiliations, reputation, native-origin affiliation and territory labels. Existing scores merge once: if either score is negative, keep the lower one; otherwise keep the higher one. Scores are never added together. Existing Arid scores participate in the same merge, and pursuit cooldowns are retained.
+
+Arid areas inherits both rivalries, with Aquatic and Forest. When loading incompatible alliances, the strongest surviving alliance takes precedence; ties prefer the first faction in the table. An alliance removed during reconciliation cannot penalize another faction.
+
+The Desert Refuge and smaller camps retain their separate membership, local trust and supplies. Community relationships are independent of this regional merger. Species and structures keep their existing spawn biomes, and Desert and Badlands outposts retain their different layouts and activities.
 
 ## Server option
 

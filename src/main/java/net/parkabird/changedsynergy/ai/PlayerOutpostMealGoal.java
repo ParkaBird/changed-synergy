@@ -46,6 +46,7 @@ import net.parkabird.changedsynergy.ai.PlayerOutpostData.Outpost;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Role;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
+import net.parkabird.changedsynergy.entity.SpottedHyenaDiet;
 
 /** A brief campfire gathering, with one real meal per resident per Minecraft day. */
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID)
@@ -266,7 +267,7 @@ public final class PlayerOutpostMealGoal extends Goal {
                 && (!mob.isPassenger() || PlayerOutpostRestGoal.isResting(mob) || allowSeat && ownsSeat(mob))
                 && !CreatureSettlementService.hasCargo(mob) && !PlayerOutpostGoal.hasCargo(mob)
                 && !PlayerOutpostWorkGoal.hasCargo(mob) && !TakeoverService.carrying(mob)
-                && !ChangedAddonCompat.isGrabberBusy(mob) && GrabEntityAbility.getGrabber(mob) == null
+                && !CreatureGrabService.isGrabberBusy(mob) && GrabEntityAbility.getGrabber(mob) == null
                 && !SocialAudienceGoal.isActive(mob) && HypnosisQteService.getActiveVictim(mob) == null
                 && !holding(mob)
                 && !mob.getPersistentData().hasUUID("ChangedSynergyRestOwner")
@@ -328,7 +329,8 @@ public final class PlayerOutpostMealGoal extends Goal {
         double angle = Math.toRadians(Math.floorMod(mob.getUUID().hashCode(), 360));
         double radius = Math.min(5.5D, 3.0D + bodyWidth / 2.0D);
         Vec3 preferred = Vec3.atCenterOf(fire).add(Math.cos(angle) * radius, 0.0D, Math.sin(angle) * radius);
-        candidates.sort(Comparator.comparingDouble(pos -> Vec3.atCenterOf(pos).distanceToSqr(preferred)));
+        candidates.sort(Comparator.<BlockPos>comparingInt(pos -> CreatureRestPlaces.rank(level,pos))
+                .thenComparingDouble(pos -> Vec3.atCenterOf(pos).distanceToSqr(preferred)));
         // ponytail: at most eight local path probes per attempt; no world-wide work-site search.
         for (int index = 0; index < Math.min(8, candidates.size()); index++) {
             BlockPos pos = candidates.get(index);
@@ -353,7 +355,7 @@ public final class PlayerOutpostMealGoal extends Goal {
         if (!floor.isFaceSturdy(level, below, Direction.UP) || hazardous(floor)
                 || !state.getFluidState().isEmpty() || hazardous(state)) return false;
         // Changed's pillows are 5/16 of a block high; check space above their actual cushion.
-        double y = pos.getY() + (onPillow ? 0.32D : 0.0D);
+        double y = pos.getY() + (state.is(BlockTags.WOOL_CARPETS) ? .0625D : onPillow ? 0.32D : 0.0D);
         AABB body = new AABB(pos.getX() + 0.5D - width / 2.0D, y, pos.getZ() + 0.5D - width / 2.0D,
                 pos.getX() + 0.5D + width / 2.0D, y + mob.getBbHeight(), pos.getZ() + 0.5D + width / 2.0D);
         for (BlockPos cursor : BlockPos.betweenClosed(BlockPos.containing(body.minX, body.minY, body.minZ),
@@ -423,7 +425,7 @@ public final class PlayerOutpostMealGoal extends Goal {
             if (owner != null) net.parkabird.changedsynergy.advancement.SynergyAdvancements.grant(owner,
                     net.parkabird.changedsynergy.advancement.SynergyAdvancements.CAMP_MEAL);
         });
-        var properties = event.getItem().getFoodProperties(mob);
+        var properties = SpottedHyenaDiet.foodProperties(event.getItem(), mob);
         if (properties != null) mob.heal(Math.min(4.0F, properties.getNutrition() * 0.5F));
         NpcDialogue.emoteOnly(mob, Emote.CASUAL);
     }
@@ -442,6 +444,7 @@ public final class PlayerOutpostMealGoal extends Goal {
     }
 
     private int foodScore(ItemStack food) {
+        if (SpottedHyenaDiet.isSpeciesFood(food, mob)) return SpottedHyenaDiet.foodProperties(food, mob).getNutrition();
         if (food.isEmpty() || !food.isEdible() || RelationshipFavorService.isGoldenOrange(food)) return 0;
         if (RelationshipFavorService.isDedicatedDietFood(mob, food)) return 3;
         if (RelationshipFavorService.isOrdinaryOrange(food)) return RelationshipFavorService.acceptsOrange(mob) ? 2 : 0;

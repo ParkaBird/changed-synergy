@@ -101,9 +101,12 @@ final class HostilityChecks {
             check(LatexSocialMemory.shouldRemainNeutral(organic, player), "Paired-gender kin remain neutral too");
 
             ProcessTransfur.setPlayerTransfurVariant(player, ChangedTransfurVariants.DARK_LATEX_WOLF_MALE.get(), null, 1, false);
-            check(!LatexSocialRelation.between(organic, player).isFriendlyTransformed()
-                            && NpcDispositionEvents.hasHostileDisposition(organic, player),
-                    "A genuine transformed outsider remains an eligible organic enemy");
+            check(LatexSocialRelation.between(organic, player).isNormallyNeutral()
+                            && !NpcDispositionEvents.hasHostileDisposition(organic, player),
+                    "A neutral transformed outsider is not an organic enemy solely because of its form");
+            LatexSocialMemory.markProvoked(organic, player);
+            check(NpcDispositionEvents.hasHostileDisposition(organic, player),
+                    "A freshly provoked transformed outsider remains an eligible organic enemy");
             player.setHealth(player.getMaxHealth()); player.invulnerableTime = 0;
             float maximum = player.getHealth();
             var zombie = EntityType.ZOMBIE.create(level);

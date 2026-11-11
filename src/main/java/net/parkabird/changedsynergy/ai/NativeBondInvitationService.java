@@ -30,31 +30,34 @@ public final class NativeBondInvitationService {
     private NativeBondInvitationService() {}
 
     public static boolean canOffer(ChangedEntity creature, ServerPlayer player) {
-        return unavailableReason(creature, player) == null;
+        return !net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(creature) && unavailableReason(creature, player) == null;
     }
 
     /** As with voluntary transfur, a second deliberate selection confirms the invitation. */
     public static boolean select(ChangedEntity creature, ServerPlayer player) {
+        if(net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(creature))return false;
+        var physical=net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player);
         String reason = unavailableReason(creature, player);
         if (reason != null) {
             player.getPersistentData().remove(CONFIRMATION);
             player.displayClientMessage(Component.translatable(
                     "message.changed_synergy.social.native_bond_" + reason), true);
-            if (creature.level() == player.level() && player.distanceToSqr(creature) <= 64.0D
-                    && player.hasLineOfSight(creature))
+            if (creature.level() == physical.level() && physical.distanceToSqr(creature) <= 64.0D
+                    && physical.hasLineOfSight(creature))
                 NpcDialogue.context(creature, player, "native_bond.refused." + tone(creature));
             return false;
         }
 
         long now = player.level().getGameTime();
-        String form = ProcessTransfur.getPlayerTransfurVariant(player).getParent().getFormId().toString();
+        var playerForm=ProcessTransfur.getPlayerTransfurVariant(player);
+        String form = (playerForm!=null?playerForm.getParent():((ChangedEntity)physical).getSelfVariant()).getFormId().toString();
         CompoundTag confirmation = player.getPersistentData().getCompound(CONFIRMATION);
         boolean confirmed = confirmation.hasUUID("Target")
                 && creature.getUUID().equals(confirmation.getUUID("Target"))
                 && form.equals(confirmation.getString("Form"))
                 && confirmation.getLong("Expires") >= now;
         creature.getNavigation().stop();
-        creature.getLookControl().setLookAt(player, 30.0F, 30.0F);
+        creature.getLookControl().setLookAt(physical, 30.0F, 30.0F);
         if (!confirmed) {
             confirmation.putUUID("Target", creature.getUUID());
             confirmation.putString("Form", form);
@@ -86,15 +89,17 @@ public final class NativeBondInvitationService {
 
     private static String unavailableReason(ChangedEntity creature, ServerPlayer player) {
         var form = ProcessTransfur.getPlayerTransfurVariant(player);
-        if (!(NativeOriginService.isNative(player) || net.parkabird.changedsynergy.compat.TrueTransfurCompat.isPermanentPlayer(player))
-                || form == null || form.isTemporaryFromSuit()
-                || !CreatureSocialProfile.allowsPersonalRelationship(form.getChangedEntity())) return "native_only";
-        if (!player.isAlive() || player.isSpectator() || NativeOriginService.pending(player)
+        var physical=net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player);
+        var body=form!=null?form.getChangedEntity():physical instanceof ChangedEntity changed?changed:null;
+        if (body==null || form!=null&&form.isTemporaryFromSuit()
+                || CreatureSocialProfile.speciesKind(body)!=CreatureSocialProfile.Kind.FULL) return "native_only";
+        if (!player.isAlive() || player.isSpectator()&&physical==player || !physical.isAlive() || physical.isRemoved() || NativeOriginService.pending(player)
                 || TakeoverService.active(player) || HypnosisQteService.isPlayerControlLocked(player)
                 || !creature.isAlive() || creature.isRemoved() || creature.level() != player.level()
-                || player.distanceToSqr(creature) > 64.0D || !player.hasLineOfSight(creature)
+                || physical.distanceToSqr(creature) > 64.0D || !physical.hasLineOfSight(creature)
                 || TakeoverService.carrying(creature)
-                || GrabEntityAbility.getGrabber(player) != null || GrabEntityAbility.getGrabber(creature) != null
+                || GrabEntityAbility.getGrabber(physical) != null || GrabEntityAbility.getGrabber(creature) != null
+                || physical instanceof ChangedEntity actor && holding(IAbstractChangedEntity.forEntity(actor))
                 || holding(IAbstractChangedEntity.forPlayer(player)) || holding(IAbstractChangedEntity.forEntity(creature))
                 || !LatexSocialMemory.isSocialLatex(creature)
                 || !CreatureSocialProfile.allowsPersonalRelationship(creature)

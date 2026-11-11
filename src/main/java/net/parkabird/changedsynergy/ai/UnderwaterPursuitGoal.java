@@ -6,7 +6,6 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Set;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.event.HuntAIEvents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -193,7 +192,7 @@ public final class UnderwaterPursuitGoal extends Goal {
                 || !HuntAIEvents.isHuntAIEnabled(mob)
                 || !HuntAIEvents.isEligibleHunter(mob)
                 || !HuntAIEvents.canReacquire(mob, player, true)
-                || ChangedAddonCompat.isGrabberBusy(mob)
+                || CreatureGrabService.isGrabberBusy(mob)
                 || LatexSocialMemory.isSecondaryGrabActive(mob, player)) {
             return null;
         }

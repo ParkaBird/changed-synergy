@@ -629,7 +629,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                         update.getBoolean("pureWhiteAdapted"),
                         update.getInt("familiarity"),
                         update.getFloat("health"),
-                        update.getFloat("maxHealth"), old.tokenReserved()));
+                        update.getFloat("maxHealth"), old.tokenReserved(),old.campmate()));
                 break;
             }
         }
@@ -692,6 +692,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
         buffer.writeFloat(contact.health());
         buffer.writeFloat(contact.maxHealth());
         buffer.writeBoolean(contact.tokenReserved());
+        buffer.writeBoolean(contact.campmate());
     }
 
     private static Contact readContact(FriendlyByteBuf buffer) {
@@ -712,7 +713,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                 buffer.readBoolean(),
                 buffer.readInt(),
                 buffer.readFloat(),
-                buffer.readFloat(), buffer.readBoolean());
+                buffer.readFloat(), buffer.readBoolean(),buffer.readBoolean());
     }
 
     private static <T> T enumByOrdinal(T[] values, int ordinal, T fallback) {

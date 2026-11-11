@@ -1,5 +1,7 @@
 package net.parkabird.changedsynergy.ai;
 
+import static net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.canonicalFormId;
+
 import java.util.*;
 import net.ltxprogrammer.changed.Changed;
 import net.ltxprogrammer.changed.ability.GrabEntityAbility;
@@ -127,7 +129,7 @@ public final class InstinctConfinementService {
         sync(session,true);tell(session,"released");return true;
     }
     private static boolean ownsTemporaryForm(ServerPlayer human,String form) {
-        return ProcessTransfur.getPlayerTransfurVariantSafe(human).map(variant->variant.isTemporaryFromSuit()&&variant.getFormId().toString().equals(form)).orElse(false);
+        return ProcessTransfur.getPlayerTransfurVariantSafe(human).map(variant->variant.isTemporaryFromSuit()&&variant.getFormId().toString().equals(canonicalFormId(form))).orElse(false);
     }
     private static void restoreHumanForm(ServerPlayer human,String form) {
         // An external administrator's permanent change takes precedence.

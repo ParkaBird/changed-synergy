@@ -1,13 +1,14 @@
-# Changed: Synergy 1.1.5-Beta.1 — Player guides
+# Changed: Synergy 1.1.5 — Player guides
 
-These guides describe the default 1.1.5-Beta.1 rules. A server can change gameplay settings; check its settings page when an option behaves differently.
+Start with the community guide for Beta.2's household life and admission system, or choose another topic below. A server can change gameplay settings; check its settings page when an option behaves differently.
 
-**Supported pairing:** Synergy 1.1.5-Beta.1, Changed 0.15.7 and TrueTransfur 2.x. TrueTransfur is optional for NPC relationships and camps. Its 2.x integration requires Mixin Args on both server and clients. TrueTransfur 1.0.1 compatibility is no longer maintained or tested.
+**Supported pairing:** Synergy 1.1.5-Beta.2, Changed 0.15.7 and TrueTransfur 2.x. TrueTransfur is optional for NPC relationships, community membership and camps. Native origins, permanent dialogue rituals and Instinct require it; its 2.x integration requires Mixin Args on both server and clients. TrueTransfur 1.0.1 compatibility is no longer maintained or tested.
 
 ## Playing
 
 | Guide | Start here when you want to… |
 | --- | --- |
+| [Community life and membership](CAMP_MEMBERSHIP_GUIDE.md) · [中文](CAMP_MEMBERSHIP_GUIDE.zh-CN.md) | Find a household, join it, contribute supplies, fulfill requests and live with its residents |
 | [Social guide](SOCIAL_GUIDE.md) · [中文](SOCIAL_GUIDE.zh-CN.md) | Meet creatures, give gifts, make friends, form bonds or interact with players |
 | [Wheel controls and motion](UI_CONTROLS.md) | Tap or hold the ability wheel, switch wheels and reduce interface motion |
 | [Player camps and travelling crews](PLAYER_CAMP_GUIDE.md) | Establish a camp, link facilities, assign work, share meals or travel with workers |
@@ -26,4 +27,4 @@ These guides describe the default 1.1.5-Beta.1 rules. A server can change gamepl
 | [World rules](GAMERULES.md) | Synergy gamerules and their effects |
 | [Performance controls](PERFORMANCE.md) | Scheduling, diagnostics and settings for busy servers |
 
-See [compatibility and installation](../COMPATIBILITY.md) for supported mods, or the [combined 1.1.5 release notes](CHANGELOG-1.1.5.md) for changes since 1.1.4-hotfix.2. Return to the [project homepage](../README.md).
+See [compatibility and installation](../COMPATIBILITY.md) for supported mods, the [Beta.2 release notes](CHANGELOG-1.1.5-Beta.2.md) for changes since Beta.1, or the [combined 1.1.5 release notes](CHANGELOG-1.1.5.md) for earlier changes. Return to the [project homepage](../README.md).

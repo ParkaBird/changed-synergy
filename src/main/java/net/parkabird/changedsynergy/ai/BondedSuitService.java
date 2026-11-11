@@ -19,6 +19,7 @@ import net.ltxprogrammer.changed.init.ChangedSounds;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket.GrabType;
 import net.ltxprogrammer.changed.network.packet.SyncTransfurPacket;
+import net.ltxprogrammer.changed.network.packet.SyncTransfurProgressPacket;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
@@ -245,6 +246,7 @@ public final class BondedSuitService {
 
     /** A friendly suit may begin only for a reverted owner and never from an organic creature. */
     public static boolean canStartSuit(ChangedEntity pet, ServerPlayer owner) {
+        if (net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(pet)) return false;
         if (net.parkabird.changedsynergy.compat.FirearmCompat.ridingSuperbVehicle(owner) != null) return false;
         IAbstractChangedEntity currentGrabber = GrabEntityAbility.getGrabber(owner);
         if (currentGrabber != null && currentGrabber.getEntity() != pet) {
@@ -270,6 +272,7 @@ public final class BondedSuitService {
     }
 
     public static boolean shouldBlockNativeSuit(ChangedEntity pet, ServerPlayer owner) {
+        if (net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(pet)) return true;
         if (isRescueGraceActive(owner)) return true;
         IAbstractChangedEntity current = GrabEntityAbility.getGrabber(owner);
         return current != null && current.getEntity() != pet
@@ -439,7 +442,6 @@ public final class BondedSuitService {
         CreatureComfortGoal.endSeatedActivity(pet);
         // Addon's safe mode intentionally cancels suitEntity at its HEAD.  It is
         // enabled only after Changed has established the actual suit reference.
-        ChangedAddonCompat.clearBondedFavor(pet);
         BondedPetSettings.clearFavor(pet);
         ChangedAddonCompat.configureFriendlyGrab(ability, false);
         if (!ability.suitEntity(owner)) {
@@ -532,7 +534,6 @@ public final class BondedSuitService {
             return false;
         }
 
-        ChangedAddonCompat.clearBondedFavor(pet);
         BondedPetSettings.clearFavor(pet);
         ChangedAddonCompat.configureFriendlyGrab(ability, false);
         if (!ability.suitEntity(owner)) {
@@ -657,7 +658,6 @@ public final class BondedSuitService {
             if (LatexSocialMemory.isFriendlySuitActive(pet, owner)) {
                 if (currentGrabber == null) markRescueReleased(owner);
                 BondedPetSettings.clearFavor(pet);
-                ChangedAddonCompat.clearBondedFavor(pet);
             }
             LatexSocialMemory.endFriendlySuit(pet, owner);
             pet.getPersistentData().remove(DROWNING_SUIT);
@@ -681,6 +681,7 @@ public final class BondedSuitService {
         boolean drowning = pet.getPersistentData().getBoolean(DROWNING_SUIT);
         boolean transfurRescue = pet.getPersistentData().getBoolean(TRANSFUR_SUIT);
         UUID revivalToken = BondedRevivalService.token(pet);
+        if (revivalToken != null) ProcessTransfur.setPlayerTransfurProgress(owner, 0.0F);
         BondedSuitDimensionTransfer.cancelRestoration(owner);
         pet.getPersistentData().remove(DROWNING_SUIT);
         pet.getPersistentData().remove(TRANSFUR_SUIT);
@@ -692,18 +693,16 @@ public final class BondedSuitService {
                 PacketDistributor.TRACKING_ENTITY.with(() -> pet),
                 new GrabEntityPacket(pet, owner, GrabType.RELEASE));
         ChangedAddonCompat.syncFriendlySuitControl(pet, owner, false);
-        syncOwnerSuitState(pet, owner, false);
         if (temporarySuit) clearTemporarySuitVariant(pet, owner);
+        syncOwnerSuitState(pet, owner, false);
         ChangedSounds.broadcastSound(pet, ChangedSounds.LATEX_UNSUIT_ENTITY, 1.0F, 1.0F);
 
         if (revivalToken != null) {
-            ProcessTransfur.setPlayerTransfurProgress(owner, 0.0F);
             suppressPostRevivalRescue(owner);
             BondedRevivalService.complete(pet, owner, revivalToken);
             return true;
         }
 
-        ChangedAddonCompat.clearBondedFavor(pet);
         BondedPetSettings.clearFavor(pet);
 
         // The old pending request and a fresh health/air check can otherwise
@@ -756,7 +755,6 @@ public final class BondedSuitService {
         LatexSocialMemory.delayEmergencyRescue(pet, MANUAL_RELEASE_COOLDOWN);
         BondedEmergencySuitGoal.suppressSelfRecovery(pet);
         ChangedAddonCompat.configureFriendlyGrab(ability(pet), false);
-        ChangedAddonCompat.clearBondedFavor(pet);
         BondedPetSettings.clearFavor(pet);
         if (released) {
             for (ChangedEntity bonded : LatexSocialMemory.loadedBondedCreatures(owner)) {
@@ -788,7 +786,6 @@ public final class BondedSuitService {
         markRescueReleased(owner);
 
         boolean bondedSuit = LatexSocialMemory.isFriendlySuitActive(pet, owner);
-        ChangedAddonCompat.clearBondedFavor(pet);
         BondedPetSettings.clearFavor(pet);
         ability.releaseEntity(false);
         ChangedAddonCompat.configureFriendlyGrab(ability, false);
@@ -968,7 +965,7 @@ public final class BondedSuitService {
                 && !TrueTransfurCompat.isInstinctBody(carrier)) {
             var hold = ability(carrier);
             if ((hold == null || !hold.suited)
-                    && (LatexSocialMemory.isFriendlyArmHoldTarget(carrier, owner) || ChangedAddonCompat.isSafeGrab(hold))) {
+                    && (LatexSocialMemory.isFriendlyArmHoldTarget(carrier, owner) || CreatureGrabService.isSafeGrab(hold))) {
                 if (hold != null && hold.grabbedEntity == owner) {
                     if (!carrier.isAlive() || carrier.isRemoved() || carrier.level() != owner.level()) hold.releaseEntity(false);
                     else ((GrabAbilityTick)hold).changedSynergy$tickHoldIfNeeded();
@@ -1120,6 +1117,12 @@ public final class BondedSuitService {
                 PacketDistributor.TRACKING_ENTITY.with(() -> pet), packet);
         ChangedSynergyNetwork.CHANNEL.send(
                 PacketDistributor.PLAYER.with(() -> owner), packet);
+        if (!active) {
+            // Send unchanged values too: form sync alone cannot repair a stale infection meter.
+            Changed.PACKET_HANDLER.send(
+                    PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> owner),
+                    new SyncTransfurProgressPacket(owner.getId(), ProcessTransfur.getPlayerTransfurProgress(owner)));
+        }
     }
 
     private static void clearTemporarySuitVariant(ChangedEntity pet, ServerPlayer owner) {

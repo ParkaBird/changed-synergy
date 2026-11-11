@@ -17,8 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 
 /**
- * Persistent wheel settings for bonded creatures that have neither Changed's
- * dark-latex pet implementation nor Addon's generic pet mixin.
+ * Common pet policy, reading the creature's existing settings backend.
  */
 public final class BondedPetSettings {
     public static final int TARGET_TRANSFURABLE = 0;
@@ -32,6 +31,7 @@ public final class BondedPetSettings {
     public static final int FAVOR_NONE = 0;
     public static final int FAVOR_FISHING = 1;
     public static final int FAVOR_CAVING = 2;
+    public static final int FAVOR_SUIT_OWNER = 3;
 
     private static final String DATA_KEY = "ChangedSynergyBondedPetSettings";
     private static final String TARGET = "TargetType";
@@ -47,8 +47,30 @@ public final class BondedPetSettings {
                 && !ChangedAddonCompat.supportsBondedPetBackend(pet);
     }
 
-    /** target type, attack type, attack condition and favor ordinals. */
+    /** Stable Synergy target, attack, condition and favor values. */
     public static int[] stateFor(ChangedEntity pet) {
+        if (pet instanceof AbstractDarkLatexEntity dark) {
+            return new int[]{
+                    switch (dark.getTargetType()) {
+                        case TRANSFURABLE_ENTITIES -> TARGET_TRANSFURABLE;
+                        case MONSTERS -> TARGET_MONSTERS;
+                        case HOSTILE_TO_OWNER -> TARGET_HOSTILE_TO_OWNER;
+                    },
+                    dark.getAttackType() == net.ltxprogrammer.changed.entity.ai.DarkLatexAttackType.ALWAYS_KILL
+                            ? ATTACK_ALWAYS_KILL : ATTACK_TRY_TRANSFUR,
+                    switch (dark.getAttackCondition()) {
+                        case NEVER -> CONDITION_NEVER;
+                        case ALWAYS -> CONDITION_ALWAYS;
+                        case OWNER_IS_HOSTILE -> CONDITION_OWNER_HOSTILE;
+                    },
+                    switch (dark.getCurrentFavor()) {
+                        case NONE -> FAVOR_NONE;
+                        case FISHING -> FAVOR_FISHING;
+                        case CAVING -> FAVOR_CAVING;
+                        case SUIT_OWNER -> FAVOR_SUIT_OWNER;
+                    }
+            };
+        }
         if (!usesFallbackBackend(pet)) {
             return ChangedAddonCompat.bondedMenuState(pet);
         }
@@ -100,12 +122,7 @@ public final class BondedPetSettings {
     }
 
     public static int favor(ChangedEntity pet) {
-        if (pet instanceof AbstractDarkLatexEntity darkLatex) {
-            return darkLatex.getCurrentFavor().ordinal();
-        }
-        return usesFallbackBackend(pet)
-                ? stateFor(pet)[3]
-                : ChangedAddonCompat.bondedMenuState(pet)[3];
+        return stateFor(pet)[3];
     }
 
     public static void clearFavor(ChangedEntity pet) {
@@ -118,6 +135,8 @@ public final class BondedPetSettings {
         if (usesFallbackBackend(pet)) {
             data(pet).putInt(FAVOR, FAVOR_NONE);
             pet.getNavigation().stop();
+        } else {
+            ChangedAddonCompat.clearBondedFavor(pet);
         }
     }
 
@@ -131,9 +150,7 @@ public final class BondedPetSettings {
             @Nullable ServerPlayer owner,
             LivingEntity target) {
         if (!PlayerOutpostService.mayAttackTarget(pet, target)) return false;
-        if (!usesFallbackBackend(pet)) {
-            return ChangedAddonCompat.allowsBondedDefense(pet, target);
-        }
+        if (PlayerOutpostService.isGuardDefenseTarget(pet, target)) return true;
         int[] state = stateFor(pet);
         if (state[2] == CONDITION_NEVER
                 || state[2] == CONDITION_OWNER_HOSTILE
@@ -144,8 +161,7 @@ public final class BondedPetSettings {
     }
 
     public static boolean suppressTransfurAttack(ChangedEntity pet) {
-        return usesFallbackBackend(pet)
-                && LatexSocialMemory.hasActiveBond(pet)
+        return LatexSocialMemory.hasActiveBond(pet)
                 && stateFor(pet)[1] == ATTACK_ALWAYS_KILL;
     }
 

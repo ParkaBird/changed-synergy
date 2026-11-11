@@ -1,0 +1,22 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_string": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:string"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "recipes": [
+      "changed_synergy:forest_canopy_outfit"
+    ]
+  }
+}

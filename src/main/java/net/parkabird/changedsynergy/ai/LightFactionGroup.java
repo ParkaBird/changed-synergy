@@ -39,10 +39,11 @@ public final class LightFactionGroup {
         if (HunterFaction.of(creature) != HunterFaction.LIGHT) {
             return GENERAL;
         }
-        String stored = normalize(
-                creature.getPersistentData().getString(GROUP_DATA));
+        String original = creature.getPersistentData().getString(GROUP_DATA);
+        String stored = normalize(original);
         if (!GENERAL.equals(stored)
                 || creature.getPersistentData().contains(GROUP_DATA)) {
+            if (!stored.equals(original)) creature.getPersistentData().putString(GROUP_DATA, stored);
             return stored;
         }
 
@@ -196,7 +197,7 @@ public final class LightFactionGroup {
         if (region == null) {
             return GENERAL;
         }
-        String normalized = region.trim().toLowerCase(Locale.ROOT);
+        String normalized = FactionDiplomacy.canonicalRegion(region.trim().toLowerCase(Locale.ROOT));
         return REGIONS.contains(normalized) ? normalized : GENERAL;
     }
 

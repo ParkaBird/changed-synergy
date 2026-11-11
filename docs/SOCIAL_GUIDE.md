@@ -76,7 +76,7 @@ A trusted friend's mediation can also calm nearby members of its faction. Alread
 
 Successful peace or negotiated release ends the current chase, including a wild cache guard's pursuit. A temporary grudge is extended by fresh player aggression, not by the creature's own attacks. Calming one player's conflict does not interrupt a separate fight with another player.
 
-After an organic creature turns you into compatible latex kin, it will not continue attacking you when temporary protection ends. New provocation, betrayal or hostile faction standing can still cause a fight. Organic creatures keep their low physical swipe damage against humans; genuinely hostile transformed players receive ordinary damage.
+Organic creatures respect the same neutral species relations as other creatures, including transformed outsiders. After an organic creature turns you into compatible latex kin, it will not continue attacking you when temporary protection ends. New provocation, betrayal or hostile faction standing can still cause a fight. Organic creatures keep their low physical swipe damage against humans; genuinely hostile transformed players receive ordinary damage.
 
 The relationship wheel's group-play option calls available contacts within fourteen blocks to briefly approach and react. Sneaking selects a quiet shared rest instead. The activity has its own thirty-second cooldown, and play's affection gains still use the care cooldown and allowance. Social signals prompt a brief reaction from available contacts within twelve blocks and line of sight. Sleeping, occupied or fighting creatures do not interrupt those activities to respond.
 

@@ -37,6 +37,21 @@ Use `--offline` when the Gradle and Minecraft dependencies are already cached:
 gradlew.bat clean build --offline --no-daemon
 ```
 
+## Data generation
+
+Run Synergy's data-generation environment without the optional Addon Plus runtime:
+
+```text
+gradlew.bat runData -PwithoutAddon --no-daemon
+```
+
+The supported Addon Plus runtime JAR registers its own data provider, which requires
+the separate `xyz.brassgoggledcoders.patchouliprovider.PatchouliBookProvider`
+development dependency. That dependency is not supplied by Synergy. Omitting Addon
+from this run avoids invoking its provider; ordinary client and server development
+runs still load Addon by default. Synergy currently authors its resources directly,
+so a successful run can report zero providers.
+
 ## Optional Domestication Innovation test run
 
 Domestication Innovation 1.7.1 and Citadel are optional and are not bundled in

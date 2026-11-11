@@ -155,6 +155,7 @@ public final class LatexSocialMemory {
     }
 
     public static void addBond(ChangedEntity mob, ServerPlayer player) {
+        if (net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(mob)) return;
         if (!CreatureSocialProfile.allowsPersonalRelationship(mob)) {
             return;
         }
@@ -271,6 +272,7 @@ public final class LatexSocialMemory {
 
     /** Updates the companion owner used by optional pet-system integrations. */
     public static void setPetOwnerUuid(ChangedEntity mob, @Nullable UUID ownerUuid) {
+        if (ownerUuid != null && net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(mob)) return;
         if (!bondEnabled(mob)) {
             return;
         }
@@ -338,6 +340,7 @@ public final class LatexSocialMemory {
         if (target == owner) {
             return isFollowingOwner(pet);
         }
+        if (PlayerOutpostService.isGuardDefenseTarget(pet, target)) return false;
         boolean ownerConflict = isPetDefenseAuthorized(pet, target)
                 || owner.getLastHurtByMob() == target || owner.getLastHurtMob() == target;
         if (ownerConflict && pet.getLastHurtByMob() != target
@@ -1093,6 +1096,8 @@ public final class LatexSocialMemory {
         String key = player.getUUID().toString();
         boolean first = !isProvoked(mob, player);
         provoked.putLong(key, mob.level().getGameTime() + PROVOCATION_DURATION);
+        // Commit before spreading to Chiefs so revisiting the same resident cannot recurse.
+        if (first) net.parkabird.changedsynergy.npc.CampMembershipService.breakChiefPeace(mob, player);
         return first;
     }
 
@@ -1760,6 +1765,7 @@ public final class LatexSocialMemory {
 
     /** Remembers that this player attacked while a pat ceasefire was active. */
     public static void markPatTruceBetrayal(ChangedEntity mob, ServerPlayer player) {
+        net.parkabird.changedsynergy.npc.CampMembershipService.breakChiefPeace(mob, player);
         clearSecondaryTransfurSettlement(mob, player);
         child(mob, PAT_TRUCE_BETRAYALS).putBoolean(player.getStringUUID(), true);
     }
@@ -1777,6 +1783,7 @@ public final class LatexSocialMemory {
                 mob.level(), ChangedSynergyGameRules.FRIENDSHIP_SYSTEM)) {
             return;
         }
+        net.parkabird.changedsynergy.npc.CampMembershipService.breakChiefPeace(mob, player);
         clearSecondaryTransfurSettlement(mob, player);
         child(mob, RELATIONSHIP_BETRAYALS).putBoolean(player.getStringUUID(), true);
         child(mob, PROVOKED).remove(player.getStringUUID());
@@ -1819,7 +1826,9 @@ public final class LatexSocialMemory {
     public static boolean shouldRemainNeutral(ChangedEntity mob, ServerPlayer player) {
         if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)) return true;
         if (net.parkabird.changedsynergy.origin.NativeOriginService.pending(player)
-                || net.parkabird.changedsynergy.origin.NativeOriginService.protectedMember(mob, player)) return true;
+                || net.parkabird.changedsynergy.origin.NativeOriginService.protectedMember(mob, player)
+                || net.parkabird.changedsynergy.npc.CampMembershipService.protectedMember(mob,player)
+                || net.parkabird.changedsynergy.npc.CampMembershipService.hasChiefPeace(mob, player)) return true;
         if (PlayfulFriendTransfurGoal.active(mob, player)) return false;
         if (isBonded(mob, player) || isPetOwner(mob, player)
                 || mob instanceof TamableLatexEntity nativePet
@@ -1863,15 +1872,6 @@ public final class LatexSocialMemory {
         }
         if (PoliteHumanInteraction.shouldWithholdHostility(mob, player)) {
             return true;
-        }
-        if (isOrganic(mob)) {
-            // Replicating a human makes them kin, not a new combat target.
-            // Genuine faction hostility, betrayal and provocation remain authoritative.
-            return (relation.isFriendlyTransformed()
-                    || LatexCreatureCombatRules.arePeacefulCompetitors(mob, player)
-                    || relation == LatexSocialRelation.FORMER_RESPECTED
-                    || relation == LatexSocialRelation.FRIEND_RESPECTED)
-                    && !isProvoked(mob, player);
         }
         return relation.isNormallyNeutral() && !isProvoked(mob, player);
     }

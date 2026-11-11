@@ -621,9 +621,9 @@ public final class CreatureSettlementService {
     private static boolean isLightRegion(
             ChangedEntity creature,
             String region) {
-        return !isFacilityCommunity(creature)
-                && HunterFaction.of(creature) == HunterFaction.LIGHT
-                && region.equals(LightFactionGroup.of(creature));
+        if (isFacilityCommunity(creature) || HunterFaction.of(creature) != HunterFaction.LIGHT) return false;
+        String group = LightFactionGroup.of(creature);
+        return region.equals("arid".equals(group) ? settlementRegion(creature, null) : group);
     }
 
     @Nullable
@@ -2116,6 +2116,8 @@ public final class CreatureSettlementService {
     }
 
     public static Optional<BlockPos> cachePosition(ChangedEntity creature) {
+        if (StructureResidentGoal.isNonWorkingResident(creature)) return Optional.empty();
+        if (NaturalCampService.member(creature)) return NaturalCampService.storage(creature);
         if (!(creature.level() instanceof ServerLevel level)) {
             return Optional.empty();
         }
@@ -2499,6 +2501,14 @@ public final class CreatureSettlementService {
                 || HunterFaction.of(creature) != HunterFaction.LIGHT) {
             return LightFactionGroup.GENERAL;
         }
+        if ("arid".equals(LightFactionGroup.of(creature))) {
+            var position = cache != null ? cache : CreatureCommunityData.snapshot(creature)
+                    .map(CreatureCommunityData.Snapshot::center).orElse(creature.blockPosition());
+            if (!LightFactionGroup.canResolveAt(level, position)) return "arid";
+            var biome = level.getBiome(position);
+            var id = biome.unwrapKey().map(net.minecraft.resources.ResourceKey::location).orElse(null);
+            return net.parkabird.changedsynergy.dialogue.LatexTerritory.habitatRegion(biome, id, false);
+        }
         return cache == null
                 ? LightFactionGroup.of(creature)
                 : LightFactionGroup.at(level, cache);
@@ -2805,6 +2815,8 @@ public final class CreatureSettlementService {
     }
 
     public static Optional<BlockPos> ensureCachePosition(ChangedEntity creature) {
+        if (StructureResidentGoal.isNonWorkingResident(creature)) return Optional.empty();
+        if (NaturalCampService.member(creature)) return NaturalCampService.storage(creature);
         if (!(creature.level() instanceof ServerLevel level)
                 || !ChangedSynergyGameRules.enabled(
                         level, ChangedSynergyGameRules.CREATURE_LIFE)) {
@@ -2864,6 +2876,11 @@ public final class CreatureSettlementService {
             if (claimed.isPresent()) {
                 return claimed;
             }
+        }
+
+        if (ChangedSynergyConfig.COMMON.wildOutpostsInStructuresOnly.get()
+                || ChangedSynergyGameRules.noCivilizationMode(level)) {
+            return Optional.empty();
         }
 
         // Pure-white bodies outside a facility can dissolve back into their
@@ -4277,7 +4294,8 @@ public final class CreatureSettlementService {
                 ? container : null;
     }
 
-    private static ItemStack insert(Container container, ItemStack original) {
+    static ItemStack insert(Container container, ItemStack original) {
+        if (container instanceof PlayerOutpostItemStorage capability) return capability.insert(original);
         ItemStack remaining = original.copy();
         boolean changed = false;
         for (int slot = 0;
@@ -4309,6 +4327,7 @@ public final class CreatureSettlementService {
             }
             int moved = Math.min(space, remaining.getCount());
             existing.grow(moved);
+            container.setItem(slot, existing);
             remaining.shrink(moved);
             changed = true;
         }

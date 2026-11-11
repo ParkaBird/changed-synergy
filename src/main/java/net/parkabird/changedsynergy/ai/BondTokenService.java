@@ -65,6 +65,7 @@ public final class BondTokenService {
     }
 
     public static boolean canCreateBond(ChangedEntity creature, ServerPlayer player) {
+        if(net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(creature))return false;
         return CreatureSocialProfile.allowsPersonalRelationship(creature) && !CreatureSocialProfile.isJuvenile(creature)
                 && creature.isAlive() && !creature.isRemoved()
                 && ChangedSynergyGameRules.enabled(player.level(), ChangedSynergyGameRules.BOND_SYSTEM)
@@ -83,11 +84,12 @@ public final class BondTokenService {
     }
 
     public static String offerProblem(ChangedEntity creature, ServerPlayer player) {
+        var physical=TrueTransfurCompat.interactionBody(player);
         if (!ChangedSynergyConfig.COMMON.bondTokensRequired.get()
                 || !CreatureSocialProfile.allowsPersonalRelationship(creature) || CreatureSocialProfile.isJuvenile(creature)
                 || !creature.isAlive() || creature.isRemoved() || creature.level() != player.level()
-                || player.distanceToSqr(creature) > 64 || !player.hasLineOfSight(creature)
-                || TrueTransfurCompat.isInstinctShell(player)) return "unavailable";
+                || physical.level()!=creature.level() || physical.distanceToSqr(creature) > 64 || !physical.hasLineOfSight(creature)
+                || TrueTransfurCompat.isInstinctShell(player) && TrueTransfurCompat.interactionBody(player)==player) return "unavailable";
         if (!CreaturePersonality.hasTrustedRelationship(creature, player)
                 || LatexSocialMemory.isProvoked(creature, player) || LatexSocialMemory.hasBetrayedPatTruce(creature, player)
                 || FactionReputation.isHostile(creature, player)) return "unavailable";
@@ -108,6 +110,7 @@ public final class BondTokenService {
             return false;
         }
         ItemStack required = required(creature);
+        // TT mirrors equipment from the player's inventory; debit its authoritative stack.
         ItemStack held = player.getMainHandItem();
         if (!held.is(required.getItem()) || held.getCount() < required.getCount()) {
             player.displayClientMessage(Component.translatable("message.changed_synergy.relationship.token_required",

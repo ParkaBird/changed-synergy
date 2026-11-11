@@ -28,6 +28,7 @@ public final class CreatureRoleService {
 
     public static void tick(ChangedEntity creature) {
         if (!(creature.level() instanceof ServerLevel level)
+                || StructureResidentGoal.isNonWorkingResident(creature)
                 || PlayerOutpostService.assigned(creature)
                 || CreatureCommunityData.isPlayerCompanion(creature)
                 || !SynergyPerformanceTracker.featureEnabled(Feature.COMMUNITY)
@@ -52,6 +53,15 @@ public final class CreatureRoleService {
             case SCOUT -> tickScout(creature, level);
             case GUARD -> tickGuard(creature, level);
             case PROVISIONER -> tickProvisioner(creature, level);
+            case CHIEF -> {
+                if(!creature.isSleeping()&&!net.parkabird.changedsynergy.npc.NpcConversations.holds(creature)
+                        &&level.getGameTime()>=creature.getPersistentData().getLong(NEXT_ROLE_LINE)) {
+                    var visitor=level.players().stream().filter(p->!p.isSpectator()&&creature.distanceToSqr(p)<100&&creature.hasLineOfSight(p)).findFirst();
+                    visitor.ifPresent(p->{var profile=net.parkabird.changedsynergy.npc.StoryNpcService.profile(creature);
+                        if(profile!=null)NpcDialogue.context(creature,p,"chief."+profile.id().split(":",2)[1]+"."+(creature.getTarget()!=null?"warning":List.of("welcome","care","organize").get(creature.getRandom().nextInt(3))));});
+                    creature.getPersistentData().putLong(NEXT_ROLE_LINE,level.getGameTime()+1200);
+                }
+            }
             case YOUNGSTER, WANDERER -> { }
         }
     }
@@ -124,6 +134,8 @@ public final class CreatureRoleService {
     private static void tickGuard(
             ChangedEntity creature,
             ServerLevel level) {
+        acquireGuardTarget(creature, null, monster -> !NaturalCampService.member(creature)
+                || NaturalCampService.bounds(creature).contains(monster.position()));
         if (creature.getTarget() == null) {
             return;
         }
@@ -139,6 +151,28 @@ public final class CreatureRoleService {
             CreatureLifeMemory.incrementRoleStat(creature, 0);
             present(creature, Cue.ROLE_GUARD_RALLY);
         }
+    }
+
+    public static void acquireGuardTarget(ChangedEntity guard, ServerPlayer owner,
+            java.util.function.Predicate<net.minecraft.world.entity.monster.Monster> territory) {
+        if (!(guard.level() instanceof ServerLevel level) || guard.getTarget() != null
+                || !guard.isAlive() || guard.isNoAi() || guard.isSleeping()
+                || guard.isPassenger() && !PlayerOutpostRestGoal.isResting(guard)
+                || CreatureGrabService.isGrabberBusy(guard)
+                || net.ltxprogrammer.changed.ability.GrabEntityAbility.getGrabberSafe(guard).isPresent()) return;
+        level.getEntitiesOfClass(net.minecraft.world.entity.monster.Monster.class,
+                        guard.getBoundingBox().inflate(12, 6, 12), monster -> !(monster instanceof ChangedEntity)
+                                && !(monster instanceof net.minecraft.world.entity.monster.Creeper)
+                                && monster.isAlive() && !guard.isAlliedTo(monster)
+                                && (owner == null || !monster.isAlliedTo(owner))
+                                && territory.test(monster) && BondedPetSettings.isHostileMonster(monster, owner)
+                                && guard.canAttack(monster) && guard.hasLineOfSight(monster))
+                .stream().min(Comparator.comparingDouble(guard::distanceToSqr)).ifPresent(target -> {
+                    PlayerOutpostRestGoal.cleanup(guard);
+                    PlayerOutpostMealGoal.cleanup(guard);
+                    CreaturePeerInteractionService.cancel(guard);
+                    guard.setTarget(target);
+                });
     }
 
     private static void tickProvisioner(

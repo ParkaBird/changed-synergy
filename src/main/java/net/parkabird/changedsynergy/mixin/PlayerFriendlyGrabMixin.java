@@ -63,11 +63,14 @@ public abstract class PlayerFriendlyGrabMixin implements PlayerHugAccess {
                 else if (!grab.entity.getLevel().isClientSide()) PlayerHugService.release(grab);
             }
         } else if (grab.entity.getLevel().isClientSide() && changedSynergy$local()
-                && grab.entity.getLevel().getGameTime() - changedSynergy$lastHugRequest >= 7
-                && UniversalDist.getLocalHitResult() instanceof EntityHitResult hit
-                && hit.getEntity() instanceof LivingEntity target && PlayerHugService.validTarget(grab, target)) {
-            changedSynergy$lastHugRequest = grab.entity.getLevel().getGameTime();
-            ChangedSynergyNetwork.CHANNEL.sendToServer(new PlayerHugActionPacket(PlayerHugActionPacket.GRAB, target.getId()));
+                && grab.entity.getLevel().getGameTime() - changedSynergy$lastHugRequest >= 7) {
+            var target=net.parkabird.changedsynergy.ai.EagleOwlTraits.airborne(grab.entity.getEntity())
+                    ?net.parkabird.changedsynergy.ai.EagleOwlTraits.contactTarget(grab)
+                    :UniversalDist.getLocalHitResult() instanceof EntityHitResult hit&&hit.getEntity() instanceof LivingEntity living?living:null;
+            if(target!=null&&PlayerHugService.validTarget(grab,target)){
+                changedSynergy$lastHugRequest = grab.entity.getLevel().getGameTime();
+                ChangedSynergyNetwork.CHANNEL.sendToServer(new PlayerHugActionPacket(PlayerHugActionPacket.GRAB, target.getId()));
+            }
         }
     }
     @Inject(method = "grabEntity", at = @At("HEAD"), cancellable = true)

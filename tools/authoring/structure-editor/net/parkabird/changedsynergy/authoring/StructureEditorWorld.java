@@ -33,9 +33,10 @@ import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 /** Authoring-only server build; never included in the release JAR. */
 @Mod.EventBusSubscriber(modid="changed_synergy", value=Dist.DEDICATED_SERVER)
 public final class StructureEditorWorld {
-    private static final String[] NAMES={"white_lab_tower","red_lab_tower","green_lab","water_tower_changed"};
-    private static final String[] LABELS={"白色实验室塔","红色实验室塔","绿色实验室塔","水下实验室"};
-    private static final BlockPos[] ORIGINS={new BlockPos(0,64,0),new BlockPos(160,64,0),new BlockPos(0,64,160),new BlockPos(160,64,160)};
+    private static final boolean TREEHOUSE=Boolean.getBoolean("changed_synergy.treehouseEditor");
+    private static final String[] NAMES=TREEHOUSE?new String[]{"forest_treehouse"}:new String[]{"white_lab_tower","red_lab_tower","green_lab","water_tower_changed"};
+    private static final String[] LABELS=TREEHOUSE?new String[]{"森林树屋"}:new String[]{"白色实验室塔","红色实验室塔","绿色实验室塔","水下实验室"};
+    private static final BlockPos[] ORIGINS=TREEHOUSE?new BlockPos[]{new BlockPos(0,63,0)}:new BlockPos[]{new BlockPos(0,64,0),new BlockPos(160,64,0),new BlockPos(0,64,160),new BlockPos(160,64,160)};
     private static int books,containers,creatures;
 
     @SubscribeEvent public static void build(ServerStartedEvent event) {
@@ -50,6 +51,7 @@ public final class StructureEditorWorld {
             rules.getRule(GameRules.RULE_DOFIRETICK).set(false,server);
             rules.getRule(GameRules.RULE_RANDOMTICKING).set(0,server);
             rules.getRule(GameRules.RULE_KEEPINVENTORY).set(true,server);
+            rules.getRule(GameRules.RULE_SPAWN_RADIUS).set(0,server);
             rules.getRule(ChangedGameRules.RULE_LATEX_GROWTH_RATE).set(0,server);
             rules.getRule(ChangedGameRules.RULE_NPC_WANT_FUSE_PLAYER).set(false,server);
             rules.getRule(ChangedSynergyGameRules.NATIVE_ORIGINS).set(false,server);
@@ -97,9 +99,9 @@ public final class StructureEditorWorld {
                     if(count>0){entity.load(saved);siteBooks+=count;}
                 }
                 books+=siteBooks;containers+=siteContainers;
-                for(int x=-2;x<=size.getX()+1;x++)for(int z:new int[]{-2,size.getZ()+1})level.setBlock(origin.offset(x,-1,z),Blocks.YELLOW_CONCRETE.defaultBlockState(),2);
-                for(int z=-2;z<=size.getZ()+1;z++)for(int x:new int[]{-2,size.getX()+1})level.setBlock(origin.offset(x,-1,z),Blocks.YELLOW_CONCRETE.defaultBlockState(),2);
-                var board=origin.offset(size.getX()/2,0,-5);level.setBlock(board,Blocks.OAK_SIGN.defaultBlockState(),3);
+                for(int x=-2;x<=size.getX()+1;x++)for(int z:new int[]{-2,size.getZ()+1})level.setBlock(origin.offset(x,TREEHOUSE?0:-1,z),Blocks.YELLOW_CONCRETE.defaultBlockState(),2);
+                for(int z=-2;z<=size.getZ()+1;z++)for(int x:new int[]{-2,size.getX()+1})level.setBlock(origin.offset(x,TREEHOUSE?0:-1,z),Blocks.YELLOW_CONCRETE.defaultBlockState(),2);
+                var board=origin.offset(size.getX()/2,TREEHOUSE?1:0,-5);level.setBlock(board,Blocks.OAK_SIGN.defaultBlockState(),3);
                 if(level.getBlockEntity(board) instanceof SignBlockEntity sign) {
                     var text=new SignText().setMessage(0,Component.literal(LABELS[i])).setMessage(1,Component.literal("方块／书籍／光盘可编辑"))
                             .setMessage(2,Component.literal(i==3?"原海平面 Y=91":"改完后保存并退出"))
@@ -115,13 +117,14 @@ public final class StructureEditorWorld {
             chest.setItem(0,guide());chest.setItem(1,new ItemStack(Items.WRITABLE_BOOK,8));chest.setItem(2,new ItemStack(Items.ENDER_PEARL,16));chest.setItem(3,new ItemStack(Items.MILK_BUCKET));
             chest.setChanged();
             Files.writeString(server.getWorldPath(LevelResource.ROOT).resolve("synergy_editing/generation.txt"),"Editable books="+books+"\nContainers="+containers+"\nFrozen creatures="+creatures+"\nSource templates use Rotation.NONE.\n");
-            System.out.println("STRUCTURE_EDITOR_WORLD_PASS: four structures; editable books="+books+"; containers="+containers+"; frozen creatures="+creatures);
+            System.out.println("STRUCTURE_EDITOR_WORLD_PASS: structures="+NAMES.length+"; editable books="+books+"; containers="+containers+"; frozen creatures="+creatures);
         } catch(Throwable failure) {System.err.println("STRUCTURE_EDITOR_WORLD_FAIL");failure.printStackTrace();}
         finally {if(Boolean.getBoolean("changed_synergy.buildEditorWorld"))server.halt(false);}
     }
 
     private static int editableBooks(Tag value) {
         if(value instanceof CompoundTag data) {
+            if(data.getString("id").equals("minecraft:writable_book")&&data.contains("Count"))return 1;
             if(data.getString("id").equals("minecraft:written_book")&&data.contains("Count")) {
                 var original=data.copy();var tag=data.getCompound("tag");var pages=tag.getList("pages",Tag.TAG_STRING);var editable=new ListTag();
                 for(int i=0;i<pages.size();i++) {var component=Component.Serializer.fromJson(pages.getString(i));editable.add(StringTag.valueOf(component==null?"":component.getString()));}
@@ -136,11 +139,14 @@ public final class StructureEditorWorld {
     private static ItemStack guide() {
         var book=new ItemStack(Items.WRITTEN_BOOK);var tag=book.getOrCreateTag();tag.putString("title","结构编辑说明");tag.putString("author","Changed: Synergy");
         var pages=new ListTag();
-        for(String text:new String[]{"结构编辑地图\n\n创造模式，允许指令。\n\n书架、讲台、箱子里的原书已转为可编辑书本。取出后右键改字，完成后放回原位置。可以不签名。",
+        String[] pagesText=TREEHOUSE?new String[]{"树屋编辑地图\n\n创造模式，允许指令。\n\n讲台上的原书已转为可编辑书本。取出后右键改字，完成后放回原位置。可以不签名。",
+                "树屋位置\n\n/tp @s 13 64 -6\n\n原点：0 63 0\n范围：27 × 41 × 24\n\n黄色边线为辅助标记。NPC 静止，刷怪和随机刻已关闭。",
+                "编辑后保存并退出，再告诉我存档路径。我会提取树屋及其文字内容。\n\n如需扩建到黄色边线外，请说明范围。保留 synergy_editing 文件夹中的坐标与原始模板。"}:new String[]{"结构编辑地图\n\n创造模式，允许指令。\n\n书架、讲台、箱子里的原书已转为可编辑书本。取出后右键改字，完成后放回原位置。可以不签名。",
                 "光盘\n\n从箱子取出，拿在手里右键电脑，修改文字后点击完成，再放回原箱子。\n\n水下研究光盘在：\n203 98 193 附近。",
                 "传送位置\n\n白塔：18 65 -6\n红塔：182 65 -6\n绿塔：32 65 154\n水下设施：196 65 154\n\n用 /tp @s x y z 传送。",
                 "保存与交回\n\n编辑后保存并退出，告诉我存档路径即可。无需操作 NBT，也无需自己使用结构方块。\n\n黄色边线外是编辑辅助区域，不会导入建筑。如需向外扩建，请说明。",
-                "编辑专用设置\n\nNPC 已静止并设为无敌。随机刻、自然刷怪、蔓延已关闭。\n\n水下设施外部为干燥施工区，内部水体保留。原海平面 Y=91；导回后仍按原水线生成。"})pages.add(StringTag.valueOf(Component.Serializer.toJson(Component.literal(text))));
+                "编辑专用设置\n\nNPC 已静止并设为无敌。随机刻、自然刷怪、蔓延已关闭。\n\n水下设施外部为干燥施工区，内部水体保留。原海平面 Y=91；导回后仍按原水线生成。"};
+        for(String text:pagesText)pages.add(StringTag.valueOf(Component.Serializer.toJson(Component.literal(text))));
         tag.put("pages",pages);return book;
     }
 }

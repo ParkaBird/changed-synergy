@@ -19,7 +19,6 @@ import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.Enemy;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.event.NpcDispositionEvents;
@@ -60,7 +59,7 @@ public final class SocialFriendDefenseGoal extends TargetGoal {
                 || !LatexSocialMemory.petOwnerUuid(friend).isEmpty()
                 || LatexSocialMemory.hasActiveBond(friend)
                 || SocialAudienceGoal.isActive(friend)
-                || ChangedAddonCompat.isGrabberBusy(friend)) {
+                || CreatureGrabService.isGrabberBusy(friend)) {
             return false;
         }
         if (!SynergyPerformanceTracker.allowBackground(

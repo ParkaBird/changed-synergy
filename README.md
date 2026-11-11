@@ -21,6 +21,8 @@ Changed: Synergy turns aggressive latex creatures into neighbors you can get alo
 
 The new species also include [Latex Swordfish](docs/LATEX_SWORDFISH.md), an open-ocean swimmer with a Riptide-style rush, and [Latex Muntjac](docs/LATEX_MUNTJAC.md), a jungle deer relative with animated upright ears. Both have natural spawns, native origins and matching transfur items.
 
+**Beta.2 adds local communities** in treehouses, hyena hideouts, mountain observatories and desert refuges. Meet their Chiefs, ask to stay, help residents and share supplies while building local trust. Spotted Hyenas, Eagle Owls and Jerboas join the species roster, with matching outfits and new sleeping perches. See the [Beta.2 release notes](docs/CHANGELOG-1.1.5-Beta.2.md).
+
 ## Player guides
 
 Start with the [guide directory](docs/README.md), or choose a topic:
@@ -28,6 +30,7 @@ Start with the [guide directory](docs/README.md), or choose a topic:
 | Guide | What it covers |
 | --- | --- |
 | [Social guide](docs/SOCIAL_GUIDE.md) · [中文](docs/SOCIAL_GUIDE.zh-CN.md) | First contact, feeding, gifts, friends, bonds and player interactions |
+| [Community membership](docs/CAMP_MEMBERSHIP_GUIDE.md) · [中文](docs/CAMP_MEMBERSHIP_GUIDE.zh-CN.md) | Joining a household, local trust, donations, resident requests, supplies and outfit rewards |
 | [Player camps](docs/PLAYER_CAMP_GUIDE.md) | Establishing a camp, linking facilities, work, meals and travelling crews |
 | [Native origins](docs/NATIVE_ORIGINS.md) | Choosing a human or creature origin and using the archive |
 | [TrueTransfur and Instinct](docs/TRUETRANSFUR_INSTINCT_COMPAT.md) | Installation, visible bodies, control modes and player takeover |

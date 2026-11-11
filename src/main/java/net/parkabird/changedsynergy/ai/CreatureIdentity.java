@@ -148,6 +148,11 @@ public final class CreatureIdentity {
 
     /** Groups real species by the kinds of sounds their anatomy can make. */
     public static String vocalizationProfile(ChangedEntity mob) {
+        if (mob instanceof net.parkabird.changedsynergy.entity.LatexSpottedHyena) return "canine";
+        if (mob instanceof net.parkabird.changedsynergy.entity.LatexMuntjac
+                || mob instanceof net.parkabird.changedsynergy.entity.LatexMuntjacFemale) return "herbivore";
+        if (mob instanceof net.parkabird.changedsynergy.entity.LatexSwordfish) return "aquatic";
+        if (net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString().equals("changed:latex_leaf")) return "draconic";
         if (CreatureSocialProfile.isJuvenile(mob)) {
             ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(mob.getType());
             String path = id == null ? "" : id.getPath();
@@ -171,6 +176,10 @@ public final class CreatureIdentity {
 
     /** Applies a changed persistence gamerule without touching identity or relationship NBT. */
     public static void reconcilePersistence(ChangedEntity mob) {
+        if (mob.getUnderlyingPlayer()==null && mob.getPersistentData().getCompound(StructureResidentGoal.DATA).getBoolean("Resolved")) {
+            mob.setPersistenceRequired();
+            return;
+        }
         CompoundTag identity = existingData(mob);
         boolean synergyIdentity = identity != null
                 && identity.getBoolean(GENERATED)

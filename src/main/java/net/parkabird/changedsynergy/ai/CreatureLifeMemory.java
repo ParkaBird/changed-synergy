@@ -33,7 +33,8 @@ public final class CreatureLifeMemory {
         GUARD("guard"),
         PROVISIONER("provisioner"),
         YOUNGSTER("youngster"),
-        WANDERER("wanderer");
+        WANDERER("wanderer"),
+        CHIEF("chief");
 
         private final String id;
 

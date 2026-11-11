@@ -77,9 +77,13 @@ public final class NpcDialogue {
                 || !CreatureSocialProfile.allowsDialogue(speaker)
                 || speaker.getType().is(SILENT_HUNTERS)
                 || !speaker.level().getGameRules().getBoolean(ChangedSynergyGameRules.NPC_DIALOGUE)) return;
+        if (net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(speaker)
+                && !suffix.startsWith("camp_private_storage")
+                && (!suffix.startsWith("chief.") || !net.parkabird.changedsynergy.npc.CampDialogue.chief(speaker))) return;
         long now = speaker.level().getGameTime();
         if (speaker.getPersistentData().getLong("SynergyContextLineAt") > now) return;
         DialogueVoice voice = DialogueVoice.of(speaker, HunterFaction.of(speaker));
+        if(suffix.equals("camp_help_thanks")&&net.parkabird.changedsynergy.npc.CampLifeService.template(speaker).equals("desert_refuge"))suffix="desert_camp_help_thanks";
         String key = canUnderstand(speaker, listener)
                 ? "dialogue.changed_synergy.context." + suffix
                 : vocalizationKey(speaker, listener, null,
@@ -160,7 +164,8 @@ public final class NpcDialogue {
                 emotePriority(cue), emoteDuration(cue),
                 forcesEmoteTransition(cue));
         if (speaker.getType().is(SILENT_HUNTERS)
-                || !level.getGameRules().getBoolean(ChangedSynergyGameRules.NPC_DIALOGUE)) {
+                || !level.getGameRules().getBoolean(ChangedSynergyGameRules.NPC_DIALOGUE)
+                || net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(speaker)) {
             return false;
         }
 
@@ -253,7 +258,7 @@ public final class NpcDialogue {
                     "message.changed_synergy.npc_dialogue",
                     speaker.getDisplayName(), visibleLine)
                     .withStyle(style -> style.withColor(color(voice)).withItalic(true));
-            if (isTakeoverCue(cue) || usesRelationshipChat(speaker, listener)) {
+            if (isTakeoverCue(cue) || cue != Cue.NEGOTIATION_FORGIVEN && usesRelationshipChat(speaker, listener)) {
                 listener.sendSystemMessage(message);
             } else {
                 ChangedSynergyNetwork.CHANNEL.send(
@@ -313,7 +318,8 @@ public final class NpcDialogue {
         if (!(speaker.level() instanceof ServerLevel level)
                 || !CreatureSocialProfile.allowsDialogue(speaker)
                 || speaker.getType().is(SILENT_HUNTERS)
-                || !level.getGameRules().getBoolean(ChangedSynergyGameRules.NPC_DIALOGUE)) {
+                || !level.getGameRules().getBoolean(ChangedSynergyGameRules.NPC_DIALOGUE)
+                || net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(speaker)) {
             return false;
         }
 
@@ -421,6 +427,7 @@ public final class NpcDialogue {
     }
 
     public static boolean canUnderstand(ChangedEntity speaker, ServerPlayer player) {
+        if (net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(speaker)) return true;
         // Spoken language does not require or unlock the listener's telepathy.
         if (speaker.getType().is(DIRECT_SPEAKERS)) return true;
         boolean hypnoticSpeech = HypnosisProfile.isHypnoticCreature(speaker)
@@ -551,7 +558,7 @@ public final class NpcDialogue {
                     .orElse("companion_seeking");
             String group = negotiationCueGroup(cue);
             return "dialogue.changed_synergy.negotiation."
-                    + (group.startsWith("release_") ? "common" : reason)
+                    + (group.startsWith("release_") || group.equals("forgiven") ? "common" : reason)
                     + "." + group
                     + "." + index;
         }
@@ -622,6 +629,7 @@ public final class NpcDialogue {
                     NEGOTIATION_FOOD_BRIBE,
                     NEGOTIATION_RESIST,
                     NEGOTIATION_FAILED,
+                    NEGOTIATION_FORGIVEN,
                     NEGOTIATION_RELEASE_HOLD_ASSIMILATION,
                     NEGOTIATION_RELEASE_ASSIMILATION,
                     NEGOTIATION_RELEASE_ABSORPTION,
@@ -689,6 +697,7 @@ public final class NpcDialogue {
             case NEGOTIATION_FOOD_BRIBE -> "food_bribe";
             case NEGOTIATION_RESIST -> "resist";
             case NEGOTIATION_FAILED -> "failed";
+            case NEGOTIATION_FORGIVEN -> "forgiven";
             case NEGOTIATION_RELEASE_HOLD_ASSIMILATION ->
                     "release_hold_assimilation";
             case NEGOTIATION_RELEASE_ASSIMILATION -> "release_assimilation";
@@ -1288,6 +1297,7 @@ public final class NpcDialogue {
                     NEGOTIATION_INSIST, NEGOTIATION_FOOD_BRIBE,
                     NEGOTIATION_RESIST,
                     NEGOTIATION_FAILED,
+                    NEGOTIATION_FORGIVEN,
                     NEGOTIATION_RELEASE_HOLD_ASSIMILATION,
                     NEGOTIATION_RELEASE_ASSIMILATION,
                     NEGOTIATION_RELEASE_ABSORPTION,
@@ -1514,6 +1524,7 @@ public final class NpcDialogue {
         NEGOTIATION_FOOD_BRIBE(Emote.IDEA, 1.0, true, 1, true),
         NEGOTIATION_RESIST(Emote.DENY, 1.0, true, 1, true),
         NEGOTIATION_FAILED(Emote.DENY, 1.0, true, 1, true),
+        NEGOTIATION_FORGIVEN(Emote.HEART, 1.0, true, 2, true),
         NEGOTIATION_RELEASE_HOLD_ASSIMILATION(Emote.CASUAL, 1.0, true, 1, true),
         NEGOTIATION_RELEASE_ASSIMILATION(Emote.CASUAL, 1.0, true, 1, true),
         NEGOTIATION_RELEASE_ABSORPTION(Emote.CASUAL, 1.0, true, 1, true),

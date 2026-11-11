@@ -1,0 +1,2177 @@
+{
+  "template": "desert_refuge",
+  "species": "changed_synergy:latex_jerboa",
+  "trait": "CAUTIOUS",
+  "chief": true,
+  "equipment": [
+    "changed_synergy:desert_nomad_outfit"
+  ],
+  "nodes": {
+    "root": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.root.0.0",
+              "effect": "impact",
+              "emotion": "surprised",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.9,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.root.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.root.1.0",
+              "effect": "none",
+              "emotion": "surprised",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.root.1.1",
+              "effect": "wobble",
+              "emotion": "surprised",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.root.2.0",
+              "effect": "wave",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.root.2.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.root.3.0",
+              "effect": "whisper",
+              "emotion": "whisper",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.root.3.1",
+              "effect": "none",
+              "emotion": "whisper",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "about",
+          "next": "about",
+          "text": "npc.changed_synergy.desert_chief.root.choice.about",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "home",
+          "next": "home",
+          "text": "npc.changed_synergy.desert_chief.root.choice.home",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "records",
+          "next": "records",
+          "text": "npc.changed_synergy.desert_chief.root.choice.records",
+          "condition": "always",
+          "effect": "none",
+          "requires": [
+            "about",
+            "home"
+          ]
+        },
+        {
+          "id": "enrol",
+          "next": "enrol",
+          "text": "npc.changed_synergy.desert_chief.root.choice.enrol",
+          "condition": "stranger",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "membership",
+          "next": "membership",
+          "text": "npc.changed_synergy.desert_chief.root.choice.membership",
+          "condition": "member",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "goodbye",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.root.choice.goodbye",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "about": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.about.0.0",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.about.0.1",
+              "effect": "wobble",
+              "emotion": "shy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.about.0.2",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.about.1.0",
+              "effect": "none",
+              "emotion": "whisper",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.about.1.1",
+              "effect": "wobble",
+              "emotion": "whisper",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.about.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "goodbye",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.about.choice.goodbye",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "home": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.home.0.0",
+              "effect": "none",
+              "emotion": "happy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.home.0.1",
+              "effect": "bounce",
+              "emotion": "happy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.home.0.2",
+              "effect": "none",
+              "emotion": "happy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.home.1.0",
+              "effect": "none",
+              "emotion": "whisper",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.home.1.1",
+              "effect": "wobble",
+              "emotion": "whisper",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "quarters",
+          "next": "quarters",
+          "text": "npc.changed_synergy.desert_chief.home.choice.quarters",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.home.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "goodbye",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.home.choice.goodbye",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "quarters": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.quarters.0.0",
+              "effect": "emphasis",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.quarters.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.quarters.1.0",
+              "effect": "none",
+              "emotion": "shy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.quarters.1.1",
+              "effect": "wobble",
+              "emotion": "shy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.quarters.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "goodbye",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.quarters.choice.goodbye",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "records": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.records.0.0",
+              "effect": "droop",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.records.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.records.1.0",
+              "effect": "tremble",
+              "emotion": "fearful",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.records.1.1",
+              "effect": "none",
+              "emotion": "fearful",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "clipboards",
+          "next": "clipboards",
+          "text": "npc.changed_synergy.desert_chief.records.choice.clipboards",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.records.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "goodbye",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.records.choice.goodbye",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "clipboards": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.clipboards.0.0",
+              "effect": "emphasis",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.clipboards.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.clipboards.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "goodbye",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.clipboards.choice.goodbye",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "enrol": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "transformed_join",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.enrol.0.0",
+              "effect": "none",
+              "emotion": "happy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.enrol.0.1",
+              "effect": "bounce",
+              "emotion": "happy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "human_join",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.enrol.1.0",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.enrol.1.1",
+              "effect": "emphasis",
+              "emotion": "determined",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.enrol.1.2",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "cannot_join",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.enrol.2.0",
+              "effect": "tremble",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.enrol.2.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "join_latex",
+          "next": "welcome_latex",
+          "text": "npc.changed_synergy.desert_chief.enrol.choice.join_latex",
+          "condition": "transformed_join",
+          "effect": "join",
+          "requires": []
+        },
+        {
+          "id": "join_human",
+          "next": "welcome_human",
+          "text": "npc.changed_synergy.desert_chief.enrol.choice.join_human",
+          "condition": "human_join",
+          "effect": "join",
+          "requires": []
+        },
+        {
+          "id": "form",
+          "next": "explain_form",
+          "text": "npc.changed_synergy.desert_chief.enrol.choice.form",
+          "condition": "human",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.enrol.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "explain_form": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.explain_form.0.0",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.explain_form.0.1",
+              "effect": "emphasis",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.explain_form.0.2",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.explain_form.0.3",
+              "effect": "emphasis",
+              "emotion": "determined",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.explain_form.0.4",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "reversible",
+          "next": "welcome_copy",
+          "text": "npc.changed_synergy.desert_chief.explain_form.choice.reversible",
+          "condition": "can_reversible",
+          "effect": "reversible",
+          "requires": []
+        },
+        {
+          "id": "permanent_form",
+          "next": "confirm_permanent",
+          "text": "npc.changed_synergy.desert_chief.explain_form.choice.permanent_form",
+          "condition": "can_permanent",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "join_human",
+          "next": "welcome_human",
+          "text": "npc.changed_synergy.desert_chief.explain_form.choice.join_human",
+          "condition": "human_join",
+          "effect": "join",
+          "requires": []
+        },
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.explain_form.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "confirm_permanent": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.confirm_permanent.0.0",
+              "effect": "none",
+              "emotion": "determined",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.confirm_permanent.0.1",
+              "effect": "pulse",
+              "emotion": "determined",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.confirm_permanent.0.2",
+              "effect": "none",
+              "emotion": "determined",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.confirm_permanent.0.3",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.confirm_permanent.0.4",
+              "effect": "none",
+              "emotion": "determined",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.confirm_permanent.0.5",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.confirm_permanent.0.6",
+              "effect": "none",
+              "emotion": "determined",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "permanent_confirm",
+          "next": "welcome_permanent",
+          "text": "npc.changed_synergy.desert_chief.confirm_permanent.choice.permanent_confirm",
+          "condition": "can_permanent",
+          "effect": "permanent",
+          "requires": []
+        },
+        {
+          "id": "reconsider",
+          "next": "explain_form",
+          "text": "npc.changed_synergy.desert_chief.confirm_permanent.choice.reconsider",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "welcome_human": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_human.0.0",
+              "effect": "none",
+              "emotion": "happy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_human.0.1",
+              "effect": "bounce",
+              "emotion": "happy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_human.0.2",
+              "effect": "none",
+              "emotion": "happy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_human.1.0",
+              "effect": "none",
+              "emotion": "shy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_human.1.1",
+              "effect": "wobble",
+              "emotion": "shy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.welcome_human.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "goodbye",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.welcome_human.choice.goodbye",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "welcome_latex": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_latex.0.0",
+              "effect": "none",
+              "emotion": "happy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_latex.0.1",
+              "effect": "bounce",
+              "emotion": "happy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_latex.0.2",
+              "effect": "none",
+              "emotion": "happy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.welcome_latex.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "goodbye",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.welcome_latex.choice.goodbye",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "welcome_copy": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_copy.0.0",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_copy.0.1",
+              "effect": "float",
+              "emotion": "dreamy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_copy.0.2",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_copy.1.0",
+              "effect": "impact",
+              "emotion": "surprised",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.9,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_copy.1.1",
+              "effect": "none",
+              "emotion": "surprised",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.welcome_copy.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "goodbye",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.welcome_copy.choice.goodbye",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "welcome_permanent": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_permanent.0.0",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_permanent.0.1",
+              "effect": "float",
+              "emotion": "dreamy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_permanent.0.2",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_permanent.1.0",
+              "effect": "impact",
+              "emotion": "surprised",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.9,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_permanent.1.1",
+              "effect": "none",
+              "emotion": "surprised",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.welcome_permanent.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "goodbye",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.welcome_permanent.choice.goodbye",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "membership": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.membership.0.0",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.membership.0.1",
+              "effect": "pulse",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "leave",
+          "next": "confirm_leave",
+          "text": "npc.changed_synergy.desert_chief.membership.choice.leave",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.membership.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "confirm_leave": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.confirm_leave.0.0",
+              "effect": "emphasis",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.confirm_leave.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "confirm_leave",
+          "next": "left",
+          "text": "npc.changed_synergy.desert_chief.confirm_leave.choice.confirm_leave",
+          "condition": "always",
+          "effect": "leave",
+          "requires": []
+        },
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.confirm_leave.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "left": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.left.0.0",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.left.0.1",
+              "effect": "droop",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "root",
+          "text": "npc.changed_synergy.desert_chief.left.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "goodbye",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.left.choice.goodbye",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "goodbye": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.goodbye.0.0",
+              "effect": "emphasis",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.goodbye.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "close",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.goodbye.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "return": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.return.0.0",
+              "effect": "impact",
+              "emotion": "surprised",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.9,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.return.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.return.1.0",
+              "effect": "none",
+              "emotion": "surprised",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.return.1.1",
+              "effect": "wobble",
+              "emotion": "surprised",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.return.2.0",
+              "effect": "wave",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.return.2.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.return.3.0",
+              "effect": "whisper",
+              "emotion": "whisper",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.return.3.1",
+              "effect": "none",
+              "emotion": "whisper",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "about",
+          "next": "about",
+          "text": "npc.changed_synergy.desert_chief.return.choice.about",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "home",
+          "next": "home",
+          "text": "npc.changed_synergy.desert_chief.return.choice.home",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "records",
+          "next": "records",
+          "text": "npc.changed_synergy.desert_chief.return.choice.records",
+          "condition": "always",
+          "effect": "none",
+          "requires": [
+            "about",
+            "home"
+          ]
+        },
+        {
+          "id": "enrol",
+          "next": "enrol",
+          "text": "npc.changed_synergy.desert_chief.return.choice.enrol",
+          "condition": "stranger",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "membership",
+          "next": "membership",
+          "text": "npc.changed_synergy.desert_chief.return.choice.membership",
+          "condition": "member",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "goodbye",
+          "next": "goodbye",
+          "text": "npc.changed_synergy.desert_chief.return.choice.goodbye",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        }
+      ]
+    },
+    "resident_dorm_0": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_dorm_0.0.0",
+              "effect": "emphasis",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_dorm_0.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "resident_dorm",
+          "text": "npc.changed_synergy.desert_chief.resident_dorm_0.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_dorm",
+          "text": "npc.changed_synergy.desert_chief.resident_dorm_0.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "resident_dorm_1": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_dorm_1.0.0",
+              "effect": "emphasis",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_dorm_1.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "resident_dorm",
+          "text": "npc.changed_synergy.desert_chief.resident_dorm_1.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_dorm",
+          "text": "npc.changed_synergy.desert_chief.resident_dorm_1.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "resident_dorm": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_dorm.0.0",
+              "effect": "whisper",
+              "emotion": "whisper",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_dorm.0.1",
+              "effect": "none",
+              "emotion": "whisper",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_dorm.1.0",
+              "effect": "wobble",
+              "emotion": "whisper",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_0",
+          "next": "resident_dorm_0",
+          "text": "npc.changed_synergy.desert_chief.resident_dorm.choice.topic_0",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "topic_1",
+          "next": "resident_dorm_1",
+          "text": "npc.changed_synergy.desert_chief.resident_dorm.choice.topic_1",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_dorm",
+          "text": "npc.changed_synergy.desert_chief.resident_dorm.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "resident_study_2": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_study_2.0.0",
+              "effect": "emphasis",
+              "emotion": "determined",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_study_2.0.1",
+              "effect": "none",
+              "emotion": "determined",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "resident_study",
+          "text": "npc.changed_synergy.desert_chief.resident_study_2.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_study",
+          "text": "npc.changed_synergy.desert_chief.resident_study_2.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "resident_study_3": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_study_3.0.0",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_study_3.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "resident_study",
+          "text": "npc.changed_synergy.desert_chief.resident_study_3.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_study",
+          "text": "npc.changed_synergy.desert_chief.resident_study_3.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "resident_study": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_study.0.0",
+              "effect": "wave",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_study.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_study.1.0",
+              "effect": "float",
+              "emotion": "dreamy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_study.1.1",
+              "effect": "none",
+              "emotion": "dreamy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_2",
+          "next": "resident_study_2",
+          "text": "npc.changed_synergy.desert_chief.resident_study.choice.topic_2",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "topic_3",
+          "next": "resident_study_3",
+          "text": "npc.changed_synergy.desert_chief.resident_study.choice.topic_3",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_study",
+          "text": "npc.changed_synergy.desert_chief.resident_study.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "resident_garden_4": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_garden_4.0.0",
+              "effect": "wave",
+              "emotion": "curious",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_garden_4.0.1",
+              "effect": "none",
+              "emotion": "curious",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "resident_garden",
+          "text": "npc.changed_synergy.desert_chief.resident_garden_4.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_garden",
+          "text": "npc.changed_synergy.desert_chief.resident_garden_4.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "resident_garden_5": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_garden_5.0.0",
+              "effect": "bounce",
+              "emotion": "happy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_garden_5.0.1",
+              "effect": "none",
+              "emotion": "happy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "resident_garden",
+          "text": "npc.changed_synergy.desert_chief.resident_garden_5.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_garden",
+          "text": "npc.changed_synergy.desert_chief.resident_garden_5.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "resident_garden": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_garden.0.0",
+              "effect": "emphasis",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_garden.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_garden.1.0",
+              "effect": "bounce",
+              "emotion": "happy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_garden.1.1",
+              "effect": "none",
+              "emotion": "happy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_4",
+          "next": "resident_garden_4",
+          "text": "npc.changed_synergy.desert_chief.resident_garden.choice.topic_4",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "topic_5",
+          "next": "resident_garden_5",
+          "text": "npc.changed_synergy.desert_chief.resident_garden.choice.topic_5",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_garden",
+          "text": "npc.changed_synergy.desert_chief.resident_garden.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "resident_lab_6": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_lab_6.0.0",
+              "effect": "droop",
+              "emotion": "calm",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_lab_6.0.1",
+              "effect": "none",
+              "emotion": "calm",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "resident_lab",
+          "text": "npc.changed_synergy.desert_chief.resident_lab_6.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_lab",
+          "text": "npc.changed_synergy.desert_chief.resident_lab_6.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "resident_lab": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_lab.0.0",
+              "effect": "impact",
+              "emotion": "surprised",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.9,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_lab.0.1",
+              "effect": "none",
+              "emotion": "fearful",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_lab.1.0",
+              "effect": "none",
+              "emotion": "fearful",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_lab.1.1",
+              "effect": "tremble",
+              "emotion": "fearful",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_6",
+          "next": "resident_lab_6",
+          "text": "npc.changed_synergy.desert_chief.resident_lab.choice.topic_6",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_lab",
+          "text": "npc.changed_synergy.desert_chief.resident_lab.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "resident_corridor_7": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_corridor_7.0.0",
+              "effect": "wobble",
+              "emotion": "shy",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_corridor_7.0.1",
+              "effect": "none",
+              "emotion": "shy",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "next": "resident_corridor",
+          "text": "npc.changed_synergy.desert_chief.resident_corridor_7.choice.back",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_corridor",
+          "text": "npc.changed_synergy.desert_chief.resident_corridor_7.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    },
+    "resident_corridor": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_corridor.0.0",
+              "effect": "emphasis",
+              "emotion": "determined",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_corridor.0.1",
+              "effect": "none",
+              "emotion": "determined",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_corridor.1.0",
+              "effect": "none",
+              "emotion": "whisper",
+              "pause": 0,
+              "speed": 1,
+              "intensity": 0.2,
+              "beat": false
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.resident_corridor.1.1",
+              "effect": "wobble",
+              "emotion": "whisper",
+              "pause": 140,
+              "speed": 1,
+              "intensity": 0.65,
+              "beat": false
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_7",
+          "next": "resident_corridor_7",
+          "text": "npc.changed_synergy.desert_chief.resident_corridor.choice.topic_7",
+          "condition": "always",
+          "effect": "none",
+          "requires": []
+        },
+        {
+          "id": "close",
+          "next": "resident_corridor",
+          "text": "npc.changed_synergy.desert_chief.resident_corridor.choice.close",
+          "condition": "always",
+          "effect": "close",
+          "requires": []
+        }
+      ]
+    }
+  }
+}

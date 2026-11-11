@@ -9,6 +9,10 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.level.pathfinder.NodeEvaluator;
+import net.minecraft.world.level.block.FenceGateBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.parkabird.changedsynergy.ai.CompanionOpenDoorGoal;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -25,6 +29,12 @@ public abstract class LabTablePathfindingMixin extends NodeEvaluator {
         if (!(mob instanceof ChangedEntity) || !canPassDoors()) return;
         BlockPos pos = new BlockPos(x, y, z);
         var state = level.getBlockState(pos);
+        if ((state.getBlock() instanceof FenceGateBlock || state.getBlock() instanceof TrapDoorBlock)
+                && !state.getValue(BlockStateProperties.OPEN) && canOpenDoors()
+                && CompanionOpenDoorGoal.opensPassages(mob) && CompanionOpenDoorGoal.openablePassage(level,pos,state,mob)) {
+            callback.setReturnValue(BlockPathTypes.DOOR_WOOD_CLOSED);
+            return;
+        }
         if (!(state.getBlock() instanceof AbstractLabDoor)
                 && !(state.getBlock() instanceof AbstractLargeLabDoor)) return;
         // Forge's raw path query passes null for the walker, making even powered

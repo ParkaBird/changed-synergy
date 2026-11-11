@@ -22,6 +22,8 @@ import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
         modid = ChangedSynergyMod.MOD_ID,
         bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class CreatureCacheGuardEvents {
+    private record PendingAccess(ServerLevel level, net.minecraft.core.BlockPos pos, long tick) {}
+    private static final java.util.Map<ServerPlayer, PendingAccess> PENDING = new java.util.WeakHashMap<>();
     private CreatureCacheGuardEvents() {
     }
 
@@ -36,11 +38,18 @@ public final class CreatureCacheGuardEvents {
     @SubscribeEvent
     public static void onServerStopped(ServerStoppedEvent event) {
         CreatureCacheGuardService.clearAssignments();
+        PENDING.clear();
     }
 
     @SubscribeEvent
     public static void onCacheOpened(PlayerContainerEvent.Open event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        var pending = PENDING.remove(player);
+        if (pending != null && pending.level() == player.serverLevel()
+                && pending.tick() == pending.level().getGameTime()
+                && opensStorage(event.getContainer(), pending.level(), pending.pos())) {
+            CreatureCacheGuardService.handleCacheAccess(pending.level(), player, pending.pos());
+        }
         var checked = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Container, Boolean>());
         for (var slot : event.getContainer().slots) {
             if (checked.add(slot.container) && CreatureCommunityData.isCacheContainer(player.serverLevel(), slot.container)) {
@@ -50,21 +59,35 @@ public final class CreatureCacheGuardEvents {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onCacheAccess(PlayerInteractEvent.RightClickBlock event) {
         if (event.getEntity() instanceof ServerPlayer player
                 && event.getLevel() instanceof ServerLevel level
                 && event.getHand() == InteractionHand.MAIN_HAND
-                && level.getBlockEntity(event.getPos()) instanceof Container) {
-            CreatureCacheGuardService.handleCacheAccess(level, player, event.getPos());
+                && event.getUseBlock() != net.minecraftforge.eventbus.api.Event.Result.DENY
+                && net.parkabird.changedsynergy.ai.PlayerOutpostData.container(level,event.getPos()) != null) {
+            PENDING.put(player, new PendingAccess(level, event.getPos().immutable(), level.getGameTime()));
+            net.parkabird.changedsynergy.npc.CampLifeService.opened(level,event.getPos());
         }
+    }
+
+    private static boolean opensStorage(net.minecraft.world.inventory.AbstractContainerMenu menu,
+                                        ServerLevel level, net.minecraft.core.BlockPos pos) {
+        var blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof Container container) {
+            return menu.slots.stream().anyMatch(slot -> slot.container == container
+                    || slot.container instanceof net.minecraft.world.CompoundContainer pair && pair.contains(container));
+        }
+        return blockEntity != null && blockEntity.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER)
+                .map(handler -> menu.slots.stream().anyMatch(slot -> slot instanceof net.minecraftforge.items.SlotItemHandler itemSlot
+                        && itemSlot.getItemHandler() == handler)).orElse(false);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onCacheBroken(BlockEvent.BreakEvent event) {
         if (event.getPlayer() instanceof ServerPlayer player
                 && event.getLevel() instanceof ServerLevel level
-                && level.getBlockEntity(event.getPos()) instanceof Container) {
+                && net.parkabird.changedsynergy.ai.PlayerOutpostData.container(level,event.getPos()) != null) {
             CreatureCacheGuardService.handleCacheDestroyed(
                     level, player, event.getPos());
         }

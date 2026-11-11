@@ -1,5 +1,7 @@
 package net.parkabird.changedsynergy.regression;
 
+import net.parkabird.changedsynergy.ai.CreatureGrabService;
+
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -89,7 +91,7 @@ final class CampCrewTrueTransfurChecks {
                     +" bodyAlive="+body.isAlive()+" ownerAlive="+owner.isAlive()+" bodyPos="+body.position()+" npcPos="+mob.position()
                     +" tier="+CreaturePersonality.relationshipTier(mob,owner)+" target="+mob.getTarget()+" pet="+LatexSocialMemory.petOwnerUuid(mob)
                     +" bonded="+LatexSocialMemory.hasActiveBond(mob)+" audience="+SocialAudienceGoal.isActive(mob)
-                    +" busy="+net.parkabird.changedsynergy.compat.ChangedAddonCompat.isGrabberBusy(mob)
+                    +" busy="+net.parkabird.changedsynergy.ai.CreatureGrabService.isGrabberBusy(mob)
                     +" provoked="+LatexSocialMemory.isProvoked(mob,owner)+" mayAttack="+PlayerOutpostService.mayAttackTarget(mob,enemy)
                     +" canAttack="+mob.canAttack(enemy)+" recent="+(body.tickCount-body.getLastHurtMobTimestamp())
                     +" scan="+net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.backgroundScanInterval.get()

@@ -1,0 +1,16 @@
+# Trailcloth Outfit / 行猎装
+
+The supplied `HyenaTrailclothMale.bbmodel` and `HyenaTrailclothFemale.bbmodel` provide the clothing geometry and two embedded 128×128 textures, including the author's removal of the green dots. The embedded PNGs are copied exactly. The supplied item icon is retained, with teal accents replaced by the existing cloth palette. Source Blockbench projects remain untouched; `tools/import_hyena_trailcloth.py` records source hashes and regenerates runtime layers.
+
+- Item: `changed_synergy:hyena_trailcloth_outfit`, placed beside Changed's wetsuit in the creative clothing group.
+- One outfit can use the native inner `changed:body` or outer `changed:full_body` accessory slot, with extra outer-layer clearance. It cannot occupy both at once. Bipedal wearers also reserve the clothing leg slot, following the native wetsuit behavior. Normal clothing equip sounds, inventory handling, saving and synchronization are retained.
+- Style follows the wearer's native gender. Adult humanoid wolves, felines, deer relatives and similar forms can wear it. Naga, mer and taur bodies use the upper section only. Juveniles, babies, armless and pure feral bodies cannot wear it.
+- The renderer binds the supplied clothing to the final torso, arm and upper-leg poses, with size adjustment for related bodies. Human bodies use straight-leg wraps, a lower waist anchor and clearance above the outer skin layer, including classic and slim arms. It supports both third-person rendering and first-person sleeves, and reuses cached geometry without adding an entity AI task.
+- Crafting uses four leather, two orange wool, one string and one bone: `LSL / WBW / L L` (L leather, S string, W orange wool, B bone). Leather unlocks the recipe.
+- New natural, chunk-generation and structure-spawned Spotted Hyenas have a 25% chance to wear the outfit. Fresh template residents use the same single roll. Common setting `HyenaTrailclothSpawnChance` accepts 0–1; 0 disables automatic clothing, 1 always equips. It does not replace body clothing, reroll a previously processed mob or dress old residents loaded from disk. Spawn eggs and commands retain manual equipment control.
+
+No Addon Plus dependency is required. Both sexes share the same item, so changing form or gender selects the correct appearance from the current body rather than storing a gender on the item.
+
+Hyenas retain the authored gap for their back fur. Other wearers use a derived texture with the back strap connected; the source textures remain unchanged. The importer regenerates these variants and records the changed pixels.
+
+With Curios installed, clothing occupies genuine Curios slots and Changed's original clothing UI is removed for both players and creature inventories. Changed still supplies anatomy restrictions, mutual exclusion, effects and rendering. Style-capable garments such as lab coats retain right-click style changes through a server-validated packet; Curios visibility toggles also control their native rendering. Old native gear migrates into Curios, with a compatibility snapshot retained for loading without Curios. Both sides must use Synergy protocol 62.

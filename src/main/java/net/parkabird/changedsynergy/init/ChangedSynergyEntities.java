@@ -27,6 +27,7 @@ import net.parkabird.changedsynergy.entity.LatexSilkMoth;
 import net.parkabird.changedsynergy.entity.LatexSwordfish;
 import net.parkabird.changedsynergy.entity.LatexMuntjac;
 import net.parkabird.changedsynergy.entity.LatexMuntjacFemale;
+import net.parkabird.changedsynergy.entity.LatexSpottedHyena;
 
 /** Entity types owned by Synergy. */
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -35,6 +36,15 @@ public final class ChangedSynergyEntities {
             DeferredRegister.create(
                     ForgeRegistries.ENTITY_TYPES,
                     ChangedSynergyMod.MOD_ID);
+
+    public static final RegistryObject<EntityType<net.parkabird.changedsynergy.entity.LatexJerboa>> LATEX_JERBOA =
+            REGISTRY.register("latex_jerboa",()->EntityType.Builder.<net.parkabird.changedsynergy.entity.LatexJerboa>of(net.parkabird.changedsynergy.entity.LatexJerboa::new,MobCategory.MONSTER)
+                    .sized(.55F,1.7F).clientTrackingRange(10).build("changed_synergy:latex_jerboa"));
+
+    public static final RegistryObject<EntityType<net.parkabird.changedsynergy.entity.LatexEagleOwl>> LATEX_EAGLE_OWL =
+            REGISTRY.register("latex_eagle_owl",()->EntityType.Builder.<net.parkabird.changedsynergy.entity.LatexEagleOwl>of(
+                    net.parkabird.changedsynergy.entity.LatexEagleOwl::new,MobCategory.MONSTER)
+                    .sized(.7F,1.93F).clientTrackingRange(10).build(ChangedSynergyMod.MOD_ID+":latex_eagle_owl"));
 
     public static final RegistryObject<EntityType<LatexSilkMoth>> LATEX_SILK_MOTH =
             REGISTRY.register("latex_silk_moth", () -> EntityType.Builder
@@ -61,6 +71,18 @@ public final class ChangedSynergyEntities {
                     .sized(0.7F, 1.93F).clientTrackingRange(10)
                     .build(ChangedSynergyMod.MOD_ID + ":latex_muntjac_female"));
 
+    public static final RegistryObject<EntityType<LatexSpottedHyena>> LATEX_SPOTTED_HYENA_MALE =
+            REGISTRY.register("latex_spotted_hyena_male", () -> EntityType.Builder
+                    .<LatexSpottedHyena>of(LatexSpottedHyena::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.93F).clientTrackingRange(10)
+                    .build(ChangedSynergyMod.MOD_ID + ":latex_spotted_hyena_male"));
+
+    public static final RegistryObject<EntityType<LatexSpottedHyena>> LATEX_SPOTTED_HYENA_FEMALE =
+            REGISTRY.register("latex_spotted_hyena_female", () -> EntityType.Builder
+                    .<LatexSpottedHyena>of(LatexSpottedHyena::new, MobCategory.MONSTER)
+                    .sized(0.6F, 1.93F).clientTrackingRange(10)
+                    .build(ChangedSynergyMod.MOD_ID + ":latex_spotted_hyena_female"));
+
     public static final RegistryObject<EntityType<CreatureFishingHookVisual>>
             CREATURE_FISHING_HOOK = REGISTRY.register(
                     "creature_fishing_hook",
@@ -79,10 +101,14 @@ public final class ChangedSynergyEntities {
 
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
+        event.put(LATEX_JERBOA.get(),ChangedEntity.createLatexAttributes().build());
+        event.put(LATEX_EAGLE_OWL.get(), ChangedEntity.createLatexAttributes().build());
         event.put(LATEX_SILK_MOTH.get(), ChangedEntity.createLatexAttributes().build());
         event.put(LATEX_SWORDFISH.get(), ChangedEntity.createLatexAttributes().build());
         event.put(LATEX_MUNTJAC.get(), ChangedEntity.createLatexAttributes().build());
         event.put(LATEX_MUNTJAC_FEMALE.get(), ChangedEntity.createLatexAttributes().build());
+        event.put(LATEX_SPOTTED_HYENA_MALE.get(), ChangedEntity.createLatexAttributes().build());
+        event.put(LATEX_SPOTTED_HYENA_FEMALE.get(), ChangedEntity.createLatexAttributes().build());
     }
 
     @SubscribeEvent
@@ -96,6 +122,15 @@ public final class ChangedSynergyEntities {
 
     @SubscribeEvent
     public static void registerSpawnPlacements(SpawnPlacementRegisterEvent event) {
+        event.register(LATEX_JERBOA.get(),SpawnPlacements.Type.ON_GROUND,Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,ChangedEntity::checkEntitySpawnRules,SpawnPlacementRegisterEvent.Operation.REPLACE);
+        event.register(LATEX_EAGLE_OWL.get(),SpawnPlacements.Type.ON_GROUND,Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                ChangedEntity::checkEntitySpawnRules,SpawnPlacementRegisterEvent.Operation.REPLACE);
+        event.register(LATEX_SPOTTED_HYENA_MALE.get(), SpawnPlacements.Type.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ChangedEntity::checkEntitySpawnRules,
+                SpawnPlacementRegisterEvent.Operation.REPLACE);
+        event.register(LATEX_SPOTTED_HYENA_FEMALE.get(), SpawnPlacements.Type.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ChangedEntity::checkEntitySpawnRules,
+                SpawnPlacementRegisterEvent.Operation.REPLACE);
         event.register(LATEX_MUNTJAC_FEMALE.get(), SpawnPlacements.Type.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ChangedEntity::checkEntitySpawnRules,
                 SpawnPlacementRegisterEvent.Operation.REPLACE);
@@ -113,6 +148,8 @@ public final class ChangedSynergyEntities {
 
     @SubscribeEvent
     public static void registerColors(FMLCommonSetupEvent event) {
+        event.enqueueWork(()->ChangedEntities.registerEntityColor(LATEX_JERBOA.getId(),0xC6A676,0xEEE6D4));
+        event.enqueueWork(()->ChangedEntities.registerEntityColor(LATEX_EAGLE_OWL.getId(),0x9B784E,0xDED0AF));
         event.enqueueWork(() -> ChangedEntities.registerEntityColor(
                 ResourceLocation.fromNamespaceAndPath(ChangedSynergyMod.MOD_ID, "latex_silk_moth"),
                 0xEADCC6, 0xB19B7A));
@@ -122,21 +159,41 @@ public final class ChangedSynergyEntities {
                 LATEX_MUNTJAC.getId(), 0xB78A5D, 0xE6D4B4));
         event.enqueueWork(() -> ChangedEntities.registerEntityColor(
                 LATEX_MUNTJAC_FEMALE.getId(), 0xB78A5D, 0xE6D4B4));
+        event.enqueueWork(() -> ChangedEntities.registerEntityColor(
+                LATEX_SPOTTED_HYENA_MALE.getId(), 0xB18B58, 0x3D302A));
+        event.enqueueWork(() -> ChangedEntities.registerEntityColor(
+                LATEX_SPOTTED_HYENA_FEMALE.getId(), 0xB18B58, 0x3D302A));
     }
 
     @SubscribeEvent
     public static void addSpawnEgg(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
+            event.accept(ChangedSynergyItems.LATEX_JERBOA_SPAWN_EGG);
+            event.accept(ChangedSynergyItems.LATEX_EAGLE_OWL_SPAWN_EGG);
             event.accept(ChangedSynergyItems.LATEX_SILK_MOTH_SPAWN_EGG);
             event.accept(ChangedSynergyItems.LATEX_SWORDFISH_SPAWN_EGG);
             event.accept(ChangedSynergyItems.LATEX_MUNTJAC_SPAWN_EGG);
             event.accept(ChangedSynergyItems.LATEX_MUNTJAC_FEMALE_SPAWN_EGG);
+            event.accept(ChangedSynergyItems.LATEX_SPOTTED_HYENA_MALE_SPAWN_EGG);
+            event.accept(ChangedSynergyItems.LATEX_SPOTTED_HYENA_FEMALE_SPAWN_EGG);
+        }
+        if (event.getTabKey().location().equals(ChangedTabs.TAB_CHANGED_CLOTHING.getId())) {
+            event.accept(ChangedSynergyItems.DESERT_NOMAD_OUTFIT);
+            event.accept(ChangedSynergyItems.EAGLE_OWL_AVIATOR_OUTFIT);
+            event.accept(ChangedSynergyItems.FOREST_CANOPY_OUTFIT);
+            var outfit = new ItemStack(ChangedSynergyItems.HYENA_TRAILCLOTH_OUTFIT.get());
+            ItemStack clothesAnchor = null;
+            for (var entry : event.getEntries()) if (entry.getKey().is(ChangedItems.WETSUIT.get())) clothesAnchor = entry.getKey();
+            if (clothesAnchor == null) event.accept(outfit);
+            else event.getEntries().putAfter(clothesAnchor, outfit, net.minecraft.world.item.CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
         }
         if (event.getTabKey().location().equals(ChangedTabs.TAB_CHANGED_ITEMS.getId())) {
-            for (var form : java.util.List.of(ChangedSynergyTransfurVariants.LATEX_SILK_MOTH.getId(),
+            for (var form : java.util.List.of(ChangedSynergyTransfurVariants.LATEX_JERBOA.getId(),ChangedSynergyTransfurVariants.LATEX_EAGLE_OWL.getId(),ChangedSynergyTransfurVariants.LATEX_SILK_MOTH.getId(),
                     ChangedSynergyTransfurVariants.LATEX_SWORDFISH.getId(),
                     ChangedSynergyTransfurVariants.LATEX_MUNTJAC.getId(),
-                    ChangedSynergyTransfurVariants.LATEX_MUNTJAC_FEMALE.getId())) {
+                    ChangedSynergyTransfurVariants.LATEX_MUNTJAC_FEMALE.getId(),
+                    ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_MALE.getId(),
+                    ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_FEMALE.getId())) {
                 for (var item : java.util.List.of(ChangedItems.LATEX_SYRINGE.get(), ChangedItems.LATEX_FLASK.get(), ChangedItems.LATEX_TIPPED_ARROW.get())) {
                     ItemStack anchor = null;
                     for (var existing : event.getEntries()) if (existing.getKey().is(item)) anchor = existing.getKey();

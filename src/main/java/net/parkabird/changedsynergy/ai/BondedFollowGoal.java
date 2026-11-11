@@ -6,7 +6,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 
 /** Lets a latex creature follow players it personally transfurred. */
 public final class BondedFollowGoal extends Goal {
@@ -35,7 +34,7 @@ public final class BondedFollowGoal extends Goal {
         }
 
         player = LatexSocialMemory.getPetOwner(mob);
-        if (player == null || !player.isAlive() || player.isSpectator()
+        if (player == null || !StructureResidentGoal.mayFollow(mob,player) || !player.isAlive() || player.isSpectator()
                 || mob.getTarget() != null
                 || SocialAudienceGoal.isActive(mob)
                 || !movementAvailable()) {
@@ -47,7 +46,7 @@ public final class BondedFollowGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return player != null && player.isAlive() && !player.isSpectator()
+        return player != null && StructureResidentGoal.mayFollow(mob,player) && player.isAlive() && !player.isSpectator()
                 && LatexSocialMemory.isPetOwner(mob, player)
                 && LatexSocialMemory.isFollowingOwner(mob)
                 && mob.getTarget() == null
@@ -145,7 +144,7 @@ public final class BondedFollowGoal extends Goal {
                 && mob.getTarget() == null
                 && !SocialAudienceGoal.isActive(mob)
                 && !BondedSuitService.isSuitingOwner(mob, player)
-                && !ChangedAddonCompat.isGrabberBusy(mob)
+                && !CreatureGrabService.isGrabberBusy(mob)
                 && HypnosisQteService.getActiveVictim(mob) == null
                 && !mob.isPassenger()
                 && !mob.isLeashed();

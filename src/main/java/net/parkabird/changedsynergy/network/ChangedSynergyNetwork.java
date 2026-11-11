@@ -8,7 +8,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class ChangedSynergyNetwork {
-    private static final String PROTOCOL = "56";
+    private static final String PROTOCOL = "67";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(ChangedSynergyMod.MOD_ID, "network"),
             () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
@@ -22,6 +22,14 @@ public final class ChangedSynergyNetwork {
             return;
         }
         registered = true;
+        CHANNEL.registerMessage(44, StoryNpcStatePacket.class, StoryNpcStatePacket::encode,
+                StoryNpcStatePacket::decode, StoryNpcStatePacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(45, StoryNpcActionPacket.class, StoryNpcActionPacket::encode,
+                StoryNpcActionPacket::decode, StoryNpcActionPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(43, ClothingStylePacket.class, ClothingStylePacket::encode,
+                ClothingStylePacket::decode, ClothingStylePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(42, MuntjacJumpInputPacket.class, MuntjacJumpInputPacket::encode,
+                MuntjacJumpInputPacket::decode, MuntjacJumpInputPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(40, PlayerHugActionPacket.class, PlayerHugActionPacket::encode,
                 PlayerHugActionPacket::decode, PlayerHugActionPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(41, PlayerHugStatePacket.class, PlayerHugStatePacket::encode,

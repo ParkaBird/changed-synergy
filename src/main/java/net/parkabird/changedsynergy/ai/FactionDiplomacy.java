@@ -8,25 +8,48 @@ public final class FactionDiplomacy {
     public static final int ALLIED = 70;
     public static final int RESPECTED = 40;
     public static final List<String> REGIONS = List.of("cave", "taiga", "swamp", "jungle", "savanna",
-            "desert", "badlands", "snowy", "mountain", "beach", "river", "ocean", "forest", "plains");
+            "arid", "snowy", "mountain", "beach", "river", "ocean", "forest", "plains");
     public record Rivalry(String first, String second) {}
     public static final List<Rivalry> RIVALRIES = List.of(
             new Rivalry("faction:dark", "faction:white"),
             new Rivalry("faction:light:mountain", "faction:light:cave"),
-            new Rivalry("faction:aquatic", "faction:light:desert"),
-            new Rivalry("faction:light:forest", "faction:light:badlands"),
+            new Rivalry("faction:aquatic", "faction:light:arid"),
+            new Rivalry("faction:light:forest", "faction:light:arid"),
             new Rivalry("faction:light:taiga", "faction:light:jungle"),
             new Rivalry("faction:light:swamp", "faction:light:savanna"),
             new Rivalry("faction:light:plains", "faction:light:snowy"));
     private FactionDiplomacy() {}
 
+    public static String canonicalRegion(String region) {
+        return "desert".equals(region) || "badlands".equals(region) ? "arid" : region;
+    }
+
+    public static String canonicalAccount(String account) {
+        return switch (account) {
+            case "light:desert", "light:badlands" -> "light:arid";
+            case "faction:light:desert", "faction:light:badlands" -> "faction:light:arid";
+            default -> account;
+        };
+    }
+
+    public static int mergeAridStanding(int first, int second) {
+        return first < 0 || second < 0 ? Math.min(first, second) : Math.max(first, second);
+    }
+
     /** Old conflicting alliances keep the higher score; listed-first wins ties deterministically. */
     public static void normalize(Map<String, Integer> scores) {
-        for (Rivalry pair : RIVALRIES) {
-            int first = scores.getOrDefault(pair.first(), 0);
-            int second = scores.getOrDefault(pair.second(), 0);
-            if (first >= ALLIED && second >= ALLIED) {
-                limit(scores, first >= second ? pair.second() : pair.first(), Math.max(first, second));
+        // Resolve surviving alliances by strength; an alliance removed here cannot penalize a third party.
+        var accounts = new java.util.LinkedHashSet<String>();
+        RIVALRIES.forEach(pair -> accounts.add(pair.first()));
+        RIVALRIES.forEach(pair -> accounts.add(pair.second()));
+        for (String account : accounts.stream().sorted(java.util.Comparator.comparingInt(
+                (String key) -> scores.getOrDefault(key, 0)).reversed()).toList()) {
+            if (scores.getOrDefault(account, 0) < ALLIED) continue;
+            for (Rivalry pair : RIVALRIES) {
+                String rival = pair.first().equals(account) ? pair.second()
+                        : pair.second().equals(account) ? pair.first() : null;
+                if (rival != null && scores.getOrDefault(rival, 0) >= ALLIED)
+                    limit(scores, rival, scores.get(account));
             }
         }
     }

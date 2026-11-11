@@ -1,0 +1,12 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#changed_synergy:eagle_owl_spawns",
+  "spawners": [
+    {
+      "type": "changed_synergy:latex_eagle_owl",
+      "weight": 5,
+      "minCount": 1,
+      "maxCount": 2
+    }
+  ]
+}

@@ -2,6 +2,7 @@ package net.parkabird.changedsynergy.compat.addon;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import static net.parkabird.changedsynergy.ai.BondedPetSettings.*;
 import net.foxyas.changedaddon.ChangedAddonMod;
 import net.foxyas.changedaddon.ability.api.GrabEntityAbilityExtensor;
 import net.foxyas.changedaddon.entity.ai.LatexAttackCondition;
@@ -26,28 +27,21 @@ import net.ltxprogrammer.changed.ability.GrabEntityAbilityInstance;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket.GrabType;
-import net.ltxprogrammer.changed.init.ChangedSounds;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
-import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.BondedOwnerDefenseGoal;
 import net.parkabird.changedsynergy.ai.BondedSuitService;
 import net.parkabird.changedsynergy.ai.OrganicOwnerEvacuationGoal;
-import net.parkabird.changedsynergy.ai.CreaturePersonality;
 import net.parkabird.changedsynergy.ai.CreatureSocialProfile;
-import net.parkabird.changedsynergy.ai.HypnosisProfile;
 import net.parkabird.changedsynergy.ai.InvoluntaryTransfurNegotiation;
 import net.parkabird.changedsynergy.ai.LatexCreatureCombatRules;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
-import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.event.LatexSocialEvents;
 import net.parkabird.changedsynergy.ai.PatAnimationService;
 import net.parkabird.changedsynergy.ai.SafeEntityMutationQueue;
 import net.parkabird.changedsynergy.ai.TakeoverService;
 import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
-import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
-import net.parkabird.changedsynergy.network.FriendlySocialHugSyncPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
@@ -65,14 +59,14 @@ import net.minecraftforge.network.PacketDistributor;
 
 /** Loaded reflectively only while Changed Addon is installed. */
 public final class ChangedAddonSocialEvents {
-    private static final String SYNCED_NATIVE_SUIT_OWNER =
-            "ChangedSynergySyncedNativeSuitOwner";
-    private static final String SYNCED_NATIVE_SUIT_WAS_BONDED =
-            "ChangedSynergySyncedNativeSuitWasBonded";
-    private static final String ANNOUNCED_COMBAT_GRAB_TARGET =
-            "ChangedSynergyAnnouncedCombatGrabTarget";
 
     private ChangedAddonSocialEvents() {
+    }
+
+    public static boolean isSecondaryAbilitySelected(net.ltxprogrammer.changed.entity.variant.TransfurVariantInstance<?> variant,
+            net.ltxprogrammer.changed.ability.AbstractAbility<?> ability) {
+        return variant instanceof net.foxyas.changedaddon.variant.TransfurVariantInstanceExtensor extra
+                && extra.getSecondSelectedAbility()==ability;
     }
 
     public static float alphaRenderScale(ChangedEntity creature) {
@@ -185,21 +179,9 @@ public final class ChangedAddonSocialEvents {
             return;
         }
 
-        if (!mob.level().isClientSide && LatexSocialMemory.hasFriendlySocialHug(mob)) {
-            tickFriendlySocialHug(mob, grabber, BondedSuitService.ability(mob));
-            return;
-        }
-
-        if (!mob.level().isClientSide
-                && InvoluntaryTransfurNegotiation.hasReleaseHold(mob)) {
-            grabber.setCanUseGrab(true);
-            if (grabber.getGrabAbilityInstance() == null) {
-                ensureGrabAbility(mob, grabber);
-            }
-            tickNegotiatedReleaseHold(
-                    mob, grabber, grabber.getGrabAbilityInstance());
-            return;
-        }
+        if (!mob.level().isClientSide && (LatexSocialMemory.hasFriendlySocialHug(mob)
+                || InvoluntaryTransfurNegotiation.hasReleaseHold(mob)
+                || LatexSocialMemory.hasOrganicEvacuation(mob))) return; // Common hold owner maintains these sessions.
 
         if (CreatureSocialProfile.isGrabMechanicExcluded(mob)) {
             grabber.setCanUseGrab(false);
@@ -247,11 +229,6 @@ public final class ChangedAddonSocialEvents {
             return;
         }
 
-        if (LatexSocialMemory.hasOrganicEvacuation(mob)
-                && tickOrganicEvacuationHold(mob, grabber, ability)) {
-            return;
-        }
-
         if (LatexSocialMemory.isOrganic(mob)) {
             stripOrganicSuitBehavior(mob);
             if (ability != null && ability.suited && ability.grabbedEntity != null) {
@@ -283,39 +260,12 @@ public final class ChangedAddonSocialEvents {
             }
         }
 
-        announceBondedCombatGrab(mob, ability);
-        clearStaleNativeSuitSync(mob, ability);
-
         if (mob.tickCount % 20 == Math.floorMod(mob.getId(), 20)) {
             updateGenericBondedTarget(mob);
         }
 
-        if (ability != null
-                && ability.grabbedEntity instanceof ServerPlayer player
-                && BondedSuitService.isNativeOwnerSuit(mob, player)) {
-            boolean firstSync = !mob.getPersistentData().hasUUID(SYNCED_NATIVE_SUIT_OWNER);
-            boolean bondedSuit = LatexSocialMemory.isFriendlySuitActive(mob, player);
-            ability.grabbedHasControl = true;
-            ability.suited = true;
-            ability.attackDown = false;
-            ability.useDown = false;
-            if (LatexSocialMemory.isFriendlySuitActive(mob, player)
-                    && ability instanceof GrabEntityAbilityExtensor extensor) {
-                extensor.setAllowGrabTransfurred(true);
-                extensor.setSafeModeAuthoritative(true);
-            }
-            if (mob.tickCount % 20 == Math.floorMod(mob.getId(), 20)) {
-                BondedSuitService.syncOwnerSuitState(mob, player, true);
-            }
-            mob.getPersistentData().putUUID(SYNCED_NATIVE_SUIT_OWNER, player.getUUID());
-            mob.getPersistentData().putBoolean(
-                    SYNCED_NATIVE_SUIT_WAS_BONDED, bondedSuit);
-            if (firstSync && !bondedSuit) {
-                NpcDialogue.trigger(mob, player, Cue.BOND_WRAP_REVERTED);
-            }
-            LatexSocialEvents.calmTowards(mob, player);
-            return;
-        }
+        if (ability != null && ability.grabbedEntity instanceof ServerPlayer owner
+                && BondedSuitService.isNativeOwnerSuit(mob, owner)) return;
 
         if (!mob.level().isClientSide
                 && ability != null
@@ -374,10 +324,23 @@ public final class ChangedAddonSocialEvents {
             favors.updateHeldItemChoice();
         }
         return new int[]{
-                favors.getTargetType().ordinal(),
-                favors.getAttackType().ordinal(),
-                favors.getAttackCondition().ordinal(),
-                favors.getCurrentFavor().ordinal()
+                switch (favors.getTargetType()) {
+                    case TRANSFURABLE_ENTITIES -> TARGET_TRANSFURABLE;
+                    case MONSTERS -> TARGET_MONSTERS;
+                    case HOSTILE_TO_OWNER -> TARGET_HOSTILE_TO_OWNER;
+                },
+                favors.getAttackType() == LatexAttackType.ALWAYS_KILL ? ATTACK_ALWAYS_KILL : ATTACK_TRY_TRANSFUR,
+                switch (favors.getAttackCondition()) {
+                    case NEVER -> CONDITION_NEVER;
+                    case ALWAYS -> CONDITION_ALWAYS;
+                    case OWNER_IS_HOSTILE -> CONDITION_OWNER_HOSTILE;
+                },
+                switch (favors.getCurrentFavor()) {
+                    case NONE -> FAVOR_NONE;
+                    case FISHING -> FAVOR_FISHING;
+                    case CAVING -> FAVOR_CAVING;
+                    case SUIT_OWNER -> FAVOR_SUIT_OWNER;
+                }
         };
     }
 
@@ -493,200 +456,6 @@ public final class ChangedAddonSocialEvents {
         }
     }
 
-    public static boolean allowsBondedDefense(ChangedEntity pet, LivingEntity target) {
-        ServerPlayer owner = LatexSocialMemory.getPetOwner(pet);
-        if (!(pet instanceof TamableLatexEntityFavors favors)) {
-            return owner != null
-                    && BondedOwnerDefenseGoal.hasRecentConflict(pet, owner, target);
-        }
-        return favors.getAttackCondition() != LatexAttackCondition.NEVER
-                && (favors.getAttackCondition() != LatexAttackCondition.OWNER_IS_HOSTILE
-                        || owner != null
-                                && BondedOwnerDefenseGoal.hasRecentConflict(
-                                        pet, owner, target))
-                && net.parkabird.changedsynergy.ai.BondedPetSettings.matchesTargetType(
-                        pet, owner, target, favors.getTargetType().ordinal());
-    }
-
-    public static boolean suppressBondedTransfurAttack(ChangedEntity pet) {
-        return !LatexSocialMemory.usesNativePetMenu(pet)
-                && LatexSocialMemory.hasActiveBond(pet)
-                && pet instanceof TamableLatexEntityFavors favors
-                && favors.getAttackType() == LatexAttackType.ALWAYS_KILL;
-    }
-
-    public static boolean isGrabberBusy(ChangedEntity entity) {
-        if (!(entity instanceof IGrabberEntity grabber)) {
-            return false;
-        }
-        GrabEntityAbilityInstance ability = grabber.getGrabAbilityInstance();
-        return ability != null && ability.grabbedEntity != null;
-    }
-
-    /**
-     * Uses Addon's normal arm-grab pose for a brief social-wheel hug while
-     * keeping the shared ability in safe mode. No hostile memory, QTE session
-     * or transfur pulse is created.
-     */
-    public static boolean tryStartSocialHug(
-            ChangedEntity mob,
-            ServerPlayer player,
-            int durationTicks) {
-        if (mob.level().isClientSide
-                || !mob.isAlive()
-                || !player.isAlive()
-                || mob.level() != player.level()
-                || mob.distanceToSqr(player) > 3.0D * 3.0D
-                || HypnosisProfile.isHypnoticCreature(mob)
-                || LatexSocialMemory.isProvoked(mob, player)
-                || !(LatexSocialMemory.isPetOwner(mob, player)
-                        || CreaturePersonality.hasTrustedRelationship(mob, player))
-                || !(mob instanceof IGrabberEntity grabber)
-                || !grabber.canUseGrab()
-                || !grabber.canEntityGrab(mob.getType(), mob.level())
-                || grabber.getGrabCooldown() > 0
-                || GrabEntityAbility.getGrabber(player) != null) {
-            return false;
-        }
-
-        GrabEntityAbilityInstance ability = grabber.getGrabAbilityInstance();
-        if (!(ability instanceof GrabEntityAbilityExtensor extensor)
-                || ability.grabbedEntity != null) {
-            return false;
-        }
-
-        int safeDuration = Math.max(100, Math.min(200, durationTicks));
-        LatexSocialMemory.beginFriendlySocialHug(mob, player, safeDuration);
-        extensor.setAllowGrabTransfurred(true);
-        extensor.setSafeModeAuthoritative(true);
-        ability.suited = false;
-        ability.grabbedHasControl = false;
-        ability.grabStrength = 1.0F;
-        ability.attackDown = false;
-        ability.useDown = false;
-        if (!ability.grabEntity(player)) {
-            LatexSocialMemory.endFriendlySocialHug(mob);
-            extensor.setSafeModeAuthoritative(false);
-            return false;
-        }
-
-        Changed.PACKET_HANDLER.send(
-                PacketDistributor.TRACKING_ENTITY.with(grabber::asMob),
-                new GrabEntityPacket(mob, player, GrabType.ARMS));
-        ChangedSynergyNetwork.CHANNEL.send(
-                PacketDistributor.PLAYER.with(() -> player),
-                new FriendlySocialHugSyncPacket(
-                        mob.getId(),
-                        player.getId(),
-                        true,
-                        safeDuration + 10));
-        grabber.applyGrabCooldown(0);
-        mob.setTarget(null);
-        mob.setAggressive(false);
-        mob.getNavigation().stop();
-        mob.getLookControl().setLookAt(player, 30.0F, 30.0F);
-        LatexSocialEvents.calmTowards(mob, player);
-        ChangedSounds.broadcastSound(
-                mob, ChangedSounds.LATEX_GRAB_ENTITY, 0.7F, 1.12F);
-        return true;
-    }
-
-    /**
-     * Starts the release agreed through negotiation. This is a scripted arm
-     * hold, so it deliberately overrides ordinary grab exclusions and
-     * cooldowns without enabling those creatures' combat grab AI.
-     */
-    public static boolean tryStartNegotiatedRelease(
-            ChangedEntity mob,
-            ServerPlayer player,
-            int durationTicks) {
-        if (mob.level().isClientSide
-                || !mob.isAlive()
-                || !player.isAlive()
-                || mob.level() != player.level()
-                || mob.distanceToSqr(player) > 4.0D * 4.0D
-                || !InvoluntaryTransfurNegotiation.isReleaseHoldTarget(
-                        mob, player)
-                || !(mob instanceof IGrabberEntity grabber)) {
-            return false;
-        }
-
-        grabber.setCanUseGrab(true);
-        if (grabber.getGrabAbilityInstance() == null) {
-            ensureGrabAbility(mob, grabber);
-        }
-        GrabEntityAbilityInstance ability = grabber.getGrabAbilityInstance();
-        if (!(ability instanceof GrabEntityAbilityExtensor extensor)) {
-            return false;
-        }
-        if (ability.grabbedEntity == player) {
-            configureNegotiatedReleaseHold(mob, grabber, ability, extensor, player);
-            return true;
-        }
-        if (ability.grabbedEntity != null
-                || GrabEntityAbility.getGrabber(player) != null) {
-            return false;
-        }
-
-        extensor.setAllowGrabTransfurred(true);
-        extensor.setSafeModeAuthoritative(true);
-        ability.suited = false;
-        ability.grabbedHasControl = false;
-        ability.grabStrength = 1.0F;
-        ability.attackDown = false;
-        ability.useDown = false;
-        if (!ability.grabEntity(player)) {
-            extensor.setSafeModeAuthoritative(false);
-            return false;
-        }
-
-        int safeDuration = Math.max(36, Math.min(80, durationTicks));
-        Changed.PACKET_HANDLER.send(
-                PacketDistributor.TRACKING_ENTITY.with(grabber::asMob),
-                new GrabEntityPacket(mob, player, GrabType.ARMS));
-        ChangedSynergyNetwork.CHANNEL.send(
-                PacketDistributor.PLAYER.with(() -> player),
-                new FriendlySocialHugSyncPacket(
-                        mob.getId(), player.getId(), true, safeDuration + 10));
-        configureNegotiatedReleaseHold(mob, grabber, ability, extensor, player);
-        ChangedSounds.broadcastSound(
-                mob, ChangedSounds.LATEX_GRAB_ENTITY, 0.7F, 0.94F);
-        return true;
-    }
-
-    /**
-     * Supplies the held enemy for owner attacks that first collide with the
-     * bonded creature's body. Friendly targets and targets disallowed by the
-     * creature's combat wheel are never returned.
-     */
-    public static LivingEntity getSocialCombatGrabTarget(
-            ChangedEntity pet,
-            ServerPlayer owner) {
-        boolean bonded = LatexSocialMemory.isBonded(pet, owner)
-                || LatexSocialMemory.isPetOwner(pet, owner);
-        boolean trustedFriend = CreaturePersonality.hasTrustedRelationship(
-                        pet, owner)
-                && !LatexSocialMemory.hasRelationshipBetrayal(pet, owner)
-                && !LatexSocialMemory.isProvoked(pet, owner);
-        if (!(pet instanceof IGrabberEntity grabber)
-                || !bonded && !trustedFriend) {
-            return null;
-        }
-        GrabEntityAbilityInstance ability = grabber.getGrabAbilityInstance();
-        if (bonded) {
-            return bondedCombatGrabTarget(pet, owner, ability);
-        }
-        LivingEntity target = validCombatGrabTarget(
-                pet, owner, ability);
-        if (target == null) {
-            return null;
-        }
-        return LatexSocialMemory.isPetDefenseAuthorized(pet, target)
-                        || pet.getTarget() == target
-                        || target.getLastHurtByMob() == pet
-                ? target : null;
-    }
-
     /** Stops generic Changed target selectors from bypassing the wheel settings. */
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onGenericBondedTargetChange(LivingChangeTargetEvent event) {
@@ -724,36 +493,6 @@ public final class ChangedAddonSocialEvents {
                 && favors.getCurrentFavor() == LatexFavor.SUIT_OWNER) {
             favors.setFavor(LatexFavor.NONE);
         }
-    }
-
-    private static void clearStaleNativeSuitSync(
-            ChangedEntity mob,
-            GrabEntityAbilityInstance ability) {
-        var data = mob.getPersistentData();
-        if (!data.hasUUID(SYNCED_NATIVE_SUIT_OWNER)) {
-            return;
-        }
-        java.util.UUID ownerUuid = data.getUUID(SYNCED_NATIVE_SUIT_OWNER);
-        boolean wasBonded = data.getBoolean(SYNCED_NATIVE_SUIT_WAS_BONDED);
-        boolean stillActive = ability != null
-                && ability.grabbedEntity instanceof ServerPlayer current
-                && current.getUUID().equals(ownerUuid)
-                && BondedSuitService.isNativeOwnerSuit(mob, current);
-        if (stillActive) {
-            return;
-        }
-
-        if (mob.level() instanceof net.minecraft.server.level.ServerLevel level) {
-            ServerPlayer owner = level.getServer().getPlayerList().getPlayer(ownerUuid);
-            if (owner != null) {
-                BondedSuitService.syncOwnerSuitState(mob, owner, false);
-                if (!wasBonded) {
-                    NpcDialogue.trigger(mob, owner, Cue.BOND_RELEASE_REVERTED);
-                }
-            }
-        }
-        data.remove(SYNCED_NATIVE_SUIT_OWNER);
-        data.remove(SYNCED_NATIVE_SUIT_WAS_BONDED);
     }
 
     private static void updateGenericBondedTarget(ChangedEntity pet) {
@@ -831,283 +570,13 @@ public final class ChangedAddonSocialEvents {
                 || !LatexSocialMemory.shouldRemainNeutral(pet, player);
     }
 
-    private static LivingEntity bondedCombatGrabTarget(
-            ChangedEntity pet,
-            ServerPlayer owner,
-            GrabEntityAbilityInstance ability) {
-        LivingEntity target = validCombatGrabTarget(
-                pet, owner, ability);
-        if (target == null) {
-            return null;
-        }
-        if (!LatexSocialMemory.usesNativePetMenu(pet)
-                && pet instanceof TamableLatexEntityFavors favors) {
-            return allowsGenericTarget(pet, favors, target) ? target : null;
-        }
-        return BondedOwnerDefenseGoal.allowsConfiguredDefense(
-                pet, owner, target) ? target : null;
-    }
-
-    /** Common friendly-fire exclusions shared by bonded and friend grabs. */
-    private static LivingEntity validCombatGrabTarget(
-            ChangedEntity pet,
-            ServerPlayer owner,
-            GrabEntityAbilityInstance ability) {
-        if (ability == null || ability.suited
-                || ability.grabbedEntity == null) {
-            return null;
-        }
-
-        LivingEntity target = ability.grabbedEntity;
-        if (target == pet || target == owner || !target.isAlive()
-                || target.isRemoved() || target.isAlliedTo(owner)
-                || pet.isAlliedTo(target) || !pet.canAttack(target)) {
-            return null;
-        }
-        if (target instanceof Player player
-                && (player.isCreative() || player.isSpectator()
-                        || !owner.canHarmPlayer(player))) {
-            return null;
-        }
-        if (target instanceof ServerPlayer player
-                && LatexSocialMemory.shouldRemainNeutral(pet, player)) {
-            return null;
-        }
-        if (target instanceof ChangedEntity other
-                && (LatexSocialMemory.hasSamePetOwner(pet, other)
-                        || LatexSocialMemory.isBonded(other, owner)
-                        || LatexSocialMemory.isPetOwner(other, owner)
-                        || CreaturePersonality.hasTrustedRelationship(
-                                other, owner)
-                        || LatexCreatureCombatRules.mustRejectTarget(
-                                pet, other))) {
-            return null;
-        }
-        return target;
-    }
-
-    private static void announceBondedCombatGrab(
-            ChangedEntity pet,
-            GrabEntityAbilityInstance ability) {
-        var data = pet.getPersistentData();
-        ServerPlayer owner = LatexSocialMemory.getPetOwner(pet);
-        LivingEntity target = owner == null
-                ? null
-                : bondedCombatGrabTarget(pet, owner, ability);
-        if (target == null) {
-            data.remove(ANNOUNCED_COMBAT_GRAB_TARGET);
-            return;
-        }
-        if (data.hasUUID(ANNOUNCED_COMBAT_GRAB_TARGET)
-                && data.getUUID(ANNOUNCED_COMBAT_GRAB_TARGET)
-                        .equals(target.getUUID())) {
-            return;
-        }
-
-        double range = ChangedSynergyConfig.COMMON.npcDialogueRange.get();
-        if (owner.level() != pet.level()
-                || owner.distanceToSqr(pet) > range * range) {
-            return;
-        }
-        data.putUUID(ANNOUNCED_COMBAT_GRAB_TARGET, target.getUUID());
-        NpcDialogue.trigger(pet, owner, Cue.BOND_COMBAT_GRAB_ASSIST);
-    }
-
     private static boolean grabberIsBusy(TamableLatexEntityFavors favors) {
         GrabEntityAbilityInstance ability = favors.getGrabAbility();
         return ability != null && ability.grabbedEntity != null;
     }
 
-    private static void tickFriendlySocialHug(
-            ChangedEntity mob,
-            IGrabberEntity grabber,
-            GrabEntityAbilityInstance ability) {
-        ServerPlayer player = ability != null
-                && ability.grabbedEntity instanceof ServerPlayer held
-                && LatexSocialMemory.isFriendlySocialHugTarget(mob, held)
-                        ? held : LatexSocialMemory.friendlySocialHugPlayer(mob);
-        if (!(ability instanceof GrabEntityAbilityExtensor extensor)
-                || player == null
-                || ability.grabbedEntity != player
-                || !LatexSocialMemory.isFriendlySocialHugActive(mob, player)
-                || !mob.isAlive()
-                || !player.isAlive()
-                || mob.level() != player.level()) {
-            if (player != null) {
-                if (ability != null) ability.attackDown = ability.useDown = false;
-                if (ability != null && ability.grabbedEntity == player) {
-                    ability.releaseEntity(false);
-                }
-                Changed.PACKET_HANDLER.send(
-                        PacketDistributor.TRACKING_ENTITY.with(grabber::asMob),
-                        new GrabEntityPacket(mob, player, GrabType.RELEASE));
-                ChangedSynergyNetwork.CHANNEL.send(
-                        PacketDistributor.PLAYER.with(() -> player),
-                        new FriendlySocialHugSyncPacket(
-                                mob.getId(), player.getId(), false, 0));
-                if (mob.isAlive()
-                        && player.isAlive()
-                        && mob.level() == player.level()) {
-                    NpcDialogue.trigger(
-                            mob,
-                            player,
-                            LatexSocialMemory.isPetOwner(mob, player)
-                                    ? NpcDialogue.Cue.SOCIAL_PLAY_HUG_RELEASE_BONDED
-                                    : NpcDialogue.Cue.SOCIAL_PLAY_HUG_RELEASE_FRIEND);
-                }
-            }
-            if (ability instanceof GrabEntityAbilityExtensor staleExtensor
-                    && (ability.grabbedEntity == null || player != null)) {
-                staleExtensor.setSafeModeAuthoritative(false);
-            }
-            LatexSocialMemory.endFriendlySocialHug(mob);
-            grabber.applyGrabCooldown(30);
-            return;
-        }
-
-        extensor.setAllowGrabTransfurred(true);
-        extensor.setSafeModeAuthoritative(true);
-        ability.suited = false;
-        ability.grabbedHasControl = false;
-        ability.attackDown = false;
-        ability.useDown = false;
-        mob.setTarget(null);
-        mob.setAggressive(false);
-        mob.getNavigation().stop();
-        mob.getLookControl().setLookAt(player, 30.0F, 30.0F);
-        LatexSocialEvents.calmTowards(mob, player);
-    }
-
-    private static void tickNegotiatedReleaseHold(
-            ChangedEntity mob,
-            IGrabberEntity grabber,
-            GrabEntityAbilityInstance ability) {
-        ServerPlayer player = InvoluntaryTransfurNegotiation
-                .releaseHoldPlayer(mob);
-        if (player == null
-                || !mob.isAlive()
-                || !player.isAlive()
-                || mob.level() != player.level()) {
-            releaseNegotiatedHold(mob, grabber, ability, player);
-            InvoluntaryTransfurNegotiation.abortReleaseHold(mob, player);
-            return;
-        }
-
-        // The Addon grab presentation can drop its target when Changed changes
-        // the player's form, or when its own short hold bookkeeping expires.
-        // Negotiation success is already committed at this point: losing the
-        // animation must complete the promised reversal instead of restoring
-        // the old negotiation progress and leaving the player transformed.
-        if (!(ability instanceof GrabEntityAbilityExtensor extensor)
-                || ability.grabbedEntity != player) {
-            releaseNegotiatedHold(mob, grabber, ability, player);
-            InvoluntaryTransfurNegotiation.finishReleaseHold(mob, player);
-            return;
-        }
-
-        configureNegotiatedReleaseHold(mob, grabber, ability, extensor, player);
-        InvoluntaryTransfurNegotiation.ReleaseHoldStep step =
-                InvoluntaryTransfurNegotiation.advanceReleaseHold(mob, player);
-        if (step == InvoluntaryTransfurNegotiation.ReleaseHoldStep.COMPLETE) {
-            releaseNegotiatedHold(mob, grabber, ability, player);
-            InvoluntaryTransfurNegotiation.finishReleaseHold(mob, player);
-        } else if (step == InvoluntaryTransfurNegotiation.ReleaseHoldStep.ABORT) {
-            releaseNegotiatedHold(mob, grabber, ability, player);
-            InvoluntaryTransfurNegotiation.abortReleaseHold(mob, player);
-        }
-    }
-
-    private static void configureNegotiatedReleaseHold(
-            ChangedEntity mob,
-            IGrabberEntity grabber,
-            GrabEntityAbilityInstance ability,
-            GrabEntityAbilityExtensor extensor,
-            ServerPlayer player) {
-        extensor.setAllowGrabTransfurred(true);
-        extensor.setSafeModeAuthoritative(true);
-        ability.suited = false;
-        ability.grabbedHasControl = false;
-        ability.attackDown = false;
-        ability.useDown = false;
-        grabber.applyGrabCooldown(0);
-        mob.setTarget(null);
-        mob.setAggressive(false);
-        mob.getNavigation().stop();
-        mob.getLookControl().setLookAt(player, 30.0F, 30.0F);
-        LatexSocialEvents.calmTowards(mob, player);
-    }
-
-    private static void releaseNegotiatedHold(
-            ChangedEntity mob,
-            IGrabberEntity grabber,
-            GrabEntityAbilityInstance ability,
-            ServerPlayer player) {
-        LivingEntity held = ability == null ? null : ability.grabbedEntity;
-        if (ability != null) {
-            ability.attackDown = false;
-            ability.useDown = false;
-            if (held != null) {
-                ability.releaseEntity(false);
-                Changed.PACKET_HANDLER.send(
-                        PacketDistributor.TRACKING_ENTITY.with(grabber::asMob),
-                        new GrabEntityPacket(mob, held, GrabType.RELEASE));
-            }
-            if (ability instanceof GrabEntityAbilityExtensor extensor) {
-                extensor.setSafeModeAuthoritative(false);
-            }
-        }
-        if (player != null) {
-            ChangedSynergyNetwork.CHANNEL.send(
-                    PacketDistributor.PLAYER.with(() -> player),
-                    new FriendlySocialHugSyncPacket(
-                            mob.getId(), player.getId(), false, 0));
-        }
-        grabber.applyGrabCooldown(30);
-    }
-
-    /** Keeps the owner's evacuation hold safe without stopping the carrier's navigation. */
-    private static boolean tickOrganicEvacuationHold(
-            ChangedEntity mob,
-            IGrabberEntity grabber,
-            GrabEntityAbilityInstance ability) {
-        LivingEntity passenger = ability == null ? null : ability.grabbedEntity;
-        ServerPlayer player = passenger instanceof ServerPlayer held ? held
-                : passenger instanceof ChangedEntity body ? net.parkabird.changedsynergy.compat.TrueTransfurCompat.bodyOwner(body) : null;
-        if (!(ability instanceof GrabEntityAbilityExtensor extensor)
-                || player == null
-                || !LatexSocialMemory.isOrganicEvacuationActive(mob, passenger)
-                || !mob.isAlive()
-                || !player.isAlive() || !passenger.isAlive() || passenger.isRemoved()
-                || mob.level() != passenger.level()) {
-            if (player != null && ability != null) {
-                ability.attackDown = false;
-                ability.useDown = false;
-                ability.releaseEntity(false);
-                Changed.PACKET_HANDLER.send(
-                        PacketDistributor.TRACKING_ENTITY.with(grabber::asMob),
-                        new GrabEntityPacket(mob, passenger, GrabType.RELEASE));
-                ChangedSynergyNetwork.CHANNEL.send(
-                        PacketDistributor.PLAYER.with(() -> player),
-                        new FriendlySocialHugSyncPacket(
-                                mob.getId(), passenger.getId(), false, 0));
-            }
-            if (ability instanceof GrabEntityAbilityExtensor stale) {
-                stale.setSafeModeAuthoritative(false);
-            }
-            LatexSocialMemory.endOrganicEvacuation(mob);
-            return false;
-        }
-
-        extensor.setAllowGrabTransfurred(true);
-        extensor.setSafeModeAuthoritative(true);
-        ability.suited = false;
-        ability.grabbedHasControl = false;
-        ability.attackDown = false;
-        ability.useDown = false;
-        mob.setTarget(null);
-        mob.setAggressive(false);
-        LatexSocialEvents.calmTowards(mob, player);
-        return true;
+    public static void applyGrabCooldown(ChangedEntity mob, int ticks) {
+        if (mob instanceof IGrabberEntity grabber) grabber.applyGrabCooldown(ticks);
     }
 
     public static GrabEntityAbilityInstance grabAbility(ChangedEntity mob) {

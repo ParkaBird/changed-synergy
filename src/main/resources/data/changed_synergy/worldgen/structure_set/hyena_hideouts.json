@@ -1,0 +1,19 @@
+{
+  "structures": [
+    {
+      "structure": "changed_synergy:hyena_hideout",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 32,
+    "separation": 5,
+    "salt": 192610291,
+    "exclusion_zone": {
+      "other_set": "changed:decayed_labs",
+      "chunk_count": 6
+    },
+    "spread_type": "triangular"
+  }
+}

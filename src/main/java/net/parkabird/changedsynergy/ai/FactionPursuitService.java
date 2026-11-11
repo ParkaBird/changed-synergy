@@ -13,7 +13,6 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
@@ -25,7 +24,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.event.LatexSocialEvents;
 
@@ -48,21 +46,16 @@ public final class FactionPursuitService {
                 && squad.getLong("Until") > mob.level().getGameTime();
     }
 
-    private static CompoundTag persisted(ServerPlayer player) {
-        var root = player.getPersistentData();
-        if (!root.contains(Player.PERSISTED_NBT_TAG)) root.put(Player.PERSISTED_NBT_TAG, new CompoundTag());
-        return root.getCompound(Player.PERSISTED_NBT_TAG);
-    }
-
     private static boolean eligible(ChangedEntity mob) {
-        return LatexSocialMemory.isSocialLatex(mob) && CreatureSocialProfile.allowsSynergySystems(mob)
+        return !NaturalCampService.member(mob)&&LatexSocialMemory.isSocialLatex(mob) && CreatureSocialProfile.allowsSynergySystems(mob)
                 && !CreatureSocialProfile.isJuvenile(mob) && !CreatureSocialProfile.isPermanentlyExcluded(mob)
                 && mob.getMaxHealth() <= 80.0F && !mob.isNoAi();
     }
 
     public static void record(ChangedEntity source, ServerPlayer player) {
         if (!eligible(source) || isPursuer(source)) return;
-        var root = persisted(player);
+        var root = PlayerPersistentData.get(player);
+        migrateAridWarrants(root.getCompound(WARRANTS));
         if (!root.contains(WARRANTS)) root.put(WARRANTS, new CompoundTag());
         String group = FactionReputation.groupId(source);
         var warrants = root.getCompound(WARRANTS);
@@ -73,10 +66,25 @@ public final class FactionPursuitService {
         warrants.put(group, entry);
     }
 
+    static void migrateAridWarrants(CompoundTag warrants) {
+        for (String old : java.util.List.of("light:desert", "light:badlands")) {
+            if (!warrants.contains(old, net.minecraft.nbt.Tag.TAG_COMPOUND)) continue;
+            var entry = warrants.getCompound(old);
+            var current = warrants.getCompound("light:arid");
+            long warning = Math.max(entry.getLong("Warning"), current.getLong("Warning"));
+            var merged = !warrants.contains("light:arid") || entry.getLong("Next") > current.getLong("Next")
+                    ? entry.copy() : current;
+            if (warning > 0) merged.putLong("Warning", warning);
+            warrants.put("light:arid", merged);
+            warrants.remove(old);
+        }
+    }
+
     private static boolean available(ServerPlayer player) {
         return ChangedSynergyConfig.COMMON.factionPursuit.get() && player.isAlive()
                 && net.parkabird.changedsynergy.init.ChangedSynergyGameRules.enabled(player.level(),
                         net.parkabird.changedsynergy.init.ChangedSynergyGameRules.FACTION_REPUTATION)
+                && !net.parkabird.changedsynergy.init.ChangedSynergyGameRules.noCivilizationMode(player.level())
                 && !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
                 && (!ChangedSynergyConfig.COMMON.factionPursuitOverworldOnly.get()
                         || player.level().dimension() == Level.OVERWORLD)
@@ -92,7 +100,8 @@ public final class FactionPursuitService {
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END || !(event.player instanceof ServerPlayer player)
                 || player.tickCount % 100 != 0) return;
-        var root = persisted(player);
+        var root = PlayerPersistentData.get(player);
+        migrateAridWarrants(root.getCompound(WARRANTS));
         var warrants = root.getCompound(WARRANTS);
         if (!available(player)) {
             for (String group : warrants.getAllKeys()) warrants.getCompound(group).remove("Warning");
@@ -252,10 +261,10 @@ public final class FactionPursuitService {
                     }
                     LatexSocialEvents.calmTowards(mob, player);
                 }
-                if (!ChangedAddonCompat.isGrabberBusy(mob) && !mob.isVehicle()) mob.discard();
+                if (!CreatureGrabService.isGrabberBusy(mob) && !mob.isVehicle()) mob.discard();
                 return false;
             }
-            return !ChangedAddonCompat.isGrabberBusy(mob) && !mob.isPassenger()
+            return !CreatureGrabService.isGrabberBusy(mob) && !mob.isPassenger()
                     && mob.distanceToSqr(player) > 9.0D;
         }
         @Override public boolean canContinueToUse() { return canUse(); }

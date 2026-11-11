@@ -20,7 +20,11 @@ def documents():
     templates = {name: nbt.load(folder / 'structures' / (name + '.nbt'))
                  for name in ('white_lab_tower', 'red_lab_tower', 'green_lab', 'water_tower_changed')}
     assert len(DOCUMENTS) == 19
-    assert sum(len(d['pages']) for d in DOCUMENTS if 'title' in d) == 26
+    assert sum(len(d['pages']) for d in DOCUMENTS if 'title' in d) == 27
+    book_hashes = json.loads((ROOT / 'tools/tests/research_book_text_hashes.json').read_text(encoding='utf-8'))
+    for document in DOCUMENTS:
+        if 'title' in document:
+            assert hashlib.sha256(''.join(document['pages']).encode('utf-8')).hexdigest() == book_hashes[document['id']], (document['id'], 'pagination must preserve every character')
     for document in DOCUMENTS:
         if 'loot_table' in document:
             data = json.loads((folder / 'loot_tables/chests/swordfish_research.json').read_text(encoding='utf-8'))
@@ -60,8 +64,8 @@ def documents():
     assert adapt_green_crystal(deepcopy(templates['green_lab'])) == 0
     assert next(d for d in DOCUMENTS if d['id'] == 'GL-02')['pages'][0].startswith('Crystal Status:')
     aq6 = next(d for d in DOCUMENTS if d['id'] == 'AQ-06')
-    assert "'pull' our transformed colleagues back out" in aq6['pages'][2]
-    assert 'outside their territory' in aq6['pages'][3] and 'grow eyes' in aq6['pages'][3]
+    assert "'pull' our transformed colleagues back out" in ''.join(aq6['pages'])
+    assert 'outside their territory' in ''.join(aq6['pages']) and 'grow eyes' in ''.join(aq6['pages'])
     assert next(d for d in DOCUMENTS if d['id'] == 'AQ-05')['pages'][0].startswith('# Project No. 125690')
     for document in DOCUMENTS:
         assert all('[cite:' not in page and '建议标题' not in page for page in document['pages'])
@@ -99,13 +103,14 @@ def main():
             before = nbt.load(args.baseline / (name + '.nbt'))
             if name == 'green_lab':
                 old = next(b for b in before['blocks'] if tuple(map(int, b['pos'])) == (38, 13, 28))['nbt']['Items'][0]['tag']['pages'][3]
-                clue = next(d for d in DOCUMENTS if d['id'] == 'GL-06')['pages'][3]
-                assert json.loads(str(old)) == clue or json.loads(str(old)).get('text') == clue
+                clue = ''.join(next(d for d in DOCUMENTS if d['id'] == 'GL-06')['pages'])
+                original = json.loads(str(old))
+                assert (original if isinstance(original, str) else original['text']) in clue
                 adapt_green_crystal(before)
             apply_documents(before, name)
             adapt_lab_dependencies(before, name)
             assert before == templates[name], (name, 'unexpected geometry, item, entity, loot or keypad change')
-    print('RESEARCH_DOCUMENTS_PASS: 19 reviewed records, 26 book pages, 22 numeric keypad codes, exact text, signatures, Markdown and idempotent reimport')
+    print('RESEARCH_DOCUMENTS_PASS: 19 reviewed records, 27 book pages, lossless book-text hashes, 22 numeric keypad codes, signatures, Markdown and idempotent reimport')
     if args.baseline:
         print('ONLY_APPROVED_CHANGES: reviewed documents and crystal, dependency/furniture/painting repairs, authored red-tower layout and entity cleanup; remaining inventories, traps and hints unchanged')
 

@@ -15,6 +15,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.Container;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -91,6 +92,7 @@ public final class PlayerOutpostData extends SavedData {
         public BlockPos marker;
         public boolean campfireMarker = true;
         public BlockPos storage;
+        public final Set<BlockPos> storages = new LinkedHashSet<>();
         public final Set<BlockPos> beds = new LinkedHashSet<>();
         public final Set<BlockPos> restPoints = new LinkedHashSet<>();
         public BlockPos cooking;
@@ -175,9 +177,54 @@ public final class PlayerOutpostData extends SavedData {
         return outposts.values();
     }
 
+    public static boolean isValidStorage(Level level, BlockPos pos) {
+        if (level == null || pos == null || !level.hasChunkAt(pos)) return false;
+        var state = level.getBlockState(pos);
+        var blockEntity = level.getBlockEntity(pos);
+        if (blockEntity == null) return false;
+
+        // Prohibited vanilla appliance and transport containers
+        if (blockEntity instanceof net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity
+                || blockEntity instanceof net.minecraft.world.level.block.entity.BrewingStandBlockEntity
+                || blockEntity instanceof net.minecraft.world.level.block.entity.CampfireBlockEntity
+                || blockEntity instanceof net.minecraft.world.level.block.entity.DispenserBlockEntity
+                || blockEntity instanceof net.minecraft.world.level.block.entity.HopperBlockEntity
+                || blockEntity instanceof net.minecraft.world.level.block.entity.BeaconBlockEntity
+                || blockEntity instanceof net.minecraft.world.inventory.CraftingContainer) {
+            return false;
+        }
+
+        // Prohibited crafting tables, workbenches, and processing appliances by block registry name
+        var blockKey = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(state.getBlock());
+        if (blockKey != null) {
+            String path = blockKey.getPath().toLowerCase(java.util.Locale.ROOT);
+            if (path.contains("crafting_table") || path.contains("workbench") || path.contains("crafting_station")
+                    || path.contains("furnace") || path.contains("smoker") || path.contains("blast_furnace")
+                    || path.contains("catalyzer") || path.contains("unifuser") || path.contains("purifier")
+                    || path.contains("centrifuge") || path.contains("anvil") || path.contains("enchant")
+                    || path.contains("brewing") || path.contains("dispenser") || path.contains("dropper")
+                    || path.contains("hopper") || path.contains("lectern") || path.contains("jukebox")
+                    || path.contains("bookshelf") || path.contains("chiseled")) {
+                return false;
+            }
+        }
+
+        // Prohibited special container / machine classes
+        String className = blockEntity.getClass().getName();
+        if (className.contains("Catalyzer") || className.contains("Unifuser")
+                || className.contains("Purifier") || className.contains("StasisChamber")
+                || className.contains("Lectern") || className.contains("Jukebox")) {
+            return false;
+        }
+
+        // Must either be a Container or expose ITEM_HANDLER capability
+        if (blockEntity instanceof Container) return true;
+        return blockEntity.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER).isPresent();
+    }
+
     /** Treats both halves of a double chest as one registered store. */
     public static Container container(ServerLevel level, BlockPos pos) {
-        if (level == null || pos == null || !level.hasChunkAt(pos)) return null;
+        if (!isValidStorage(level, pos)) return null;
         var state = level.getBlockState(pos);
         var blockEntity = level.getBlockEntity(pos);
         if (state.getBlock() instanceof ChestBlock chest
@@ -237,6 +284,7 @@ public final class PlayerOutpostData extends SavedData {
             previous.marker = marker.immutable();
             previous.campfireMarker = campfire;
             previous.storage = null;
+            previous.storages.clear();
             previous.beds.clear();
             previous.restPoints.clear();
             previous.cooking = campfire ? marker.immutable() : null;
@@ -255,7 +303,18 @@ public final class PlayerOutpostData extends SavedData {
 
     public void setStorage(Outpost outpost, BlockPos pos) {
         outpost.storage = pos.immutable();
+        outpost.storages.add(pos.immutable());
         setDirty();
+    }
+
+    public boolean removeStorage(Outpost outpost, BlockPos pos) {
+        boolean removed = outpost.storages.remove(pos);
+        if (pos.equals(outpost.storage)) {
+            outpost.storage = outpost.storages.isEmpty() ? null : outpost.storages.iterator().next();
+            removed = true;
+        }
+        if (removed) setDirty();
+        return removed;
     }
 
     public void setBed(Outpost outpost, BlockPos pos) {
@@ -264,6 +323,28 @@ public final class PlayerOutpostData extends SavedData {
 
     public void addRestPoint(Outpost outpost, BlockPos pos) {
         if (outpost.restPoints.add(pos.immutable())) setDirty();
+    }
+
+    public void refreshStorages(ServerLevel level, Outpost outpost) {
+        if (level == null || outpost == null || !outpost.dimension.equals(level.dimension().location().toString())) return;
+        boolean changed = false;
+        var it = outpost.storages.iterator();
+        while (it.hasNext()) {
+            BlockPos pos = it.next();
+            if (!outpost.contains(pos)) { it.remove(); changed = true; continue; }
+            if (level.hasChunkAt(pos) && !isValidStorage(level, pos)) {
+                it.remove();
+                changed = true;
+            }
+        }
+        if (outpost.storage != null && level.hasChunkAt(outpost.storage) && !isValidStorage(level, outpost.storage)) {
+            outpost.storage = outpost.storages.isEmpty() ? null : outpost.storages.iterator().next();
+            changed = true;
+        } else if (outpost.storage == null && !outpost.storages.isEmpty()) {
+            outpost.storage = outpost.storages.iterator().next();
+            changed = true;
+        }
+        if (changed) setDirty();
     }
 
     /** Migrates legacy pillows and bed feet only when their blocks are loaded. */
@@ -280,8 +361,10 @@ public final class PlayerOutpostData extends SavedData {
             }
             BlockPos normalized = PlayerOutpostRestGoal.restingPlace(level, pos);
             if (normalized == null || !outpost.contains(normalized)) continue;
-            if (level.getBlockState(normalized).getBlock() instanceof net.minecraft.world.level.block.BedBlock)
+            if (PlayerOutpostRestGoal.isBed(level.getBlockState(normalized))){
                 beds.add(normalized);
+                for(var perch:PerchSleepService.places(level,normalized))if(outpost.contains(perch))beds.add(perch);
+            }
             else if (PlayerOutpostRestGoal.isRestPoint(level.getBlockState(normalized))) points.add(normalized);
         }
         if (!beds.equals(outpost.beds) || !points.equals(outpost.restPoints)) {
@@ -414,6 +497,9 @@ public final class PlayerOutpostData extends SavedData {
         for (Outpost outpost : outposts.values()) {
             if (outpost.dimension.equals(dimension) && outpost.marker.equals(pos)) {
                 outpost.storage = null;
+                outpost.storages.remove(pos);
+                if (!outpost.storages.isEmpty()) outpost.storage = outpost.storages.iterator().next();
+                outpost.storages.clear();
                 outpost.beds.clear();
                 outpost.restPoints.clear();
                 outpost.cooking = null;
@@ -421,11 +507,13 @@ public final class PlayerOutpostData extends SavedData {
                 setDirty();
             } else if (outpost.dimension.equals(dimension) && pos.equals(outpost.storage)) {
                 outpost.storage = null;
+                outpost.storages.remove(pos);
+                if (!outpost.storages.isEmpty()) outpost.storage = outpost.storages.iterator().next();
                 setDirty();
             }
             if (outpost.dimension.equals(dimension)) {
                 BlockPos normalized = PlayerOutpostRestGoal.restingPlace(level, pos);
-                boolean changed = outpost.beds.remove(pos) | outpost.restPoints.remove(pos);
+                boolean changed = outpost.storages.remove(pos) | outpost.beds.remove(pos) | outpost.restPoints.remove(pos);
                 if (normalized != null) changed |= outpost.beds.remove(normalized) | outpost.restPoints.remove(normalized);
                 if (changed) setDirty();
             }
@@ -470,7 +558,12 @@ public final class PlayerOutpostData extends SavedData {
             outpost.meals = !tag.contains("Meals") || tag.getBoolean("Meals");
             outpost.rawReserve = tag.contains("RawReserve") ? Math.max(0, Math.min(64, tag.getInt("RawReserve"))) : 0;
             outpost.seedReserve = tag.contains("SeedReserve") ? Math.max(1, Math.min(64, tag.getInt("SeedReserve"))) : 16;
-            if (tag.contains("Storage", Tag.TAG_LONG)) outpost.storage = BlockPos.of(tag.getLong("Storage"));
+            if (tag.contains("Storage", Tag.TAG_LONG)) {
+                outpost.storage = BlockPos.of(tag.getLong("Storage"));
+                outpost.storages.add(outpost.storage);
+            }
+            for (long pos : tag.getLongArray("Storages")) outpost.storages.add(BlockPos.of(pos));
+            if (outpost.storage == null && !outpost.storages.isEmpty()) outpost.storage = outpost.storages.iterator().next();
             for (long pos : tag.getLongArray("Beds")) outpost.beds.add(BlockPos.of(pos));
             for (long pos : tag.getLongArray("RestPoints")) outpost.restPoints.add(BlockPos.of(pos));
             if (tag.contains("Bed", Tag.TAG_LONG)) outpost.beds.add(BlockPos.of(tag.getLong("Bed")));
@@ -517,6 +610,7 @@ public final class PlayerOutpostData extends SavedData {
             tag.putInt("RawReserve", outpost.rawReserve);
             tag.putInt("SeedReserve", outpost.seedReserve);
             if (outpost.storage != null) tag.putLong("Storage", outpost.storage.asLong());
+            tag.putLongArray("Storages", outpost.storages.stream().mapToLong(BlockPos::asLong).toArray());
             tag.putLongArray("Beds", outpost.beds.stream().mapToLong(BlockPos::asLong).toArray());
             tag.putLongArray("RestPoints", outpost.restPoints.stream().mapToLong(BlockPos::asLong).toArray());
             ListTag members = new ListTag();

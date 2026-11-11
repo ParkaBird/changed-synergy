@@ -1,5 +1,7 @@
 package net.parkabird.changedsynergy.ai;
 
+import static net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants.canonicalFormId;
+
 import java.util.Locale;
 import java.util.List;
 import java.util.Optional;
@@ -80,6 +82,7 @@ public final class InvoluntaryTransfurNegotiation {
     private static final String NEGOTIATION_RETRY_AT = "NegotiationRetryAt";
     private static final String NEXT_ATTEMPT = "NextAttempt";
     private static final String OPENED = "Opened";
+    private static final String FORGIVEN = "Forgiven";
     private static final String RESPAWN_NOTICE = "RespawnNotice";
     private static final String CAPTURE_PENDING = "CapturePending";
     private static final String CAPTURE_ID = "CaptureId";
@@ -280,6 +283,7 @@ public final class InvoluntaryTransfurNegotiation {
     /** Called after every other decision modifier has selected the final method. */
     public static void observeDecision(
             TransfurEvents.LatexAssimilationDecisionEvent event) {
+        net.parkabird.changedsynergy.npc.StoryNpcSafety.assimilation(event);
         if (event.isCanceled()
                 || !(event.getEntity() instanceof ServerPlayer player)
                 || !(event.getSourceEntity() instanceof ChangedEntity source)) {
@@ -476,6 +480,7 @@ public final class InvoluntaryTransfurNegotiation {
         if (data == null
                 || data.getBoolean(CAPTURE_PENDING)
                 || data.getBoolean(NEGOTIATION_FAILED)
+                || data.getBoolean(FORGIVEN)
                 || Mode.ABSORPTION.name().equals(data.getString(MODE))
                 || !data.hasUUID(SOURCE_UUID)
                 || !source.isAlive()
@@ -506,7 +511,7 @@ public final class InvoluntaryTransfurNegotiation {
         if (form == null || !exposure.hasUUID(SOURCE_UUID)
                 || !source.getUUID().equals(exposure.getUUID(SOURCE_UUID))
                 || !form.getFormId().toString().equals(
-                        exposure.getString(RESULT_PLAYER_FORM))) {
+                        canonicalFormId(exposure.getString(RESULT_PLAYER_FORM)))) {
             return;
         }
         Reason reason;
@@ -534,6 +539,7 @@ public final class InvoluntaryTransfurNegotiation {
                 && ProcessTransfur.isPlayerTransfurred(player)
                 && data != null
                 && !data.getBoolean(NEGOTIATION_FAILED)
+                && !data.getBoolean(FORGIVEN)
                 && !data.getBoolean(RELEASE_WHEN_SAFE)
                 && isAbsorptionClaim(data);
     }
@@ -615,12 +621,48 @@ public final class InvoluntaryTransfurNegotiation {
     public static Optional<View> view(ServerPlayer player) {
         if (TakeoverService.active(player)) return Optional.empty();
         CompoundTag data = existingPlayerData(player);
-        if (data == null
+        if (data == null || data.getBoolean(FORGIVEN)
                 || data.getBoolean(CAPTURE_PENDING)
                 || !data.hasUUID(SOURCE_UUID)) {
             return Optional.empty();
         }
         return Optional.of(readView(data));
+    }
+
+    /** One forgiveness reward per claim; the player keeps their present body. */
+    public static boolean forgive(ServerPlayer player, @Nullable ChangedEntity source) {
+        boolean absorption = source == null;
+        if (absorption ? !canNegotiateAbsorption(player) : !canNegotiate(player, source)) return false;
+        CompoundTag data = existingPlayerData(player);
+        ChangedEntity recipient = source;
+        if (absorption) {
+            var typeId = readLocation(data, ORIGINAL_SOURCE_TYPE);
+            if (typeId == null) typeId = readLocation(data, SOURCE_TYPE);
+            var type = data.getBoolean(SPECIAL_COMPLETION)
+                    ? entityTypeForForm(player.server, readLocation(data, RESULT_PLAYER_FORM))
+                    : typeId == null ? null : ForgeRegistries.ENTITY_TYPES.getValue(typeId);
+            var created = type == null ? null : type.create(player.serverLevel());
+            if (!(created instanceof ChangedEntity original) || !data.contains(SOURCE_SNAPSHOT, Tag.TAG_COMPOUND)) return false;
+            var snapshot = data.getCompound(SOURCE_SNAPSHOT).copy();
+            if (data.getBoolean(SPECIAL_COMPLETION)) snapshot.remove("Attributes");
+            original.load(snapshot);
+            original.setUUID(data.getUUID(SOURCE_UUID));
+            original.setPos(player.position());
+            recipient = original;
+        }
+        CreaturePersonality.establishRelationship(recipient, player);
+        CreaturePersonality.adjustFamiliarity(recipient, player, 8);
+        player.closeContainer();
+        NpcDialogue.trigger(recipient, player, Cue.NEGOTIATION_FORGIVEN);
+        if (absorption) {
+            // Keep the swallowed individual's snapshot for medicine/commands that later separate them.
+            captureSourceState(data, recipient, data.getBoolean(SPECIAL_COMPLETION));
+            data.putBoolean(SOURCE_WAS_RELATED, true);
+            data.putBoolean(FORGIVEN, true);
+            syncAbsorptionState(player, false);
+            recipient.discard();
+        } else abandonClaim(player);
+        return true;
     }
 
     public static boolean claimOpeningLine(
@@ -1063,7 +1105,7 @@ public final class InvoluntaryTransfurNegotiation {
         source.getPersistentData().put(RELEASE_ROOT, release);
         player.closeContainer();
 
-        if (ChangedAddonCompat.tryStartNegotiatedRelease(
+        if (CreatureGrabService.tryStartNegotiatedRelease(
                 source, player, RELEASE_DURATION)) {
             NpcDialogue.trigger(source, player, Cue.BOND_REVERSE_HOLD);
             return true;
@@ -1584,6 +1626,12 @@ public final class InvoluntaryTransfurNegotiation {
         return !TakeoverService.active(player) && isAbsorptionClaim(data);
     }
 
+    /** An external separator restores the swallowed individual without negotiation rewards. */
+    public static boolean separateAbsorption(ServerPlayer player) {
+        if (!hasAbsorptionClaim(player) || !ProcessTransfur.isPlayerTransfurred(player)) return false;
+        return completeAbsorptionRelease(player, existingPlayerData(player).copy(), true, false);
+    }
+
     private static void completeCapture(
             ServerPlayer player,
             UUID captureId,
@@ -1756,6 +1804,14 @@ public final class InvoluntaryTransfurNegotiation {
             ServerPlayer player,
             CompoundTag claim,
             boolean notifyNoSpace) {
+        return completeAbsorptionRelease(player, claim, notifyNoSpace, true);
+    }
+
+    private static boolean completeAbsorptionRelease(
+            ServerPlayer player,
+            CompoundTag claim,
+            boolean notifyNoSpace,
+            boolean negotiated) {
         if (TrueTransfurCompat.blocksReversal(player)) return false;
         ReleaseBlockReason block = absorptionReleaseBlock(player);
         if (block != ReleaseBlockReason.NONE) {
@@ -1782,8 +1838,8 @@ public final class InvoluntaryTransfurNegotiation {
         FactionHostilityGrace.begin(released, player);
         LatexSocialEvents.clearPendingCombatReactions(released, player);
         LatexSocialEvents.calmTowards(released, player);
-        CreaturePersonality.establishRelationship(released, player);
-        if (!CreaturePersonality.balanced()) {
+        if (negotiated) CreaturePersonality.establishRelationship(released, player);
+        if (negotiated && !CreaturePersonality.balanced()) {
             CreaturePersonality.setFamiliarity(
                 released,
                 player,
@@ -1806,18 +1862,18 @@ public final class InvoluntaryTransfurNegotiation {
                         : claim.getBoolean(SPECIAL_COMPLETION)
                                 ? Cue.NEGOTIATION_RELEASE_COMPLETION
                                 : Cue.NEGOTIATION_RELEASE_ABSORPTION;
-        net.parkabird.changedsynergy.advancement.SynergyAdvancements.grant(
+        if (negotiated) net.parkabird.changedsynergy.advancement.SynergyAdvancements.grant(
                 player,
                 net.parkabird.changedsynergy.advancement.SynergyAdvancements
                         .NEGOTIATED_RELEASE);
-        if (claim.getBoolean(FUSION_SPLIT)) {
+        if (negotiated && claim.getBoolean(FUSION_SPLIT)) {
             net.parkabird.changedsynergy.advancement.SynergyAdvancements.grant(
                     player,
                     net.parkabird.changedsynergy.advancement.SynergyAdvancements
                             .FUSION_SEPARATION);
         }
         clearPlayerData(player);
-        NpcDialogue.trigger(released, player, cue);
+        if (negotiated) NpcDialogue.trigger(released, player, cue);
         return true;
     }
 
@@ -1873,7 +1929,7 @@ public final class InvoluntaryTransfurNegotiation {
             return null;
         }
 
-        if (!completedBody
+        if ((!completedBody || claim.getBoolean(FORGIVEN))
                 && claim.contains(SOURCE_SNAPSHOT, Tag.TAG_COMPOUND)) {
             UUID freshId = released.getUUID();
             released.load(claim.getCompound(SOURCE_SNAPSHOT).copy());
@@ -2027,7 +2083,7 @@ public final class InvoluntaryTransfurNegotiation {
         source.getPersistentData().put(RELEASE_ROOT, release);
         player.closeContainer();
 
-        if (ChangedAddonCompat.tryStartNegotiatedRelease(
+        if (CreatureGrabService.tryStartNegotiatedRelease(
                 source, player, RELEASE_DURATION)) {
             NpcDialogue.trigger(source, player, releaseHoldCue(view));
             return;
@@ -2780,7 +2836,8 @@ public final class InvoluntaryTransfurNegotiation {
         if (player.connection == null) return;
         ChangedSynergyNetwork.CHANNEL.send(
                 PacketDistributor.PLAYER.with(() -> player),
-                new AbsorptionNegotiationStatePacket(active));
+                new AbsorptionNegotiationStatePacket(active && (existingPlayerData(player) == null
+                        || !existingPlayerData(player).getBoolean(FORGIVEN))));
     }
 
     @Nullable
@@ -2812,6 +2869,6 @@ public final class InvoluntaryTransfurNegotiation {
     @Nullable
     private static ResourceLocation readLocation(CompoundTag tag, String key) {
         return tag.contains(key, Tag.TAG_STRING)
-                ? ResourceLocation.tryParse(tag.getString(key)) : null;
+                ? ResourceLocation.tryParse(canonicalFormId(tag.getString(key))) : null;
     }
 }

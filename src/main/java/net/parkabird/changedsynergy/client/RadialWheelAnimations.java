@@ -16,6 +16,7 @@ public final class RadialWheelAnimations {
     private static long pendingArrivalNanos;
     private static int pendingEntityId = -1;
     private static UiSpring pendingSlide;
+    private static boolean pendingInstantArrival;
     private static WheelKind cancelledArrival = WheelKind.NONE;
     private static int cancelledEntityId = -1;
     private static long cancelledUntil;
@@ -24,11 +25,16 @@ public final class RadialWheelAnimations {
     }
 
     public static boolean requestClose(Object screen, Runnable completion) {
+        if (pendingInstantArrival && entityId(screen) == pendingEntityId) cancelSwitchAndArrival();
         return request(screen, completion, false);
     }
 
     public static float panelAlpha(Object screen) {
         return screen instanceof RadialWheelAnimationAccess access ? access.changedSynergy$getPanelAlpha() : 1.0F;
+    }
+
+    public static boolean instantArrival(Object screen) {
+        return screen instanceof RadialWheelAnimationAccess access && access.changedSynergy$isInstantArrival();
     }
 
     public static boolean requestWheelSwitch(Object screen, Runnable completion) {
@@ -57,6 +63,7 @@ public final class RadialWheelAnimations {
         clearCancelledArrival();
         pendingArrival = target;
         pendingArrivalNanos = System.nanoTime();
+        pendingInstantArrival = target == WheelKind.NEGOTIATION && screen instanceof SocialInteractionScreen;
         pendingSlide = isContinuousPlayerSwitch(screen) && screen instanceof RadialWheelAnimationAccess access
                 ? access.changedSynergy$getHorizontalSpring() : null;
         // Absorption negotiation starts from the player's ability wheel but
@@ -65,7 +72,8 @@ public final class RadialWheelAnimations {
         pendingEntityId = target == WheelKind.NEGOTIATION
                         && screen instanceof AbilityRadialScreen
                 ? -1 : entityId(screen);
-        boolean accepted = request(screen, completion, true);
+        // Both NPC pages already use the right-hand anchor; no departure motion is needed.
+        boolean accepted = !pendingInstantArrival && request(screen, completion, true);
         if (!accepted) {
             // The fallback opens the target immediately, so keep the hand-off
             // token available for the target screen's first init pass.
@@ -116,6 +124,15 @@ public final class RadialWheelAnimations {
         graphics.setColor(red, green, blue, alpha);
     }
 
+    public static net.minecraft.network.chat.Component scrollHint(AbstractRadialScreen<?> screen,String switchKey){
+        var text=net.minecraft.network.chat.Component.empty();
+        if(screen instanceof AbilityRadialScreen ability&&AbilityWheelInput.showHoldHint(ability))text.append(net.minecraft.network.chat.Component.translatable("menu.changed_synergy.ability.hold_hint")).append(" · ");
+        if(screen.getCount()>8)text.append(net.minecraft.network.chat.Component.translatable("menu.changed_synergy.relationship.more_options")).append(" · ");
+        if(screen.getCount()>8)text.append(net.minecraft.network.chat.Component.translatable(switchKey+".shift"));
+        else text.append(net.minecraft.network.chat.Component.translatable(switchKey));
+        return text;
+    }
+
     public static float overallAlpha(Object screen) {
         return screen instanceof RadialWheelAnimationAccess access
                 ? access.changedSynergy$getOverallAlpha()
@@ -149,8 +166,19 @@ public final class RadialWheelAnimations {
                     ? net.ltxprogrammer.changed.process.ProcessTransfur.getPlayerTransfurVariant(player) : null;
             organic = form != null && !form.getParent().getEntityType().is(net.ltxprogrammer.changed.init.ChangedTags.EntityTypes.LATEX);
         }
-        int slot = Math.floorMod(section - viewOffset(screen), 8);
-        return (organic ? ORGANIC_CENTRES : GOO_CENTRES)[slot][vertical ? 1 : 0];
+        float offset=screen instanceof RadialWheelAnimationAccess access?access.changedSynergy$getScrollOffset():viewOffset(screen);
+        float slot = Math.max(0,Math.min(7,section-offset));
+        int first=(int)Math.floor(slot),last=Math.min(7,first+1),axis=vertical?1:0;
+        var centers=organic?ORGANIC_CENTRES:GOO_CENTRES;
+        return Math.round(net.minecraft.util.Mth.lerp(slot-first,centers[first][axis],centers[last][axis]));
+    }
+
+    /** Preserve the asymmetric resting slots without jumping when a scroll crosses an integer. */
+    public static net.minecraft.world.phys.Vec2 optionPosition(int section,float offset){
+        double position=section-offset,slot=Math.max(0,Math.min(7,position));
+        double angle=(slot+.5+.04*Math.cos(slot*Math.PI))*Math.PI/4;
+        double outward=1+Math.max(0,Math.max(-position,position-7));
+        return new net.minecraft.world.phys.Vec2((float)(Math.sin(angle)*90),(float)(-Math.cos(angle)*90*outward));
     }
 
     public static boolean isSectionSelected(AbstractRadialScreen<?> screen, int slot, int mouseX, int mouseY) {
@@ -174,6 +202,8 @@ public final class RadialWheelAnimations {
         }
         if (pendingSlide != null && screen instanceof RadialWheelAnimationAccess access)
             access.changedSynergy$continueSlide(pendingSlide);
+        if (pendingInstantArrival && screen instanceof RadialWheelAnimationAccess access)
+            access.changedSynergy$openImmediately();
         cancelPendingSwitch();
         return true;
     }
@@ -199,6 +229,7 @@ public final class RadialWheelAnimations {
         pendingArrival = WheelKind.NONE;
         pendingEntityId = -1;
         pendingSlide = null;
+        pendingInstantArrival = false;
     }
 
     public static void cancelSwitchAndArrival() {

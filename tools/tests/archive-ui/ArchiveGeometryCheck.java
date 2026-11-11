@@ -22,6 +22,13 @@ public final class ArchiveGeometryCheck {
             close(roundtrip.x(), original.x()); close(roundtrip.y(), original.y());
         }
         close(smooth(-1),0); close(smooth(.5),.5); close(smooth(2),1);
+        close(turnProgress(0),0);close(turnProgress(1),1);
+        double previous=0;
+        for(int frame=1;frame<1000;frame++){
+            double progress=turnProgress(frame/1000.0);
+            if(progress<=previous||progress>=1)throw new AssertionError("Page finishes or reverses before the handoff: "+frame);
+            previous=progress;checks++;
+        }
         for (int direction : new int[]{-1,1}) for (double progress : new double[]{0,.25,.5,.75,1}) {
             close(curl(0,.5,774,progress,direction).x(),0);
             close(curl(774,.5,774,0,direction).x(),774*direction);

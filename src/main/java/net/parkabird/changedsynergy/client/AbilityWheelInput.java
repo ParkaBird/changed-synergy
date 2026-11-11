@@ -24,7 +24,6 @@ public final class AbilityWheelInput {
     private static AbilityRadialScreen wheel;
     private static AbilityRadialScreen closingWheel;
     private static boolean down, switching, mustMove;
-    private static int lastOffset;
     private static double anchorX, anchorY;
     private static final boolean[] movementDown = new boolean[7];
     private AbilityWheelInput() {}
@@ -48,7 +47,7 @@ public final class AbilityWheelInput {
         } else if (action == GLFW.GLFW_RELEASE && down) release();
     }
     private static void attach(AbilityRadialScreen screen) {
-        wheel = screen; lastOffset = RadialWheelAnimations.viewOffset(screen); mustMove = false;
+        wheel = screen; mustMove = false;
         var mc = Minecraft.getInstance();
         GLFW.glfwSetCursorPos(mc.getWindow().getWindow(), mc.getWindow().getScreenWidth() / 2.0, mc.getWindow().getScreenHeight() / 2.0);
     }
@@ -76,8 +75,7 @@ public final class AbilityWheelInput {
         return Math.min(7, (int)(angle / (Math.PI / 4)));
     }
     public static void pageChanged(AbilityRadialScreen screen) {
-        if (wheel != screen || !down || lastOffset == RadialWheelAnimations.viewOffset(screen)) return;
-        lastOffset = RadialWheelAnimations.viewOffset(screen);
+        if (wheel != screen || !down) return;
         var mc = Minecraft.getInstance();
         anchorX = mc.mouseHandler.xpos() * screen.width / mc.getWindow().getScreenWidth();
         anchorY = mc.mouseHandler.ypos() * screen.height / mc.getWindow().getScreenHeight();

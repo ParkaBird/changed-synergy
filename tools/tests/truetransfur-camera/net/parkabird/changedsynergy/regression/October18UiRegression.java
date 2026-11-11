@@ -28,7 +28,7 @@ final class October18UiRegression {
                 var target = new com.mojang.blaze3d.pipeline.TextureTarget(mc.getWindow().getWidth(), mc.getWindow().getHeight(), true, Minecraft.ON_OSX);
                 try {
                     var contact = new Contact(UUID.randomUUID(),-1,"Mica J8","changed:dark_latex_wolf_male",
-                            "minecraft:overworld",true,0,64,0,true,false,true,false,false,60,24,24,true);
+                            "minecraft:overworld",true,0,64,0,true,false,true,false,false,60,24,24,true,false);
                     var menu = new PlayerRelationshipMenu(3, mc.player.getInventory(), List.of(contact));
                     var screen = new PlayerRelationshipScreen(menu, mc.player.getInventory(), PlayerRelationshipMenu.TITLE);
                     mc.setScreen(screen); for(int i=0;i<20;i++)screen.containerTick();

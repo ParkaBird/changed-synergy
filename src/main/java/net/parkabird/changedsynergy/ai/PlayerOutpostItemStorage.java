@@ -20,6 +20,8 @@ final class PlayerOutpostItemStorage implements Container {
     ItemStack insert(ItemStack stack) {
         return ItemHandlerHelper.insertItemStacked(inventory, stack.copy(), false);
     }
+    boolean acceptsAll(ItemStack stack){return ItemHandlerHelper.insertItemStacked(inventory,stack.copy(),true).isEmpty();}
+    boolean acceptsAny(ItemStack stack){return !stack.isEmpty() && ItemHandlerHelper.insertItemStacked(inventory,stack.copy(),true).getCount() < stack.getCount();}
 
     @Override public int getContainerSize() { return inventory.getSlots(); }
     @Override public boolean isEmpty() {

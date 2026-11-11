@@ -20,6 +20,15 @@ final class CuriosApiBridge {
     private CuriosApiBridge() {
     }
 
+    static boolean openClothing(net.minecraft.server.level.ServerPlayer player,net.minecraft.world.item.ItemStack request) {
+        var carried=player.getAbilities().instabuild?request:player.containerMenu.getCarried();
+        player.containerMenu.setCarried(net.minecraft.world.item.ItemStack.EMPTY);
+        net.minecraftforge.network.NetworkHooks.openScreen(player,new top.theillusivec4.curios.common.inventory.container.CuriosContainerProvider());
+        player.containerMenu.setCarried(carried);
+        player.containerMenu.broadcastChanges();
+        return true;
+    }
+
     static List<CuriosCompat.SlotAccess> slots(LivingEntity entity) {
         return CuriosApi.getCuriosInventory(entity)
                 .map(handler -> flatten(handler, CuriosApi.getEntitySlots(entity)))
@@ -44,6 +53,7 @@ final class CuriosApiBridge {
         Map<String, ISlotType> playerTypes = CuriosApi.getPlayerSlots(player);
         List<ICurioStacksHandler> playerStacks = orderedHandlers(
                         playerHandler, playerTypes).stream()
+                .filter(stacks->NativeClothingInventory.type(stacks.getIdentifier())==null)
                 .filter(stacks -> playerTypes.containsKey(stacks.getIdentifier()))
                 .filter(stacks -> playerTypes.get(stacks.getIdentifier()).isVisible())
                 .filter(ICurioStacksHandler::isVisible)
@@ -86,6 +96,7 @@ final class CuriosApiBridge {
         }
 
         List<CuriosCompat.SlotAccess> result = new ArrayList<>();
+        for(var access:flatten(creatureHandler,playerTypes))if(NativeClothingInventory.type(access.descriptor().identifier())!=null)result.add(access);
         for (ICurioStacksHandler stacks : playerStacks) {
             for (int index = 0; index < stacks.getSlots(); index++) {
                 CuriosCompat.SlotDescriptor descriptor =
@@ -133,5 +144,10 @@ final class CuriosApiBridge {
 
     static ResourceLocation slotIcon(String identifier) {
         return CuriosApi.getSlotIcon(identifier);
+    }
+    static boolean isEquipmentMenu(net.minecraft.world.inventory.AbstractContainerMenu menu){return menu instanceof top.theillusivec4.curios.api.type.ICuriosMenu;}
+    static boolean clothingVisible(LivingEntity entity,net.ltxprogrammer.changed.data.AccessorySlotType type) {
+        return CuriosApi.getCuriosInventory(entity).resolve().flatMap(h->h.getStacksHandler(NativeClothingInventory.identifier(type)))
+                .map(h->h.getRenders().isEmpty() || h.getRenders().get(0)).orElse(true);
     }
 }

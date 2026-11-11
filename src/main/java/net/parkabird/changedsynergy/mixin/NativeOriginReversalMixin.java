@@ -23,7 +23,8 @@ public abstract class NativeOriginReversalMixin {
             Consumer<TransfurVariantInstance<?>> before,
             CallbackInfoReturnable<TransfurVariantInstance<?>> callback) {
         if (form == null && player instanceof ServerPlayer server && server.isAlive()
-                && NativeOriginService.isNative(server) && NativeOriginService.enabled(server)) {
+                && (NativeOriginService.isNative(server) && NativeOriginService.enabled(server)
+                    || net.parkabird.changedsynergy.npc.NpcRites.permanent(server))) {
             callback.setReturnValue(ProcessTransfur.getPlayerTransfurVariant(player));
         }
     }

@@ -1,0 +1,72 @@
+{
+  "male": {
+    "source": "HyenaTrailclothMale.bbmodel",
+    "source_sha256": "e644167a1f2aa4f007520969401d481a84772e6db510802f9135d1b2bdbde5b9",
+    "cubes": 9,
+    "texture_sha256": "ca80bc027e06d3b89f425d9e6d3f28bdcbb50bec1f8da6e4b6cf552ea967a3bb",
+    "other_texture_sha256": "e394aa702ab528800289f986641afc0240e77434c46c8354e58860977d7e9910",
+    "back_strap_bridge": [
+      [
+        21,
+        8
+      ],
+      [
+        20,
+        9
+      ],
+      [
+        21,
+        9
+      ]
+    ]
+  },
+  "female": {
+    "source": "HyenaTrailclothFemale.bbmodel",
+    "source_sha256": "0818305d2eeab6c482c86dc8f23152be6c016cef48915f56f729445c8e8a3f5f",
+    "cubes": 13,
+    "texture_sha256": "a3ba540de4efdca783520d4526ffbcdb81166f7d93e10486b8df9b0cb745054a",
+    "other_texture_sha256": "13e7de79431cf82e3de8a07a51657f2337b20ac7cdc4843a7b1471a296494210",
+    "back_strap_bridge": [
+      [
+        20,
+        5
+      ],
+      [
+        20,
+        6
+      ],
+      [
+        20,
+        7
+      ],
+      [
+        20,
+        8
+      ],
+      [
+        20,
+        9
+      ],
+      [
+        21,
+        5
+      ],
+      [
+        21,
+        6
+      ],
+      [
+        21,
+        7
+      ],
+      [
+        21,
+        8
+      ],
+      [
+        21,
+        9
+      ]
+    ]
+  }
+}

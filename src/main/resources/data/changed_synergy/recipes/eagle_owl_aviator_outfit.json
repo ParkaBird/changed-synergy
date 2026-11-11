@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IGI",
+    "LSL",
+    "L L"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_nugget"
+    },
+    "G": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "S": {
+      "item": "minecraft:orange_wool"
+    }
+  },
+  "result": {
+    "item": "changed_synergy:eagle_owl_aviator_outfit"
+  }
+}

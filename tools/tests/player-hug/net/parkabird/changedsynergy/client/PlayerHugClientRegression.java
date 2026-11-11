@@ -65,7 +65,7 @@ public final class PlayerHugClientRegression {
             if(stage==1&&mc.player.tickCount>25&&mc.screen==null){
                 task=server(mc,()->{
                     var p=owner(mc);p.setHealth(p.getMaxHealth());p.setGameMode(GameType.SURVIVAL);
-                    ProcessTransfur.setPlayerTransfurVariant(p,ChangedRegistry.TRANSFUR_VARIANT.get().getValue(id("changed_synergy:form_latex_muntjac")),null,1,false);
+                    ProcessTransfur.setPlayerTransfurVariant(p,ChangedRegistry.TRANSFUR_VARIANT.get().getValue(id("changed_synergy:form_latex_muntjac/male")),null,1,false);
                 });stage=2;wait=0;
             }
             if(stage==2&&task.isDone()&&++wait>12&&ProcessTransfur.isPlayerTransfurred(mc.player)){

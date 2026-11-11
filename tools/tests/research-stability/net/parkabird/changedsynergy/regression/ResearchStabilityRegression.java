@@ -38,7 +38,11 @@ import net.parkabird.changedsynergy.world.ResearchLabStructure;
 /** Actual placement, survival and post-generation drop checks, in a disposable world. */
 @Mod.EventBusSubscriber(modid="changed_synergy", value=Dist.DEDICATED_SERVER)
 public final class ResearchStabilityRegression {
-    private static final String[] NAMES={"red_lab_tower","green_lab","white_lab_tower","water_tower_changed"};
+    private static final String[] NAMES=Boolean.getBoolean("changed_synergy.stabilityDesertCamps")
+            ? new String[]{"oasis","muddy_campsite"} : Boolean.getBoolean("changed_synergy.stabilityObservatory")
+            ? new String[]{"observatory"} : Boolean.getBoolean("changed_synergy.stabilityHyenas")
+            ? new String[]{"hyena_hideout","hyena_camp_tropical","hyena_camp_open","hyena_camp_snowy"}
+            : new String[]{"red_lab_tower","green_lab","white_lab_tower","water_tower_changed"};
     private static MinecraftServer server;
     private static ServerLevel level;
     private static ServerPlayer observer;

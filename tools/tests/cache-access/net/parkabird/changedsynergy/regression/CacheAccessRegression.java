@@ -53,6 +53,7 @@ public final class CacheAccessRegression {
                 access(level, score, true);
             }
             exceptions(level);
+            CacheWitnessChecks.run(server);
             System.out.println("COMMUNITY_REGRESSION_PASS: " + checks
                     + " wild-cache access, real inventory transfer, warnings, guards and advancement checks");
         } catch (Throwable failure) {
@@ -84,11 +85,21 @@ public final class CacheAccessRegression {
         return guard;
     }
 
-    private static void use(ServerPlayer player, BlockPos pos, InteractionHand hand) {
+    private static void attempt(ServerPlayer player, BlockPos pos, InteractionHand hand) {
         var hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
         var event = new PlayerInteractEvent.RightClickBlock(player, hand, pos, hit);
         CreatureCacheGuardEvents.onCacheAccess(event);
         check(!event.isCanceled(), "cache click is never blocked by faction standing");
+    }
+
+    private static void use(ServerPlayer player, BlockPos pos, InteractionHand hand) {
+        player.closeContainer();
+        attempt(player,pos,hand);
+        if(hand==InteractionHand.MAIN_HAND) {
+            var state=player.serverLevel().getBlockState(pos);
+            state.getBlock().use(state,player.serverLevel(),pos,player,hand,
+                    new BlockHitResult(Vec3.atCenterOf(pos),Direction.UP,pos,false));
+        }
     }
 
     private static void access(ServerLevel level, int score, boolean witnessed) {
@@ -104,16 +115,17 @@ public final class CacheAccessRegression {
             var advancement = level.getServer().getAdvancements().getAdvancement(
                     ResourceLocation.fromNamespaceAndPath("changed_synergy", SynergyAdvancements.MYSTERIOUS_FORAGING_SPOT));
             player.getAdvancements().revoke(advancement, "complete");
-            use(player, CACHE, InteractionHand.MAIN_HAND);
+            attempt(player, CACHE, InteractionHand.MAIN_HAND);
             int expected = score - (witnessed && standing.ordinal() < FactionReputation.Standing.RESPECTED.ordinal() ? 2 : 0);
-            check(FactionReputation.score(guard, player) == expected, "witnessed reputation consequences retained");
-            check(CreatureCacheGuardService.isDefendingAgainst(guard, player)
-                            == (witnessed && standing.ordinal() < FactionReputation.Standing.RESPECTED.ordinal()),
-                    "guards retaliate at the original standings, without closing storage");
+            check(FactionReputation.score(guard, player) == score, "attempt alone has no offence");
             check(!player.getAdvancements().getOrStartProgress(advancement).isDone(), "attempt alone earns no advancement");
             var state = level.getBlockState(CACHE);
             state.getBlock().use(state, level, CACHE, player, InteractionHand.MAIN_HAND,
                     new BlockHitResult(Vec3.atCenterOf(CACHE), Direction.UP, CACHE, false));
+            check(FactionReputation.score(guard, player) == expected, "witnessed reputation consequences retained");
+            check(CreatureCacheGuardService.isDefendingAgainst(guard, player)
+                            == (witnessed && standing.ordinal() < FactionReputation.Standing.RESPECTED.ordinal()),
+                    "guards retaliate at the original standings, without closing storage");
             check(player.containerMenu instanceof ChestMenu, "real barrel menu opens at score " + score + ", witness=" + witnessed);
             player.containerMenu.clicked(0, 0, ClickType.QUICK_MOVE, player);
             check(container.getItem(0).isEmpty() && player.getInventory().countItem(Items.BREAD) == 3,

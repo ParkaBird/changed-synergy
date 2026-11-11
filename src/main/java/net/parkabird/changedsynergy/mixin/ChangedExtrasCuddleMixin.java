@@ -1,5 +1,7 @@
 package net.parkabird.changedsynergy.mixin;
 
+import net.parkabird.changedsynergy.ai.CreatureGrabService;
+
 import net.ltxprogrammer.changed.ability.GrabEntityAbility;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.world.entity.player.Player;
@@ -7,7 +9,6 @@ import net.parkabird.changedsynergy.ai.BondedSuitService;
 import net.parkabird.changedsynergy.ai.PlayerOutpostService;
 import net.parkabird.changedsynergy.ai.SocialAudienceGoal;
 import net.parkabird.changedsynergy.ai.TakeoverService;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
@@ -24,7 +25,7 @@ public abstract class ChangedExtrasCuddleMixin {
         if (TrueTransfurCompat.isInstinctBody(creature) || PlayerOutpostService.hasAssignment(creature)
                 || creature.isSleeping() || creature.isPassenger() || creature.isVehicle()
                 || SocialAudienceGoal.isActive(creature) || TakeoverService.carrying(creature)
-                || ChangedAddonCompat.isGrabberBusy(creature) || GrabEntityAbility.getGrabber(creature) != null
+                || CreatureGrabService.isGrabberBusy(creature) || GrabEntityAbility.getGrabber(creature) != null
                 || creature.getPersistentData().hasUUID("ChangedSynergyRestOwner")) {
             callback.setReturnValue(null);
             return;

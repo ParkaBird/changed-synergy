@@ -31,11 +31,15 @@ public record FriendlySocialHugSyncPacket(
             FriendlySocialHugSyncPacket packet,
             Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
-        context.enqueueWork(() -> FriendlySocialHugState.update(
+        context.enqueueWork(() -> {
+            FriendlySocialHugState.update(
                 packet.grabberId,
                 packet.grabbedId,
                 packet.active,
-                packet.durationTicks));
+                packet.durationTicks);
+            net.parkabird.changedsynergy.client.RevivalGrabAbilityClient.socialHold(
+                    packet.grabberId, packet.grabbedId, packet.active);
+        });
         context.setPacketHandled(true);
     }
 }

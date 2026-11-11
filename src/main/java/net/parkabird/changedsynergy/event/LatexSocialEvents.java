@@ -1,5 +1,7 @@
 package net.parkabird.changedsynergy.event;
 
+import net.parkabird.changedsynergy.ai.CreatureGrabService;
+
 import java.util.HashMap;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -653,9 +655,9 @@ public final class LatexSocialEvents {
         }
 
         event.setCanceled(true);
-        var grabbedTarget = ChangedAddonCompat.socialCombatGrabTarget(mob, player);
-        if (grabbedTarget.isPresent()) {
-            grabbedTarget.get().hurt(event.getSource(), event.getAmount());
+        var grabbedTarget = CreatureGrabService.socialCombatGrabTarget(mob, player);
+        if (grabbedTarget != null) {
+            grabbedTarget.hurt(event.getSource(), event.getAmount());
             return;
         }
         calmTowards(mob, player);
@@ -1214,6 +1216,7 @@ public final class LatexSocialEvents {
                             InvoluntaryTransfurNegotiation
                                     .canBondedReversal(pet, player));
                     extraData.writeBoolean(BondedSuitService.isSuitingOwner(pet, player));
+                    extraData.writeUtf(net.parkabird.changedsynergy.ai.CompanionSeatingService.action(pet, player));
                 });
     }
 

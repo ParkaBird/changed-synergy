@@ -1,0 +1,4 @@
+{
+  "entities": ["changed:milk_pudding"],
+  "slots": ["changed:body", "changed:full_body", "changed:head", "changed:face"]
+}

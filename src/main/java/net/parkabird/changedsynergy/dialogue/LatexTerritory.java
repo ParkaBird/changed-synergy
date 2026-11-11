@@ -306,6 +306,13 @@ public enum LatexTerritory {
     }
 
     public static String populationRegion(
+            Holder<Biome> biome, @Nullable ResourceLocation biomeId, boolean underground) {
+        return net.parkabird.changedsynergy.ai.FactionDiplomacy.canonicalRegion(
+                habitatRegion(biome, biomeId, underground));
+    }
+
+    /** Physical habitat remains distinct from a political population's merged identity. */
+    public static String habitatRegion(
             Holder<Biome> biome,
             @Nullable ResourceLocation biomeId,
             boolean underground) {

@@ -243,7 +243,8 @@ public final class HuntAIEvents {
 
     @SubscribeEvent
     public static void onHunterDamaged(LivingDamageEvent event) {
-        if (!(event.getEntity() instanceof ChangedEntity victim)
+        if (event.getSource().is(net.ltxprogrammer.changed.init.ChangedDamageSources.GRAB_ESCAPE.key())
+                || !(event.getEntity() instanceof ChangedEntity victim)
                 || !(event.getSource().getEntity() instanceof ServerPlayer player)
                 || !(victim.level() instanceof ServerLevel level)
                 || event.getAmount() <= 0.0F

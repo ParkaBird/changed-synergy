@@ -1,0 +1,12 @@
+{
+  "size": 1,
+  "order": 203,
+  "icon": "changed:item/empty_hands_slot",
+  "validators": [
+    "changed_synergy:clothing"
+  ],
+  "drop_rule": "ALWAYS_KEEP",
+  "add_cosmetic": false,
+  "render_toggle": true,
+  "use_native_gui": true
+}

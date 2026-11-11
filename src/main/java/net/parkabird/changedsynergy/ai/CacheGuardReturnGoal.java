@@ -30,8 +30,8 @@ public final class CacheGuardReturnGoal extends Goal {
                 || PlayerOutpostService.hasAssignment(guard)
                 || guard.getTarget() != null
                 || guard.isNoAi()
-                || CreatureLifeMemory.role(guard)
-                        != CreatureLifeMemory.GroupRole.GUARD) {
+                || CreatureLifeMemory.role(guard) != CreatureLifeMemory.GroupRole.GUARD
+                        && !NaturalCampService.member(guard)) {
             return false;
         }
         assignment = CreatureCacheGuardService.assignment(guard)

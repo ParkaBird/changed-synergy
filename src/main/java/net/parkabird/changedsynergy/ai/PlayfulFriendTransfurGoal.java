@@ -74,7 +74,7 @@ public final class PlayfulFriendTransfurGoal extends Goal {
                 && mob.isAlive() && !mob.isRemoved() && mob.getTarget() == null
                 && !PlayerOutpostService.isWorking(mob)
                 && !mob.isSleeping() && !mob.isPassenger() && !mob.isVehicle()
-                && !ChangedAddonCompat.isGrabberBusy(mob) && !TakeoverService.carrying(mob)
+                && !CreatureGrabService.isGrabberBusy(mob) && !TakeoverService.carrying(mob)
                 && player.isAlive() && !player.isCreative() && !player.isSpectator()
                 && player.level() == mob.level() && mob.distanceToSqr(player) <= 36 && mob.hasLineOfSight(player)
                 && !TrueTransfurCompat.isInstinctShell(player) && !NativeOriginService.pending(player)

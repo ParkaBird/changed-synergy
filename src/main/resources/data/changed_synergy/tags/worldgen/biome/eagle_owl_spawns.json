@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:is_mountain",
+    "minecraft:grove",
+    "minecraft:snowy_slopes",
+    "minecraft:stony_peaks",
+    "minecraft:jagged_peaks",
+    "minecraft:frozen_peaks"
+  ]
+}

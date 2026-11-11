@@ -201,9 +201,11 @@ public final class RelationshipFavorService {
     public static boolean canOpenBasicWheel(ChangedEntity creature, ServerPlayer player) {
         return net.parkabird.changedsynergy.init.ChangedSynergyGameRules.enabled(creature.level(), net.parkabird.changedsynergy.init.ChangedSynergyGameRules.FRIENDSHIP_SYSTEM)
                 && CreatureSocialProfile.allowsPersonalRelationship(creature)
-                && !net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
+                && (!net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
+                    || net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player)!=player)
                 && !isGiftRejected(creature, player)
-                && (CreaturePersonality.hasTrustedRelationship(creature, player)
+                && (net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(creature)
+                    || CreaturePersonality.hasTrustedRelationship(creature, player)
                     || LatexSocialMemory.isPetOwner(creature, player)
                     || CreaturePersonality.balanced() && (!FactionReputation.isHostile(creature, player)
                             || LatexSocialMemory.isTruced(creature, player))
@@ -322,7 +324,7 @@ public final class RelationshipFavorService {
         var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player);
         if (!creature.isAlive() || !body.isAlive() || body.isRemoved() || body.level() != creature.level()
                 || body == player && net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctShell(player)
-                || net.parkabird.changedsynergy.compat.ChangedAddonCompat.isGrabberBusy(creature)
+                || net.parkabird.changedsynergy.ai.CreatureGrabService.isGrabberBusy(creature)
                 || TakeoverService.active(player)) return false;
         return !(creature.getLastHurtByMob() == body && creature.tickCount - creature.getLastHurtByMobTimestamp() < 200
                 || body.getLastHurtMob() == creature && body.tickCount - body.getLastHurtMobTimestamp() < 200);

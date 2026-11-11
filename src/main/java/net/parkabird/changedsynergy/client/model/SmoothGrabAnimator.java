@@ -39,6 +39,11 @@ public final class SmoothGrabAnimator<T extends ChangedEntity, M extends Advance
 
     @Override public void setupAnim(T entity, float limbSwing, float limbSwingAmount,
             float ageInTicks, float netHeadYaw, float headPitch) {
+        if (net.parkabird.changedsynergy.ai.EagleOwlTraits.airborne(
+                net.parkabird.changedsynergy.client.PlayerHugPoses.physical(entity))) {
+            transitions.remove(entity);
+            return;
+        }
         GrabState requested = core.grabState;
         var grab = entity.getAbilityInstance(ChangedAbilities.GRAB_ENTITY_ABILITY.get());
         // Hold ticks start on the next tick; the controller already knows the key is down.

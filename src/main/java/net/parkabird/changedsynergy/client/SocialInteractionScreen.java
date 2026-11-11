@@ -26,6 +26,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.ai.HunterFaction;
 import net.parkabird.changedsynergy.ai.InvoluntaryTransfurNegotiation.Approach;
+import net.parkabird.changedsynergy.client.RelationshipPanel.InfoCard;
+import net.parkabird.changedsynergy.client.RelationshipPanel.PreparedCard;
 import net.parkabird.changedsynergy.world.inventory.SocialInteractionMenu.CommunityStorage;
 import net.parkabird.changedsynergy.world.inventory.SocialInteractionMenu;
 
@@ -67,7 +69,8 @@ public final class SocialInteractionScreen
             emote("negotiation_empathy", "heart"),
             emote("negotiation_apology", "confused"),
             emote("negotiation_bargain", "idea"),
-            emote("negotiation_insist", "deny"));
+            emote("negotiation_insist", "deny"),
+            emote("negotiation_forgive", "heart"));
     private static final Action NEGOTIATION_FOOD_BRIBE = synergyIcon(
             "negotiation_food_bribe", "orange_gray.png", 16);
     private static final Action NEGOTIATION_FOOD_BRIBE_FELINE = synergyIcon(
@@ -75,6 +78,13 @@ public final class SocialInteractionScreen
     private final List<Action> actions;
     @Nullable
     private final LivingEntity absorptionPreviewEntity;
+    private static List<Action> npcActions(List<Action> entries,SocialInteractionMenu menu) {
+        boolean fixed=menu.getProgression().getBoolean("StoryNpc");
+        if(!fixed&&!menu.getProgression().getBoolean("CampDialogue"))return List.copyOf(entries);
+        return entries.stream().filter(a->!fixed||!java.util.Set.of("social_follow","social_native_bond","social_voluntary_transfur","social_friendly_transfur","social_inventory").contains(a.command()))
+                .filter(a->!menu.getProgression().getBoolean("NoNpcDialogue")||!a.command().equals("social_talk"))
+                .map(a->a.command().equals("social_talk")?new Action("npc_dialogue",a.texture(),a.textureSize()):a).toList();
+    }
     private boolean manualGoodbyeSent;
     private boolean voluntaryConfirmationArmed;
 
@@ -90,7 +100,7 @@ public final class SocialInteractionScreen
         if (menu.isPlayerMode()) {
             List<Action> entries=new ArrayList<>(PLAYER_ACTIONS);
             if(menu.getProgression().getBoolean("PlayerEligible"))entries.add(emote(menu.getProgression().getBoolean("PlayerFriends")?"social_unfriend":"social_friend","heart"));
-            actions=List.copyOf(entries);
+            actions=npcActions(entries,menu);
         } else if (menu.isNegotiationMode()) {
             List<Action> entries = new ArrayList<>(NEGOTIATION_ACTIONS);
             if (menu.isFoodBribeAvailable()) {
@@ -98,7 +108,7 @@ public final class SocialInteractionScreen
                         ? NEGOTIATION_FOOD_BRIBE_FELINE
                         : NEGOTIATION_FOOD_BRIBE);
             }
-            actions = List.copyOf(entries);
+            actions = npcActions(entries,menu);
         } else if (menu.isBondedMode()) {
             List<Action> entries = new ArrayList<>(BONDED_ACTIONS);
             if (menu.getProgression().getBoolean("CanFriendlyTransfur")) entries.add(FRIENDLY_TRANSFUR);
@@ -107,7 +117,7 @@ public final class SocialInteractionScreen
             }
             if (menu.getProgression().getBoolean("TokenReserved")) entries.add(WITHDRAW_TOKEN);
             addSeatAction(entries, menu);
-            actions = List.copyOf(entries);
+            actions = npcActions(entries,menu);
         } else {
             List<Action> entries = new ArrayList<>();
             if (menu.hasTrustedRelationship()) {
@@ -132,7 +142,7 @@ public final class SocialInteractionScreen
                 entries.add(PROVISIONER_TRADE);
             }
             addSeatAction(entries, menu);
-            actions = List.copyOf(entries);
+            actions = npcActions(entries,menu);
         }
     }
 
@@ -367,8 +377,7 @@ public final class SocialInteractionScreen
         if (menu.isBondedMode() && !menu.isNegotiationMode()) {
             renderSwitchHint(
                     graphics,
-                    Component.translatable(
-                            "menu.changed_synergy.wheel.switch_to_functions"));
+                    RadialWheelAnimations.scrollHint(this,"menu.changed_synergy.wheel.switch_to_functions"));
         }
     }
 
@@ -454,7 +463,7 @@ public final class SocialInteractionScreen
                         "routine.changed_synergy.role." + menu.getRole().id()),
                 Component.translatable(
                         "routine.changed_synergy.state." + menu.getRoutine().id())));
-        for (int index = 0; menu.getRole() != net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole.WANDERER && index < 3; index++) {
+        for (int index = 0; menu.getRole() != net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole.WANDERER && menu.getRole() != net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole.CHIEF && index < 3; index++) {
             currentState.add(Component.translatable(
                     "menu.changed_synergy.social.info.role_stat",
                     Component.translatable(
@@ -466,7 +475,7 @@ public final class SocialInteractionScreen
         List<Component> connections = new ArrayList<>();
         connections.add(Component.translatable(
                 "menu.changed_synergy.social.info.faction",
-                Component.translatable(
+                Component.translatable(menu.getProgression().getBoolean("LocalCamp")?"camp.changed_synergy.local_trust":
                         menu.getReputationGroupTranslationKey()).withStyle(style -> style.withColor(UiMotion.factionColor(menu.getFaction()))),
                 Component.translatable(menu.getFactionStanding().translationKey()),
                 menu.getReputation()));
@@ -564,7 +573,7 @@ public final class SocialInteractionScreen
         int cardWidth = RelationshipPanel.CARD_WIDTH;
         int textWidth = cardWidth - 26;
         List<PreparedCard> prepared = cards.stream()
-                .map(card -> prepareCard(card, textWidth))
+                .map(card -> RelationshipPanel.prepareCard(font, card, textWidth))
                 .toList();
         int gap = 10;
         int totalHeight = prepared.stream()
@@ -582,7 +591,7 @@ public final class SocialInteractionScreen
         int cardY = 0;
         for (int index = 0; index < prepared.size(); index++) {
             PreparedCard card = prepared.get(index);
-            float entrance = UiMotion.entrance(panelsOpenedAt, index);
+            float entrance = RadialWheelAnimations.instantArrival(this) ? 1 : UiMotion.entrance(panelsOpenedAt, index);
             int slide = UiMotion.reduced() ? 0 : Math.round(-12 * (1 - entrance));
             var style = switch (index) {
                 case 0 -> RelationshipPanel.CardStyle.STATUS;
@@ -594,15 +603,6 @@ public final class SocialInteractionScreen
             cardY += card.height() + gap;
         }
         graphics.pose().popPose();
-    }
-
-    private PreparedCard prepareCard(InfoCard card, int textWidth) {
-        List<FormattedCharSequence> lines = new ArrayList<>();
-        for (Component line : card.lines()) {
-            lines.addAll(font.split(line, textWidth));
-        }
-        return new PreparedCard(card.title(), List.copyOf(lines),
-                RelationshipPanel.GEL_TEXT_PADDING + Math.max(1, lines.size()) * 9);
     }
 
     private void renderInfoCard(
@@ -822,12 +822,4 @@ public final class SocialInteractionScreen
             int textureSize) {
     }
 
-    private record InfoCard(Component title, List<Component> lines) {
-    }
-
-    private record PreparedCard(
-            Component title,
-            List<FormattedCharSequence> lines,
-            int height) {
-    }
 }

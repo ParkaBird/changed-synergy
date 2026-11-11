@@ -1,5 +1,7 @@
 package net.parkabird.changedsynergy.mixin;
 
+import net.parkabird.changedsynergy.ai.CreatureGrabService;
+
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.ability.AbstractAbility;
 import net.ltxprogrammer.changed.ability.AbstractAbilityInstance;
@@ -108,9 +110,9 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance
                 || net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(mob)) return false;
         return entity.getLevel().isClientSide()
                 ? FriendlySocialHugState.isActive(mob.getId(), grabbedEntity.getId())
-                        || net.parkabird.changedsynergy.compat.ChangedAddonCompat.isSafeGrab(this)
+                        || CreatureGrabService.isSafeGrab(this)
                 : LatexSocialMemory.isFriendlyArmHoldTarget(mob, grabbedEntity)
-                        || net.parkabird.changedsynergy.compat.ChangedAddonCompat.isSafeGrab(this);
+                        || CreatureGrabService.isSafeGrab(this);
     }
 
     /** A safe social hold must expire even if Addon's grab-AI flag is disabled mid-hug. */
@@ -393,7 +395,7 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance
                 if (releasedOwner != null) {
                     // Preserve friendly markers until native debuffs have been decided.
                     LatexSocialMemory.blockGrabAgainst(mob, releasedOwner, 60);
-                    ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> releasedOwner),
+                    ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> mob),
                             new net.parkabird.changedsynergy.network.FriendlySocialHugSyncPacket(mob.getId(), releasedOwner.getId(), false, 0));
                     net.ltxprogrammer.changed.Changed.PACKET_HANDLER.send(PacketDistributor.TRACKING_ENTITY.with(() -> mob),
                             new net.ltxprogrammer.changed.network.packet.GrabEntityPacket(mob, releasedOwner,

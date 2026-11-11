@@ -1,0 +1,22 @@
+{
+  "male": {
+    "source": "LatexSpottedHyenaMaleUnified.bbmodel",
+    "sha256": "b8f3303ff49823c0860fd991f8040d6dc2abbf68bbbe3b4f4dde12d2cefa1f9a",
+    "cubes": 36,
+    "bones": 21,
+    "texture": [
+      128,
+      128
+    ]
+  },
+  "female": {
+    "source": "LatexSpottedHyenaFemaleUnified.bbmodel",
+    "sha256": "e525ae8fce70c1ad393267645de370555f992b0866ac922c8bd998445dcd1bdb",
+    "cubes": 40,
+    "bones": 22,
+    "texture": [
+      128,
+      128
+    ]
+  }
+}

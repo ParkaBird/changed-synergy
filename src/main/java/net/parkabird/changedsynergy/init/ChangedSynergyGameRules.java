@@ -41,6 +41,8 @@ public final class ChangedSynergyGameRules {
             enabledByDefault("changedSynergyHypnosisQte", GameRules.Category.PLAYER);
     public static final GameRules.Key<GameRules.BooleanValue> GRAB_QTE_ENHANCEMENTS =
             enabledByDefault("changedSynergyGrabQteEnhancements", GameRules.Category.PLAYER);
+    public static final GameRules.Key<GameRules.BooleanValue> NO_CIVILIZATION_MODE =
+            disabledByDefault("changedSynergyNoCivilizationMode", GameRules.Category.MISC);
 
     private ChangedSynergyGameRules() {
     }
@@ -66,7 +68,19 @@ public final class ChangedSynergyGameRules {
     public static boolean enabled(
             Level level,
             GameRules.Key<GameRules.BooleanValue> rule) {
-        return level == null || level.getGameRules().getBoolean(rule);
+        if (level == null) {
+            for (Setting<?> setting : SETTINGS) {
+                if (setting.key().equals(rule) && setting.defaultValue() instanceof Boolean b) {
+                    return b;
+                }
+            }
+            return true;
+        }
+        return level.getGameRules().getBoolean(rule);
+    }
+
+    public static boolean noCivilizationMode(Level level) {
+        return level != null && level.getGameRules().getBoolean(NO_CIVILIZATION_MODE);
     }
 
     /** Social contact remains available when either relationship system is active. */
@@ -85,5 +99,11 @@ public final class ChangedSynergyGameRules {
             String name,
             GameRules.Category category) {
         return register(name, category, GameRules.BooleanValue.create(true), true);
+    }
+
+    private static GameRules.Key<GameRules.BooleanValue> disabledByDefault(
+            String name,
+            GameRules.Category category) {
+        return register(name, category, GameRules.BooleanValue.create(false), false);
     }
 }

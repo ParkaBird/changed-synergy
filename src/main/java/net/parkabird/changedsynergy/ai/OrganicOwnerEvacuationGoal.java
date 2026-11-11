@@ -278,7 +278,7 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
                 PacketDistributor.TRACKING_ENTITY.with(() -> mob),
                 new GrabEntityPacket(mob, passenger, GrabType.ARMS));
         ChangedSynergyNetwork.CHANNEL.send(
-                PacketDistributor.PLAYER.with(() -> owner),
+                PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> mob),
                 new FriendlySocialHugSyncPacket(
                         mob.getId(), passenger.getId(), true,
                         WATCHDOG_HOLD_TICKS));
@@ -297,7 +297,7 @@ public final class OrganicOwnerEvacuationGoal extends Goal {
                     PacketDistributor.TRACKING_ENTITY.with(() -> mob),
                     new GrabEntityPacket(mob, passenger, GrabType.RELEASE));
             ChangedSynergyNetwork.CHANNEL.send(
-                    PacketDistributor.PLAYER.with(() -> owner),
+                    PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> mob),
                     new FriendlySocialHugSyncPacket(
                             mob.getId(), passenger.getId(), false, 0));
             if (announce) {

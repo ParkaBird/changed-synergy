@@ -1,0 +1,84 @@
+{
+  "source": "forest_treehouse.nbt",
+  "source_sha256": "d863934563cbb1b971bfbc59a3da514f5eb712f5095fec39a230f3259ebbd58a",
+  "output_sha256": "ad44b20a0b23c97f006d985393f7d175b5c666898c226401aebb60b4da4cd3d8",
+  "size": [
+    27,
+    41,
+    24
+  ],
+  "forest_residents": 6,
+  "entities": 12,
+  "ground_level": 0,
+  "changes": {
+    "removed draft-book chest": [
+      26,
+      1,
+      0
+    ],
+    "canopy_resident": "changed_synergy:latex_silk_moth, forest_canopy_outfit",
+    "journal_species_and_page_flow": 1,
+    "imported_editing_world": "Synergy-鏍戝眿缂栬緫-20261102",
+    "loom_double_chest_loot": "minecraft:chests/village/village_shepherd",
+    "canopy_eyes": {
+      "style": "TALL",
+      "rgb": "#FFC100"
+    },
+    "hive_bees": "Three persistent Latex Bees with randomized native eyes; existing blocks and residents unchanged"
+  },
+  "hive_bees": 3,
+  "community_storage": {
+    "positions": [
+      [
+        20,
+        1,
+        6
+      ],
+      [
+        20,
+        1,
+        7
+      ]
+    ],
+    "facing": "east",
+    "empty": true,
+    "loot_table": false
+  },
+  "private_storage_positions": [
+    [
+      13,
+      12,
+      19
+    ],
+    [
+      12,
+      9,
+      3
+    ],
+    [
+      24,
+      7,
+      10
+    ],
+    [
+      11,
+      1,
+      5
+    ],
+    [
+      16,
+      29,
+      9
+    ],
+    [
+      17,
+      29,
+      9
+    ],
+    [
+      9,
+      29,
+      11
+    ]
+  ]
+}

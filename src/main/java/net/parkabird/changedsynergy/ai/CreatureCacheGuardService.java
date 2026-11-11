@@ -30,7 +30,7 @@ public final class CreatureCacheGuardService {
     private static final int TOLERATED_ACCESS_COUNT = 2;
     private static final int CACHE_DESTRUCTION_REPUTATION_COST = -10;
     private static final int MAX_GUARDS_PER_CACHE = 3;
-    private static final double GUARD_SEARCH_RADIUS = 28.0D;
+    private static final double WITNESS_RADIUS = 16.0D;
     private static final double GUARD_PATROL_RADIUS = 96.0D;
     private static final double DEFENSE_RADIUS_SQR = 18.0D * 18.0D;
     private static final Map<UUID, Assignment> ASSIGNMENTS = new HashMap<>();
@@ -43,23 +43,31 @@ public final class CreatureCacheGuardService {
             ServerPlayer player,
             BlockPos position) {
         if (player.isCreative() || player.isSpectator()
-                || !ChangedSynergyGameRules.enabled(
+                || !NaturalCampService.isStorage(level,position) && !ChangedSynergyGameRules.enabled(
                         level, ChangedSynergyGameRules.FACTION_REPUTATION)) {
             return;
         }
         Optional<CreatureCommunityData.Snapshot> community =
                 CreatureCommunityData.snapshotAtCache(level, position);
-        if (community.isEmpty()) {
+        if (community.isEmpty() && !NaturalCampService.isStorage(level, position)) {
             return;
         }
-        position = community.get().cache().orElse(position);
+        position = community.flatMap(CreatureCommunityData.Snapshot::cache).orElse(position);
         List<ChangedEntity> members = membersAtCache(level, player, position);
         if (members.isEmpty()) {
             return;
         }
         ChangedEntity witness = members.get(0);
+        if(NaturalCampService.member(witness)&&net.parkabird.changedsynergy.npc.CampMembershipService.readableStory(witness,position))return;
+        if(net.parkabird.changedsynergy.npc.CampMembershipService.sharedStorage(witness,player,position))return;
+        if(NaturalCampService.member(witness)&&net.parkabird.changedsynergy.npc.CampMembershipService.privateStorage(witness,position)) {
+            int visits=recordAccess(witness,player,level.getGameTime());
+            NpcDialogue.context(witness,player,visits>2?"camp_private_storage_repeat":"camp_private_storage");
+            if(visits>2)applyReputationCost(witness,player,level.getGameTime(),-2);
+            return;
+        }
         FactionReputation.Standing standing =
-                FactionReputation.standing(witness, player);
+                standing(witness, player);
         if (standing == FactionReputation.Standing.ALLIED) {
             if (recordAccess(witness, player, level.getGameTime()) == 1) {
                 NpcDialogue.trigger(witness, player, Cue.CACHE_ALLIED_ACCESS);
@@ -90,12 +98,18 @@ public final class CreatureCacheGuardService {
         attackIntruder(members, witness, player, position);
     }
 
+    private static FactionReputation.Standing standing(ChangedEntity witness,ServerPlayer player) {
+        if(!NaturalCampService.member(witness))return FactionReputation.standing(witness,player);
+        return net.parkabird.changedsynergy.npc.CampMembershipService.standing(witness,player);
+    }
+
     /** Breaking a community cache is an immediate offence at every standing. */
     public static void handleCacheDestroyed(
             ServerLevel level,
             ServerPlayer player,
             BlockPos position) {
-        if (player.isCreative() || player.isSpectator()) {
+        if (player.isCreative() || player.isSpectator()
+                || !NaturalCampService.isStorage(level,position) && !ChangedSynergyGameRules.enabled(level, ChangedSynergyGameRules.FACTION_REPUTATION)) {
             return;
         }
         position = CreatureCommunityData.snapshotAtCache(level, position)
@@ -106,7 +120,7 @@ public final class CreatureCacheGuardService {
         }
         ChangedEntity witness = members.get(0);
         FactionReputation.Standing standing =
-                FactionReputation.standing(witness, player);
+                standing(witness, player);
         FactionReputation.adjust(
                 witness, player, CACHE_DESTRUCTION_REPUTATION_COST);
         boolean trusted = standing == FactionReputation.Standing.RESPECTED
@@ -124,14 +138,16 @@ public final class CreatureCacheGuardService {
             BlockPos position) {
         return level.getEntitiesOfClass(
                         ChangedEntity.class,
-                        new AABB(position).inflate(GUARD_SEARCH_RADIUS, 10.0D,
-                                GUARD_SEARCH_RADIUS),
+                        player.getBoundingBox().inflate(WITNESS_RADIUS),
                         creature -> creature.isAlive()
                                 && !creature.isNoAi()
+                                && !creature.isSleeping()
+                                && creature.distanceToSqr(player) <= WITNESS_RADIUS * WITNESS_RADIUS
+                                && creature.hasLineOfSight(player)
                                 && LatexSocialMemory.isSocialLatex(creature)
                                 && !CreatureCommunityData.isPlayerCompanion(creature)
                                 && !PlayerOutpostService.hasAssignment(creature)
-                                && (CreatureSettlementService.cachePosition(creature)
+                                && (NaturalCampService.ownsStorage(creature, position) || CreatureSettlementService.cachePosition(creature)
                                                 .filter(position::equals).isPresent()
                                         || CreatureLifeMemory.role(creature)
                                                         == GroupRole.GUARD
@@ -148,6 +164,15 @@ public final class CreatureCacheGuardService {
             ChangedEntity witness,
             ServerPlayer player,
             BlockPos position) {
+        if (NaturalCampService.ownsStorage(witness, position)) {
+            // Natural residents defend their own camp without taking a wild-outpost job.
+            members.stream().filter(member -> NaturalCampService.ownsStorage(member, position))
+                    .filter(member -> CreatureLifeMemory.role(member) != GroupRole.YOUNGSTER)
+                    .filter(member -> assignment(member).isEmpty() || isDefendingAgainst(member, player))
+                    .limit(MAX_GUARDS_PER_CACHE)
+                    .forEach(member -> begin(member, player, position));
+            return;
+        }
         CreatureCacheGuardService.ensureGuardPresence(witness, position);
         ServerLevel level = (ServerLevel) witness.level();
         List<ChangedEntity> stationed = stationedGuards(level, position);
@@ -157,25 +182,18 @@ public final class CreatureCacheGuardService {
         if (guards.isEmpty() && stationed.size() < MAX_GUARDS_PER_CACHE) {
             members.stream()
                     .filter(member -> CreatureLifeMemory.role(member) != GroupRole.WANDERER)
-                    .filter(member -> CreatureLifeMemory.role(member)
-                            != GroupRole.YOUNGSTER)
-                    .filter(member -> CreatureLifeMemory.role(member)
-                            != GroupRole.GUARD)
+                    .filter(member -> CreatureLifeMemory.role(member) != GroupRole.YOUNGSTER)
+                    .filter(member -> CreatureLifeMemory.role(member) != GroupRole.GUARD)
                     .filter(member -> assignment(member).isEmpty())
                     .filter(member -> !CreatureCommunityData.isPlayerCompanion(member))
                     .filter(member -> !PlayerOutpostService.hasAssignment(member))
                     .min(Comparator.comparingDouble(player::distanceToSqr))
                     .ifPresent(member -> {
                         CreatureLifeMemory.setRole(member, GroupRole.GUARD);
-                        if (patrolCache(member)
-                                .filter(position::equals).isPresent()) {
-                            guards.add(member);
-                        }
+                        if (patrolCache(member).filter(position::equals).isPresent()) guards.add(member);
                     });
         }
-        for (ChangedEntity guard : guards) {
-            begin(guard, player, position);
-        }
+        for (ChangedEntity guard : guards) begin(guard, player, position);
     }
 
     public static void ensureGuardPresence(
@@ -453,6 +471,11 @@ public final class CreatureCacheGuardService {
     }
 
     private static String communityKey(ChangedEntity witness) {
+        if (NaturalCampService.member(witness)) {
+            var bounds = NaturalCampService.bounds(witness);
+            return "camp:" + witness.level().dimension().location() + ":"
+                    + BlockPos.containing(bounds.minX, bounds.minY, bounds.minZ).asLong();
+        }
         return CreatureCommunityData.snapshot(witness)
                 .map(snapshot -> snapshot.id().toString())
                 .orElse("unknown");

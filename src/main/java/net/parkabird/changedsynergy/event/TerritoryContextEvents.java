@@ -97,7 +97,8 @@ public final class TerritoryContextEvents {
         }
         Context context = inspect(level, player,
                 ChangedSynergyGameRules.enabled(
-                        level, ChangedSynergyGameRules.TERRITORY_DISPLAY));
+                        level, ChangedSynergyGameRules.TERRITORY_DISPLAY)
+                && !ChangedSynergyGameRules.noCivilizationMode(level));
         Context previous = LAST_CONTEXT.put(player.getUUID(), context);
         if (context.equals(previous)) {
             return;

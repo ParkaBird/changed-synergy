@@ -50,6 +50,7 @@ public final class AbilityHudMotion {
         var controller = selected.getController();
         int cool = selected.canUse() ? (int)(controller.coolDownPercent() * 32) : 0;
         int active = cool >= 32 ? (int)(controller.getProgressActive() * 32) : 0;
+        float brightness=((net.parkabird.changedsynergy.ability.HypnosisToggle)controller).changedSynergy$hypnosisBrightness();
         if (HIGHLIGHT_FOR[slot] != selected || active == 0 && now - LAST_DRAWN_AT[slot] > 1_000_000_000L) {
             HIGHLIGHT_FOR[slot] = selected; HIGHLIGHT[slot].snap(0, now); LAST_ACTIVE_HEIGHT[slot] = 0;
         }
@@ -69,7 +70,7 @@ public final class AbilityHudMotion {
         graphics.blit(BACKGROUND, x, y, u, 0, 32, 32, 64, 96);
         if (cool > 0) graphics.blit(BACKGROUND, x, y + 32 - cool, u, 32 + 32 - cool, 32, cool, 64, 96);
         if (height > 0 && alpha > 0) {
-            graphics.setColor(fore.red(), fore.green(), fore.blue(), alpha);
+            graphics.setColor(fore.red(), fore.green(), fore.blue(), alpha*brightness);
             graphics.blit(BACKGROUND, x, y + 32 - height, u, 64 + 32 - height, 32, height, 64, 96);
         }
         var nativeColor = active > 0 ? fore : back;

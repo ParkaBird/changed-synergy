@@ -15,28 +15,53 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryStack;
 
-import java.nio.IntBuffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 import static net.parkabird.changedsynergy.client.archive.ArchiveGeometry.*;
 
-/** Folder stock and bound paper from the Godot reference, using Minecraft's existing GUI pipeline. */
+/** Folder stock and bound paper from the Godot reference, using pixel-art textures in Minecraft's GUI pipeline. */
 public final class ArchivePaperRenderer implements AutoCloseable {
     public static final double PAPER_W = ArchiveGeometry.PAPER_W, PAPER_H = ArchiveGeometry.PAPER_H;
-    private static final ResourceLocation PAPER = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/paper_surface.png");
+    public static final ResourceLocation PAPER = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/paper_surface.png");
+    public static final ResourceLocation PAPER_BACK = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/paper_back.png");
+    public static final ResourceLocation FOLDER_FRONT = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/folder_front.png");
+    public static final ResourceLocation FOLDER_FRONT_HOVER = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/folder_front_hover.png");
+    public static final ResourceLocation FOLDER_INNER = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/folder_inner.png");
+    public static final ResourceLocation FOLDER_BACK = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/folder_back.png");
+    public static final ResourceLocation BINDING = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/binding.png");
+    public static final ResourceLocation PAGE_STACK = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/page_stack.png");
+    public static final ResourceLocation PAGE_SHADOW = ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/page_shadow.png");
+    private static final ResourceLocation[] DIVIDERS = {
+            ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/divider_priority.png"),
+            ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/divider_white.png"),
+            ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/divider_dark.png"),
+            ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/divider_variant.png"),
+            ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/divider_organic.png"),
+            ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/divider_aquatic.png")
+    };
+    private static final ResourceLocation[] DIVIDERS_HOVER = {
+            ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/divider_priority_hover.png"),
+            ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/divider_white_hover.png"),
+            ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/divider_dark_hover.png"),
+            ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/divider_variant_hover.png"),
+            ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/divider_organic_hover.png"),
+            ResourceLocation.fromNamespaceAndPath("changed_synergy", "textures/gui/origin_archive/divider_aquatic_hover.png")
+    };
     private static final int FOLDER = 0xFFDAC189, PAPER_EDGE = 0xFFAAA28C;
     private static final int CAPTURE_WIDTH = 774, CAPTURE_HEIGHT = 1095;
     private static boolean capturing;
@@ -47,7 +72,9 @@ public final class ArchivePaperRenderer implements AutoCloseable {
     private boolean turnCaptured;
     private double turnProgress;
     private int hoveredPage = -1;
-    private record FanLayer(Point[] paper, int tint, boolean emphasized) {}
+    private int hoveredTab = -1;
+    private boolean folderHovered;
+    private record FanLayer(Point[] paper, int tint, boolean emphasized, boolean leftSide) {}
     private final List<FanLayer> liftedPaper = new ArrayList<>();
 
     public static boolean isCapturing() { return capturing; }
@@ -60,6 +87,8 @@ public final class ArchivePaperRenderer implements AutoCloseable {
     public void finishTransition() { fromCategory = toCategory = -1; turnCaptured = false; turnProgress = 0; }
     public void progress(double progress) { turnProgress = Math.max(0, Math.min(1, progress)); }
     public void hoverPage(int page) { hoveredPage = page; }
+    public void hoverTab(int tab) { hoveredTab = tab; }
+    public void hoverFolder(boolean hovered) { folderHovered = hovered; }
 
     /** Tab hit rectangles and divider ears share this geometry, including the priority tab. */
     public static double[] tab(int index) {
@@ -72,12 +101,9 @@ public final class ArchivePaperRenderer implements AutoCloseable {
                       int page, int pageCount, boolean detail, int leftAvailable, double fanLeft, double fanRight) {
         graphics.flush();
         liftedPaper.clear();
-        // The rear cover stays fixed; its upper ear belongs to the cover rather than a divider.
-        rectangle(graphics, -18, -19, PAPER_W + 74, PAPER_H + 107, 0x33000000);
-        texture(graphics, -24, -26, PAPER_W + 68, PAPER_H + 100, shade(FOLDER, .94));
-        polygon(graphics, new Point[]{new Point(22, -26), new Point(35, -46), new Point(145, -46),
-                new Point(160, -26)}, FOLDER);
-        border(graphics, -24, -26, PAPER_W + 68, PAPER_H + 100, 1, 0xFF75633C);
+        // Pixel-art drop shadow and rear cover board (with spine-side top ear).
+        spriteQuad(graphics, -16, -18, PAPER_W + 76, PAPER_H + 108, 0, 0, 0.5, 1.0, 0x88FFFFFF, textureId(PAGE_SHADOW));
+        spriteQuad(graphics, -24, -46, PAPER_W + 68, PAPER_H + 100, 0, 0, 1.0, 1.0, 0xFFFFFFFF, textureId(FOLDER_BACK));
         double leafScale = Math.cos(Math.PI * smooth((openProgress - .65) / .35));
         for (int index = colors.length - 1; index >= category; index--) {
             if (!movingDivider(index)) divider(graphics, index, colors[index], 1,
@@ -94,7 +120,7 @@ public final class ArchivePaperRenderer implements AutoCloseable {
             if (leftAvailable > 0) {
                 graphics.pose().pushPose();
                 graphics.pose().scale((float) leafScale, 1, 1);
-                paper(graphics);
+                paperBack(graphics);
                 graphics.pose().popPose();
             }
         }
@@ -102,28 +128,31 @@ public final class ArchivePaperRenderer implements AutoCloseable {
     }
 
     public void paper(GuiGraphics graphics) {
-        texture(graphics, 0, 0, PAPER_W, PAPER_H, 0xFFFFFFFF);
-        border(graphics, 0, 0, PAPER_W, PAPER_H, .7, PAPER_EDGE);
+        spriteQuad(graphics, 0, 0, PAPER_W, PAPER_H, 0, 0, 1.0, 1.0, 0xFFFFFFFF, paperTexture());
+    }
+
+    public void paperBack(GuiGraphics graphics) {
+        spriteQuad(graphics, 0, 0, PAPER_W, PAPER_H, 0, 0, 1.0, 1.0, 0xFFFFFFFF, paperBackTexture());
     }
 
     public void binding(GuiGraphics graphics, double openProgress) {
         if (openProgress <= .02) return;
-        rectangle(graphics, -6, 12, 6, PAPER_H - 12, 0xFF755C30);
-        rectangle(graphics, -.6, 12, .6, PAPER_H - 12, 0xFF3B301F);
+        int bindTex = textureId(BINDING);
+        spriteQuad(graphics, -6, 12, 6, PAPER_H - 12, 0, 0, 24.0 / 96.0, 1.0, 0xFFFFFFFF, bindTex);
         if (openProgress < .70) return;
         double opening = -Math.min(0, Math.cos(Math.PI * smooth((openProgress - .65) / .35)));
+        boolean ringOpen = openProgress < .96 || turnCaptured;
+        double v0 = ringOpen ? 36.0 / 96.0 : 0.0;
+        double v1 = ringOpen ? 72.0 / 96.0 : 36.0 / 96.0;
         for (double y : new double[]{130, PAPER_H * .5, PAPER_H - 130}) {
-            circle(graphics, 15, y, 4, 0xFF4F4738);
-            circle(graphics, -15 * opening, y, 4, 0xFF4F4738);
-            rectangle(graphics, -16 * opening, y - 2, 16, y + 2, 0xFF5C5C52);
-            rectangle(graphics, -15 * opening, y - 1.5, 15, y - .5, 0xFFBBB9A8);
+            spriteQuad(graphics, -22 * opening, y - 12, 22, y + 12, 24.0 / 96.0, v0, 1.0, v1, 0xFFFFFFFF, bindTex);
         }
         if (openProgress > .98) {
             // The bound sheets lift above the seam when fanned. Their inner margin contains no ink.
             for (FanLayer layer : liftedPaper) {
                 Point[] fragment = clipX(clipX(layer.paper, -22, true), 22, false);
                 if (fragment.length < 3) continue;
-                texturedPolygon(graphics, fragment, layer.tint, paperTexture(), false);
+                texturedPolygon(graphics, fragment, layer.tint, layer.leftSide ? paperBackTexture() : paperTexture(), false);
                 if (layer.emphasized) polygon(graphics, fragment, 0x99D8D1C1);
             }
         }
@@ -143,14 +172,9 @@ public final class ArchivePaperRenderer implements AutoCloseable {
         Matrix4f transform = new Matrix4f().identity();
         transform.m00((float) scaleX).m01((float) shear);
         graphics.pose().mulPoseMatrix(transform);
-        texture(graphics, 0, 0, PAPER_W + 68, PAPER_H + 126,
-                shade(FOLDER, .82 + .18 * Math.abs(scaleX)));
-        // The cover ear sits near its free edge; the rear-cover ear stays near the spine.
-        double width = PAPER_W + 68;
-        polygon(graphics, new Point[]{new Point(width - 226, 0), new Point(width - 212, -20),
-                new Point(width - 36, -20), new Point(width - 22, 0)}, FOLDER);
-        border(graphics, 0, 0, PAPER_W + 68, PAPER_H + 126, 1.5, 0xFF2E2E29);
-        rectangle(graphics, 10, 10, 11, PAPER_H + 116, 0xFF94948A);
+        ResourceLocation coverResource = scaleX < 0 ? FOLDER_INNER : (folderHovered && openProgress <= .02 ? FOLDER_FRONT_HOVER : FOLDER_FRONT);
+        int coverTint = shade(0xFFFFFFFF, .84 + .16 * Math.abs(scaleX));
+        spriteQuad(graphics, 0, -20, PAPER_W + 68, PAPER_H + 126, 0, 0, 1.0, 1.0, coverTint, textureId(coverResource));
         if (scaleX < -.08) {
             graphics.pose().pushPose();
             graphics.pose().scale(-1, 1, 1);
@@ -159,11 +183,10 @@ public final class ArchivePaperRenderer implements AutoCloseable {
             graphics.pose().popPose();
         }
         if (scaleX > .08) {
-            lettering(graphics, "ARCHIVE", 55, 110, 11.2F, 0xFF10100E);
-            lettering(graphics, "CHANGED: SYNERGY", 57, 205, 3.5F, 0xFF4D4D45);
-            lettering(graphics, "ORIGIN RECORDS", 57, 263, 2.3F, 0xFF4D4D45);
-            rectangle(graphics, 55, 288, PAPER_W + 13, 289, 0xFF4D4D45);
-            lettering(graphics, "01", 50, PAPER_H - 205, 32F, 0xFF8A6E3B);
+            lettering(graphics, "CHANGED: SYNERGY", 111, 197, 3.2F, 0xFF4A361E);
+            coverLabel(graphics, "cover_title", 111, 262, 7.4F, 630, 0xFF292014);
+            coverLabel(graphics, "cover_subtitle", 111, 371, 2.8F, 630, 0xFF4A361E);
+            coverLabel(graphics, "cover_register", 111, PAPER_H - 2, 2.3F, 630, 0xFF4A361E);
         }
         graphics.pose().popPose();
     }
@@ -276,11 +299,13 @@ public final class ArchivePaperRenderer implements AutoCloseable {
         RenderSystem.defaultBlendFunc();
         try {
             mesh(graphics, progress, direction, meshWidth, 0, 0xFFFFFFFF, true);
+            int reverseTex = reverseCaptured ? reverseSnapshot.getColorTextureId() : paperBackTexture();
+            int reverseTint = reverseCaptured ? 0xFFFFFFFF : backColor;
             if (direction > 0) {
                 mesh(graphics, progress, direction, meshWidth, snapshot.getColorTextureId(), 0xFFFFFFFF, false);
-                mesh(graphics, progress, direction, meshWidth, reverseCaptured ? reverseSnapshot.getColorTextureId() : paperTexture(), reverseCaptured ? 0xFFFFFFFF : backColor, false);
+                mesh(graphics, progress, direction, meshWidth, reverseTex, reverseTint, false);
             } else {
-                mesh(graphics, progress, direction, meshWidth, reverseCaptured ? reverseSnapshot.getColorTextureId() : paperTexture(), reverseCaptured ? 0xFFFFFFFF : backColor, false);
+                mesh(graphics, progress, direction, meshWidth, reverseTex, reverseTint, false);
                 mesh(graphics, progress, direction, meshWidth, snapshot.getColorTextureId(), 0xFFFFFFFF, false);
             }
             if (from != to) {
@@ -312,11 +337,9 @@ public final class ArchivePaperRenderer implements AutoCloseable {
         graphics.pose().pushPose();
         graphics.pose().translate(0, offset, 0);
         graphics.pose().scale((float) side, 1, 1);
-        texture(graphics, 0, 0, PAPER_W, PAPER_H, color);
-        double[] tab = tab(index);
-        texturedPolygon(graphics, ear(tab), color, paperTexture(), false);
-        outline(graphics, ear(tab), 1, shade(color, .60));
-        border(graphics, 0, 0, PAPER_W, PAPER_H, 1, shade(color, .60));
+        int clamped = Math.max(0, Math.min(DIVIDERS.length - 1, index));
+        ResourceLocation dividerTex = (hoveredTab == clamped && !turnCaptured) ? DIVIDERS_HOVER[clamped] : DIVIDERS[clamped];
+        spriteQuad(graphics, 0, 0, 834, PAPER_H, 0, 0, 1.0, 1.0, 0xFFFFFFFF, textureId(dividerTex));
         graphics.pose().popPose();
     }
 
@@ -331,16 +354,19 @@ public final class ArchivePaperRenderer implements AutoCloseable {
             }
             int tint = shade(0xFFFFFFFF, 1 - depth * .009);
             boolean emphasized = fan > .35 && hoveredPage == target;
-            texturedPolygon(graphics, corners, tint, paperTexture(), false);
-            if (emphasized) polygon(graphics, corners, 0x99D8D1C1);
-            if (fan > .001) liftedPaper.add(new FanLayer(corners, tint, emphasized));
-            outline(graphics, corners, .7, 0xFF8F8775);
+            texturedPolygon(graphics, corners, tint, side < 0 ? paperBackTexture() : paperTexture(), false);
+            if (emphasized) polygon(graphics, corners, 0x66D8C89E);
+            if (fan > .001) liftedPaper.add(new FanLayer(corners, tint, emphasized, side < 0));
+            outline(graphics, corners, 1.0, emphasized ? 0xFF5C4E38 : 0xFF8F8775);
             if (fan > .05) {
                 graphics.pose().pushPose();
                 graphics.pose().translate(0, PAPER_H / 2 + depth * 1.5, 0);
                 graphics.pose().mulPose(new Quaternionf().rotateZ((float) Math.toRadians(depth * 2 * fan) * side));
                 graphics.pose().scale((float) (side < 0 ? -leafScale : 1), 1, 1);
                 graphics.pose().translate(0, -PAPER_H / 2, 0);
+                double stripX0 = side < 0 ? -PAPER_W + 76 : PAPER_W - 124;
+                double v0 = emphasized ? 0.5 : 0.0;
+                spriteQuad(graphics, stripX0, PAPER_H - 28, stripX0 + 44, PAPER_H - 4, 0, v0, 1.0, v0 + 0.5, 0xAAFFFFFF, textureId(PAGE_STACK));
                 lettering(graphics, String.format(java.util.Locale.ROOT, "%02d", target + 1),
                         side < 0 ? -PAPER_W + 94 : PAPER_W - 110, PAPER_H - 22,
                         1.55F, hoveredPage == target ? 0xFF29241A : 0xFF59523F);
@@ -399,7 +425,7 @@ public final class ArchivePaperRenderer implements AutoCloseable {
         }
         texturedPolygon(graphics, contour, shade(color, .8 + .2 * Math.abs(normal(
                 PAPER_W + tab[2] * .5, (tab[1] + tab[3] * .5) / PAPER_H, meshWidth, progress, direction))), paperTexture(), false);
-        outline(graphics, contour, .7, shade(color, .55));
+        outline(graphics, contour, 1.0, shade(color, .52));
     }
 
     private static double normal(double x, double y, double width, double progress, int direction) {
@@ -416,8 +442,39 @@ public final class ArchivePaperRenderer implements AutoCloseable {
                 new Point(x + w - 8, y + h), new Point(x, y + h)};
     }
 
+    public static int textureId(ResourceLocation location) {
+        return Minecraft.getInstance().getTextureManager().getTexture(location).getId();
+    }
+
     private static int paperTexture() {
-        return Minecraft.getInstance().getTextureManager().getTexture(PAPER).getId();
+        return textureId(PAPER);
+    }
+
+    private static int paperBackTexture() {
+        return textureId(PAPER_BACK);
+    }
+
+    public static void spriteQuad(GuiGraphics graphics, double x0, double y0, double x1, double y1,
+                                  double u0, double v0, double u1, double v1, int tint, int texture) {
+        graphics.flush();
+        boolean depth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST), cull = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+        RenderSystem.disableDepthTest();
+        RenderSystem.disableCull();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        RenderSystem.setShaderTexture(0, texture);
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        Matrix4f matrix = graphics.pose().last().pose();
+        int r = tint >>> 16 & 255, g = tint >>> 8 & 255, b = tint & 255, a = tint >>> 24;
+        buffer.vertex(matrix, (float) x0, (float) y0, 0).uv((float) u0, (float) v0).color(r, g, b, a).endVertex();
+        buffer.vertex(matrix, (float) x0, (float) y1, 0).uv((float) u0, (float) v1).color(r, g, b, a).endVertex();
+        buffer.vertex(matrix, (float) x1, (float) y1, 0).uv((float) u1, (float) v1).color(r, g, b, a).endVertex();
+        buffer.vertex(matrix, (float) x1, (float) y0, 0).uv((float) u1, (float) v0).color(r, g, b, a).endVertex();
+        BufferUploader.drawWithShader(buffer.end());
+        if (depth) RenderSystem.enableDepthTest();
+        if (cull) RenderSystem.enableCull();
     }
 
     private static void texture(GuiGraphics graphics, double x0, double y0, double x1, double y1, int tint) {
@@ -502,6 +559,11 @@ public final class ArchivePaperRenderer implements AutoCloseable {
                 graphics.bufferSource(), Font.DisplayMode.SEE_THROUGH, 0, 15728880);
         graphics.flush();
         graphics.pose().popPose();
+    }
+
+    private static void coverLabel(GuiGraphics graphics,String key,double x,double y,float scale,int width,int color) {
+        String text=Component.translatable("origin.changed_synergy.archive."+key).getString();
+        lettering(graphics,text,x,y,Math.min(scale,(float)width/Math.max(1,Minecraft.getInstance().font.width(text))),color);
     }
 
     private static int shade(int color, double shade) {

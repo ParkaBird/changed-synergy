@@ -30,9 +30,15 @@ public abstract class TakeoverGrabMixin implements net.parkabird.changedsynergy.
     @Unique private int changedSynergy$holdTick = Integer.MIN_VALUE;
     @Unique private LivingEntity changedSynergy$tickedPassenger;
 
-    @Inject(method="tickIdle()V", at=@At("HEAD"), require=1)
+    @Inject(method="tickIdle()V", at=@At("HEAD"), cancellable=true, require=1)
     private void changedSynergy$markHoldTick(CallbackInfo callback) {
         var grab=(GrabEntityAbilityInstance)(Object)this;
+        if (changedSynergy$holdTick == grab.entity.getEntity().tickCount
+                && changedSynergy$tickedPassenger == grab.grabbedEntity
+                && net.parkabird.changedsynergy.ai.CreatureGrabService.isScriptedHold(grab)) {
+            callback.cancel();
+            return;
+        }
         if(grab.entity.getEntity() instanceof ChangedEntity carrier && grab.grabbedEntity instanceof Player player) {
             if(grab.entity.getLevel().isClientSide()) {
                 if(carrier.getPersistentData().getBoolean("SynergyTakeoverClient"))

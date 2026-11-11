@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "changed_synergy:item/jerboa_leader_outfit"
+  }
+}

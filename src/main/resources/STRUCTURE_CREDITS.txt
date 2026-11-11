@@ -3,3 +3,5 @@ Structure builds by Crossader:
 - White laboratory tower
 - Red laboratory tower
 - Green laboratory tower
+- Hyena's Hideout
+- Hyena camps: tropical, open and snowy

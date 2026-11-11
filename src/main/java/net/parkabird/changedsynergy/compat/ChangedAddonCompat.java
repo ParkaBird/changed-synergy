@@ -1,7 +1,10 @@
 package net.parkabird.changedsynergy.compat;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.ability.GrabEntityAbilityInstance;
 import net.ltxprogrammer.changed.data.AccessorySlots;
@@ -21,7 +24,16 @@ public final class ChangedAddonCompat {
     private static final String OPTIONAL_EVENTS =
             "net.parkabird.changedsynergy.compat.addon.ChangedAddonSocialEvents";
     private static boolean optionalEventsRegistered;
-    private static Class<?> optionalEventsClass;
+    private static volatile Class<?> optionalEventsClass;
+    // Bridge methods have distinct names; retain missing lookups as well.
+    private static final Map<String, Optional<Method>> OPTIONAL_METHODS = new ConcurrentHashMap<>();
+    private record GrabMethods(Method allowTransfurred, Method safeMode, Method readSafeMode) {}
+    private static final ClassValue<GrabMethods> GRAB_METHODS = new ClassValue<>() {
+        @Override protected GrabMethods computeValue(Class<?> type) {
+            return new GrabMethods(findMethod(type, "setAllowGrabTransfurred", boolean.class),
+                    findMethod(type, "setSafeModeAuthoritative", boolean.class), findMethod(type, "isSafeMode"));
+        }
+    };
     public static final String MOD_ID = "changed_addon";
     public static final ResourceLocation PACIFIED = id("pacified");
     public static final ResourceLocation HAZARD_BODY_SUIT = id("hazard_body_suit");
@@ -40,6 +52,12 @@ public final class ChangedAddonCompat {
 
     public static boolean isLoaded() {
         return ModList.get().isLoaded(MOD_ID);
+    }
+
+    public static boolean isSecondaryAbilitySelected(net.ltxprogrammer.changed.entity.variant.TransfurVariantInstance<?> variant,
+            net.ltxprogrammer.changed.ability.AbstractAbility<?> ability) {
+        return isLoaded() && Boolean.TRUE.equals(invokeOptional("isSecondaryAbilitySelected",
+                new Class<?>[]{net.ltxprogrammer.changed.entity.variant.TransfurVariantInstance.class,net.ltxprogrammer.changed.ability.AbstractAbility.class},variant,ability));
     }
 
     /** Preserve Exp2's native food-taming route before Synergy handles ordinary feeding. */
@@ -99,7 +117,7 @@ public final class ChangedAddonCompat {
                 .isPresent();
     }
 
-    /** target type, attack type, attack condition and favor ordinals. */
+    /** Stable Synergy values, translated from Addon's native settings. */
     public static int[] bondedMenuState(ChangedEntity pet) {
         Object value = invokeOptional(
                 "getBondedMenuState",
@@ -165,76 +183,6 @@ public final class ChangedAddonCompat {
         invokeOptional("refreshBondedWorkItem", new Class<?>[]{ChangedEntity.class}, pet);
     }
 
-    public static boolean allowsBondedDefense(ChangedEntity pet, LivingEntity target) {
-        Object value = invokeOptional(
-                "allowsBondedDefense",
-                new Class<?>[]{ChangedEntity.class, LivingEntity.class},
-                pet, target);
-        return !(value instanceof Boolean allowed) || allowed;
-    }
-
-    /** True when a generic bonded Addon pet is configured for physical kills. */
-    public static boolean suppressBondedTransfurAttack(ChangedEntity pet) {
-        return Boolean.TRUE.equals(invokeOptional(
-                "suppressBondedTransfurAttack",
-                new Class<?>[]{ChangedEntity.class},
-                pet));
-    }
-
-    /** Keeps movement helpers from pulling an entity while Addon owns an active grab. */
-    public static boolean isGrabberBusy(ChangedEntity entity) {
-        return Boolean.TRUE.equals(invokeOptional(
-                "isGrabberBusy",
-                new Class<?>[]{ChangedEntity.class},
-                entity));
-    }
-
-    /**
-     * Starts Addon's arm-grab presentation as a timed, harmless social hug.
-     * The optional implementation owns release and safety cleanup.
-     */
-    public static boolean tryStartSocialHug(
-            ChangedEntity creature,
-            ServerPlayer player,
-            int durationTicks) {
-        return Boolean.TRUE.equals(invokeOptional(
-                "tryStartSocialHug",
-                new Class<?>[]{
-                        ChangedEntity.class,
-                        ServerPlayer.class,
-                        int.class
-                },
-                creature, player, durationTicks));
-    }
-
-    /** Starts the scripted, no-QTE arm hold used after a successful negotiation. */
-    public static boolean tryStartNegotiatedRelease(
-            ChangedEntity creature,
-            ServerPlayer player,
-            int durationTicks) {
-        return Boolean.TRUE.equals(invokeOptional(
-                "tryStartNegotiatedRelease",
-                new Class<?>[]{
-                        ChangedEntity.class,
-                        ServerPlayer.class,
-                        int.class
-                },
-                creature, player, durationTicks));
-    }
-
-    /** Returns an enemy pinned by this player's bonded or trusted creature. */
-    public static Optional<LivingEntity> socialCombatGrabTarget(
-            ChangedEntity creature,
-            ServerPlayer player) {
-        Object value = invokeOptional(
-                "getSocialCombatGrabTarget",
-                new Class<?>[]{ChangedEntity.class, ServerPlayer.class},
-                creature, player);
-        return value instanceof LivingEntity target
-                ? Optional.of(target)
-                : Optional.empty();
-    }
-
     /** Addon's safe-grab API is mixed into Changed's ability only when Addon is present. */
     public static void configureFriendlyGrab(Object ability, boolean safeMode) {
         configureFriendlyGrab(ability, safeMode, true);
@@ -245,8 +193,14 @@ public final class ChangedAddonCompat {
         if (!isLoaded() || ability == null) {
             return;
         }
-        invokeInstance(ability, "setAllowGrabTransfurred", allowTransfurred);
-        invokeInstance(ability, "setSafeModeAuthoritative", safeMode);
+        try {
+            var methods = GRAB_METHODS.get(ability.getClass());
+            invokeInstance(ability, methods.allowTransfurred(), allowTransfurred);
+            invokeInstance(ability, methods.safeMode(), safeMode);
+        } catch (LinkageError | RuntimeException exception) {
+            net.parkabird.changedsynergy.ChangedSynergyMod.LOGGER.debug(
+                    "Could not resolve optional Changed Addon grab API", exception);
+        }
     }
 
     public static boolean isSafeGrab(Object ability) {
@@ -254,8 +208,9 @@ public final class ChangedAddonCompat {
             return false;
         }
         try {
-            return Boolean.TRUE.equals(ability.getClass().getMethod("isSafeMode").invoke(ability));
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            Method getter = GRAB_METHODS.get(ability.getClass()).readSafeMode();
+            return getter != null && Boolean.TRUE.equals(getter.invoke(ability));
+        } catch (ReflectiveOperationException | LinkageError | RuntimeException ignored) {
             return false;
         }
     }
@@ -275,6 +230,11 @@ public final class ChangedAddonCompat {
                 pet, owner, ownerHasControl);
     }
 
+    /** Mirrors common controller cooldowns to Addon's private grab AI when present. */
+    public static void applyGrabCooldown(ChangedEntity creature, int ticks) {
+        invokeOptional("applyGrabCooldown", new Class<?>[]{ChangedEntity.class, int.class}, creature, ticks);
+    }
+
     /** Addon grabbers may store their live ability outside Changed's ability registry. */
     public static GrabEntityAbilityInstance grabAbility(ChangedEntity creature) {
         Object value = invokeOptional("grabAbility", new Class<?>[]{ChangedEntity.class}, creature);
@@ -290,7 +250,9 @@ public final class ChangedAddonCompat {
                 optionalEventsClass = Class.forName(
                         OPTIONAL_EVENTS, true, ChangedAddonCompat.class.getClassLoader());
             }
-            return optionalEventsClass.getMethod(method, parameters).invoke(null, arguments);
+            Method resolved = OPTIONAL_METHODS.computeIfAbsent(method,
+                    name -> Optional.ofNullable(findMethod(optionalEventsClass, name, parameters))).orElse(null);
+            return resolved == null ? null : resolved.invoke(null, arguments);
         } catch (ReflectiveOperationException | LinkageError | RuntimeException exception) {
             net.parkabird.changedsynergy.ChangedSynergyMod.LOGGER.debug(
                     "Changed Addon bridge method {} was unavailable", method, exception);
@@ -298,12 +260,19 @@ public final class ChangedAddonCompat {
         }
     }
 
-    private static void invokeInstance(Object instance, String method, boolean value) {
+    private static Method findMethod(Class<?> type, String name, Class<?>... parameters) {
         try {
-            instance.getClass().getMethod(method, boolean.class).invoke(instance, value);
+            return type.getMethod(name, parameters);
         } catch (NoSuchMethodException ignored) {
-            // Running without the optional mixin is a supported configuration.
-        } catch (IllegalAccessException | InvocationTargetException | RuntimeException exception) {
+            return null;
+        }
+    }
+
+    private static void invokeInstance(Object instance, Method method, boolean value) {
+        if (method == null) return;
+        try {
+            method.invoke(instance, value);
+        } catch (IllegalAccessException | InvocationTargetException | LinkageError | RuntimeException exception) {
             net.parkabird.changedsynergy.ChangedSynergyMod.LOGGER.debug(
                     "Could not update optional Changed Addon grab state", exception);
         }

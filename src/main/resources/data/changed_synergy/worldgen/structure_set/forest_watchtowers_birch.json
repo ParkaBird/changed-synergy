@@ -1,0 +1,9 @@
+{
+  "structures": [{"structure": "changed_synergy:forest_watchtower_birch", "weight": 1}],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 36,
+    "separation": 14,
+    "salt": 193611015
+  }
+}

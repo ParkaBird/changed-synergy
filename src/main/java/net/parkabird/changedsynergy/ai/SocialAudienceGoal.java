@@ -11,7 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.Vec3;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 
 /**
@@ -68,7 +67,7 @@ public final class SocialAudienceGoal extends Goal {
         CreaturePeerInteractionService.cancel(mob);
         if (!hasVisibleBody(mob, player) || mob.level() != player.level() || !mob.isAlive() || mob.isSleeping() || mob.isNoAi()
                 || mob.isPassenger() || mob.isLeashed() || mob.getTarget() != null
-                || ChangedAddonCompat.isGrabberBusy(mob) || HypnosisQteService.getActiveVictim(mob) != null
+                || CreatureGrabService.isGrabberBusy(mob) || HypnosisQteService.getActiveVictim(mob) != null
                 || mob.getPersistentData().hasUUID("ChangedSynergyRestOwner")) return false;
         AUDIENCES.put(mob, new Audience(player.getUUID(), mob.level().getGameTime() + ticks, emote, approach));
         mob.getNavigation().stop();
@@ -184,7 +183,7 @@ public final class SocialAudienceGoal extends Goal {
                 && !mob.isSleeping()
                 && !mob.isPassenger()
                 && !mob.isLeashed()
-                && !ChangedAddonCompat.isGrabberBusy(mob)
+                && !CreatureGrabService.isGrabberBusy(mob)
                 && HypnosisQteService.getActiveVictim(mob) == null;
     }
 

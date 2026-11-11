@@ -1,0 +1,3533 @@
+{
+  "lines": {
+    "status.beds": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Right now there are %s open sleeping places out of %s in total. Feel free to use one that suits your body, just be careful not to wake anyone who's already resting.",
+            "zh_cn": "目前共有 %s 处空余铺位，总共是 %s 处。挑个适合你体型的空位休息就好，注意别吵醒已经睡下的邻居。",
+            "ru_ru": "Сейчас свободно %s спальных мест из %s. Занимай любое, подходящее тебе по комплекции, только постарайся не будить тех, кто уже спит."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "status.member": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You always have a place with us here. The public supplies are for everyone in the household to share, while personal belongings stay with their owners.",
+            "zh_cn": "这里随时给你留着位置。公共物资由大家共享，私人物品则归各自保管。",
+            "ru_ru": "Здесь за тобой всегда остается место. Общие припасы открыты для всех в доме, а личные вещи остаются за их хозяевами."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "status.guest": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You're always welcome to drop by and lend a hand. If you'd like to settle down here, have a word with the Chief.",
+            "zh_cn": "欢迎你随时来坐坐、搭把手。要是想在这里安家，可以和首领谈谈。",
+            "ru_ru": "Мы всегда рады, когда ты заглядываешь посидеть или помочь. А если захочешь поселиться здесь — поговори с вождем."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.greeting": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Come sit down out of the breeze for a bit. Were you looking for someone in the treehouse, or seeing if anything needs a hand?",
+            "zh_cn": "过来坐会儿避避风吧。你是在找人，还是想看看树屋里有什么能搭把手的？",
+            "ru_ru": "Присядь немного вдали от сквозняка. Ты кого-то ищешь в доме на дереве или хочешь узнать, не нужна ли помощь?"
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.food_low": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Our shared food chests are running a little low. Don't go hungry on our account, of course, but adding some spare food to the public stores would really help out.",
+            "zh_cn": "公共食物箱里的存粮有点少了。你不用为了大家饿着自己，不过要是有富余的吃食往公用箱里添一点，会帮上不少忙。",
+            "ru_ru": "Общие запасы еды немного истощились. Конечно, не стоит голодать ради нас, но если у тебя найдется лишняя провизия для общих сундуков, это очень поможет."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.food_enough": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "There's enough in the food chests to go around. The neighbors have been keeping a steady eye on our stores.",
+            "zh_cn": "食物箱里的存粮够大家分着用。邻居们平时一直有留意照看储备。",
+            "ru_ru": "Еды в сундуках хватает на всех. Соседи исправно следят за нашими запасами."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.food_plenty": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "The food chests are well stocked right now. If you're free later, stay and eat with us by the fire instead of making do on the stairs.",
+            "zh_cn": "目前食物箱里很充裕。你要是有空，就留下来围着篝火一起吃吧，别总在楼梯上将就。",
+            "ru_ru": "Продуктовые сундуки сейчас полны. Если позже выдастся свободная минутка, оставайся поесть у костра, чем перекусывать на лестнице."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.safe": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Everything is quiet along the walkways right now—a good time to rest your feet, mend your gear, or check in on the neighbors.",
+            "zh_cn": "步道上目前很平静，正适合歇歇脚、修补些物件，或是去看看邻居们。",
+            "ru_ru": "На мостках сейчас тихо и спокойно — самое время перевести дух, починить снаряжение или проведать соседей."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.danger": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Some of our neighbors are dealing with trouble nearby right now. Let's make sure everyone is safe before we gather around the fire.",
+            "zh_cn": "附近目前还有邻居在应付麻烦。先把那边的状况安顿好，大家再围到火边坐吧。",
+            "ru_ru": "Кое-кто из соседей сейчас отбивается от опасности возле дерева. Давай сначала убедимся, что все целы, а уж потом будем собираться у огня."
+          },
+          "emotion": "determined",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.remember": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I remember the help you've given us before. You don't need to prove you belong here every time you come home.",
+            "zh_cn": "你之前帮过的忙我都记得。每次回来不用总想着证明自己，这里随时欢迎你。",
+            "ru_ru": "Я помню все, чем ты нам помог раньше. Тебе не нужно каждый раз доказывать, что ты здесь свой."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.requests": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "A few neighbors mentioned things that could use a hand. Pick whichever one you feel like doing—the rest can wait.",
+            "zh_cn": "有几位邻居想请人搭把手。挑一件你愿意做的就好，其余的可以等等。",
+            "ru_ru": "Несколько соседей просили о небольшой помощи. Выбирай то, за что готов взяться, а остальное подождет."
+          },
+          "emotion": "curious",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.no_requests": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Nothing urgent needs doing right now. You don't have to find yourself a chore just to stay and rest here.",
+            "zh_cn": "眼下没什么急事。不用非得先给自己找件活干，才能安心待在这儿。",
+            "ru_ru": "Срочных дел сейчас нет. Не нужно искать себе работу, чтобы просто остаться и отдохнуть здесь."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.handled": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Someone else already took care of that one. Feel free to check if anyone needs help with something else.",
+            "zh_cn": "那件事刚才已经有人办妥了。你可以再看看还有没有别的邻居需要帮忙。",
+            "ru_ru": "Этим уже кто-то занялся чуть раньше. Посмотри, может, кому-нибудь нужна другая помощь."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.watch": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "If trouble comes near the tree, please help our neighbors deal with it. There's no need to go looking for a fight—just let me know once things have calmed down.",
+            "zh_cn": "要是大树附近出了麻烦，请帮邻居们应付一下。不用特意去找架打，等周围重新平静下来后回来告诉我就好。",
+            "ru_ru": "Если возле дерева возникнет угроза, помоги соседям справиться с ней. Специально искать драки не нужно — просто дай мне знать, когда все успокоится."
+          },
+          "emotion": "determined",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.request": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "We could use %s %s for the household. Bring the full amount whenever it's convenient, and we'll put them into our shared supplies.",
+            "zh_cn": "我们需要 %s 份%s。你方便的时候凑齐带来就好，我们会收进公共物资里。",
+            "ru_ru": "Нам пригодилось бы %s ед. припасов из категории «%s». Когда будет удобно собрать все полностью, приноси — мы сложим это в общие запасы."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.choose_item": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Hold whatever you'd like to donate in your hand, then talk to me again. Anything you want to keep for yourself, please keep.",
+            "zh_cn": "把想捐的物资拿在手上，再来和我说就好。你自己用得着的东西尽管留着。",
+            "ru_ru": "Возьми в руку то, чем хочешь поделиться, и снова поговори со мной. А все, что нужно тебе самому, оставляй при себе."
+          },
+          "emotion": "curious",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.donate": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You brought %s? We can put that to good use. How much would you like to leave for the neighbors?",
+            "zh_cn": "你带了%s？这些能派上用场。你想给邻居们留下多少？",
+            "ru_ru": "Ты принес %s? Это нам пригодится. Сколько ты хочешь оставить для соседей?"
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.transfer": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You've already made your home at %s. Would you like to live here instead? Your friends there will still remember you, and nothing will change until you say the word.",
+            "zh_cn": "你已经在%s安了家。现在想改为住在这里吗？那边的朋友依然会记得你，在你点头确认之前，什么都不会改变。",
+            "ru_ru": "Твой нынешний дом — %s. Хочешь перебраться жить к нам? Старые друзья по-прежнему будут помнить тебя, и ничего не изменится, пока ты не подтвердишь."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "",
+            "zh_cn": "",
+            "ru_ru": ""
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        },
+        {
+          "text": {
+            "en_us": "Thank you",
+            "zh_cn": "谢谢",
+            "ru_ru": "Спасибо"
+          },
+          "emotion": "happy",
+          "effect": "emphasis",
+          "speed": 1,
+          "intensity": 0.8,
+          "pause": 110
+        },
+        {
+          "text": {
+            "en_us": ". I'll make sure these go into our shared storage. Sit down and rest your feet whenever you like.",
+            "zh_cn": "你。我会把这些收进公共储物箱里。要是愿意的话，现在就坐下来歇歇脚吧。",
+            "ru_ru": ". Я позабочусь, чтобы это попало в общие запасы. Присаживайся и отдохни, если есть желание."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.declined": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "That's quite all right. Take care of yourself first—we can always ask someone else.",
+            "zh_cn": "当然没关系。先照顾好你自己，我们可以再问问其他邻居。",
+            "ru_ru": "Конечно, ничего страшного. Сначала позаботься о себе, а мы можем попросить кого-нибудь другого."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.changed": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "We can't complete that right now. Check that you're holding the right item and that the public chests still have space—or if someone already helped out, there's no need to bring a second batch.",
+            "zh_cn": "现在还办不成。请看看手里的物资对不对、公用箱还有没有空位。要是已经有人帮过忙了，就不用再重复送一份了。",
+            "ru_ru": "Сейчас это уладить не получится. Проверь, те ли предметы у тебя в руке и есть ли место в общих сундуках. А если кто-то уже помог, приносить второй раз не нужно."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.meal": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I'll go call the neighbors. Find yourself a spot by the campfire, and whoever is free will come join us.",
+            "zh_cn": "我去招呼邻居们。你先在篝火旁找个位置坐下，有空的人自然会过来一起吃。",
+            "ru_ru": "Я пойду позову соседей. Занимай место у костра, и все, кто сейчас свободен, присоединятся к нам."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.greeting": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Back by the fire again, eh? Good to see you. What's on your mind?",
+            "zh_cn": "又回到火堆旁了？挺好的。想聊点什么？",
+            "ru_ru": "Снова у костра, а? Хорошо. О чем хочешь поговорить?"
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.food_low": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Food's running a little low. We can manage on our own, mind you, but if you have spare rations from the road, feel free to bring some back.",
+            "zh_cn": "吃的有点少了。我们自己也能张罗，不过你在路上要是有富余的口粮，不妨带点回来。",
+            "ru_ru": "Еды стало маловато. Мы и сами справимся, но если в дороге появятся лишние припасы — приноси, не откажемся."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.food_enough": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "There's food in the chests and nobody's going hungry. In my book, that makes it a good day.",
+            "zh_cn": "箱子里有吃的，大家都没饿着。对我来说，这样的日子就挺不错。",
+            "ru_ru": "В сундуках есть еда, и никто не голодает. По-моему, день уже удался."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.food_plenty": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "We've got plenty of food for everyone to enjoy. Stick around the fire later—if you want a good cushion, you'd better claim it early.",
+            "zh_cn": "吃的很充裕，够大家好好享用了。晚点留在火堆旁一起吃吧，好坐垫可得早点占。",
+            "ru_ru": "Еды хватит на всех с лихвой. Оставайся позже у огня — лучшие подушки стоит занимать заранее."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.safe": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Everything's quiet around the fences right now. Good time to rest your legs.",
+            "zh_cn": "围栏周围现在很安静。正好趁这会儿歇歇腿吧。",
+            "ru_ru": "Вокруг ограды сейчас тихо. Самое время дать ногам отдохнуть."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.danger": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "There's trouble right by the camp. Let's look after our neighbors first, then we can sit down and rest.",
+            "zh_cn": "营地边上出了点麻烦。先照应好邻居们，回头再坐下休息。",
+            "ru_ru": "У самого лагеря неприятности. Сперва поможем соседям, а потом уже сядем отдыхать."
+          },
+          "emotion": "determined",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.remember": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I remember everything you've done to help us out. Coming home empty-handed now and then doesn't change that one bit.",
+            "zh_cn": "你之前帮过的忙我都记着呢。偶尔空着手回来，也丝毫不会改变这些。",
+            "ru_ru": "Я помню все, чем ты нам помог. Даже если порой возвращаешься с пустыми руками, это ничего не меняет."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.requests": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "There are a few things we could use a hand with. Pick one if you feel like it—nobody here is keeping track of how busy you are.",
+            "zh_cn": "有几件事想找人搭把手。你愿意的话就挑一件，没人盯着你非要干多少活。",
+            "ru_ru": "Есть пара дел, где не помешают лишние руки. Выбирай любое, если есть желание, — никто тут не следит, насколько ты занят."
+          },
+          "emotion": "curious",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.no_requests": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Nothing urgent needs doing right now. Come warm yourself by the fire.",
+            "zh_cn": "眼下没什么需要你去忙的。过来火堆边暖暖身子吧。",
+            "ru_ru": "Сейчас никаких срочных дел нет. Подходи к огню, погрейся."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.handled": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "That one's already taken care of. Someone around here has quick feet!",
+            "zh_cn": "那件事已经办妥了。咱们这儿有人动作挺快嘛！",
+            "ru_ru": "С этим уже разобрались. У кого-то здесь быстрые лапы!"
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.watch": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "If any hostiles come chasing our neighbors, help drive them off. Leave our own livestock alone, though—got it? Come tell me once things settle down.",
+            "zh_cn": "要是有怪物来追赶邻居们，就帮忙把它赶走。不过咱们自己养的牲畜可别碰，明白吧？等事情平息了回来告诉我。",
+            "ru_ru": "Если враги погонятся за соседями, помоги их прогнать. Только нашу домашнюю живность не трогай, ладно? Как все уляжется, скажи мне."
+          },
+          "emotion": "determined",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.request": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "When you have the time, bring us %s %s for the hideout to share. No rush—just come back once you've gathered the full amount.",
+            "zh_cn": "有空的话，帮藏身处带 %s 份%s回来，供大家一起用。不用着急，凑齐了再回来就行。",
+            "ru_ru": "Когда будет время, принеси нам %s ед. из категории «%s» для общих нужд убежища. Спешить некуда — возвращайся, когда соберешь все."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.choose_item": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Hold whatever you want to share in your hand and come talk to me. I'm not going to rummage through your pack myself.",
+            "zh_cn": "把想分享的东西拿在手上，再来找我就行。我可不会自己翻你的背包。",
+            "ru_ru": "Возьми то, чем хочешь поделиться, в руку и подойди ко мне. Не стану же я сама рыться в твоем рюкзаке."
+          },
+          "emotion": "curious",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.donate": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Oh, %s! We can definitely use that. How much of it are you adding to the shared stores?",
+            "zh_cn": "噢，是%s！这些正好用得上。你打算往公共物资里添多少？",
+            "ru_ru": "О, %s! Это нам пригодится. Сколько ты хочешь добавить в общие запасы?"
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.transfer": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You're already settled in at %s. Want to make the hideout your home instead? You'll still be able to visit your old neighbors. Just let me know when you've made up your mind.",
+            "zh_cn": "你已经在%s住下了。现在想把藏身处当成新家吗？以后你依然可以常去看望老邻居。想好了告诉我一声就行。",
+            "ru_ru": "Ты уже обосновался в общине «%s». Хочешь теперь сделать своим домом наше убежище? Старых соседей сможешь навещать по-прежнему. Скажи, когда решишь."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "That's a real help—thanks! Go grab yourself a cushion by the fire before someone else beats you to it.",
+            "zh_cn": "这可帮上大忙了，谢谢！快去火堆边占个坐垫吧，别让别人抢先了。",
+            "ru_ru": "Вот это выручил, спасибо! Беги занимай подушку у костра, пока кто-нибудь не опередил."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.declined": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "No problem at all. Whether you want to rest or head out on the trail, take care of your own business first. We'll manage.",
+            "zh_cn": "没问题。不管是想休息还是出门赶路，先办好你自己的事。我们自己能张罗。",
+            "ru_ru": "Никаких проблем. Хочешь отдохнуть или пройтись по тропам — занимайся сперва своими делами. Мы справимся."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.changed": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Something doesn't quite match up. Check the supplies in your hand and make sure the chests have room. And if another neighbor already handled it, we won't take a second batch from you.",
+            "zh_cn": "数目或地方有点对不上。先看看你手里的物资，再确认箱子里有没有空位。要是别的邻居已经先办妥了，就不会再多收你一份。",
+            "ru_ru": "Что-то не сходится. Проверь припасы в руке и свободное место в сундуках. А если кто-то из соседей уже помог, второй раз мы брать не станем."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.meal": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "All right, let's see who else is hungry. Pull up a cushion by the fire!",
+            "zh_cn": "好，我去看看还有谁饿了。拉个坐垫到火堆旁边来吧！",
+            "ru_ru": "Хорошо, посмотрим, кто еще проголодался. Подвигай подушку к огню!"
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.greeting": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Ah, there you are. Did you have a question, or are you keeping me company while the water comes to a boil?",
+            "zh_cn": "啊，你来了。是有问题想问，还是趁烧水的工夫来陪我坐坐？",
+            "ru_ru": "А, вот и ты. Хочешь о чем-то спросить или просто посидишь со мной, пока закипает вода?"
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.food_low": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Our food stores could use replenishing. Nobody expects you to head out into the snow on our account, but any spare rations would be very welcome.",
+            "zh_cn": "食物储备该补一补了。没人要求你为了大家冒雪出门，不过手头要是有多余的干粮，我们非常欢迎。",
+            "ru_ru": "Запасы еды пора бы пополнить. Никто не требует, чтобы ты шел ради нас в снег и метель, но лишней провизии мы будем очень рады."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.food_enough": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "The camp has enough food to get by, so we can turn our attention back to the night sky for now.",
+            "zh_cn": "营地里的食物够用，暂时可以把注意力放回夜空观测上了。",
+            "ru_ru": "Еды в лагере достаточно, так что пока можно снова сосредоточиться на ночном небе."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.food_plenty": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Our supplies are generously stocked. Before you head out along the ridge again, do stay and share a meal with us.",
+            "zh_cn": "目前物资备得很充足。下次沿着山脊出门之前，不妨留下来一起吃顿饭。",
+            "ru_ru": "Припасов сейчас вдоволь. Прежде чем снова отправишься по гребню, останься перекусить с нами."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.safe": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Nobody is in any trouble at the moment—though you should still watch your step on those frosted stairs.",
+            "zh_cn": "眼下没人遇上麻烦。不过走那些结霜的台阶时，脚下还是得留神。",
+            "ru_ru": "Сейчас никому опасность не грозит. Впрочем, на обледенелых ступеньках все равно стоит беречь ноги."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.danger": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "One of our neighbors is dealing with danger right now. The dome can wait—let's help them first.",
+            "zh_cn": "眼下还有邻居在应付危险。穹顶的事可以先放一放，大家先去帮他们。",
+            "ru_ru": "Кто-то из соседей сейчас отбивается от угрозы. Дела у купола подождут — сперва поможем им."
+          },
+          "emotion": "determined",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.remember": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Everyone here has seen the help you've given us. You're always welcome to come back empty-handed just to watch the night sky together.",
+            "zh_cn": "你之前帮过的忙，大家都看在眼里。哪怕什么都不带，也随时欢迎你回来和我们一起仰望夜空。",
+            "ru_ru": "Все здесь помнят твою помощь. Ты всегда можешь вернуться и с пустыми руками — просто чтобы вместе посмотреть на звездное небо."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.requests": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "There are a few small errands where a hand would be appreciated. Why not see if any of them fit into your plans?",
+            "zh_cn": "正好有几件小事想请人搭把手。看看有没有哪件顺合你计划的？",
+            "ru_ru": "Есть несколько небольших поручений. Посмотри, вдруг какое-нибудь из них впишется в твои планы?"
+          },
+          "emotion": "curious",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.no_requests": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "There is nothing urgent at the moment. Simply sitting quietly together for a while is more than enough.",
+            "zh_cn": "目前没有急事。安安静静过来坐一会儿，就已经很好了。",
+            "ru_ru": "Срочных дел нет. Просто спокойно посидеть немного вместе — уже хорошо."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.handled": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Someone else has already taken care of that matter. I ought to update my notes.",
+            "zh_cn": "那件事已经有人办妥了。我也该更新一下手头的笔记了。",
+            "ru_ru": "Это поручение уже выполнили. Надо будет обновить мои записи."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.watch": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "If anything threatens the camp, please help protect the residents. There is no need to seek out danger on our behalf—just let me know what happened once everyone is safe.",
+            "zh_cn": "如果有敌对生物威胁营地，请帮忙保护居民。不必为了我们主动去找危险，等大家安全下来后回来告诉我就好。",
+            "ru_ru": "Если лагерю будет угрожать опасность, помоги защитить жителей. Специально искать угрозу ради нас не нужно — просто расскажи мне, когда все будут в безопасности."
+          },
+          "emotion": "determined",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.request": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "We need %s %s for the camp. Bring them by whenever you have the full amount ready, and they will go into the shared supplies.",
+            "zh_cn": "我们需要 %s 份%s。方便的时候凑齐带来就好，会放进营地的公共物资里。",
+            "ru_ru": "Нам нужно %s ед. припасов из категории «%s». Приноси, когда соберешь все полностью, — это пойдет в общие запасы лагеря."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.choose_item": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Hold the supplies you wish to donate in your hand so I can see them. I wouldn't want to guess what you're carrying in your pack.",
+            "zh_cn": "把想捐的物资拿在手上让我看看吧。我可不想擅自揣测你的背包里装了什么。",
+            "ru_ru": "Возьми припасы, которые хочешь передать, в руку, чтобы я их видел. Не хотелось бы гадать, что лежит у тебя в рюкзаке."
+          },
+          "emotion": "curious",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.donate": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You have %s to share with us? Thank you. How much would you like to add to the public reserve?",
+            "zh_cn": "你带了%s想拿来分享？谢谢你。打算往公共储备里添多少呢？",
+            "ru_ru": "У тебя есть %s для общего стола? Спасибо. Сколько ты хочешь добавить в общий запас?"
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.transfer": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Your current home is at %s. Would you like to move your registration to the observatory instead? Your past friendships will all remain intact, or you can keep things as they are if you prefer.",
+            "zh_cn": "你目前的家在%s。要把归属改到天文台营地来吗？以前的友谊都会完好保留；如果你愿意，也可以一切照旧。",
+            "ru_ru": "Сейчас твой дом — %s. Хочешь перенести регистрацию в обсерваторию? Прежняя дружба сохранится, но если хочешь, можно оставить все как есть."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "",
+            "zh_cn": "",
+            "ru_ru": ""
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        },
+        {
+          "text": {
+            "en_us": "Thank you",
+            "zh_cn": "谢谢",
+            "ru_ru": "Спасибо"
+          },
+          "emotion": "happy",
+          "effect": "emphasis",
+          "speed": 1,
+          "intensity": 0.8,
+          "pause": 110
+        },
+        {
+          "text": {
+            "en_us": ". That is one less thing for our neighbors to worry about. Once you've caught your breath, come inside out of the wind.",
+            "zh_cn": "你，邻居们又少了一件操心事。喘过气来就快进屋避避山风吧。",
+            "ru_ru": ". Теперь у соседей на одну заботу меньше. Как переведешь дух, заходи внутрь с ветра."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.declined": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "That is quite all right. It can wait, or we can ask another neighbor. Watch your step on the way out.",
+            "zh_cn": "当然没关系。这事可以再等等，我们也能问问其他邻居。路上多留神。",
+            "ru_ru": "Конечно, ничего страшного. Дело подождет, или мы попросим другого соседа. Осторожнее в дороге."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.changed": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "We cannot complete that transfer right now. Either the request is already finished, the item doesn't match, or the storage chests are full. Let's check before moving your things.",
+            "zh_cn": "眼下还不能办妥交接。可能是请求已经完成、物资对不上，也可能是储物箱没有空位了。我们先核对清楚，再动你的东西。",
+            "ru_ru": "Сейчас передать это не выйдет. Возможно, поручение уже выполнено, предмет не подходит или в сундуках нет места. Давай сначала проверим, прежде чем трогать твои вещи."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.meal": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I'll go see who is free to join us. Find yourself a comfortable spot by the fire in the meantime.",
+            "zh_cn": "我去看看谁有空过来一起吃。你先在火堆边找个舒服的位置坐下吧。",
+            "ru_ru": "Я пойду посмотрю, кто свободен и сможет присоединиться. А ты пока выбирай удобное место у костра."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.greeting": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Oh, hello there. Do you have a moment? There's something I could use a hand with.",
+            "zh_cn": "啊，你好。现在有空吗？我刚好有件事想请人搭把手。",
+            "ru_ru": "О, привет. Найдется минутка? Мне бы не помешала небольшая помощь."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.food_low": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "The food chests are getting a little low. Everyone's been looking around the area for whatever rations we can find.",
+            "zh_cn": "食物箱里的存粮有点少了。大家最近一直在附近搜寻能吃的口粮。",
+            "ru_ru": "В продуктовых сундуках стало пустовато. Все сейчас ищут в округе любую съедобную провизию."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.food_enough": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "There's plenty to eat in the shared storage. If you live here with us, feel free to take what you need.",
+            "zh_cn": "公共储物箱里的吃食够用。如果你也住在这里，需要的话尽管拿。",
+            "ru_ru": "В общих запасах еды достаточно. Если ты живешь у нас, бери сколько нужно."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.food_plenty": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "We have more than enough food stocked up. It would be nice to gather everyone by the fire for a meal.",
+            "zh_cn": "存粮很充裕。要是能叫上大家围在火边一起吃顿饭就好了。",
+            "ru_ru": "Еды запасено вдоволь. Было бы здорово собрать всех у костра и поесть вместе."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.safe": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Everything is peaceful around here right now. I hope it stays this way.",
+            "zh_cn": "这一带眼下很平静，希望能一直保持这样。",
+            "ru_ru": "Сейчас здесь тихо и спокойно. Надеюсь, так будет и дальше."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.danger": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Someone nearby is running into trouble. Let's help them out before we rest.",
+            "zh_cn": "附近有邻居遇上麻烦了。我们先去搭把手，回头再歇息吧。",
+            "ru_ru": "Кто-то поблизости попал в беду. Давай сначала поможем, а потом уже отдохнем."
+          },
+          "emotion": "determined",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.remember": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I remember the help you gave us before. It's really good to see you again.",
+            "zh_cn": "我记得你之前帮过我们的忙。能再见到你真好。",
+            "ru_ru": "Я помню, как ты помог нам раньше. Очень рад снова тебя видеть."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.requests": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I'm trying to set aside a little food for myself. If you have any to spare, could you bring me some?",
+            "zh_cn": "我自己想备一点随身吃的口粮。要是你手头有富余，能帮我带一些吗？",
+            "ru_ru": "Я хочу припасти немного еды для себя. Если у тебя будет лишняя, принесешь мне немного?"
+          },
+          "emotion": "curious",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.no_requests": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I don't need anything for myself right now. Stay and chat for a while if you'd like.",
+            "zh_cn": "我自己眼下不缺什么。你要是不赶时间，留下来聊会儿天吧。",
+            "ru_ru": "Мне самому сейчас ничего не нужно. Оставайся поболтать, если есть время."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.handled": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Someone already brought those over for me, but thank you for keeping it in mind.",
+            "zh_cn": "那些东西刚才已经有人送来了。不过还是谢谢你惦记着这件事。",
+            "ru_ru": "Мне уже принесли все, что было нужно, но все равно спасибо за заботу."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.watch": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "If anything attacks our neighbors, could you help fend it off? Let us know once everyone is safe.",
+            "zh_cn": "要是有敌对生物袭击邻居们，你能帮忙应付一下吗？等大家都安全了，回来告诉我们一声就好。",
+            "ru_ru": "Если кто-то нападет на наших соседей, поможешь отбиться? Дай нам знать, когда все будут в безопасности."
+          },
+          "emotion": "determined",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.request": {
+      "parts": [
+        {
+          "text": {
+            "zh_cn": "能帮我带 %s 份食物吗，任何种类都可以。凑齐之后直接交给我就行。",
+            "en_us": "Could you bring me %s portions of food, any kind will do? Just hand them directly to me once you've gathered the full amount.",
+            "ru_ru": "Сможешь принести мне %s ед. еды — подойдет любая? Когда соберешь все полностью, просто передай лично мне."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.choose_item": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Hold whatever you'd like to share in your hand so I can see it. There's no rush—you can always come back later.",
+            "zh_cn": "把想分享的东西拿在手上让我看看吧。不着急，晚点再过来也没关系。",
+            "ru_ru": "Возьми в руку то, чем хочешь поделиться, чтобы я мог взглянуть. Спешить некуда — можешь подойти позже."
+          },
+          "emotion": "curious",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.donate": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You brought %s? How much of it would you like to leave for everyone to share?",
+            "zh_cn": "你带了%s？打算拿出多少来供大家一起用呢？",
+            "ru_ru": "Ты принес %s? Сколько ты хочешь оставить для общих нужд?"
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.transfer": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Your current home is at %s. If you're thinking of moving in with us, have a word with the Chief.",
+            "zh_cn": "你目前的家在%s。要是想搬来这边住，可以去和首领谈谈。",
+            "ru_ru": "Твой нынешний дом — %s. Если хочешь перебраться к нам, поговори с вождем."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "",
+            "zh_cn": "",
+            "ru_ru": ""
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        },
+        {
+          "text": {
+            "en_us": "Thank you",
+            "zh_cn": "谢谢",
+            "ru_ru": "Спасибо"
+          },
+          "emotion": "happy",
+          "effect": "emphasis",
+          "speed": 1,
+          "intensity": 0.8,
+          "pause": 110
+        },
+        {
+          "text": {
+            "en_us": "! That really helps me out. Sit down and rest with us for a while if you have the time.",
+            "zh_cn": "你！这可帮上大忙了。有空的话，留下来和我们坐会儿吧。",
+            "ru_ru": "! Ты меня очень выручил. Присаживайся, отдохни с нами, если есть время."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.declined": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "That's all right—we'll figure something else out.",
+            "zh_cn": "没关系，我们再想别的办法就好。",
+            "ru_ru": "Ничего страшного, мы что-нибудь придумаем."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.changed": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "We can't finish that right now. Let's check that the items match, who they're meant for, and whether there's enough room to hold them.",
+            "zh_cn": "现在还办不成。我们再核对一下物品对不对、该交给谁，以及有没有足够的地方存放吧。",
+            "ru_ru": "Сейчас это уладить не выйдет. Давай проверим, те ли это предметы, кому они предназначены и хватит ли для них места."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.meal": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I'll go let the others know. Come take a seat by the fire.",
+            "zh_cn": "我去通知其他人一声。你先来火堆旁坐下吧。",
+            "ru_ru": "Я пойду предупрежу остальных. Присаживайся пока у костра."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.gesture": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "The resident gives a soft call, glances toward the storage chests, and turns back to wait for your answer.",
+            "zh_cn": "这位居民轻轻叫了一声，朝储物箱的方向望了望，又转过头来等待你的回应。",
+            "ru_ru": "Житель тихонько подает голос, бросает взгляд в сторону сундуков с припасами и поворачивается к тебе, ожидая ответа."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.seekchief": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "The Chief can explain what the neighbors need. You haven't committed to anything yet.",
+            "zh_cn": "首领能为你解释邻居们需要什么。你目前还没有答应任何差事。",
+            "ru_ru": "Вождь сможет объяснить, что нужно соседям. Пока ты еще ни на что не соглашался."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.playful_greeting": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Hey, you're here! Got a minute to chat, or do I have to catch you first?",
+            "zh_cn": "你来啦！有空聊两句吗，还是得先追上你才行？",
+            "ru_ru": "Эй, ты здесь! Найдется минутка поболтать, или мне сначала придется тебя догнать?"
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.playful_request": {
+      "parts": [
+        {
+          "text": {
+            "zh_cn": "能帮我带 %s 份食物吗，任何种类都行！记得直接交给我——我可不想去公共物资箱里翻找自己的零嘴！",
+            "en_us": "Could you bring me %s portions of food, any kind will do? Make sure you hand them straight to me—I don't want to go digging through the public chests for my own snacks!",
+            "ru_ru": "Принесешь мне %s ед. еды — какой угодно? Только чур передать лично в руки — не хочу потом искать свои вкусности в общих сундуках!"
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.playful_thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You brought them! Thanks a bunch—I'll save you a good spot by the fire.",
+            "zh_cn": "你带来啦！多谢啦，火堆旁的好位置一定给你留着。",
+            "ru_ru": "Принес! Спасибо огромное — приберегу для тебя лучшее местечко у костра."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.cautious_greeting": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Hello. Are you busy right now? There's a small favor I wanted to ask whenever you have the time.",
+            "zh_cn": "你好。现在正忙着吗？有件小事想请人帮个忙，等你有空的时候再说就好。",
+            "ru_ru": "Привет. Ты сейчас не занят? Есть небольшая просьба, но она вполне подождет, пока у тебя появится время."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.cautious_request": {
+      "parts": [
+        {
+          "text": {
+            "zh_cn": "能帮我带 %s 份食物吗，任何种类都可以。你方便的时候直接交给我就好，路上千万小心。",
+            "en_us": "Could you bring me %s portions of food, any kind will do? Just hand them directly to me whenever it's convenient, and please be careful out there.",
+            "ru_ru": "Сможешь принести мне %s ед. еды — подойдет любая? Передай лично мне, когда будет удобно, и, пожалуйста, береги себя в дороге."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.cautious_thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Thank you. More than anything, I'm glad you made it back safely.",
+            "zh_cn": "谢谢你。看到你平平安安回来，比什么都好。",
+            "ru_ru": "Спасибо. Главное, что ты вернулся целым и невредимым."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.polite_greeting": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Hello, neighbor. If you have a spare moment, could I ask you for a small favor?",
+            "zh_cn": "你好，邻居。要是你手头有空，能请你帮个小忙吗？",
+            "ru_ru": "Здравствуй, сосед. Если у тебя найдется свободная минутка, можно попросить о небольшой услуге?"
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.polite_request": {
+      "parts": [
+        {
+          "text": {
+            "zh_cn": "能麻烦你帮我带 %s 份食物吗，任何种类都可以。凑齐之后直接交给我就行，一点都不着急。",
+            "en_us": "Would you mind bringing me %s portions of food, any kind will do? Just hand them to me directly once you have them all—there's no rush at all.",
+            "ru_ru": "Не сочти за труд принести мне %s ед. еды — подойдет любая. Как соберешь все, просто передай мне лично — спешить совершенно некуда."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.polite_thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Thank you for making the trip. Please stay and sit with us for a while if you'd like to rest.",
+            "zh_cn": "谢谢你特意跑这一趟。要是想歇歇脚，就留下来坐一会儿吧。",
+            "ru_ru": "Спасибо за хлопоты. Если хочешь передохнуть, оставайся и посиди немного с нами."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.watch_thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Thank you for looking out for them. Come rest for a while—we can take it from here.",
+            "zh_cn": "谢谢你照应他们。过来歇一会儿吧，接下来交给我们就好。",
+            "ru_ru": "Спасибо, что присмотрел за ними. Присядь и передохни — дальше мы справимся сами."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.watch_thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Thanks for standing with our neighbors out there. Head back to the fire whenever you're ready.",
+            "zh_cn": "谢谢你和邻居们并肩应付麻烦。准备好了就回火堆旁歇息吧。",
+            "ru_ru": "Спасибо, что встал плечом к плечу с нашими соседями. Возвращайся к костру, когда будешь готов."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.watch_thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Thank you. Knowing we look out for one another makes the nights on the mountain feel much safer.",
+            "zh_cn": "谢谢你。知道大家能这样互相照应，山上的夜晚也让人安心多了。",
+            "ru_ru": "Спасибо. Когда знаешь, что все готовы прикрыть друг друга, ночи на горе становятся куда спокойнее."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.watch_thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Thank you for helping us deal with that trouble. It's a relief you were here.",
+            "zh_cn": "谢谢你帮我们应付那些麻烦，幸好有你在。",
+            "ru_ru": "Спасибо, что помог нам справиться с этой бедой. Хорошо, что ты оказался рядом."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.watch_wait": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Let's make sure the neighbors are safe first. And if nothing has happened today, there's no need to go looking for trouble.",
+            "zh_cn": "先确认邻居们都安全吧。要是今天本来就平安无事，也不必特意去外头找麻烦。",
+            "ru_ru": "Давай сперва убедимся, что соседи в безопасности. А если ничего не случилось, специально искать неприятности не нужно."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.watch_wait": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "If there's real trouble out there, let's finish dealing with it first. And if everything is quiet, leave it that way—nobody's asking you to go pick a fight.",
+            "zh_cn": "真有麻烦的话，就先把它处理完。要是外头本来就平平安安的，那就继续保持——可没人叫你特意去找架打。",
+            "ru_ru": "Если снаружи и правда беда, сперва разберемся с ней. А если все тихо, пусть так и остается — никто не просит тебя специально искать драки."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.watch_wait": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I don't have a confirmed report to record just yet. Simply lend a hand if our neighbors run into danger—an uneventful night is a good thing in itself.",
+            "zh_cn": "目前还没有能够确认的协防记录。等邻居们真遇上危险时再帮忙就好；平平安安度过一晚本身也是好事。",
+            "ru_ru": "Пока нет подтвержденных сведений для записи. Просто помоги соседям, если им действительно грозит опасность; а спокойная ночь хороша сама по себе."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.watch_wait": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Let's make sure everyone is safe first. There's no need to go looking for a fight on our account.",
+            "zh_cn": "先确认大家都安全吧。不用为了我们特意去外头找架打。",
+            "ru_ru": "Давай сначала убедимся, что все в безопасности. Не нужно специально искать драки ради нас."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "resident.away": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Camp supplies can wait until we're back home. Right now, I'm just glad to be traveling with you.",
+            "zh_cn": "营地物资的事等回去之后再说吧。眼下能陪你一起赶路就挺好。",
+            "ru_ru": "Дела с припасами подождут, пока мы не вернемся домой. Сейчас мне просто приятно путешествовать вместе с тобой."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "weaver.outfit": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You've done a great deal for this household. This Canopy Outfit is for you—may it keep you comfortable along the forest paths.",
+            "zh_cn": "你为这个家出了不少力。这套林冠服饰送给你，愿它陪你舒适地走过更多林间小路。",
+            "ru_ru": "Ты немало сделал для нашего дома. Этот костюм кроны — для тебя; пусть он сослужит добрую службу на лесных тропах."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "matriarch.outfit": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You've been looking out for everyone here, and I'd love to see you wearing our gear. Here—this Trailcloth Outfit is yours.",
+            "zh_cn": "你一直在照应这里的伙伴，我很乐意看你穿上我们的服装。给，这套行猎装归你了。",
+            "ru_ru": "Ты все время заботишься о наших ребятах, и я буду рада видеть тебя в нашей одежде. Держи, этот костюм твой."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "archivist.outfit": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You're a ",
+            "zh_cn": "你在这里已经是",
+            "ru_ru": "Ты у нас уже "
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        },
+        {
+          "text": {
+            "en_us": "familiar face",
+            "zh_cn": "熟面孔",
+            "ru_ru": "свой человек"
+          },
+          "emotion": "happy",
+          "effect": "emphasis",
+          "speed": 1,
+          "intensity": 0.8,
+          "pause": 110
+        },
+        {
+          "text": {
+            "en_us": " around here now. This Aviator Outfit is for you—I hope it serves you well on your travels.",
+            "zh_cn": "了。这套飞行服送给你，希望你外出时能派上用场。",
+            "ru_ru": ". Этот костюм авиатора — для тебя; надеюсь, он пригодится тебе в странствиях."
+          },
+          "emotion": "happy",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "status.outfit_changed": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I can't hand the outfit over just yet—make sure you have a free slot in your pack first, then talk to me again.",
+            "zh_cn": "衣服现在还交不了。先在背包里腾出一个空位，再过来找我吧。",
+            "ru_ru": "Пока не получается передать одежду. Освободи место в рюкзаке и подойди ко мне снова."
+          },
+          "emotion": "calm",
+          "effect": "none",
+          "speed": 1,
+          "intensity": 0,
+          "pause": 0
+        }
+      ]
+    },
+    "pathfinder.greeting": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Good to see you.",
+            "zh_cn": "见到你真好。",
+            "ru_ru": "Рад тебя видеть."
+          },
+          "effect": "wave",
+          "emotion": "curious",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Did you want to check how the refuge is doing, or see if anyone downstairs could use a hand?",
+            "zh_cn": "是想了解避难所的近况，还是看看楼下谁需要帮忙？",
+            "ru_ru": " Хочешь узнать, как дела в убежище, или кому внизу нужна помощь?"
+          },
+          "effect": "none",
+          "emotion": "curious",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.food_low": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "The reserve chest in the middle-floor garden is running low on food.",
+            "zh_cn": "中层菜园的储备箱快没吃的了。",
+            "ru_ru": "В общем сундуке огорода заканчивается еда."
+          },
+          "effect": "droop",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " The garden keeps us going, of course, but any rations you can spare would help us out.",
+            "zh_cn": "菜园还能供着，要是有多余的口粮，带些来就帮大忙了。",
+            "ru_ru": " Огород нас кормит, но лишние припасы очень пригодились бы."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.food_enough": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Between the garden plots and the reserve chest, we have plenty of food to go around right now.",
+            "zh_cn": "有菜园的收成和储备箱里的东西，现在大家都吃得饱。",
+            "ru_ru": "Благодаря огороду и общему сундуку еды сейчас всем хватает."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.food_plenty": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Our food stores are well stocked with fresh oranges, vegetables, and canned soup.",
+            "zh_cn": "新鲜橙子、蔬菜和罐头汤都备得很足。",
+            "ru_ru": "Свежих апельсинов, овощей и супа у нас вдоволь."
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " If you're free later, come grab a cushion in the common room and eat with us.",
+            "zh_cn": "晚点有空，就来公共休息室拿个坐垫，一起吃点吧。",
+            "ru_ru": " Будет время — приходи в общую комнату, бери подушку и поешь с нами."
+          },
+          "effect": "none",
+          "emotion": "happy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.safe": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "All three floors are quiet right now, and my ears haven't picked up a single suspicious sound near the top hatch.",
+            "zh_cn": "这三层现在都挺安静，顶上舱口附近也没听见什么可疑动静。",
+            "ru_ru": "На всех трёх этажах тихо, и у верхнего люка мои уши не уловили ничего подозрительного."
+          },
+          "effect": "float",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.danger": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "My ears caught a commotion downstairs.",
+            "zh_cn": "我听见楼下有骚动，有邻居遇上麻烦了。",
+            "ru_ru": "Я услышал шум внизу."
+          },
+          "effect": "pulse",
+          "emotion": "determined",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " One of our neighbors is dealing with trouble right now. Let's make sure everyone is safe before we settle into the common room.",
+            "zh_cn": "先确认大家安全，再去公共休息室歇着。",
+            "ru_ru": " Кто-то из соседей попал в беду. Прежде чем отдыхать в общей комнате, убедимся, что все в безопасности."
+          },
+          "effect": "none",
+          "emotion": "determined",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.remember": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I haven't forgotten the help you've given us down here.",
+            "zh_cn": "你帮过我们的事，我没忘。",
+            "ru_ru": "Я помню твою помощь."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " You don't need to bring supplies every time you visit to be welcome.",
+            "zh_cn": "来这里做客不必次次都带物资。",
+            "ru_ru": " Тебе не нужно приносить припасы при каждом визите, чтобы тебе здесь были рады."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.requests": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "A few neighbors mentioned errands that need a hand.",
+            "zh_cn": "有几位邻居提了些需要人帮忙的事。",
+            "ru_ru": "Несколько соседей просили помочь с делами."
+          },
+          "effect": "wave",
+          "emotion": "curious",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Take a look and pick whichever one fits your plans. The rest can wait.",
+            "zh_cn": "看看有没有顺路能做的，其他的不急。",
+            "ru_ru": " Выбери, что подходит к твоим планам. Остальное подождёт."
+          },
+          "effect": "none",
+          "emotion": "curious",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.no_requests": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Everything down here is running smoothly at the moment.",
+            "zh_cn": "现在这里一切顺当。",
+            "ru_ru": "Сейчас всё идёт своим чередом."
+          },
+          "effect": "float",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Go put your feet up on the common room cushions for a while.",
+            "zh_cn": "去公共休息室的坐垫上歇会儿腿吧。",
+            "ru_ru": " Отдохни на подушках в общей комнате."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.handled": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Someone else already took care of that one.",
+            "zh_cn": "那件已经有人办妥了。",
+            "ru_ru": "С этим уже помогли."
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Ears and feet move fast around here! Feel free to check if anything else is open.",
+            "zh_cn": "这里大家耳朵灵，腿脚也快！看看还有没有别的吧。",
+            "ru_ru": " У нас и уши, и лапы работают быстро! Посмотри, осталось ли что-нибудь ещё."
+          },
+          "effect": "none",
+          "emotion": "happy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.watch": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "If anything hostile slips near the entrance or bothers the neighbors, please help drive it off.",
+            "zh_cn": "要是有敌对生物靠近入口、找邻居的麻烦，请帮忙赶走。",
+            "ru_ru": "Если кто-то враждебный подберётся ко входу или нападёт на соседей, помоги его прогнать."
+          },
+          "effect": "pulse",
+          "emotion": "determined",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Don't go looking for fights out in the dunes, though. Let me know once everyone is safe.",
+            "zh_cn": "别特意跑到沙丘里找架打，大家安全后回来告诉我就好。",
+            "ru_ru": " Не ищи драк в дюнах. Просто сообщи, когда все будут в безопасности."
+          },
+          "effect": "none",
+          "emotion": "determined",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.request": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "We could use %s %s for the household.",
+            "zh_cn": "家里需要 %s 份%s。",
+            "ru_ru": "Для дома нужно %s порций: %s."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Bring the full amount whenever it's convenient, and we'll store them in the middle-floor garden reserve chest.",
+            "zh_cn": "方便时把东西带齐，我们会收进中层菜园的储备箱。",
+            "ru_ru": " Принеси всё, когда будет удобно, и мы уберём это в общий сундук огорода."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.choose_item": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Hold whatever supplies you want to share in your hand and talk to me again.",
+            "zh_cn": "把想分享的东西拿在手里，再来和我说。",
+            "ru_ru": "Возьми в руку припасы, которыми хочешь поделиться, и поговори со мной снова."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Anything you need for the road, keep for yourself.",
+            "zh_cn": "路上自己需要的就留着吧。",
+            "ru_ru": " То, что нужно тебе в дороге, оставь себе."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.donate": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You brought %s to share?",
+            "zh_cn": "你带了%s来分享？",
+            "ru_ru": "Ты принёс %s для всех?"
+          },
+          "effect": "wave",
+          "emotion": "curious",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " We can use that downstairs. How much do you want to leave in the reserve?",
+            "zh_cn": "楼下用得上。想往储备里放多少？",
+            "ru_ru": " Внизу пригодится. Сколько хочешь оставить в запасах?"
+          },
+          "effect": "none",
+          "emotion": "curious",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.transfer": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You're settled in at %s.",
+            "zh_cn": "你现在住在%s。",
+            "ru_ru": "Сейчас твой дом — %s."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Want to make the Desert Refuge your home instead? Your friends there will still remember you, and nothing changes until you say the word.",
+            "zh_cn": "想改为住进沙漠避难所吗？那边的朋友仍会记得你，你没点头前什么都不会变。",
+            "ru_ru": " Хочешь переехать в Пустынное убежище? Старые друзья тебя не забудут, и без твоего согласия ничего не изменится."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Thank you.",
+            "zh_cn": "谢谢。",
+            "ru_ru": "Спасибо."
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " I'll make sure these get put away in the middle-floor garden reserve chest. Head down to the common room and rest your legs whenever you like.",
+            "zh_cn": "我会把这些收进中层菜园的储备箱。想歇歇腿，就去公共休息室坐坐吧。",
+            "ru_ru": " Я прослежу, чтобы всё попало в общий сундук огорода. Захочешь отдохнуть — заходи в общую комнату."
+          },
+          "effect": "none",
+          "emotion": "happy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.declined": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "That's all right.",
+            "zh_cn": "没关系，先顾好自己的行程。",
+            "ru_ru": "Ничего страшного."
+          },
+          "effect": "whisper",
+          "emotion": "whisper",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Take care of your own trip first. We can ask another neighbor.",
+            "zh_cn": "我们再问问别的邻居。",
+            "ru_ru": " Сначала позаботься о своей дороге. Спросим другого соседа."
+          },
+          "effect": "none",
+          "emotion": "whisper",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.changed": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "We can't complete that right now.",
+            "zh_cn": "现在还办不了。",
+            "ru_ru": "Сейчас не получается."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Check that you're holding the right item and that the reserve chest still has room. If someone already handled it, there's no need to bring a second batch.",
+            "zh_cn": "看看手里的东西是否对、储备箱是否有空位。要是已经有人办妥，就不用再送一份了。",
+            "ru_ru": " Проверь предмет в руке и место в общем сундуке. Если дело уже сделано, вторую партию приносить не нужно."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.meal": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I'll go let the neighbors know!",
+            "zh_cn": "我去叫大家！",
+            "ru_ru": "Я позову соседей!"
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Head down to the middle common room and grab a pillow on the orange rug. Whoever's free will come join us.",
+            "zh_cn": "到中层公共休息室，橙色地毯上拿个坐垫吧。有空的邻居都会来。",
+            "ru_ru": " Иди в общую комнату на среднем этаже и бери подушку на оранжевом ковре. Кто свободен — присоединится."
+          },
+          "effect": "none",
+          "emotion": "happy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.watch_thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Thanks for backing up our neighbors.",
+            "zh_cn": "谢谢你照应邻居们。",
+            "ru_ru": "Спасибо, что поддержал соседей."
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " My ears can stop twitching now! Head down to the common room and catch your breath.",
+            "zh_cn": "我的耳朵总算能消停了！去公共休息室歇歇吧。",
+            "ru_ru": " Уши наконец перестали дёргаться! Передохни в общей комнате."
+          },
+          "effect": "none",
+          "emotion": "happy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.watch_wait": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Let's make sure the refuge is out of danger first.",
+            "zh_cn": "先确认避难所脱离危险。",
+            "ru_ru": "Сначала убедимся, что убежищу ничто не грозит."
+          },
+          "effect": "pulse",
+          "emotion": "determined",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " If the dunes have been quiet today, leave them that way. Nobody wants you picking a fight on our account.",
+            "zh_cn": "要是今天沙丘上一直很平静，就让它继续平静吧，没人想让你为了我们去挑起争斗。",
+            "ru_ru": " Если в дюнах сегодня тихо, пусть так и будет. Никто не просит тебя затевать драки ради нас."
+          },
+          "effect": "none",
+          "emotion": "determined",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "pathfinder.outfit": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You're part of the household down here now.",
+            "zh_cn": "你已经是这里的一员了。",
+            "ru_ru": "Ты теперь часть нашего дома."
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Take this Wayfarer Outfit. May the linen keep the sun off your shoulders and the water gourd serve you well on the dunes.",
+            "zh_cn": "这套沙行装送给你，愿亚麻布替你挡住烈日，水葫芦陪你走过沙丘。",
+            "ru_ru": " Возьми наряд пустынного странника. Пусть лён укрывает плечи от солнца, а фляга выручает в дюнах."
+          },
+          "effect": "none",
+          "emotion": "happy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.greeting": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Oh, hello there.",
+            "zh_cn": "哦，你好。",
+            "ru_ru": "О, привет."
+          },
+          "effect": "wave",
+          "emotion": "curious",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Do you have a moment? There's something down here I could use a hand with.",
+            "zh_cn": "有空吗？这里有件小事想请你帮忙。",
+            "ru_ru": " Есть минутка? Мне тут нужна небольшая помощь."
+          },
+          "effect": "none",
+          "emotion": "curious",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.food_low": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Food is getting a little low in the middle-floor garden reserve.",
+            "zh_cn": "中层菜园的储备快没吃的了。",
+            "ru_ru": "В общих запасах огорода маловато еды."
+          },
+          "effect": "droop",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " We've been checking the garden beds and looking around for extra rations.",
+            "zh_cn": "我们一直在查看菜园，也四处找些额外口粮。",
+            "ru_ru": " Мы проверяем грядки и ищем дополнительные припасы."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.food_enough": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "We have plenty to eat between the garden and the reserve chest.",
+            "zh_cn": "菜园和储备箱里的食物够吃。",
+            "ru_ru": "Огород и общий сундук нас кормят."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " If you live here with us, take whatever you need.",
+            "zh_cn": "住在这里的话，需要什么就拿吧。",
+            "ru_ru": " Если живёшь с нами, бери еду по необходимости."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.food_plenty": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "We have plenty of food put away, with fresh oranges, vegetables, and soup.",
+            "zh_cn": "橙子、蔬菜和汤都备了不少。",
+            "ru_ru": "Апельсинов, овощей и супа заготовлено много."
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " It would be nice to gather everyone in the common room for a meal.",
+            "zh_cn": "真想叫大家到公共休息室一起吃一顿。",
+            "ru_ru": " Хорошо бы собраться всем в общей комнате и поесть."
+          },
+          "effect": "none",
+          "emotion": "happy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.safe": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "All three floors are nice and quiet right now.",
+            "zh_cn": "现在这三层都安安静静的，希望能一直这样。",
+            "ru_ru": "На всех трёх этажах спокойно."
+          },
+          "effect": "float",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Hope it stays that way.",
+            "zh_cn": "",
+            "ru_ru": " Надеюсь, так и останется."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.danger": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Someone nearby ran into trouble.",
+            "zh_cn": "附近有人遇上麻烦了。",
+            "ru_ru": "Кто-то рядом попал в беду."
+          },
+          "effect": "pulse",
+          "emotion": "determined",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Let's help them out before heading back to the rooms.",
+            "zh_cn": "先去帮忙，再回房间吧。",
+            "ru_ru": " Поможем, прежде чем возвращаться в комнаты."
+          },
+          "effect": "none",
+          "emotion": "determined",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.remember": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I remember you helping us out before.",
+            "zh_cn": "我记得你以前帮过忙。",
+            "ru_ru": "Я помню, как ты помогал нам."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Good to see you back down here.",
+            "zh_cn": "又在这里见到你，真好。",
+            "ru_ru": " Рад снова видеть тебя здесь."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.requests": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I'm trying to set aside a little food for myself.",
+            "zh_cn": "我想给自己留点吃的。",
+            "ru_ru": "Хочу отложить немного еды для себя."
+          },
+          "effect": "wave",
+          "emotion": "curious",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " If you have any to spare, could you bring me some?",
+            "zh_cn": "要是你有多余的，能带些给我吗？",
+            "ru_ru": " Если у тебя есть лишнее, принесёшь мне?"
+          },
+          "effect": "none",
+          "emotion": "curious",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.no_requests": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I don't need anything for myself right now.",
+            "zh_cn": "我自己现在没缺什么。",
+            "ru_ru": "Мне пока ничего не нужно."
+          },
+          "effect": "float",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Stay and chat in the cool air if you'd like.",
+            "zh_cn": "愿意的话，留下乘凉聊会儿吧。",
+            "ru_ru": " Можешь остаться в прохладе и поболтать."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.handled": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Someone already brought those by for me, but thank you for keeping it in mind.",
+            "zh_cn": "那些东西已经有人给我带来了，不过还是谢谢你记着。",
+            "ru_ru": "Это мне уже принесли, но спасибо, что помнишь."
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.watch": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "If anything comes after our neighbors, could you help chase it off?",
+            "zh_cn": "要是有什么来找邻居们的麻烦，能帮忙赶走吗？",
+            "ru_ru": "Если кто-то нападёт на соседей, поможешь его прогнать?"
+          },
+          "effect": "pulse",
+          "emotion": "determined",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Let us know once everyone's safe.",
+            "zh_cn": "大家安全后告诉我们一声。",
+            "ru_ru": " Сообщи, когда все будут в безопасности."
+          },
+          "effect": "none",
+          "emotion": "determined",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.request": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Could you bring me %s portions of %s?",
+            "zh_cn": "能给我带 %s 份%s吗？",
+            "ru_ru": "Принесёшь мне %s порций: %s?"
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Hand them straight to me once you've gathered the full amount.",
+            "zh_cn": "凑齐后直接交给我就好。",
+            "ru_ru": " Когда соберёшь всё, передай прямо мне."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.choose_item": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Hold whatever you'd like to share in your hand so I can see it.",
+            "zh_cn": "把想分享的东西拿在手里，让我看看。",
+            "ru_ru": "Возьми в руку то, чем хочешь поделиться, чтобы я увидел."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Take your time. You can come back whenever you're ready.",
+            "zh_cn": "不急，准备好再回来。",
+            "ru_ru": " Не спеши, возвращайся, когда будешь готов."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.donate": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You brought %s?",
+            "zh_cn": "你带了%s？",
+            "ru_ru": "Ты принёс %s?"
+          },
+          "effect": "wave",
+          "emotion": "curious",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " How much of it would you like to leave in the reserve for everyone to share?",
+            "zh_cn": "想给大家的储备留下多少？",
+            "ru_ru": " Сколько хочешь оставить в общих запасах?"
+          },
+          "effect": "none",
+          "emotion": "curious",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.transfer": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Your current home is at %s.",
+            "zh_cn": "你现在的家在%s。",
+            "ru_ru": "Сейчас твой дом — %s."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " If you're thinking of moving in with us, have a word with Pathfinder up in the east office.",
+            "zh_cn": "要是想搬来，就去东边办公室和领路人说说吧。",
+            "ru_ru": " Если думаешь переехать к нам, поговори с Проводником в восточном кабинете."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Thank you!",
+            "zh_cn": "谢谢！",
+            "ru_ru": "Спасибо!"
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " That helps me out a lot. Grab a cushion in the common room and rest your legs for a bit if you have time.",
+            "zh_cn": "帮上我大忙了。有空就去公共休息室拿个坐垫，歇会儿腿吧。",
+            "ru_ru": " Очень выручил. Если есть время, возьми подушку в общей комнате и отдохни."
+          },
+          "effect": "none",
+          "emotion": "happy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.declined": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "That's all right.",
+            "zh_cn": "没关系，我们再想别的办法。",
+            "ru_ru": "Ничего страшного."
+          },
+          "effect": "whisper",
+          "emotion": "whisper",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " We'll figure something else out.",
+            "zh_cn": "",
+            "ru_ru": " Что-нибудь придумаем."
+          },
+          "effect": "none",
+          "emotion": "whisper",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.changed": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "We can't finish that right now.",
+            "zh_cn": "现在还交不了。",
+            "ru_ru": "Сейчас закончить не выходит."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Let's check that the items match, who they're meant for, and whether there's room for them.",
+            "zh_cn": "咱们看看物品是否对、该交给谁，以及还有没有地方放。",
+            "ru_ru": " Проверим предметы, кому они предназначены и есть ли для них место."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.meal": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "I'll go let the others know.",
+            "zh_cn": "我去叫其他人。",
+            "ru_ru": "Я позову остальных."
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Come grab a cushion in the middle common room.",
+            "zh_cn": "到中层公共休息室拿个坐垫吧。",
+            "ru_ru": " Бери подушку в общей комнате на среднем этаже."
+          },
+          "effect": "none",
+          "emotion": "happy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.gesture": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "The resident gives a soft call, glances toward the middle-floor garden reserve chests, and turns back to wait for your answer.",
+            "zh_cn": "这位居民轻轻叫了一声，朝中层菜园的储备箱看去，又转回来等你的回应。",
+            "ru_ru": "Житель тихо зовёт, смотрит в сторону общего сундука в огороде и снова ждёт твоего ответа."
+          },
+          "effect": "whisper",
+          "emotion": "whisper",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.seekchief": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Pathfinder up in the east office can explain what the neighbors need.",
+            "zh_cn": "东边办公室的领路人能告诉你大家需要什么。",
+            "ru_ru": "Проводник в восточном кабинете объяснит, что нужно соседям."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " You haven't committed to anything yet.",
+            "zh_cn": "你现在还没答应任何事。",
+            "ru_ru": " Ты пока ни на что не соглашался."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.playful_greeting": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Hey, you're here!",
+            "zh_cn": "嘿，你来啦！",
+            "ru_ru": "Эй, ты пришёл!"
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Got a minute to chat, or do I have to race you up the stairs first?",
+            "zh_cn": "有空聊聊，还是先和你赛一趟楼梯？",
+            "ru_ru": " Есть минутка поболтать или сначала наперегонки по лестнице?"
+          },
+          "effect": "none",
+          "emotion": "happy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.playful_request": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Could you bring me %s portions of %s?",
+            "zh_cn": "能给我带 %s 份%s吗？",
+            "ru_ru": "Принесёшь мне %s порций: %s?"
+          },
+          "effect": "wave",
+          "emotion": "curious",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Hand them straight to me so I don't have to go digging through the reserve chest for my own snacks!",
+            "zh_cn": "直接交给我吧，免得我还得去储备箱里翻自己的零嘴！",
+            "ru_ru": " Передай прямо мне, чтобы не пришлось выискивать свои закуски в общем сундуке!"
+          },
+          "effect": "none",
+          "emotion": "curious",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.playful_thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "You brought them!",
+            "zh_cn": "带来啦！",
+            "ru_ru": "Принёс!"
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Thank you. I'll save you the best pillow on the common room rug.",
+            "zh_cn": "谢谢。公共休息室里最舒服的坐垫给你留着。",
+            "ru_ru": " Спасибо. Лучшую подушку в общей комнате оставлю тебе."
+          },
+          "effect": "none",
+          "emotion": "happy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.cautious_greeting": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Hello.",
+            "zh_cn": "你好，现在忙吗？",
+            "ru_ru": "Здравствуй."
+          },
+          "effect": "wobble",
+          "emotion": "shy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Are you busy right now? There's a small favor I wanted to ask whenever you have a spare moment.",
+            "zh_cn": "等你有空，想请你帮个小忙。",
+            "ru_ru": " Ты сейчас занят? Когда будет время, хочу попросить о небольшом одолжении."
+          },
+          "effect": "none",
+          "emotion": "shy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.cautious_request": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Could you bring me %s portions of %s?",
+            "zh_cn": "能给我带 %s 份%s吗？",
+            "ru_ru": "Принесёшь мне %s порций: %s?"
+          },
+          "effect": "wobble",
+          "emotion": "shy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Hand them straight to me whenever it's convenient, and watch yourself out on the dunes.",
+            "zh_cn": "方便时直接交给我。去沙丘上可要小心。",
+            "ru_ru": " Передай мне, когда будет удобно. И береги себя в дюнах."
+          },
+          "effect": "none",
+          "emotion": "shy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.cautious_thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Thank you.",
+            "zh_cn": "谢谢。",
+            "ru_ru": "Спасибо."
+          },
+          "effect": "wobble",
+          "emotion": "shy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " More than anything, I'm glad you made it back inside safe.",
+            "zh_cn": "最让我高兴的，还是你平安回来了。",
+            "ru_ru": " Больше всего я рад, что ты благополучно вернулся."
+          },
+          "effect": "none",
+          "emotion": "shy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.polite_greeting": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Hello, neighbor.",
+            "zh_cn": "你好，邻居。",
+            "ru_ru": "Здравствуй, сосед."
+          },
+          "effect": "whisper",
+          "emotion": "whisper",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " If you have a spare moment, could I ask you for a small favor?",
+            "zh_cn": "有空时，能请你帮个小忙吗？",
+            "ru_ru": " Если найдётся время, можно попросить тебя о маленьком одолжении?"
+          },
+          "effect": "none",
+          "emotion": "whisper",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.polite_request": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Would you mind bringing me %s portions of %s?",
+            "zh_cn": "方便给我带 %s 份%s吗？",
+            "ru_ru": "Не мог бы ты принести мне %s порций: %s?"
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Hand them to me once you have them all. There's no rush.",
+            "zh_cn": "凑齐后交给我就行，不着急。",
+            "ru_ru": " Передай мне, когда соберёшь всё. Спешить некуда."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.polite_thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Thank you for making the trip.",
+            "zh_cn": "谢谢你特意跑一趟。",
+            "ru_ru": "Спасибо, что сходил за этим."
+          },
+          "effect": "emphasis",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Please stay and sit in the common room for a while if you'd like to rest.",
+            "zh_cn": "想歇歇的话，请到公共休息室坐会儿。",
+            "ru_ru": " Если хочешь передохнуть, посиди в общей комнате."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.watch_thanks": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Thank you for helping us deal with that trouble.",
+            "zh_cn": "谢谢你帮我们处理麻烦。",
+            "ru_ru": "Спасибо, что помог справиться с бедой."
+          },
+          "effect": "bounce",
+          "emotion": "happy",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " It's a relief you were around.",
+            "zh_cn": "幸好你在。",
+            "ru_ru": " Хорошо, что ты оказался рядом."
+          },
+          "effect": "none",
+          "emotion": "happy",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.watch_wait": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Let's make sure everyone is safe first.",
+            "zh_cn": "先确认大家安全吧。",
+            "ru_ru": "Сначала убедимся, что все в безопасности."
+          },
+          "effect": "pulse",
+          "emotion": "determined",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " There's no need to go looking for a fight on our account.",
+            "zh_cn": "不用为我们特意去找架打。",
+            "ru_ru": " Не нужно ради нас искать драку."
+          },
+          "effect": "none",
+          "emotion": "determined",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    },
+    "desert_resident.away": {
+      "parts": [
+        {
+          "text": {
+            "en_us": "Refuge supplies can wait until we're back under the dunes.",
+            "zh_cn": "避难所的物资，等回到沙丘底下再说。",
+            "ru_ru": "Припасы убежища подождут, пока мы не вернёмся под дюны."
+          },
+          "effect": "float",
+          "emotion": "calm",
+          "pause": 140,
+          "speed": 1,
+          "intensity": 0.65,
+          "beat": false
+        },
+        {
+          "text": {
+            "en_us": " Right now, I'm glad to be traveling with you.",
+            "zh_cn": "现在能和你一起旅行，我就很高兴了。",
+            "ru_ru": " А сейчас я просто рад путешествовать с тобой."
+          },
+          "effect": "none",
+          "emotion": "calm",
+          "pause": 0,
+          "speed": 1,
+          "intensity": 0.2,
+          "beat": false
+        }
+      ]
+    }
+  },
+  "words": {
+    "choice.life": {
+      "en_us": "How are things around camp?",
+      "zh_cn": "营地最近怎么样？",
+      "ru_ru": "Как дела в лагере?"
+    },
+    "choice.status": {
+      "en_us": "How is everyone getting on?",
+      "zh_cn": "大家过得怎么样？",
+      "ru_ru": "Как тут все поживают?"
+    },
+    "choice.requests": {
+      "en_us": "Does anyone need a hand?",
+      "zh_cn": "有人需要帮忙吗？",
+      "ru_ru": "Кому-нибудь нужна помощь?"
+    },
+    "choice.donate": {
+      "en_us": "I brought something to share.",
+      "zh_cn": "我带了些东西来分享。",
+      "ru_ru": "Я принес кое-что для общих нужд."
+    },
+    "choice.meal": {
+      "en_us": "Shall we eat together?",
+      "zh_cn": "要不要一起吃点东西？",
+      "ru_ru": "Может, поедим вместе?"
+    },
+    "choice.membership": {
+      "en_us": "Let's talk about my place here.",
+      "zh_cn": "谈谈我在这里的归属。",
+      "ru_ru": "Поговорим о моем месте здесь."
+    },
+    "choice.body": {
+      "en_us": "Could we talk about trying your form?",
+      "zh_cn": "能聊聊体验你这个形态的事吗？",
+      "ru_ru": "Можем поговорить о том, чтобы примерить твой облик?"
+    },
+    "choice.request": {
+      "en_us": "%s %s",
+      "zh_cn": "%s 份%s",
+      "ru_ru": "%s ед. — %s"
+    },
+    "choice.watch_done": {
+      "en_us": "Everyone is safe now. I helped deal with the trouble.",
+      "zh_cn": "大家安全了，我帮忙应付了麻烦。",
+      "ru_ru": "Теперь все в безопасности. Я помог разобраться с угрозой."
+    },
+    "choice.submit": {
+      "en_us": "I have the full amount right here.",
+      "zh_cn": "我要交的物资已经凑齐了。",
+      "ru_ru": "У меня с собой вся нужная партия."
+    },
+    "choice.decline": {
+      "en_us": "I can't help with this right now.",
+      "zh_cn": "我眼下没法帮这件事。",
+      "ru_ru": "Сейчас я не смогу с этим помочь."
+    },
+    "choice.give": {
+      "en_us": "Donate %s %s.",
+      "zh_cn": "捐出 %s 个%s。",
+      "ru_ru": "Передать %s шт.: %s."
+    },
+    "choice.confirm_transfer": {
+      "en_us": "Yes, I want to make this my home.",
+      "zh_cn": "是的，我想把这里当成新家。",
+      "ru_ru": "Да, я хочу сделать своим домом это место."
+    },
+    "choice.keep_home": {
+      "en_us": "I'll keep my current home.",
+      "zh_cn": "我还是留在原来的营地吧。",
+      "ru_ru": "Я останусь в своем нынешнем лагере."
+    },
+    "choice.back": {
+      "en_us": "Let's talk about something else.",
+      "zh_cn": "聊点别的吧。",
+      "ru_ru": "Поговорим о другом."
+    },
+    "choice.later": {
+      "en_us": "See you later.",
+      "zh_cn": "晚点再见。",
+      "ru_ru": "До встречи."
+    },
+    "choice.ask_chief": {
+      "en_us": "I'll go ask the Chief what you mean.",
+      "zh_cn": "我去问问首领你的意思。",
+      "ru_ru": "Я пойду спрошу у вождя, что ты имеешь в виду."
+    },
+    "supply.food": {
+      "zh_cn": "食物（种类不限）",
+      "en_us": "food (any kind)",
+      "ru_ru": "еды (любой)"
+    },
+    "supply.wool": {
+      "en_us": "wool",
+      "zh_cn": "羊毛",
+      "ru_ru": "шерсть"
+    },
+    "supply.leather": {
+      "en_us": "leather",
+      "zh_cn": "皮革",
+      "ru_ru": "кожа"
+    },
+    "supply.paper": {
+      "en_us": "paper",
+      "zh_cn": "纸张",
+      "ru_ru": "бумага"
+    },
+    "supply.light": {
+      "en_us": "torches",
+      "zh_cn": "火把",
+      "ru_ru": "факелы"
+    },
+    "supply.watch": {
+      "en_us": "helping protect the neighbors",
+      "zh_cn": "协助保护邻居",
+      "ru_ru": "помощь в защите соседей"
+    },
+    "home.weaver": {
+      "en_us": "the Treehouse Household",
+      "zh_cn": "树屋社区",
+      "ru_ru": "община дома на дереве"
+    },
+    "home.matriarch": {
+      "en_us": "the Hideout Household",
+      "zh_cn": "藏身处社区",
+      "ru_ru": "община убежища"
+    },
+    "home.archivist": {
+      "en_us": "the Observatory Household",
+      "zh_cn": "天文台社区",
+      "ru_ru": "община обсерватории"
+    },
+    "home.previous": {
+      "en_us": "your previous household",
+      "zh_cn": "原来的社区",
+      "ru_ru": "прежняя община"
+    },
+    "dialogue.changed_synergy.context.camp_request_invite": {
+      "en_us": "Got a moment? There's something I wanted to ask you.",
+      "zh_cn": "有空吗？有件事想问问你。",
+      "ru_ru": "Найдется минутка? Хочу кое о чем тебя спросить."
+    },
+    "dialogue.changed_synergy.context.camp_help_thanks": {
+      "en_us": "Thanks for tending the crops. It's good to have you around.",
+      "zh_cn": "谢谢你帮忙照料庄稼，有你在真好。",
+      "ru_ru": "Спасибо за заботу о посевах. Хорошо, что ты с нами."
+    },
+    "local_trust": {
+      "en_us": "Local Trust",
+      "zh_cn": "本地信任",
+      "ru_ru": "Местное доверие"
+    },
+    "sleep_permission": {
+      "en_us": "Please speak with the Chief before using this camp's sleeping places.",
+      "zh_cn": "使用这个营地的铺位前，请先和首领谈谈。",
+      "ru_ru": "Пожалуйста, поговорите с вождем, прежде чем занимать спальные места в этом лагере."
+    },
+    "choice.public_requests": {
+      "en_us": "What do the shared stores need?",
+      "zh_cn": "公共储备需要些什么？",
+      "ru_ru": "Что нужно для общих запасов?"
+    },
+    "choice.personal_requests": {
+      "en_us": "Do you need anything for yourself?",
+      "zh_cn": "你自己有什么需要的吗？",
+      "ru_ru": "Тебе самому что-нибудь нужно?"
+    },
+    "choice.personal_submit": {
+      "en_us": "I brought everything you asked for—here you go.",
+      "zh_cn": "这些是给你的，我已经带齐了。",
+      "ru_ru": "Вот все, о чем ты просил, — держи."
+    },
+    "choice.outfit": {
+      "en_us": "Could I claim a camp outfit?",
+      "zh_cn": "我可以领一套营地的服装吗？",
+      "ru_ru": "Можно мне получить одежду лагеря?"
+    },
+    "home.pathfinder": {
+      "en_us": "the Desert Refuge Household",
+      "zh_cn": "沙漠避难所社区",
+      "ru_ru": "община Пустынного убежища"
+    },
+    "dialogue.changed_synergy.context.desert_camp_help_thanks": {
+      "en_us": "Thanks for tending the garden plots. It's good to have you around.",
+      "zh_cn": "谢谢你照料菜园。有你在真好。",
+      "ru_ru": "Спасибо за помощь с грядками. Хорошо, что ты рядом."
+    }
+  }
+}

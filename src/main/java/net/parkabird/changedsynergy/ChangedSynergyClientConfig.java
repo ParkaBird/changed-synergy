@@ -24,6 +24,7 @@ public final class ChangedSynergyClientConfig {
         public final ForgeConfigSpec.BooleanValue friendlySuitVignette;
         public final ForgeConfigSpec.DoubleValue friendlySuitVignetteOpacity;
         public final ForgeConfigSpec.BooleanValue disablePureWhiteVisionOverlays;
+        public final ForgeConfigSpec.BooleanValue eagleOwlMonochromeVision;
         public final ForgeConfigSpec.BooleanValue telepathicDanmaku;
         public final ForgeConfigSpec.BooleanValue untranslatedVocalizations;
         public final ForgeConfigSpec.DoubleValue popupHeightOffset;
@@ -72,6 +73,11 @@ public final class ChangedSynergyClientConfig {
                     .comment("Remove both Changed's reduced-vision veil and Synergy's pure-white consensus post-process.",
                             "Target outlines and pure-white gameplay mechanics remain available.")
                     .define("DisablePureWhiteVisionOverlays", false);
+            builder.pop();
+            builder.comment("Eagle Owl transformed vision").push("EAGLE OWL VISION");
+            eagleOwlMonochromeVision = builder.comment("Apply monochrome Eagle Owl vision to the world and first-person hands. Lowered aviator goggles still restore color.",
+                            "Client only. Night vision and gameplay remain unchanged.")
+                    .define("EagleOwlMonochromeVision", true);
             builder.pop();
 
             builder.comment("Friendly wrapping feedback").push("FRIENDLY SUIT VISUALS");

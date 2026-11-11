@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    { "id": "#changed_synergy:light_reputation_desert", "required": false },
+    { "id": "#changed_synergy:light_reputation_badlands", "required": false }
+  ]
+}

@@ -1,0 +1,2013 @@
+{
+  "template": "forest_treehouse",
+  "species": "changed_synergy:latex_silk_moth",
+  "trait": "CALM",
+  "chief": true,
+  "equipment": [
+    "changed_synergy:forest_canopy_outfit"
+  ],
+  "nodes": {
+    "root": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.0.1",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 160
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.0.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.0.3",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.0.4",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.0.5",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.0.6",
+              "emotion": "calm",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 100
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.0.7",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.1.0",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.1.1",
+              "emotion": "curious",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.1.2",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.1.3",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.1.4",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.1.5",
+              "emotion": "determined",
+              "effect": "tremble",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.1.6",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.2.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.2.1",
+              "emotion": "calm",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.2.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.3.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.3.1",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.3.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.3.3",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.root.3.4",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "canopy_chief_about",
+          "text": "npc.changed_synergy.canopy_chief.root.choice.canopy_chief_about",
+          "next": "about",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "canopy_chief_home",
+          "text": "npc.changed_synergy.canopy_chief.root.choice.canopy_chief_home",
+          "next": "home",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "canopy_chief_past",
+          "text": "npc.changed_synergy.canopy_chief.root.choice.canopy_chief_past",
+          "next": "past",
+          "condition": "always",
+          "effect": "none",
+          "requires": [
+            "about",
+            "home"
+          ]
+        },
+        {
+          "id": "join_menu",
+          "text": "npc.changed_synergy.canopy_chief.root.choice.join_menu",
+          "next": "enrol",
+          "condition": "stranger",
+          "effect": "none"
+        },
+        {
+          "id": "membership",
+          "text": "npc.changed_synergy.canopy_chief.root.choice.membership",
+          "next": "membership",
+          "condition": "member",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.canopy_chief.root.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "about": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.about.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.about.0.1",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 100
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.about.0.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.about.0.3",
+              "emotion": "sad",
+              "effect": "none",
+              "speed": 0.9,
+              "intensity": 0,
+              "pause": 170
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.about.0.4",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.about.1.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.about.1.1",
+              "emotion": "shy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.about.1.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.about.1.3",
+              "emotion": "sad",
+              "effect": "droop",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.about.1.4",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "voices",
+          "text": "npc.changed_synergy.canopy_chief.about.choice.voices",
+          "next": "voices",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.about.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.canopy_chief.about.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "voices": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.0.1",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.0.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.0.3",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.0.4",
+              "emotion": "calm",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 150
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.0.5",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.0.6",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.0.7",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 110
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.0.8",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.0.9",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.0.10",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 0.9,
+              "intensity": 0.7,
+              "pause": 230
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.0.11",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.1.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.1.1",
+              "emotion": "dreamy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.1.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.1.3",
+              "emotion": "shy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.voices.1.4",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.voices.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.canopy_chief.voices.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "home": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.home.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.home.0.1",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.home.0.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.home.0.3",
+              "emotion": "determined",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 170,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.home.1.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.home.1.1",
+              "emotion": "fearful",
+              "effect": "tremble",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.home.1.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.home.1.3",
+              "emotion": "shy",
+              "effect": "droop",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.home.1.4",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "furniture",
+          "text": "npc.changed_synergy.canopy_chief.home.choice.furniture",
+          "next": "furniture",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.home.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.canopy_chief.home.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "furniture": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.furniture.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.furniture.0.1",
+              "emotion": "curious",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.furniture.0.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.furniture.0.3",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.furniture.0.4",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.furniture.1.0",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.furniture.1.1",
+              "emotion": "excited",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.furniture.1.2",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.furniture.1.3",
+              "emotion": "excited",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.furniture.1.4",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.furniture.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.canopy_chief.furniture.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "past": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.0.1",
+              "emotion": "sad",
+              "effect": "none",
+              "speed": 0.9,
+              "intensity": 0,
+              "pause": 150
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.0.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.0.3",
+              "emotion": "sad",
+              "effect": "droop",
+              "speed": 0.9,
+              "intensity": 0.65,
+              "pause": 240,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.0.4",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.0.5",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.0.6",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 230
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.0.7",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.0.8",
+              "emotion": "determined",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 170
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.1.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.1.1",
+              "emotion": "happy",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.1.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.1.3",
+              "emotion": "curious",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.past.1.4",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.past.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.canopy_chief.past.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "enrol": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "transformed_join",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.enrol.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.enrol.0.1",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "human_join",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.enrol.1.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.enrol.1.1",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.enrol.1.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 160
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.enrol.1.3",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.enrol.1.4",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 150
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.enrol.1.5",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.enrol.1.6",
+              "emotion": "determined",
+              "effect": "none",
+              "speed": 0.9,
+              "intensity": 0,
+              "pause": 180
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.enrol.1.7",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "cannot_join",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.enrol.2.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "join_latex",
+          "text": "npc.changed_synergy.canopy_chief.enrol.choice.join_latex",
+          "next": "welcome_latex",
+          "condition": "transformed_join",
+          "effect": "join"
+        },
+        {
+          "id": "join_as_is",
+          "text": "npc.changed_synergy.canopy_chief.enrol.choice.join_as_is",
+          "next": "welcome_human",
+          "condition": "human_join",
+          "effect": "join"
+        },
+        {
+          "id": "copy_form",
+          "text": "npc.changed_synergy.canopy_chief.enrol.choice.copy_form",
+          "next": "explain_form",
+          "condition": "human",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.enrol.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "explain_form": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.explain_form.0.0",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 160
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.explain_form.0.1",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.explain_form.0.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.explain_form.0.3",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.explain_form.0.4",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.explain_form.0.5",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 0.92,
+              "intensity": 0.8,
+              "pause": 220
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.explain_form.0.6",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "confirm_copy",
+          "text": "npc.changed_synergy.canopy_chief.explain_form.choice.confirm_copy",
+          "next": "welcome_copy",
+          "condition": "can_reversible",
+          "effect": "reversible"
+        },
+        {
+          "id": "permanent_form",
+          "text": "npc.changed_synergy.canopy_chief.explain_form.choice.permanent_form",
+          "next": "confirm_permanent",
+          "condition": "can_permanent",
+          "effect": "none"
+        },
+        {
+          "id": "join_as_is",
+          "text": "npc.changed_synergy.canopy_chief.explain_form.choice.join_as_is",
+          "next": "welcome_human",
+          "condition": "human_join",
+          "effect": "join"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.explain_form.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "welcome_human": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_human.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_human.0.1",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 150
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_human.0.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_human.1.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_human.1.1",
+              "emotion": "excited",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_human.1.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.welcome_human.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.canopy_chief.welcome_human.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "welcome_latex": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_latex.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_latex.0.1",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 150
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_latex.0.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.welcome_latex.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.canopy_chief.welcome_latex.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "welcome_copy": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.0.1",
+              "emotion": "calm",
+              "effect": "whisper",
+              "speed": 0.9,
+              "intensity": 0.7,
+              "pause": 180
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.0.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.0.3",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.0.4",
+              "emotion": "curious",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 160
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.0.5",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.0.6",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.0.7",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 170
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.0.8",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.0.9",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 120
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.1.0",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.1.1",
+              "emotion": "excited",
+              "effect": "shout",
+              "speed": 1,
+              "intensity": 0.95,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.1.2",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.1.3",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.1.4",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.1.5",
+              "emotion": "dreamy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_copy.1.6",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.welcome_copy.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.canopy_chief.welcome_copy.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "return": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.0.1",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 160
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.0.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.0.3",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.0.4",
+              "emotion": "happy",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.0.5",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.0.6",
+              "emotion": "calm",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 100
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.0.7",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.1.0",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.1.1",
+              "emotion": "curious",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.1.2",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.1.3",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.1.4",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.1.5",
+              "emotion": "determined",
+              "effect": "tremble",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.1.6",
+              "emotion": "curious",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.2.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.2.1",
+              "emotion": "calm",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.2.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.3.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.3.1",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.9,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.3.2",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.3.3",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.return.3.4",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "canopy_chief_about",
+          "text": "npc.changed_synergy.canopy_chief.return.choice.canopy_chief_about",
+          "next": "about",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "canopy_chief_home",
+          "text": "npc.changed_synergy.canopy_chief.return.choice.canopy_chief_home",
+          "next": "home",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "canopy_chief_past",
+          "text": "npc.changed_synergy.canopy_chief.return.choice.canopy_chief_past",
+          "next": "past",
+          "condition": "always",
+          "effect": "none",
+          "requires": [
+            "about",
+            "home"
+          ]
+        },
+        {
+          "id": "join_menu",
+          "text": "npc.changed_synergy.canopy_chief.return.choice.join_menu",
+          "next": "enrol",
+          "condition": "stranger",
+          "effect": "none"
+        },
+        {
+          "id": "membership",
+          "text": "npc.changed_synergy.canopy_chief.return.choice.membership",
+          "next": "membership",
+          "condition": "member",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.canopy_chief.return.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "goodbye": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.goodbye.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.goodbye.0.1",
+              "emotion": "calm",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 130
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.canopy_chief.goodbye.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "confirm_permanent": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.confirm_permanent.0.0",
+              "emotion": "determined",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.confirm_permanent.0.1",
+              "emotion": "determined",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.confirm_permanent.0.2",
+              "emotion": "determined",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.confirm_permanent.0.3",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 110
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.confirm_permanent.0.4",
+              "emotion": "determined",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "confirm_permanent",
+          "text": "npc.changed_synergy.canopy_chief.confirm_permanent.choice.confirm_permanent",
+          "next": "welcome_permanent",
+          "condition": "can_permanent",
+          "effect": "permanent"
+        },
+        {
+          "id": "reconsider",
+          "text": "npc.changed_synergy.canopy_chief.confirm_permanent.choice.reconsider",
+          "next": "explain_form",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "welcome_permanent": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_permanent.0.0",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_permanent.0.1",
+              "emotion": "happy",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 110
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_permanent.0.2",
+              "emotion": "happy",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_permanent.1.0",
+              "emotion": "excited",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_permanent.1.1",
+              "emotion": "excited",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 0
+            },
+            {
+              "text": "npc.changed_synergy.canopy_chief.welcome_permanent.1.2",
+              "emotion": "excited",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.welcome_permanent.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.canopy_chief.welcome_permanent.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "membership": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.membership.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "leave_menu",
+          "text": "npc.changed_synergy.canopy_chief.membership.choice.leave_menu",
+          "next": "confirm_leave",
+          "condition": "member",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.membership.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "confirm_leave": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.confirm_leave.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "confirm_leave",
+          "text": "npc.changed_synergy.canopy_chief.confirm_leave.choice.confirm_leave",
+          "next": "left",
+          "condition": "member",
+          "effect": "leave"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.confirm_leave.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "left": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.canopy_chief.left.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.canopy_chief.left.choice.back",
+          "next": "root",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.canopy_chief.left.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    }
+  }
+}

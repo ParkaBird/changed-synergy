@@ -1,0 +1,11 @@
+{
+  "structures": [{"structure": "changed_synergy:observatory", "weight": 1}],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 30,
+    "separation": 8,
+    "salt": 193611031,
+    "spread_type": "triangular",
+    "exclusion_zone": {"other_set": "changed:decayed_labs", "chunk_count": 6}
+  }
+}

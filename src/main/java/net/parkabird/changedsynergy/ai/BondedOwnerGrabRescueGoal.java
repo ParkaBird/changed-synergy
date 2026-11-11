@@ -10,7 +10,6 @@ import net.ltxprogrammer.changed.entity.Emote;
 import net.ltxprogrammer.changed.init.ChangedAbilities;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket;
 import net.ltxprogrammer.changed.network.packet.GrabEntityPacket.GrabType;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -203,7 +202,7 @@ public final class BondedOwnerGrabRescueGoal extends Goal {
     /** A player's transport hold is not an attack; scripted safe holds stay safe. */
     public static boolean isFriendlyGrab(ServerPlayer player, LivingEntity grabber,
             GrabEntityAbilityInstance ability) {
-        if (ChangedAddonCompat.isSafeGrab(ability)) return true;
+        if (CreatureGrabService.isSafeGrab(ability)) return true;
         boolean attacking = ability.attackDown || player.getLastHurtByMob() == grabber
                 && player.tickCount - player.getLastHurtByMobTimestamp() < 100;
         if (grabber instanceof ChangedEntity changed) {

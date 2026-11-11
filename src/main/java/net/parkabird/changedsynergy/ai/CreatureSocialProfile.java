@@ -39,8 +39,13 @@ public final class CreatureSocialProfile {
     }
 
     public static Kind of(ChangedEntity creature) {
-        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(creature)
-                || isPermanentlyExcluded(creature)
+        if (net.parkabird.changedsynergy.compat.TrueTransfurCompat.isInstinctBody(creature)) return Kind.NONE;
+        return speciesKind(creature);
+    }
+
+    /** Player qualification ignores the controlled body's exclusion from NPC social AI. */
+    public static Kind speciesKind(ChangedEntity creature) {
+        if (isPermanentlyExcluded(creature)
                 || creature.getType().is(SOCIAL_INTERACTION_EXCLUDED)) {
             return Kind.NONE;
         }

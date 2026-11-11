@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SGS",
+    "LWL",
+    " L "
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:string"
+    },
+    "G": {
+      "item": "minecraft:copper_ingot"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "W": {
+      "item": "minecraft:orange_wool"
+    }
+  },
+  "result": {
+    "item": "changed_synergy:desert_nomad_outfit"
+  }
+}

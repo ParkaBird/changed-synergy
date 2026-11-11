@@ -1,9 +1,7 @@
 package net.parkabird.changedsynergy.entity;
 
 import net.ltxprogrammer.changed.entity.beast.LatexMoth;
-import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingJumpEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -46,16 +44,15 @@ public final class LatexSilkMoth extends LatexMoth {
 
     @SubscribeEvent
     public static void onExtraJump(LivingJumpEvent event) {
-        if (!(event.getEntity() instanceof Player player) || player.onGround()) return;
-        ProcessTransfur.ifPlayerTransfurred(player, variant -> {
-            if (!(variant.getChangedEntity() instanceof LatexSilkMoth moth)) return;
-            if (player.level().isClientSide) {
-                moth.flapWings();
-            } else {
-                // The jumping client predicts this locally; only other viewers need the packet.
-                ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> player),
-                        new SilkMothWingFlapPacket(player.getId()));
-            }
-        });
+        var actor=event.getEntity();if(actor.onGround())return;
+        var body=net.ltxprogrammer.changed.ability.IAbstractChangedEntity.forEitherSafe(actor)
+                .map(net.ltxprogrammer.changed.ability.IAbstractChangedEntity::getChangedEntity).orElse(null);
+        if(!(body instanceof LatexSilkMoth)&&!(body instanceof LatexEagleOwl))return;
+        if(body instanceof LatexSilkMoth moth)moth.flapWings();
+        if(body instanceof LatexEagleOwl owl)owl.flapWings();
+        if(!actor.level().isClientSide){
+            // Predict locally, then animate observers of either the player or an Instinct body.
+            ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(()->actor),new SilkMothWingFlapPacket(actor.getId()));
+        }
     }
 }

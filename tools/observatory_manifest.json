@@ -1,0 +1,113 @@
+{
+  "source": "D:\\Downloads\\observatory.nbt",
+  "source_sha256": "c43dea8cb983650d4f500f95970e2369cab622d6df912b156ac0f5b4c68c1b17",
+  "output_sha256": "f6eb0dd07f3bf7dd7b6ecb3dee76d5568c90f563a789472a2bd924ed25262765",
+  "size": [
+    41,
+    26,
+    27
+  ],
+  "ground_level": 0,
+  "residents": [
+    {
+      "species": "changed_synergy:latex_eagle_owl",
+      "position": [
+        5.5,
+        2,
+        14.5
+      ],
+      "chief": true
+    },
+    {
+      "species": "changed:latex_yuin",
+      "position": [
+        32.5,
+        1,
+        5.5
+      ],
+      "chief": false
+    },
+    {
+      "species": "changed:latex_yuin",
+      "position": [
+        28.5,
+        1,
+        16.5
+      ],
+      "chief": false
+    },
+    {
+      "species": "changed:latex_blue_wolf",
+      "position": [
+        32.5,
+        1,
+        9.5
+      ],
+      "chief": false
+    },
+    {
+      "species": "changed:latex_pink_wyvern",
+      "position": [
+        29.5,
+        1,
+        6.5
+      ],
+      "chief": false
+    }
+  ],
+  "authored_blocks_stories_loot_preserved": true,
+  "community_storage": {
+    "positions": [
+      [
+        31,
+        1,
+        5
+      ],
+      [
+        31,
+        1,
+        6
+      ]
+    ],
+    "facing": "east",
+    "empty": true,
+    "loot_table": false
+  },
+  "private_storage_positions": [
+    [
+      6,
+      2,
+      20
+    ],
+    [
+      6,
+      2,
+      21
+    ],
+    [
+      7,
+      2,
+      20
+    ],
+    [
+      7,
+      2,
+      21
+    ],
+    [
+      7,
+      3,
+      21
+    ],
+    [
+      9,
+      2,
+      21
+    ],
+    [
+      9,
+      2,
+      22
+    ]
+  ]
+}

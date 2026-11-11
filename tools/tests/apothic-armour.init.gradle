@@ -2,5 +2,11 @@ gradle.beforeProject { project ->
     project.layout.buildDirectory.set(project.file('.codex-tmp/apothic-armour-build'))
     project.afterEvaluate {
         project.sourceSets.main.java.srcDir(project.file('tools/tests/apothic-armour'))
+        project.sourceSets.main.resources.srcDir(project.file('tools/tests/apothic-armour/resources'))
+        if (project.hasProperty('armourOverload')) {
+            project.tasks.named('jar').configure {
+                manifest.attributes('MixinConfigs': 'foreign_armour_overload.mixins.json,changed_synergy.mixins.json')
+            }
+        }
     }
 }

@@ -51,7 +51,7 @@ public final class BondedCreatureInventoryScreen
                     ignored -> toggleCurios());
             addRenderableWidget(curiosButton);
         }
-        if (menu.hasClothing()) {
+        if (menu.hasClothing() && !menu.integratedClothing()) {
             // Match Changed's player inventory: the apparel button uses the
             // native 20x20 two-state icon and sits directly above the hand slot.
             addRenderableWidget(new ImageButton(
@@ -69,6 +69,9 @@ public final class BondedCreatureInventoryScreen
         }
     }
 
+    @Override protected void slotClicked(net.minecraft.world.inventory.Slot slot,int index,int button,net.minecraft.world.inventory.ClickType click) {
+        if(!ClothingInteractionClient.interact(slot,button,click,menu.getPet(),menu.clothingIdentifier(index)))super.slotClicked(slot,index,button,click);
+    }
     private void toggleCurios() {
         if (minecraft == null
                 || minecraft.player == null
@@ -141,7 +144,7 @@ public final class BondedCreatureInventoryScreen
         } else {
             graphics.blit(TEXTURE, leftPos, topPos, 0.0F, 0.0F, 212, 166, 212, 166);
         }
-        if (menu.clothingVisible()) {
+        if (menu.clothingVisible() && !menu.integratedClothing()) {
             graphics.fill(
                     leftPos + 94,
                     topPos + 4,
@@ -171,7 +174,7 @@ public final class BondedCreatureInventoryScreen
                     menu.curioSlotX(),
                     BondedCreatureInventoryMenu.CURIO_SLOT_Y,
                     menu.curioColumns(),
-                    menu.curioSlotCount());
+                    menu.equipmentSlotCount());
         }
     }
 

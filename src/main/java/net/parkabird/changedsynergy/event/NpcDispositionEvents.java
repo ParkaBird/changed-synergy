@@ -51,10 +51,18 @@ public final class NpcDispositionEvents {
         }
 
         double scanRange = ChangedSynergyConfig.COMMON.npcAwarenessRange.get();
-        for (ChangedEntity creature : player.level().getEntitiesOfClass(
+        var nearby = player.level().getEntitiesOfClass(
                 ChangedEntity.class,
                 player.getBoundingBox().inflate(scanRange),
-                LivingEntity::isAlive)) {
+                creature -> creature.isAlive()
+                        && net.parkabird.changedsynergy.ai.CreatureSocialProfile.allowsSynergySystems(creature));
+        for (ChangedEntity creature : nearby) {
+            if (net.parkabird.changedsynergy.npc.CampDialogue.chief(creature)
+                    && creature.distanceToSqr(player) <= net.parkabird.changedsynergy.npc.CampMembershipService.CHIEF_PEACE_RADIUS_SQR) {
+                net.parkabird.changedsynergy.npc.CampMembershipService.refreshChiefPeace(creature, player);
+            }
+        }
+        for (ChangedEntity creature : nearby) {
             updateCreature(player, creature);
         }
     }

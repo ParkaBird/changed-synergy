@@ -15,7 +15,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 
 /** Player-owned settings and contact index used by the relationship wheel. */
 public final class PlayerRelationshipSettings {
@@ -117,6 +116,7 @@ public final class PlayerRelationshipSettings {
         contact.putString("Type", type.toString());
         contact.putBoolean("Bonded", bonded && LatexSocialMemory.isBonded(creature, player)
                 && CreatureSocialProfile.allowsPersonalRelationship(creature));
+        contact.putString("CampHome",net.parkabird.changedsynergy.npc.CampLifeService.mainCamp(creature)?net.parkabird.changedsynergy.npc.StoryNpcService.homeKey(creature):"");
         contact.putString("Dimension", creature.level().dimension().location().toString());
         contact.putInt("X", creature.blockPosition().getX());
         contact.putInt("Y", creature.blockPosition().getY());
@@ -195,7 +195,7 @@ public final class PlayerRelationshipSettings {
                     continue;
                 }
                 tag.putBoolean("Bonded", LatexSocialMemory.bondedCreatureUuids(player).contains(uuid));
-                merged.put(uuid, Contact.fromStored(uuid, tag, BondTokenService.reservedFor(player, uuid)));
+                merged.put(uuid, Contact.fromStored(player,uuid, tag, BondTokenService.reservedFor(player, uuid)));
             } catch (IllegalArgumentException ignored) {
                 stored.remove(key);
             }
@@ -223,6 +223,7 @@ public final class PlayerRelationshipSettings {
 
         Comparator<Contact> order = Comparator
                 .comparing(Contact::bonded).reversed()
+                .thenComparing(Comparator.comparing(Contact::campmate).reversed())
                 .thenComparing(Comparator.comparing(
                         (Contact contact) -> contact.loaded()).reversed())
                 .thenComparing(Comparator.comparing(
@@ -235,7 +236,7 @@ public final class PlayerRelationshipSettings {
             boolean loaded=peer!=null&&NativeRoleplayService.validBody(peer,body);
             merged.put(id,new Contact(id,loaded?body.getId():-1,peer==null?pair.name(id):NativeRoleplayService.name(peer).getString(),
                     "minecraft:player",loaded?body.level().dimension().location().toString():"",false,0,0,0,false,loaded,loaded&&body.level()==player.level(),
-                    PlayerSocialService.isFollowing(id,player.getUUID()),false,pair.familiarity,loaded?body.getHealth():0,loaded?body.getMaxHealth():0,false));
+                    PlayerSocialService.isFollowing(id,player.getUUID()),false,pair.familiarity,loaded?body.getHealth():0,loaded?body.getMaxHealth():0,false,false));
         }
         return merged.values().stream()
                 .sorted(order)
@@ -286,7 +287,7 @@ public final class PlayerRelationshipSettings {
                 || creature.level() != body.level() || creature.isNoAi() || creature.isSleeping()
                 || creature.isPassenger() || creature.isVehicle() || creature.isLeashed()
                 || net.ltxprogrammer.changed.ability.GrabEntityAbility.getGrabber(creature) != null
-                || ChangedAddonCompat.isGrabberBusy(creature)
+                || CreatureGrabService.isGrabberBusy(creature)
                 || HypnosisQteService.getActiveVictim(creature) != null
                 || BondedSuitService.ability(creature) != null && BondedSuitService.ability(creature).grabbedEntity != null
                 || !bonded && LatexSocialMemory.isProvoked(creature, player)
@@ -307,7 +308,6 @@ public final class PlayerRelationshipSettings {
             LatexSocialMemory.clearRejectedFollowingTarget(creature, target);
         }
     }
-
 
     private static void pruneContacts(CompoundTag contacts) {
         if (contacts.size() <= MAX_CONTACTS) {
@@ -395,7 +395,8 @@ public final class PlayerRelationshipSettings {
             int familiarity,
             float health,
             float maxHealth,
-            boolean tokenReserved) {
+            boolean tokenReserved,
+            boolean campmate) {
         private static Contact fromLoaded(
                 ServerPlayer player,
                 ChangedEntity creature,
@@ -421,10 +422,11 @@ public final class PlayerRelationshipSettings {
                     PureWhiteWolfAdaptation.isAdaptedForm(creature),
                     CreaturePersonality.familiarity(creature, player),
                     creature.getHealth(),
-                    creature.getMaxHealth(), BondTokenService.reservedFor(creature, player));
+                    creature.getMaxHealth(), BondTokenService.reservedFor(creature, player),
+                    net.parkabird.changedsynergy.npc.CampLifeService.mainCamp(creature)&&net.parkabird.changedsynergy.npc.CampMembershipService.member(creature,player));
         }
 
-        private static Contact fromStored(UUID uuid, CompoundTag tag, boolean tokenReserved) {
+        private static Contact fromStored(ServerPlayer player,UUID uuid, CompoundTag tag, boolean tokenReserved) {
             return new Contact(
                     uuid,
                     -1,
@@ -442,7 +444,7 @@ public final class PlayerRelationshipSettings {
                     tag.getBoolean("PureWhiteAdapted"),
                     tag.getInt("Familiarity"),
                     0.0F,
-                    0.0F, tokenReserved);
+                    0.0F, tokenReserved,!tag.getString("CampHome").isEmpty()&&tag.getString("CampHome").equals(net.parkabird.changedsynergy.npc.CampMembershipService.membership(player).getString("HomeKey")));
         }
     }
 

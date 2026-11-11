@@ -11,7 +11,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
 import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker.Feature;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
@@ -197,7 +196,7 @@ public final class PoliteHumanApproachGoal extends Goal {
                 && !mob.isPassenger()
                 && !mob.isLeashed()
                 && !ProvisionerFishingFocus.isFocusedFishing(mob)
-                && !ChangedAddonCompat.isGrabberBusy(mob)
+                && !CreatureGrabService.isGrabberBusy(mob)
                 && HypnosisQteService.getActiveVictim(mob) == null;
     }
 }

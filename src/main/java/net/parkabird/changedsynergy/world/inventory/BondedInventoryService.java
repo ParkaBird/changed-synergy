@@ -31,6 +31,7 @@ public final class BondedInventoryService {
     }
 
     public static boolean canAccess(ServerPlayer player, ChangedEntity pet) {
+        if(net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(pet))return false;
         if (!pet.isAlive() || pet.isRemoved() || pet.level() != player.level()
                 || player.isSpectator() || player.distanceToSqr(pet) > 64.0D) return false;
         if (LatexSocialMemory.isPetOwner(pet, player)) return true;

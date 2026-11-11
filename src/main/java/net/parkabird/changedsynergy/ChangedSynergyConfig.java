@@ -86,6 +86,9 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.BooleanValue pacifyTamedCompanions;
         public final ForgeConfigSpec.IntValue tamedCompanionRegeneration;
         public final ForgeConfigSpec.BooleanValue companionAutoEat;
+        public final ForgeConfigSpec.DoubleValue hyenaTrailclothSpawnChance;
+        public final ForgeConfigSpec.DoubleValue eagleOwlOutfitSpawnChance;
+        public final ForgeConfigSpec.BooleanValue naturalCampRoutines;
         public final ForgeConfigSpec.BooleanValue companionSeating;
         public final ForgeConfigSpec.BooleanValue companionRallyBoarding;
         public final ForgeConfigSpec.DoubleValue npcAwarenessRange;
@@ -120,6 +123,7 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.IntValue settlementMinimumSpacing;
         public final ForgeConfigSpec.IntValue playerWildOutpostMinimumSpacing;
         public final ForgeConfigSpec.BooleanValue creatureOutposts;
+        public final ForgeConfigSpec.BooleanValue wildOutpostsInStructuresOnly;
         public final ForgeConfigSpec.BooleanValue playerOutposts;
         public final ForgeConfigSpec.IntValue playerOutpostResidents;
         public final ForgeConfigSpec.IntValue playerOutpostCrew;
@@ -207,6 +211,7 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.BooleanValue ambientSocialAi;
         public final ForgeConfigSpec.BooleanValue enhancedHuntAi;
         public final ForgeConfigSpec.BooleanValue pureWhiteWolfAdaptation;
+        public final ForgeConfigSpec.BooleanValue enableLatexBiomes;
 
         public final ForgeConfigSpec.DoubleValue npcDialogueRange;
         public final ForgeConfigSpec.IntValue npcDialogueCooldownSeconds;
@@ -214,6 +219,7 @@ public final class ChangedSynergyConfig {
         public final ForgeConfigSpec.DoubleValue personalityDialogueChance;
         public final ForgeConfigSpec.BooleanValue npcDialogueUsesTranslator;
         public final ForgeConfigSpec.BooleanValue addonAnimalCalls;
+        public final ForgeConfigSpec.BooleanValue nativeChatAnimalCalls;
         public final ForgeConfigSpec.BooleanValue telepathyEnabled;
         public final ForgeConfigSpec.IntValue telepathyUnlockTransfurs;
 
@@ -295,6 +301,13 @@ public final class ChangedSynergyConfig {
                             "Uses real food nutrition, saturation, effects and containers; checks every 10 ticks with a 3-second meal cooldown.",
                             "Prefers useful recovery without wasting precious food; golden apples require 35% health, enchanted ones 20%. Critical bonded wrapping takes priority.")
                     .define("CompanionAutoEat", true);
+            naturalCampRoutines = builder.comment("Allow authored treehouse and hyena-camp residents to gather, farm, store supplies, hunt wild prey, share campfire meals and sleep in camp beds at night. Landmark character boundaries remain active.")
+                    .define("NaturalCampRoutines", true);
+            hyenaTrailclothSpawnChance = builder.comment("Chance for a newly naturally spawned or structure-spawned Spotted Hyena to wear Trailcloth (0 disables; 1 always equips).",
+                            "Does not reroll existing entities or replace existing body clothing.")
+                    .defineInRange("HyenaTrailclothSpawnChance", 0.25D, 0.0D, 1.0D);
+            eagleOwlOutfitSpawnChance = builder.comment("Chance for a newly naturally spawned Eagle Owl to wear its aviator outfit. Existing clothing and saved creatures are preserved.")
+                    .defineInRange("EagleOwlOutfitSpawnChance",0.25D,0.0D,1.0D);
             companionSeating = builder.comment("Allow trusted friends and bonds to use player-designated seats. Does not force admission or displace passengers.")
                     .define("CompanionSeating", true);
             companionRallyBoarding = builder.comment("Allow nearby following companions to board the player's vehicle. Requires CompanionSeating.")
@@ -409,6 +422,10 @@ public final class ChangedSynergyConfig {
             creatureOutposts = builder.comment("Allow wild latex creatures to build or claim new autonomous outposts, including ruins, hives and aquatic caches.",
                             "Disabling preserves existing outposts, their storage and deliveries. Player camps and existing facility storage remain available.")
                     .define("CreatureOutposts", true);
+            wildOutpostsInStructuresOnly = builder
+                    .comment("Prevent wild latex creatures from building new open-ground camps or caches outside of existing structures.",
+                            "Existing Changed ruins and hives can still be claimed when their respective options are enabled.")
+                    .define("WildOutpostsInStructuresOnly", false);
             settlementMinimumSpacing = builder
                     .comment("Minimum horizontal distance in blocks between independently claimed wild outposts.",
                             "Nearby compatible creatures still reuse an existing community outpost.")
@@ -463,7 +480,7 @@ public final class ChangedSynergyConfig {
                     .defineInRange("PlayerOutpostActiveWorkers", 4, 1, 32);
             playerOutpostWorkWhileOwnerOffline = builder.comment("Allow camp work while the owner is offline, only in already loaded chunks. Never force-loads chunks.")
                     .define("PlayerOutpostWorkWhileOwnerOffline", false);
-            playerOutpostRest = builder.comment("Let player-outpost residents use linked beds at night. Bees can also sleep on linked yellow hive pillows.")
+            playerOutpostRest = builder.comment("Let player-outpost residents use linked beds during their sleep period (daytime for Eagle Owls, night for others). Birds can use linked perches; bees can use linked yellow hive pillows.")
                     .define("PlayerOutpostRest", true);
             playerOutpostIdleRest = builder.comment("Let idle camp residents use linked pillows, office chairs and tall cardboard boxes. Work and orders interrupt this rest. Low performance impact.")
                     .define("PlayerOutpostIdleRest", true);
@@ -616,6 +633,10 @@ public final class ChangedSynergyConfig {
                             "and hide those eyes on coming home, without replacing their species or body.",
                             "Identity, relationships, faction allegiance and equipment are preserved.")
                     .define("PureWhiteWolfAdaptation", true);
+            enableLatexBiomes = builder
+                    .comment("Allow legacy White Latex Forest and Dark Latex Plains overworld biomes to generate.",
+                            "Restores the original 1.18.2 discrete climate points so they generate as rare natural pockets without replacing vanilla biomes.")
+                    .define("EnableLatexBiomes", true);
             builder.pop();
 
             builder.comment("Contextual speech and emotes").push("DIALOGUE");
@@ -638,6 +659,8 @@ public final class ChangedSynergyConfig {
             addonAnimalCalls = builder
                     .comment("Play Changed Addon's species-appropriate animal calls for some creature reactions when that addon is installed.")
                     .define("AddonAnimalCalls", true);
+            nativeChatAnimalCalls = builder.comment("Occasionally play a species-appropriate animal call when a native-origin player sends chat. Server cooldown prevents spam.")
+                    .define("NativeChatAnimalCalls", true);
             telepathyEnabled = builder
                     .comment("Enable understanding through permanent telepathy, transformed bodies, hypnosis and takeover.",
                             "Disabling this pauses unlock progress and uses creature vocalizations instead. Saved progress is retained.",

@@ -12,7 +12,6 @@ import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.event.LatexSocialEvents;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
@@ -51,7 +50,7 @@ public final class HumanBoundaryService {
                 || LatexSocialMemory.isBonded(mob, player) || LatexSocialMemory.isPetOwner(mob, player)
                 || FactionReputation.isHostile(mob, player) || LatexSocialMemory.isProvoked(mob, player)
                 || CreatureCacheGuardService.isDefendingAgainst(mob, player)
-                || ChangedAddonCompat.isGrabberBusy(mob) || FactionPursuitService.isPursuer(mob)
+                || CreatureGrabService.isGrabberBusy(mob) || FactionPursuitService.isPursuer(mob)
                 || mob.distanceToSqr(player) > 25.0D) return false;
         return isBackingOff(mob, player) || PoliteHumanInteraction.isActiveWith(mob, player)
                 || mob.getTarget() == player && HumanIntent.of(mob) != HumanIntent.GREET
@@ -142,7 +141,7 @@ public final class HumanBoundaryService {
         @Override public boolean canContinueToUse() {
             return player != null && player.isAlive() && player.level() == mob.level()
                     && isBackingOff(mob, player) && !mob.isPassenger() && !mob.isVehicle()
-                    && !ChangedAddonCompat.isGrabberBusy(mob)
+                    && !CreatureGrabService.isGrabberBusy(mob)
                     && (mob.getTarget() == null || mob.getTarget() == player);
         }
         @Override public void start() { repath = 0; mob.getNavigation().stop(); }

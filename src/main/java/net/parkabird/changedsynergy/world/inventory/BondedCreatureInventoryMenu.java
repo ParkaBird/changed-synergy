@@ -51,7 +51,7 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
     public static final int CURIO_SLOT_Y = 8;
     public static final int WORK_SLOT_X = 8;
     public static final int WORK_SLOT_Y = 168;
-    private static final int CURIO_ROWS = 4;
+    private static final int CURIO_ROWS = 8;
     private static final EquipmentSlot[] ARMOR_SLOTS = {
             EquipmentSlot.HEAD,
             EquipmentSlot.CHEST,
@@ -157,11 +157,14 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
     }
 
     public boolean clothingVisible() {
-        return clothingVisible;
+        return integratedClothing() ? curiosVisible : clothingVisible;
     }
 
+    public boolean integratedClothing() { return CuriosCompat.isLoaded(); }
+    public int equipmentSlotCount() { return curioSlotCount()+(integratedClothing()?clothingSlotCount():0); }
+
     public boolean hasCurios() {
-        return !curioSlots.isEmpty();
+        return !curioSlots.isEmpty() || integratedClothing() && hasClothing();
     }
 
     public boolean curiosVisible() {
@@ -171,9 +174,13 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
     public int curioSlotCount() {
         return curioSlots.size();
     }
+    public String clothingIdentifier(int menuIndex) {
+        int index=menuIndex-CLOTHING_MENU_START-clothingSlotCount();
+        return index>=0&&index<curioSlots.size()?curioSlots.get(index).identifier():null;
+    }
 
     public int curioColumns() {
-        return Math.max(1, (curioSlots.size() + CURIO_ROWS - 1) / CURIO_ROWS);
+        return Math.max(1, (equipmentSlotCount() + CURIO_ROWS - 1) / CURIO_ROWS);
     }
 
     public int curioSlotX() {
@@ -207,7 +214,8 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
             return true;
         }
         if (buttonId == CLOTHING_BUTTON_ID && hasClothing()) {
-            clothingVisible = !clothingVisible;
+            if(integratedClothing())curiosVisible=!curiosVisible;
+            else clothingVisible = !clothingVisible;
             return true;
         }
         return false;
@@ -331,8 +339,8 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
             addSlot(new AccessorySlot(
                     accessoryContainer,
                     index,
-                    CLOTHING_SLOT_X + index % CLOTHING_COLUMNS * 18,
-                    CLOTHING_SLOT_Y + index / CLOTHING_COLUMNS * 18,
+                    integratedClothing()?curioSlotX()+index%curioColumns()*18:CLOTHING_SLOT_X+index%CLOTHING_COLUMNS*18,
+                    integratedClothing()?CURIO_SLOT_Y+index/curioColumns()*18:CLOTHING_SLOT_Y+index/CLOTHING_COLUMNS*18,
                     accessoryTypes.get(index)));
         }
         for (int index = 0; index < curioSlots.size(); index++) {
@@ -340,8 +348,8 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
             addSlot(new CurioSlot(
                     curioContainer,
                     index,
-                    curioSlotX() + index % columns * 18,
-                    CURIO_SLOT_Y + index / columns * 18,
+                    curioSlotX() + (index+(integratedClothing()?clothingSlotCount():0)) % columns * 18,
+                    CURIO_SLOT_Y + (index+(integratedClothing()?clothingSlotCount():0)) / columns * 18,
                     curioSlots.get(index)));
         }
         if (workCargo) {
@@ -356,7 +364,7 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
 
     private boolean moveToAccessorySlot(ItemStack stack) {
         int clothingEnd = CLOTHING_MENU_START + clothingSlotCount();
-        if (clothingVisible
+        if (clothingVisible()
                 && moveToEmptyEquipmentSlot(
                         stack, CLOTHING_MENU_START, clothingEnd)) {
             return true;
@@ -403,7 +411,7 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
 
     private static List<AccessorySlotType> accessoryTypes(
             @Nullable ChangedEntity pet) {
-        if (pet == null) {
+        if (pet == null || CuriosCompat.isLoaded()) {
             return List.of();
         }
         return AccessorySlots.getForEntity(pet)
@@ -447,7 +455,7 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
                 List<AccessorySlotType> types) {
             this.types = types;
             this.mirror = NonNullList.withSize(types.size(), ItemStack.EMPTY);
-            this.backing = pet == null
+            this.backing = pet == null || CuriosCompat.isLoaded()
                     ? null
                     : AccessorySlots.getForEntity(pet).orElse(null);
             if (backing != null) {
@@ -715,12 +723,12 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
 
         @Override
         public boolean isActive() {
-            return clothingVisible;
+            return clothingVisible();
         }
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            return clothingVisible
+            return clothingVisible()
                     && pet != null
                     && slotType.canHoldItem(stack, pet)
                     && accessoryContainer.isItemAllowed(slotType, stack);
@@ -728,7 +736,7 @@ public final class BondedCreatureInventoryMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPickup(Player player) {
-            if (!clothingVisible) {
+            if (!clothingVisible()) {
                 return false;
             }
             ItemStack stack = getItem();

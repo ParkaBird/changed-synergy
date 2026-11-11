@@ -11,10 +11,13 @@ public final class NativeOriginPolicy {
     public static boolean clientSelective;
     public static Set<UUID> clientNatives = Set.of();
     public static Set<UUID> clientInstincts = Set.of();
+    public static Set<UUID> clientReversibleRites = Set.of();
     public static boolean allows(Player player) {
         if (player instanceof ServerPlayer server)
-            return !NativeOriginService.enabled(server) || NativeOriginService.isNative(server);
-        return player != null && (!clientSelective || clientNatives.contains(player.getUUID()));
+            return !net.parkabird.changedsynergy.npc.NpcRites.reversible(server)
+                    && (!NativeOriginService.enabled(server) || NativeOriginService.isNative(server)
+                        || net.parkabird.changedsynergy.npc.NpcRites.permanent(server));
+        return player != null && !clientReversibleRites.contains(player.getUUID()) && (!clientSelective || clientNatives.contains(player.getUUID()));
     }
     /** Control permission is independent of permanent identity and reversal/rebirth permission. */
     public static boolean allowsInstinct(Player player) {

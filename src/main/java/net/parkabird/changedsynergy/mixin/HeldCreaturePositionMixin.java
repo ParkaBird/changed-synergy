@@ -56,6 +56,8 @@ public abstract class HeldCreaturePositionMixin {
         var ability = BondedSuitService.ability(holder);
         LivingEntity held = ability == null ? null : ability.grabbedEntity;
         if (held == null || ability.suited) return;
+        if(holder instanceof net.parkabird.changedsynergy.entity.LatexEagleOwl owl
+                && net.parkabird.changedsynergy.client.EagleOwlCarryClient.position(pose,owl,ability,partialTicks))return;
         if (net.parkabird.changedsynergy.ai.PlayerHugService.active(ability)) {
             net.parkabird.changedsynergy.client.PlayerHugPoses.position(pose, holder, ability, partialTicks);
             return;

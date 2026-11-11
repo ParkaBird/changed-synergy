@@ -1,8 +1,6 @@
 package net.parkabird.changedsynergy.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import java.lang.reflect.Field;
-import net.ltxprogrammer.changed.client.gui.AbstractRadialScreen;
 import net.ltxprogrammer.changed.client.gui.AbilityRadialScreen;
 import net.ltxprogrammer.changed.init.ChangedKeyMappings;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
@@ -26,7 +24,6 @@ import net.parkabird.changedsynergy.network.PlayerRelationshipOpenPacket;
         value = Dist.CLIENT)
 public final class PlayerRelationshipClientEvents {
     private static long nextSwitchNanos;
-    private static Field viewOffsetField;
 
     private PlayerRelationshipClientEvents() {
     }
@@ -67,10 +64,7 @@ public final class PlayerRelationshipClientEvents {
         }
 
         Runnable switchWheel;
-        if (event.getScreen() instanceof AbilityRadialScreen ability) {
-            if (!atAbilityBoundary(ability, event.getScrollDelta())) {
-                return;
-            }
+        if (event.getScreen() instanceof AbilityRadialScreen) {
             switchWheel = () -> ChangedSynergyNetwork.CHANNEL.sendToServer(
                     new PlayerRelationshipOpenPacket());
         } else if (event.getScreen() instanceof PlayerRelationshipScreen screen
@@ -100,9 +94,7 @@ public final class PlayerRelationshipClientEvents {
         }
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null || minecraft.player.isSpectator()) return;
-        Component hint = Component.translatable(AbilityWheelInput.showHoldHint(screen)
-                ? "menu.changed_synergy.ability.hold_hint"
-                : "menu.changed_synergy.relationship.switch_to_relationships");
+        Component hint=RadialWheelAnimations.scrollHint(screen,"menu.changed_synergy.relationship.switch_to_relationships");
         GuiGraphics graphics = event.getGuiGraphics();
         var lines = minecraft.font.split(hint, Math.max(80, screen.width - 24));
         int y = screen.height - 8 - lines.size() * 10;
@@ -118,27 +110,4 @@ public final class PlayerRelationshipClientEvents {
         }
     }
 
-    /** Preserve native paging; switch only after the user scrolls past an edge. */
-    private static boolean atAbilityBoundary(
-            AbilityRadialScreen screen,
-            double delta) {
-        int offset = viewOffset(screen);
-        if (delta < 0.0D) {
-            return offset + 8 >= screen.getCount();
-        }
-        return offset <= 0;
-    }
-
-    private static int viewOffset(AbstractRadialScreen<?> screen) {
-        try {
-            if (viewOffsetField == null) {
-                viewOffsetField = AbstractRadialScreen.class
-                        .getDeclaredField("viewOffset");
-                viewOffsetField.setAccessible(true);
-            }
-            return viewOffsetField.getInt(screen);
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            return 0;
-        }
-    }
 }

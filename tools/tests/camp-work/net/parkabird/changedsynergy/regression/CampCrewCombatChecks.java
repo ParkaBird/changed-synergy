@@ -1,5 +1,7 @@
 package net.parkabird.changedsynergy.regression;
 
+import net.parkabird.changedsynergy.ai.CreatureGrabService;
+
 import java.util.List;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.resources.ResourceLocation;
@@ -65,7 +67,7 @@ final class CampCrewCombatChecks {
         }
         var grab=BondedSuitService.ability(mob);
         System.out.println("CAMP_CREW_COMBAT_DIAGNOSTIC target="+mob.getTarget()+" pos="+mob.position()+" health="+enemy.getHealth()
-                +" busy="+net.parkabird.changedsynergy.compat.ChangedAddonCompat.isGrabberBusy(mob)
+                +" busy="+net.parkabird.changedsynergy.ai.CreatureGrabService.isGrabberBusy(mob)
                 +" nativeHold="+(grab==null?null:grab.grabbedEntity)+" aggressive="+mob.isAggressive()
                 +" goals="+mob.goalSelector.getAvailableGoals().stream().map(g->g.getGoal().getClass().getSimpleName()+":"+g.isRunning()).toList()
                 +" targets="+mob.targetSelector.getAvailableGoals().stream().map(g->g.getGoal().getClass().getSimpleName()+":"+g.isRunning()).toList());

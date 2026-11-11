@@ -199,7 +199,7 @@ public final class ArchiveUiRegression {
                     finished = true; minecraft.stop();
                     return;
                 }
-                if (!Boolean.getBoolean("archive.ui.localization.only")) {
+                if (!Boolean.getBoolean("archive.ui.localization.only")&&!Boolean.getBoolean("archive.ui.random.only")&&!Boolean.getBoolean("archive.ui.factions.only")&&!Boolean.getBoolean("archive.ui.welcome.only")) {
                     net.parkabird.changedsynergy.regression.PlayerVisualClientRegression.run(minecraft.player);
                     net.parkabird.changedsynergy.regression.HypnosisClientRegression.run(minecraft.player);
                     net.parkabird.changedsynergy.regression.OriginConfigClientRegression.run();
@@ -292,7 +292,7 @@ public final class ArchiveUiRegression {
             step("Russian resources", 200, () -> changeLanguage("ru_ru"));
             step("Russian contribution active", 200, () -> {
                 check(Component.translatable("origin.changed_synergy.native_confirm").getString().startsWith("Это тело"), "Russian origin paragraph is loaded");
-                check(Component.translatable("name.changed_synergy.generated.localized_choice", "Имя").getString().equals("Имя"), "Russian generated-name argument resolves");
+                check(Component.translatable("name.changed_synergy.generated.localized_choice", "Legacy", "Имя").getString().equals("Имя"), "Russian generated-name argument resolves");
                 capture("ru-welcome"); key(257);
             });
             step("Russian open folder", 1100, () -> key(257));
@@ -371,7 +371,7 @@ public final class ArchiveUiRegression {
         }
         if (Boolean.getBoolean("archive.ui.factions.only")) {
             step("enter archive", 700, () -> key(257));
-            step("open folder", 1100, () -> key(257));
+            step("open folder", 1100, () -> {capture("pixel-cover-en");key(257);});
             step("Chinese faction resources", 2100, () -> {
                 var minecraft = Minecraft.getInstance(); minecraft.getLanguageManager().setSelected("zh_cn");
                 minecraft.options.languageCode = "zh_cn"; reloadSettledFrames = 0; reload = minecraft.reloadResourcePacks();
@@ -395,7 +395,7 @@ public final class ArchiveUiRegression {
         }
         if (Boolean.getBoolean("archive.ui.random.only")) {
             step("enter archive", 700, () -> key(257));
-            step("open folder", 1100, () -> key(257));
+            step("open folder", 1100, () -> {capture("pixel-cover-en");key(257);});
             step("full-random raffle slip", 2100, () -> {
                 randomSlipColor = paperPixel(-655, 1003);
                 capture("random-slip-en"); paperClick(-540, 915, 0);
@@ -439,7 +439,7 @@ public final class ArchiveUiRegression {
                 key(256); key(256);
             });
             step("attached slip closing with cover", 160, () -> capture("random-slip-close-hinge"));
-            step("reopen cover", 1600, () -> { check(state("view").equals("DESKTOP"), "Folder closes after returning home"); key(257); });
+            step("reopen cover", 1600, () -> { check(state("view").equals("DESKTOP"), "Folder closes after returning home"); capture("pixel-cover-zh");key(257); });
             step("slip stays on reopened cover", 2100, () -> {
                 check(paperPixel(-655, 1003) == randomSlipColor, "Closing and reopening preserves the cover slip");
                 capture("random-slip-reopened");

@@ -83,4 +83,4 @@ Update-Field "dialogue.changed_synergy.wild.betrayed.0" "你玩真的？我可�
 Update-Field "dialogue.changed_synergy.wild.betrayed.1" "这可不是闹着玩的！你今天必须给老子一个解释！"
 
 $out = $json | ConvertTo-Json -Depth 10
-[System.IO.File]::WriteAllText((Join-Path (Get-Location) $langPath), $out, [System.Text.Encoding]::UTF8)
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) $langPath), $out, [System.Text.UTF8Encoding]::new($false))

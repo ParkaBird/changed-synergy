@@ -1,0 +1,29 @@
+{
+  "output_sha256": "800d8a38230214530c21f1326742894ef91140dee33f5bd9e1fc05bfc942b961",
+  "community_storage": {
+    "positions": [
+      [
+        8,
+        14,
+        15
+      ],
+      [
+        8,
+        14,
+        16
+      ]
+    ],
+    "facing": "west",
+    "empty": true,
+    "loot_table": false
+  },
+  "chief": {
+    "position": [
+      29.5,
+      20,
+      19.5
+    ],
+    "yaw": 90,
+    "dialogue": false
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "muntjac": {
+    "source": "muntjac-live.bbmodel",
+    "sha256": "1cf9f3c38e5be7097664e8149e76de2497dfd8f4da3105e1a2d1c90394d9e6b8",
+    "cubes": 29,
+    "bones": 20,
+    "texture": [
+      128,
+      128
+    ]
+  },
+  "hyena": {
+    "source": "hyena-live.bbmodel",
+    "sha256": "f6c54f08ee59f1e3fdc91cfb4353bac7a070691414cdc99a9ad6cf33a73fb608",
+    "cubes": 39,
+    "bones": 22,
+    "texture": [
+      128,
+      128
+    ]
+  }
+}

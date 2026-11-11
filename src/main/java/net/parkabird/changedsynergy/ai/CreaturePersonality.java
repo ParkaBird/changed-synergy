@@ -141,6 +141,12 @@ public final class CreaturePersonality {
         return List.copyOf(traits);
     }
 
+    public static void setNpcPreset(ChangedEntity mob, Trait dominant) {
+        ensure(mob);
+        var preset=data(mob);preset.putInt(TRAIT_MASK,1<<dominant.ordinal()|1<<Trait.POLITE.ordinal());
+        preset.putInt(DOMINANT_TRAIT,dominant.ordinal());preset.putInt(DATA_VERSION,CURRENT_VERSION);
+    }
+
     public static boolean has(ChangedEntity mob, Trait trait) {
         if (!personalityEnabled(mob)) {
             return false;
@@ -769,6 +775,21 @@ public final class CreaturePersonality {
     public static boolean establishRelationship(
             ChangedEntity mob,
             ServerPlayer player) {
+        return establishRelationship(mob,player,true);
+    }
+
+    /** Household introductions discover residents without the normal encounter reward. */
+    public static void introduceCampMember(ChangedEntity mob,ServerPlayer player) {
+        if(!friendshipEnabled(mob)||!CreatureSocialProfile.allowsPersonalRelationship(mob))return;
+        var memory=memory(mob,player,true);
+        if(memory.getBoolean("CampIntroduced"))return;
+        establishRelationship(mob,player,false);
+        adjustFamiliarity(mob,player,1);
+        memory.putBoolean("CampIntroduced",true);
+        PlayerRelationshipSettings.rememberContact(player,mob,LatexSocialMemory.isBonded(mob,player));
+    }
+
+    private static boolean establishRelationship(ChangedEntity mob,ServerPlayer player,boolean rewardStanding) {
         if (!friendshipEnabled(mob)
                 || !CreatureSocialProfile.allowsPersonalRelationship(mob)) {
             return false;
@@ -791,7 +812,7 @@ public final class CreaturePersonality {
         CreatureIdentity.ensure(mob);
         PlayerRelationshipSettings.rememberContact(
                 player, mob, LatexSocialMemory.isBonded(mob, player));
-        if (first) {
+        if (first && rewardStanding) {
             FactionReputation.adjustFromInteraction(mob, player, 12);
         }
         return first;
@@ -1003,6 +1024,7 @@ public final class CreaturePersonality {
             ChangedEntity mob,
             ServerPlayer player,
             boolean following) {
+        if (following && net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(mob)) return;
         CreaturePeerInteractionService.cancel(mob);
         if (!friendshipEnabled(mob)) {
             return;

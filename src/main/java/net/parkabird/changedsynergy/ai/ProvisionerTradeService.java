@@ -34,7 +34,6 @@ import net.minecraftforge.items.wrapper.InvWrapper;
 import net.minecraftforge.items.wrapper.RangedWrapper;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole;
 import net.parkabird.changedsynergy.ai.CreaturePersonality.RelationshipTier;
 import net.parkabird.changedsynergy.ai.CreatureSettlementService.ProvisionSource;
@@ -136,7 +135,7 @@ public final class ProvisionerTradeService {
     public static boolean isBusy(ChangedEntity provider) {
         var grab = BondedSuitService.ability(provider);
         return grab != null && grab.grabbedEntity != null
-                || ChangedAddonCompat.isGrabberBusy(provider)
+                || CreatureGrabService.isGrabberBusy(provider)
                 || provider.getTarget() != null && provider.getTarget().isAlive()
                 || provider.getLastHurtByMob() != null
                         && provider.tickCount

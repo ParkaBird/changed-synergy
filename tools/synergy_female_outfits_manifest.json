@@ -1,0 +1,32 @@
+{
+  "trailcloth": {
+    "source": "SynergyFemale_trailcloth.bbmodel",
+    "cubes": 10,
+    "quads": 58,
+    "sha256": "b994025958897fd1766447d29e7ce730bb7bac49a95826b5e7f84f5d5b53cfc1"
+  },
+  "hyenaTrailcloth": {
+    "source": "SynergyFemale_hyenaTrailcloth.bbmodel",
+    "cubes": 12,
+    "quads": 70,
+    "sha256": "d3668e431366f23c3e7431a4a4432b7a8effcc2ca50c01ad951e5c87428ec610"
+  },
+  "canopy": {
+    "source": "SynergyFemale_canopy.bbmodel",
+    "cubes": 20,
+    "quads": 116,
+    "sha256": "a278f30b31181bdd3b52a0f9162421b2933804a455890237509c1ed8262678ae"
+  },
+  "legacyAviator": {
+    "source": "Aviator_LegacyFemale.bbmodel",
+    "cubes": 27,
+    "quads": 162,
+    "sha256": "bdf1ba9a8ef6b941c3fa22220b4592fbe0dd134e52888ad5e783ea737bf3f5a4"
+  },
+  "aviator": {
+    "source": "SynergyFemale_aviator.bbmodel",
+    "cubes": 25,
+    "quads": 148,
+    "sha256": "465894ad48dfab1d9adb4c3ba56221cff8a6c92f3c8fdcd72c100291482d8d1c"
+  }
+}

@@ -1,5 +1,7 @@
 package net.parkabird.changedsynergy.world.inventory;
 
+import net.parkabird.changedsynergy.ai.CreatureGrabService;
+
 import javax.annotation.Nullable;
 import java.util.UUID;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
@@ -53,7 +55,6 @@ import net.parkabird.changedsynergy.ai.NativeBondInvitationService;
 import net.parkabird.changedsynergy.ai.BondTokenService;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
 import net.parkabird.changedsynergy.event.LatexSocialEvents;
@@ -310,10 +311,14 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
 
     private static CompoundTag progression(ChangedEntity creature, ServerPlayer player) {
         CompoundTag data = new CompoundTag();
+        data.putBoolean("StoryNpc",net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(creature));
+        data.putBoolean("NoNpcDialogue",net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(creature)&&!net.parkabird.changedsynergy.npc.NpcConversations.canOpen(creature));
+        data.putBoolean("CampDialogue",net.parkabird.changedsynergy.npc.CampLifeService.mainCamp(creature));
+        data.putBoolean("LocalCamp",net.parkabird.changedsynergy.ai.NaturalCampService.member(creature));
         data.putInt("BehaviorTrait", CreaturePersonality.has(creature, Trait.PLAYFUL) ? Trait.PLAYFUL.ordinal()
                 : CreaturePersonality.has(creature, Trait.POLITE) ? Trait.POLITE.ordinal() : -1);
         data.putBoolean("Balanced", CreaturePersonality.balanced());
-        data.putBoolean("BasicWheel", RelationshipFavorService.canOpenBasicWheel(creature, player));
+        data.putBoolean("BasicWheel", data.getBoolean("StoryNpc") || data.getBoolean("CampDialogue") || RelationshipFavorService.canOpenBasicWheel(creature, player));
         data.putInt("StrangerLimit", ChangedSynergyConfig.COMMON.strangerAffectionLimit.get());
         data.putInt("Allowance", CreaturePersonality.careAllowance(creature, player));
         data.putLong("GiftWait", CreaturePersonality.giftCooldownRemaining(creature, player));
@@ -540,7 +545,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
     }
 
     public boolean canFriendInventory() {
-        return !negotiation && trustedRelationship && tier == RelationshipTier.CLOSE;
+        return !progression.getBoolean("StoryNpc") && !negotiation && trustedRelationship && tier == RelationshipTier.CLOSE;
     }
 
     public void toggleLocalFollowing() {
@@ -569,7 +574,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         }
         if (creature == null
                 || !creature.isAlive()
-                || viewer.distanceToSqr(creature) > 64.0D) {
+                || (viewer instanceof ServerPlayer server ? net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(server) : viewer).distanceToSqr(creature) > 64.0D) {
             return false;
         }
         return !(viewer instanceof ServerPlayer serverPlayer)
@@ -620,6 +625,10 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
             return;
         }
         if (virtualAbsorptionNegotiation) {
+            if ("negotiation_forgive".equals(command)) {
+                InvoluntaryTransfurNegotiation.forgive(origin, null);
+                return;
+            }
             Approach.fromCommand(command).ifPresent(approach ->
                     InvoluntaryTransfurNegotiation.attemptAbsorption(
                             origin, approach));
@@ -666,6 +675,10 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
             return;
         }
         if (negotiation) {
+            if ("negotiation_forgive".equals(command)) {
+                InvoluntaryTransfurNegotiation.forgive(origin, creature);
+                return;
+            }
             Approach.fromCommand(command)
                     .ifPresent(approach -> InvoluntaryTransfurNegotiation.attempt(
                             origin, creature, approach));
@@ -688,7 +701,9 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         }
 
         switch (command) {
+            case "npc_dialogue" -> net.parkabird.changedsynergy.npc.NpcConversations.open(creature,origin);
             case "social_talk" -> {
+                if(net.parkabird.changedsynergy.npc.NpcConversations.canOpen(creature)){net.parkabird.changedsynergy.npc.NpcConversations.open(creature,origin);return;}
                 CreaturePersonality.rememberEncounter(creature, origin);
                 creature.getLookControl().setLookAt(origin, 30.0F, 30.0F);
                 NpcDialogue.trigger(creature, origin, conversationCue(origin));
@@ -750,6 +765,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
             }
             case "social_play" -> playTogether(origin);
             case "social_follow" -> {
+                if(net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(creature))return;
                 net.parkabird.changedsynergy.ai.CompanionSeatingService.newCommand(creature, origin);
                 if (bonded) {
                     return;
@@ -804,7 +820,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         if (!creature.isAlive()
                 || creature.isRemoved()
                 || creature.level() != player.level()
-                || player.distanceToSqr(creature) > 64.0D) {
+                || net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player).distanceToSqr(creature) > 64.0D) {
             return false;
         }
         if (!bonded
@@ -983,8 +999,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
     }
 
     private boolean tryFriendlyHug(ServerPlayer origin, Trait trait) {
-        if (!ChangedAddonCompat.isLoaded()
-                || creature.distanceToSqr(origin) > 3.0D * 3.0D) {
+        if (creature.distanceToSqr(origin) > 3.0D * 3.0D) {
             return false;
         }
 
@@ -1012,7 +1027,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
         if (CreatureSocialProfile.isJuvenile(creature)) {
             duration += 6;
         }
-        return ChangedAddonCompat.tryStartSocialHug(
+        return CreatureGrabService.tryStartSocialHug(
                 creature, origin, duration);
     }
 
@@ -1251,7 +1266,7 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
                     ? Standing.NEUTRAL
                     : FactionReputation.standing(creature, player);
             int reputation = player == null
-                    ? 0 : FactionReputation.score(creature, player);
+                    ? 0 : net.parkabird.changedsynergy.ai.NaturalCampService.member(creature)?net.parkabird.changedsynergy.npc.CampMembershipService.score(creature,player):FactionReputation.score(creature, player);
             CreatureLifeMemory.Snapshot life =
                     CreatureLifeMemory.snapshot(creature);
             CreatureLifeMemory.RoleStats roleStats =

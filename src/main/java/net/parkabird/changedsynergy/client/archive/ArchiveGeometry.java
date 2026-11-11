@@ -92,6 +92,13 @@ public final class ArchiveGeometry {
         return new Point(direction * (distance > 0 ? turned : x),
                 normalizedY * PAPER_H + Math.sin(angle) * radius * .065 * (normalizedY - .5));
     }
+    /** A critically damped spring reaches the page handoff only at its actual endpoint. */
+    public static double turnProgress(double fraction){
+        if(fraction<=0)return 0;
+        if(fraction>=1)return 1;
+        double rate=7.2;
+        return (1-(1+rate*fraction)*Math.exp(-rate*fraction))/(1-(1+rate)*Math.exp(-rate));
+    }
     public static boolean contains(Point[] polygon, Point p) {
         if (polygon.length < 3) return false;
         boolean inside = false;

@@ -247,7 +247,8 @@ public final class BondCommand {
             CommandSourceStack source,
             ServerPlayer player) {
         if (!ChangedSynergyGameRules.enabled(
-                player.level(), ChangedSynergyGameRules.FACTION_REPUTATION)) {
+                player.level(), ChangedSynergyGameRules.FACTION_REPUTATION)
+                || ChangedSynergyGameRules.noCivilizationMode(player.level())) {
             source.sendFailure(Component.translatable(
                     "command.changed_synergy.reputation.disabled",
                     player.getDisplayName()));
@@ -384,7 +385,7 @@ public final class BondCommand {
             int amount) {
         ChangedEntity creature = socialCreature(source, entity);
         if (creature == null) return 0;
-        int score = FactionReputation.adjust(creature, player, amount);
+        int score = FactionReputation.set(creature, player, FactionReputation.score(creature,player)+amount);
         source.sendSuccess(() -> reputationStatus(creature, player, score), true);
         return score;
     }

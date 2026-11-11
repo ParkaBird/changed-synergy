@@ -102,7 +102,8 @@ public final class PlayerHugPoses {
     public static void animate(ChangedEntity creature, AdvancedHumanoidModel<?> model, float age) {
         var entity = physical(creature);
         var holding = AbstractAbility.getAbilityInstance(entity, ChangedAbilities.GRAB_ENTITY_ABILITY.get());
-        if (holding != null && PlayerHugService.active(holding) && holding.grabbedEntity != null) {
+        if (holding != null && PlayerHugService.active(holding) && holding.grabbedEntity != null
+                && !net.parkabird.changedsynergy.ai.EagleOwlTraits.airborne(entity)) {
             float blend = Mth.clamp((holding.ticksGrabbed + age - creature.tickCount) / 8F, 0, 1);
             Shape heldShape = shape(holding.grabbedEntity);
             float pitch = switch (heldShape) {

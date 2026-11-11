@@ -15,6 +15,7 @@ from pathlib import Path
 
 import nbtlib as nbt
 from apply_research_documents import apply_documents
+from structure_residents import bind_residents
 
 NAMES = ('water_tower_changed', 'white_lab_tower', 'red_lab_tower', 'green_lab')
 AIR = {'minecraft:air', 'minecraft:cave_air', 'minecraft:void_air'}
@@ -178,6 +179,8 @@ def clean_occupant(tag):
     tag['Motion'] = nbt.List[nbt.Double]([0, 0, 0])
     tag['FallDistance'] = nbt.Float(0)
     tag['Fire'] = nbt.Short(-1)
+    from structure_residents import mark_default_eyes
+    mark_default_eyes(tag)
     for passenger in tag.get('Passengers', []):
         clean_occupant(passenger)
 
@@ -348,6 +351,7 @@ def adapt(source, name, destination):
     namespaces = {n.split(':')[0] for n in names}
     allowed = {'minecraft', 'changed', 'changed_synergy'}
     assert namespaces <= allowed, (name, namespaces)
+    bind_residents(template, name)
     validate_dependencies(template)
     assert len({tuple(map(int, b['pos'])) for b in kept}) == len(kept)
     assert all(all(0 <= int(b['pos'][i]) < int(template['size'][i]) for i in range(3)) for b in kept)

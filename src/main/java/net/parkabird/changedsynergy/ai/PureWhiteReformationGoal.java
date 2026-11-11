@@ -19,7 +19,6 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.dialogue.LatexTerritory;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue;
 import net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue;
@@ -174,7 +173,7 @@ public final class PureWhiteReformationGoal extends Goal {
                 || mob.hurtTime > 0
                 || mob.getHealth() < mob.getMaxHealth() * 0.5F
                 || SocialAudienceGoal.isActive(mob)
-                || ChangedAddonCompat.isGrabberBusy(mob)
+                || CreatureGrabService.isGrabberBusy(mob)
                 || HypnosisQteService.getActiveVictim(mob) != null
                 || LatexSocialMemory.hasActiveBond(mob)
                 || LatexSocialMemory.petOwnerUuid(mob).isPresent()

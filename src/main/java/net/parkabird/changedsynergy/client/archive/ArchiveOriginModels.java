@@ -157,6 +157,11 @@ public final class ArchiveOriginModels {
             fields.add(new Field(Component.translatable("origin.changed_synergy.gliding"), label(variant.canGlide ? "yes" : "no"), -1, 0));
             fields.add(new Field(Component.translatable("origin.changed_synergy.climbing"), label(variant.canClimb ? "yes" : "no"), -1, 0));
             fields.add(textField("extra_jumps", number(variant.extraJumpCharges)));
+            if(entity instanceof net.parkabird.changedsynergy.entity.LatexEagleOwl){
+                fields.add(textField("owl_vision",Component.translatable("origin.changed_synergy.archive.owl_vision_value")));
+                fields.add(textField("owl_talons",Component.translatable("origin.changed_synergy.archive.owl_talons_value")));
+                fields.add(textField("owl_head",Component.translatable("origin.changed_synergy.archive.owl_head_value")));
+            }
         }
         var dimensions = entity.getType().getDimensions();
         fields.add(textField("dimensions", Component.literal(decimal(dimensions.width) + " × " + decimal(dimensions.height) + " m")));

@@ -2,6 +2,8 @@ package net.parkabird.changedsynergy.world.inventory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.core.BlockPos;
@@ -81,9 +83,10 @@ public final class PlayerOutpostMenu extends AbstractContainerMenu {
         locationDimensions = locationDimensions(server, outpost);
         ServerLevel home = home(server, outpost.dimension);
         PlayerOutpostData.get(server.server).refreshRestPlaces(home, outpost);
+        PlayerOutpostData.get(server.server).refreshStorages(home, outpost);
         bed = outpost.beds.size() + " / " + outpost.restPoints.size();
         active = home != null && outpost.active(home);
-        stock = countStock(home, outpost.storage);
+        stock = countStock(home, outpost);
         facilities = facilities(outpost);
         members = new ArrayList<>();
         for (Member member : outpost.members.values()) {
@@ -155,7 +158,7 @@ public final class PlayerOutpostMenu extends AbstractContainerMenu {
         buffer.writeBlockPos(outpost.marker);
         buffer.writeUtf(outpost.storage == null ? "—" : outpost.storage.toShortString(), 64);
         buffer.writeUtf(outpost.beds.size() + " / " + outpost.restPoints.size(), 64);
-        buffer.writeVarInt(countStock(home, outpost.storage));
+        buffer.writeVarInt(countStock(home, outpost));
         buffer.writeBoolean(home != null && outpost.active(home));
         buffer.writeUtf(facilities(outpost), 512);
         buffer.writeBoolean(outpost.meals);
@@ -223,7 +226,7 @@ public final class PlayerOutpostMenu extends AbstractContainerMenu {
 
     private void updateLive(ServerPlayer server, Outpost outpost) {
         ServerLevel home = home(server, outpost.dimension);
-        live.set(0, countStock(home, outpost.storage));
+        live.set(0, countStock(home, outpost));
         live.set(1, home != null && outpost.active(home) ? 1 : 0);
         live.set(2, outpost.meals ? 1 : 0);
         for (int i = 0; i < members.size(); i++) {
@@ -241,12 +244,30 @@ public final class PlayerOutpostMenu extends AbstractContainerMenu {
         return id == null ? null : player.server.getLevel(ResourceKey.create(Registries.DIMENSION, id));
     }
 
-    private static int countStock(ServerLevel level, BlockPos pos) {
-        Container container = PlayerOutpostData.container(level, pos);
-        if (container == null) return -1;
+    private static int countStock(ServerLevel level, Outpost outpost) {
+        if (level == null || outpost == null) return -1;
+        Set<BlockPos> positions = new LinkedHashSet<>(outpost.storages);
+        if (outpost.storage != null) positions.add(outpost.storage);
+        if (positions.isEmpty()) return -1;
         long count = 0;
-        for (int slot = 0; slot < container.getContainerSize(); slot++) count += container.getItem(slot).getCount();
-        return (int)Math.min(Integer.MAX_VALUE, count);
+        boolean foundAny = false;
+        Set<BlockPos> counted = new LinkedHashSet<>();
+        for (BlockPos pos : positions) {
+            Container container = PlayerOutpostData.container(level, pos);
+            if (container != null) {
+                var state = level.getBlockState(pos);
+                BlockPos canonical = pos;
+                if (state.getBlock() instanceof net.minecraft.world.level.block.ChestBlock
+                        && state.getValue(net.minecraft.world.level.block.ChestBlock.TYPE) != net.minecraft.world.level.block.state.properties.ChestType.SINGLE) {
+                    var mate = pos.relative(net.minecraft.world.level.block.ChestBlock.getConnectedDirection(state));
+                    if (mate.asLong() < canonical.asLong()) canonical = mate;
+                }
+                if (!counted.add(canonical)) continue;
+                foundAny = true;
+                for (int slot = 0; slot < container.getContainerSize(); slot++) count += container.getItem(slot).getCount();
+            }
+        }
+        return foundAny ? (int)Math.min(Integer.MAX_VALUE, count) : -1;
     }
 
     private static Entity loaded(ServerPlayer player, UUID id) {

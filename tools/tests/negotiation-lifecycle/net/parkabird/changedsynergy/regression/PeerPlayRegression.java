@@ -399,7 +399,7 @@ public final class PeerPlayRegression {
                     if(!valid(session)) for(ChangedEntity mob:List.of(first,second)) System.err.println("PEER_PLAY_MOVEMENT_STATE: "+mob.getType()
                             +" target="+mob.getTarget()+" pose="+mob.getPose()+" hurt="+mob.getLastHurtByMob()+" pos="+mob.position()
                             +" available="+method("available",ChangedEntity.class,session.getClass()).invoke(null,mob,session)
-                            +" busy="+net.parkabird.changedsynergy.compat.ChangedAddonCompat.isGrabberBusy(mob)
+                            +" busy="+net.parkabird.changedsynergy.ai.CreatureGrabService.isGrabberBusy(mob)
                             +" hold="+(BondedSuitService.ability(mob)==null?null:BondedSuitService.ability(mob).grabbedEntity)
                             +" held="+net.ltxprogrammer.changed.ability.GrabEntityAbility.getGrabberSafe(mob).isPresent()
                             +" cargo="+CreatureSettlementService.hasCargo(mob)+"/"+PlayerOutpostGoal.hasCargo(mob)+"/"+PlayerOutpostWorkGoal.hasCargo(mob)
@@ -485,6 +485,10 @@ public final class PeerPlayRegression {
         check(!(boolean)method("touching",LivingEntity.class,LivingEntity.class).invoke(null,first,player),"Nearby participants cannot catch through a wall");
         level.setBlock(wall,Blocks.AIR.defaultBlockState(),3);player.setPos(X+1,Y,Z);
 
+        // Earlier cases release an airborne hold, then rewind the simulated clock.
+        // Let its real recapture cooldown expire before testing a new catch.
+        long regrabAfter=first.getPersistentData().getLong(EagleOwlTraits.REGRAB_AFTER);
+        if(regrabAfter>level.getGameTime())((net.minecraft.world.level.storage.ServerLevelData)level.getLevelData()).setGameTime(regrabAfter);
         var peer=creature(level,ChangedEntities.DARK_LATEX_WOLF_MALE.get().create(level),1);
         session=npcSession(first,peer,true);set(session,"chaser",first);set(session,"runner",peer);forceChase(session);
         int soundsBefore=hugSounds;step(session);

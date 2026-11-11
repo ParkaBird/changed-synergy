@@ -20,7 +20,7 @@ public final class RadialUiClientRegression {
     public static void prepare(Map<String, Screen> previews) {
         var mc = Minecraft.getInstance();
         var contact = new Contact(UUID.randomUUID(), -1, "Mica J8", "changed:dark_latex_wolf_male",
-                "minecraft:overworld", true, 0, 64, 0, true, false, true, false, false, 60, 24, 24, true);
+                "minecraft:overworld", true, 0, 64, 0, true, false, true, false, false, 60, 24, 24, true,false);
         var menu = new PlayerRelationshipMenu(3, mc.player.getInventory(), List.of(contact));
         previews.put("bond-roster", new PlayerRelationshipScreen(menu, mc.player.getInventory(), PlayerRelationshipMenu.TITLE));
         var probe = new WheelProbe(menu);

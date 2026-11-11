@@ -31,7 +31,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.compat.CompanionSeats;
-import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
 import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.parkabird.changedsynergy.network.ChangedSynergyNetwork;
@@ -90,7 +89,7 @@ public final class CompanionSeatingService {
 
     private static boolean free(ChangedEntity mob) {
         return mob.getTarget() == null && !mob.isLeashed() && !mob.isVehicle() && !mob.isSleeping()
-                && !mob.isUsingItem() && !ChangedAddonCompat.isGrabberBusy(mob)
+                && !mob.isUsingItem() && !CreatureGrabService.isGrabberBusy(mob)
                 && GrabEntityAbility.getGrabberSafe(mob).isEmpty() && !TakeoverService.carrying(mob)
                 && HypnosisQteService.getActiveVictim(mob) == null && !CreaturePeerInteractionService.active(mob)
                 && !PlayerOutpostService.isWorking(mob) && !ProvisionerTradeService.isTrading(mob)

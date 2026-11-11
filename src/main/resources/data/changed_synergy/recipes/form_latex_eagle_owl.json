@@ -1,0 +1,21 @@
+{
+  "type": "changed:infuser",
+  "form": "changed_synergy:form_latex_eagle_owl",
+  "ingredients": [
+    {
+      "item": "changed:latex_base"
+    },
+    {
+      "item": "changed:white_latex_goo"
+    },
+    {
+      "item": "minecraft:feather"
+    },
+    {
+      "item": "minecraft:rabbit_foot"
+    },
+    {
+      "item": "minecraft:snowball"
+    }
+  ]
+}
