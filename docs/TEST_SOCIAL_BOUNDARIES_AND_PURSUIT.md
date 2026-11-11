@@ -1,6 +1,6 @@
 # Social changes after the armor update
 
-This is the implementation ledger and manual regression checklist for the current unuploaded build. It is not a record of completed in-game tests. See CHANGELOG.md / Unreleased for all major changes starting with armor and release-placement work.
+This is a historical implementation ledger and manual regression checklist for the earlier armor/social pass. It is not a record of completed tests on the current build. Use the current release notes and player guides for present behavior; rerun relevant checks before reporting new results.
 
 ## Capture and relationship gates
 

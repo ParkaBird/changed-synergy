@@ -20,7 +20,7 @@ Use Java 17. Run `./gradlew clean build` and `python tools/validate_release.py` 
 
 New mixins need a narrow target, a reason that cannot be handled through a Forge event or public API, and a failure mode that is understandable when an upstream version changes.
 
-Both `en_us.json` and `zh_cn.json` must contain the same keys. Keep physical descriptions species-aware. In Chinese dialogue, `同类` means the same species and `同胞` means the same broader category.
+Both `en_us.json` and `zh_cn.json` must contain the same keys. When changing authored NPC or community conversations, update their English, Chinese and Russian entries together and preserve their conditions and performance metadata. Do not treat a successful build as a gameplay test. Keep physical descriptions species-aware. In Chinese dialogue, `同类` means the same species and `同胞` means the same broader category.
 
 ## License
 

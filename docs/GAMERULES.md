@@ -1,8 +1,8 @@
 # Changed: Synergy game rules
 
 Boolean rules use `/gamerule <name> true|false`. The initial-reputation rule accepts an integer.
-All 13 boolean rules default to `true`; initial reputation defaults to `0`.
-The same 14 rules appear under **World Rules** in Synergy's configuration page.
+Thirteen boolean rules default to `true`; No Civilization Mode defaults to `false`.
+Initial reputation defaults to `0`. The same 15 rules appear under **World Rules** in Synergy's configuration page.
 Operators can apply edits with **Done**; other players can inspect server values.
 
 With Synergy installed, Changed's `changed:keepConscious` defaults to `true` for
@@ -32,6 +32,7 @@ the rule back on restores the configured takeover routes.
 | `changedSynergyCreatureLife` | Persistence for related creatures, routines, wild communities, gathering, player camps and pure-white reformation. Turning it off pauses camps without deleting members. Individual work switches and relevant vanilla `mobGriefing` restrictions still apply. |
 | `changedSynergyHypnosisQte` | Synergy's gaze-based hypnosis resistance, input restrictions and mesmerized penalty. Changed's original hypnosis remains when disabled. |
 | `changedSynergyGrabQteEnhancements` | Server-synchronized grab prompts and the post-escape safety stun. Changed's original grab remains when disabled. |
+| `changedSynergyNoCivilizationMode` | Default `false`. Temporarily reads regional reputation and local trust as neutral and pauses changes to them. Stored records remain. New autonomous wild outposts are prevented; individual relationships and saved homes remain available. |
 
 ## Scope and retained state
 
@@ -49,3 +50,11 @@ integers; these are clamped when a new reputation account is initialized.
 `changedSynergyCreatureLife` replaces the old persistence, routine, community, resource, cache, role and white-reformation switches. The separate social-interaction switch was also removed: bonded interactions follow `changedSynergyBondSystem`, while friend interactions follow `changedSynergyFriendshipSystem`.
 
 Old worlds cannot map several conflicting switches into one value reliably, so `changedSynergyCreatureLife` starts at its default of `true`. Servers that had any of those systems disabled should set the new rule explicitly after updating.
+
+## No Civilization Mode
+
+```mcfunction
+/gamerule changedSynergyNoCivilizationMode true
+```
+
+While enabled, regional reputation and local trust are evaluated as zero. Their stored values are not erased and become available again when the rule is disabled. Individual affection, bonds and personal grievances retain their own rules. Community membership is retained, but trust-dependent rewards cannot be earned while trust is held at neutral. The rule prevents new autonomous wild outposts; it does not remove existing buildings or disable player camps. This is a world rule, not a separate common-config key.

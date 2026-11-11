@@ -175,6 +175,6 @@ Oasis camps, Muddy Campsites and the three smaller Hyena camps have their own re
 
 ## Server settings
 
-Community dialogue, routines, friendship, telepathy and Native Origin features follow the server's settings. No Civilization Mode limits reputation and local-trust gains, which can affect progression toward trust rewards. Ask the server operator when an otherwise eligible option is unavailable. Ordinary players do not need management commands to join or help a community.
+Community dialogue, routines, friendship, telepathy and Native Origin features follow the server's settings. No Civilization Mode temporarily evaluates regional reputation and local trust as zero and pauses their changes, while retaining stored records. Trust-based rewards cannot be earned in that state; personal friendship and bonds remain available. Ask the server operator when an otherwise eligible option is unavailable. Ordinary players do not need management commands to join or help a community.
 
 For a camp you create and manage yourself, use the [player-camp guide](PLAYER_CAMP_GUIDE.md). See [server configuration](SERVER_CONFIGURATION.md) for settings and commands.

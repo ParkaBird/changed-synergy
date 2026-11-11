@@ -89,6 +89,9 @@
 | --- | --- | --- | --- |
 | `RELATIONSHIPS.TamedCompanionRegeneration` | `0` | 0 ~ 5 | 原生宠物恢复等级: Changed 原生宠物获得的生命恢复等级；设为零则关闭。 |
 | `RELATIONSHIPS.CompanionAutoEat` | `true` | true / false | 伙伴低血量进食: 羁绊和朋友胶兽低血量时按伤势选择自身食物回血，保留原生属性与碗瓶。金苹果需生命不高于35%，附魔金苹果需不高于20%。羁绊重伤时仍优先包裹玩家，进食间隔3秒。 |
+| `RELATIONSHIPS.NaturalCampRoutines` | `true` | true / false | 允许结构社区和小营地居民采集、种植、存取补给、狩猎、用餐及按物种作息睡觉。关闭后保留货物与家园边界。 |
+| `RELATIONSHIPS.HyenaTrailclothSpawnChance` | `0.25` | 0.0 ~ 1.0 | 新自然生成或结构生成斑鬣狗的一次性行猎装概率；不覆盖已有服装，也不重掷已保存个体。 |
+| `RELATIONSHIPS.EagleOwlOutfitSpawnChance` | `0.25` | 0.0 ~ 1.0 | 新自然生成雕鸮的一次性飞行服概率；保留已有装备和保存的选择。 |
 | `RELATIONSHIPS.CompanionSeating` | `true` | true / false | 允许熟悉的朋友和羁绊使用指定座位；关闭后取消未完成的登乘，仍允许安全下座。 |
 | `RELATIONSHIPS.CompanionRallyBoarding` | `true` | true / false | 召集附近正在跟随的伙伴登上玩家所乘载具，需要同时开启伙伴乘坐。 |
 | `RELATIONSHIPS.OrdinaryTransfurReversal` | `true` | true / false | 普通逆转兽化: 允许通过谈判、羁绊伙伴和睡眠解除兽化。关闭后仍可正常结束接管，并保留 /untf 与 /untransfur 故障恢复指令。 |
@@ -185,6 +188,7 @@
 | `COMMUNITIES.MinimumOutpostSpacing` | `48` | 16 ~ 256 | 野生据点最小间距: 两个独立野生据点之间允许的最小水平距离（格）。附近相容的胶兽仍会共用已有据点。 |
 | `COMMUNITIES.PlayerWildOutpostMinimumSpacing` | `48` | 16 ~ 256 | 玩家与野生据点间距: 新建玩家据点或野生据点时，两者标记与仓库之间的最小水平距离。已有据点保持原位。 |
 | `COMMUNITIES.CreatureOutposts` | `true` | true / false | 胶兽自主建立据点: 允许野外胶兽新建或认领据点，包括遗址、蜂巢和水生据点。关闭后保留已有据点、物资及送货行为，不影响玩家营地和设施内已有仓库。 |
+| `COMMUNITIES.WildOutpostsInStructuresOnly` | `false` | true / false | 限制野外胶兽只在合适的现有结构中认领据点，不在露天空地新建。保留已有据点；遗址和蜂巢认领仍受各自开关控制。 |
 | `COMMUNITIES.UseChangedStructureOutposts` | `true` | true / false | 认领 Changed 遗址【流畅度影响：低】: 尚无据点的供给者可以认领已生成的 Changed 遗址，并在空位布置紧凑的社区仓库。设施始终不会被认领。 |
 | `COMMUNITIES.LatexBeeHiveOutposts` | `true` | true / false | 胶液蜜蜂蜂巢据点【流畅度影响：低】: 胶液蜜蜂供给者可以在已生成的 Changed 蜂巢旁建立小型社区仓库。 |
 | `COMMUNITIES.StructureOutpostSearchRadiusChunks` | `6` | 2 ~ 12 | 建筑搜索半径【流畅度影响：低】: 在已加载区块内搜索未认领遗址和蜂巢的半径。数值越大，偶发搜索的开销越高。 |
@@ -201,6 +205,7 @@
 | 设置键 | 默认值 | 范围／选项 | 作用 |
 | --- | --- | --- | --- |
 | `ECOLOGY.PureWhiteWolfAdaptation` | `true` | true / false | 纯白胶狼地域适应: 纯白胶狼、幼崽、三头犬和血细胞胶狼远离白胶领地后显现眼睛，返回后隐藏眼睛。适用于胶兽和玩家（包括本能模式），不改变物种、身体或能力。 |
+| `ECOLOGY.EnableLatexBiomes` | `true` | true / false | 允许在新地形生成白胶森林和黑胶平原；不重写已经生成的区块。 |
 
 ### 开局物种名单
 
@@ -267,6 +272,7 @@
 | --- | --- | --- | --- |
 | `DIALOGUE.UsesTranslator` | `true` | true / false | Addon 翻译器兼容: 启用的 Changed Addon Plus 翻译器可以翻译胶兽台词，即使关闭了心灵感应。关闭此项会停用翻译器的绕过功能，不会让所有玩家直接听懂台词。 |
 | `DIALOGUE.AddonAnimalCalls` | `true` | true / false | Addon 动物叫声: 让有对应叫声的胶兽在部分情绪反应中使用 Addon 的动物叫声。 |
+| `DIALOGUE.NativeChatAnimalCalls` | `true` | true / false | 原生胶兽玩家发送全局或角色聊天时，可能发出对应物种叫声。服务端冷却限制频率，不改变消息正文。 |
 | `DIALOGUE.TelepathyEnabled` | `true` | true / false | 启用心灵感应: 允许通过已解锁的心灵感应、兽化形态、催眠和接管听懂台词。关闭后暂停解锁进度，改用物种叫声，但保留原有进度。能够直接说话的物种仍可被听懂，受支持且已启用的翻译器仍可翻译；催眠和接管玩法照常生效。 |
 | `DIALOGUE.TelepathyUnlockTransfurs` | `3` | 0 ~ 20 | 心灵感应解锁次数: 永久解锁心灵感应所需的完整兽化次数。设为 0 只会阻止新解锁，已解锁的能力仍然有效。如需连同已有能力一起关闭，请关闭“启用心灵感应”。 |
 
@@ -298,6 +304,12 @@
 | 设置键 | 默认值 | 范围／选项 | 作用 |
 | --- | --- | --- | --- |
 | `PURE WHITE VISION.DisablePureWhiteVisionOverlays` | `false` | true / false | 移除纯白胶视觉遮罩: 移除视野受限白色遮罩和 Synergy 的纯白胶共识屏幕效果。目标轮廓及相关玩法机制仍然保留。 |
+
+### 雕鸮视觉
+
+| 配置项 | 默认 | 允许范围／选项 | 用途 |
+| --- | --- | --- | --- |
+| `EAGLE OWL VISION.EagleOwlMonochromeVision` | `true` | true / false | 雕鸮形态的世界与第一人称手臂采用黑白视觉；戴下护目镜或月圆之夜恢复色觉。仅影响本地画面，夜视能力和玩法不变。 |
 
 ### 友好包裹
 
@@ -356,6 +368,7 @@
 | `changedSynergyCreatureLife` | `true` | 胶兽生活系统: 启用胶兽日常、野外群落、采集、玩家营地和纯白胶融入分出。关闭时暂停这些活动，保留营地成员。各 AI 与工作开关仍然生效；放置或采收方块遵循 mobGriefing。 |
 | `changedSynergyHypnosisQte` | `true` | Changed 催眠视线对抗: 启用催眠视线抵抗、操作锁定和迷离惩罚。关闭后仍保留 Changed 原有催眠效果。 |
 | `changedSynergyGrabQteEnhancements` | `true` | Changed 擒抱QTE增强: 启用服务端同步键位和挣脱后的安全僵直。关闭后仍保留 Changed 原有擒抱，挣脱后立即恢复攻击。 |
+| `changedSynergyNoCivilizationMode` | `false` | 无文明模式：地区声望与本地信任暂按中立处理并暂停增减，保留原有记录。阻止新野外据点；个人友谊、羁绊与已有社区归属仍保留。 |
 
 ## 玩家友好搂抱
 

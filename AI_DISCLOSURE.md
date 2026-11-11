@@ -1,7 +1,7 @@
 # AI assistance disclosure
 
-Generative AI was used as an assistive tool during development of parts of the English and Chinese text and code.
+AI-assisted tools support parts of Changed: Synergy's development workflow.
 
-ParkaBird reviewed, edited, integrated and tested the resulting work. The project is not an unattended code dump. Its design, direction, acceptance decisions and final release are ParkaBird's responsibility.
+ParkaBird directs the project and reviews, edits, integrates and tests the resulting work. Design decisions and final releases remain ParkaBird's responsibility.
 
-Artwork, textures, models, screenshots and promotional images for Changed: Synergy are not AI-generated. They were created by ParkaBird or captured and adapted from permitted in-game and upstream material as described in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Credits and licensing information for third-party material are documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

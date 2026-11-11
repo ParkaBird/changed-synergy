@@ -1,4 +1,4 @@
-# Native Origins — 1.1.4
+# Native Origins
 
 Pure White Wolves, pups, Cerberuses and Bloodcell Wolves retain their species and body during regional adaptation. Away from White territory, their individual eyes become visible; Cerberuses gain eyes on all three heads, with stable individual colours and styles. Returning home hides them again. The same applies in Instinct mode.
 
@@ -30,7 +30,7 @@ Native players are protected from hostile secondary transfur. This does not prev
 
 With native origins enabled, your permanent creature form is retained after death. Normal respawn points take priority; a safe birthplace can serve as a fallback. Ordinary reversal cannot restore a human origin that you never had.
 
-Adult native players can bond with an eligible adult friend at **60 affection** after giving the required token. Use **Invite to Bond** and confirm when prompted; neither participant changes bodies or factions. Juvenile players must first grow into an eligible adult form. See [Friends, gifts and bonds](RELATIONSHIP_GROWTH.md).
+Players in eligible adult full-latex forms can bond with an eligible adult friend at **60 affection** after giving the required token. Ordinary human-origin transformations can qualify too; temporary wrapping cannot. Use **Invite to Bond** and confirm when prompted; neither participant changes bodies or factions. Juvenile players must first grow into an eligible adult form. See [Friends, gifts and bonds](RELATIONSHIP_GROWTH.md).
 
 ## TrueTransfur control modes
 

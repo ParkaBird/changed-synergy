@@ -1,69 +1,64 @@
 # Publishing notes
 
-Use the same version number, dependency table and release JAR on GitHub, Modrinth and CurseForge.
+Use the same version, supported dependency table and tested release JAR on GitHub, Modrinth and CurseForge. Website descriptions can be edited independently; preserve the author's latest platform text when refreshing repository templates.
 
 ## Project identity
 
 - Name: Changed: Synergy
-- Suggested slug: `changed-synergy`
+- Slug: `changed-synergy`
 - Author: ParkaBird
 - License: GPL-3.0-or-later
 - Environment: client and server
 - Loader: Forge
 - Game version: Minecraft 1.20.1
-- Source: `https://github.com/ParkaBird/changed-synergy`
-- Issues: `https://github.com/ParkaBird/changed-synergy/issues`
+- Source: <https://github.com/ParkaBird/changed-synergy>
+- Issues: <https://github.com/ParkaBird/changed-synergy/issues>
 
-## Short description
+## Description and guides
 
-Friendships, factions and camps for Changed, with native latex origins and Instinct-mode roleplay through TrueTransfur.
+The [platform description](PLATFORM_DESCRIPTION.md) covers current gameplay and links to [player guides](README.md). The CurseForge and Modrinth copies use the same repository text; online pages may contain newer author edits. Check before replacing them.
 
-## Project introduction
+Suggested short description: Friendships, communities and camps for Changed, with native latex origins and Instinct-mode roleplay through TrueTransfur.
 
-Use [the platform description](PLATFORM_DESCRIPTION.md) for current gameplay, requirements and links to the [player guides](README.md). It can be copied to CurseForge and Modrinth. Synergy 1.1.4 is paired with TrueTransfur 2.0.0; the 1.0.1 integration remains supported with fewer Instinct features.
-
-## Chinese short description
-
-让 Changed 胶兽成为有名字、有记忆的社交 NPC，加入朋友、羁绊、交涉、阵营声望、台词、职能与环境互动。
+Chinese short description: 让 Changed 胶兽成为有名字、有记忆的邻居，结交朋友、建立羁绊、加入社区，或经营自己的营地。
 
 ## Dependency declarations
 
-- Required: Changed 0.15.7
-- Optional: TrueTransfur 2.0.0, with backward compatibility for 1.0.1
-- Required with TrueTransfur 2.0.0: Mixin Args 1.0 or newer
-- Optional: Changed Addon Plus 2.9.2c
-- Other supported integrations: see [COMPATIBILITY.md](../COMPATIBILITY.md)
+- Required: Changed 0.15.7.
+- Optional: TrueTransfur 2.x; needed for native origins, permanent dialogue rituals and Instinct features. TrueTransfur 1.0.1 compatibility is no longer maintained or tested.
+- Required with the supported TrueTransfur integration: Mixin Args 1.0 or newer.
+- Optional: Changed Addon Plus 2.9.2c and Curios API 5.14.1 for Forge.
+- Other integrations and tested versions: [compatibility](../COMPATIBILITY.md).
 
-Forge itself and Minecraft should use the supported ranges in `mods.toml`.
+Loader acceptance ranges in `mods.toml` can be broader than the versions maintained here; acceptance does not establish support for every version in a range. Minecraft and Forge ranges remain defined by that metadata.
 
-## AI disclosure
+## AI assistance disclosure
 
-Use this text where a platform requests an AI disclosure:
+Use the current [AI assistance disclosure](../AI_DISCLOSURE.md). A short form for platform fields is:
 
-> Generative AI was used as an assistive tool during development of parts of the English and Chinese text and code. ParkaBird reviewed, edited, integrated and tested the resulting work. Artwork, textures, models, screenshots and promotional images are not AI-generated.
+> AI-assisted tools support parts of the development workflow. ParkaBird directs the project and reviews, edits, integrates and tests the resulting work.
+
+Third-party credits and licensing remain in [the notices](../THIRD_PARTY_NOTICES.md).
 
 ## Current release
 
-- Version: `1.1.4`
-- Release type: Release
-- Display title: `Changed: Synergy 1.1.4 for Forge 1.20.1`
-- Upload only the release JAR, not the sources JAR, as the main downloadable mod.
-- Attach the sources JAR to the GitHub release if desired.
-- Use [the 1.1.4 changelog](CHANGELOG-1.1.4.md) for release notes.
-- Coordinate public release with TrueTransfur 2.0.0. Source and player guides can be updated ahead of the simultaneous launch.
+- Version: `1.1.5-Beta.2`.
+- Release type: Beta / GitHub prerelease.
+- Display title: `Changed: Synergy 1.1.5-Beta.2`.
+- Release notes: [Beta.2](CHANGELOG-1.1.5-Beta.2.md), describing player-visible changes since Beta.1.
+- Main artifact: `ChangedSynergy-m1.20.1-v1.1.5-Beta.2-all.jar`.
+- Attach checksums for the exact uploaded artifact. A source JAR may be attached separately; it is not the playable mod.
 
-## Gallery and description
+## Gallery and attribution
 
-Use player-made screenshots and cover art. Add alt text that states what each image shows. Do not upload debug screenshots containing personal paths, unrelated usernames, coordinates that should remain private, or a visible access token.
+Choose images that show the current build, give them useful alt text and retain appropriate creator credits. Check licenses and permissions for contributed or upstream material. Avoid screenshots containing private paths, access tokens or other unintended personal information.
 
-The README can be used as the long description. Remove GitHub-only contribution details if a platform page becomes too long, but keep installation, dependencies, release status, AI disclosure and credits.
+## Release procedure
 
-## Release order
+1. Complete the [release checklist](../RELEASE_CHECKLIST.md), distinguishing automated results from actual gameplay checks.
+2. Build the candidate once and record its commit, version and SHA-256.
+3. Tag the tested code and create the matching GitHub release, marking Beta builds as prereleases.
+4. Verify the uploaded JAR checksum, then upload the same artifact to CurseForge and Modrinth with matching dependencies and release status.
+5. Preserve author edits to platform descriptions and include current guide links.
 
-1. Push the tagged source to GitHub and create the GitHub release.
-2. Download the release attachment once and compare its SHA-256 checksum with the local candidate.
-3. Update the existing Modrinth and CurseForge projects with matching metadata and the guide links.
-4. Upload the exact same JAR to both platforms.
-5. Add the final Modrinth and CurseForge URLs to `mods.toml` and the README in the next patch release if the first upload has already been signed and tagged.
-
-Modrinth may hold a new project for review. CurseForge also moderates new submissions. Do not rename or rebuild the JAR while one platform is reviewing it.
+Documentation-only corrections can be committed after the code tag without rebuilding or replacing the tested JAR. Correct a factual error in release text explicitly; do not move a published tag or replace an attachment merely to update documentation. Keep historic release records scoped to their original versions.

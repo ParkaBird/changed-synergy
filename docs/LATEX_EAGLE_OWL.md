@@ -1,6 +1,6 @@
 # Latex Eagle Owl
 
-The supplied owl and Aviator Outfit projects are imported without overwriting the originals. `tools/import_eagle_owl_assets.py` rebuilds the native Java layers, embedded textures and perch assets. The manifest records source hashes, duplicate beak removal and thin-surface separation. Corrected editable projects are kept under `outputs/eagle-owl-integration-20261101`.
+The supplied owl and Aviator Outfit projects are imported without overwriting the originals. `tools/import_eagle_owl_assets.py` rebuilds the native Java layers, embedded textures and perch assets. The manifest records source hashes, duplicate beak removal and thin-surface separation. Editable authoring projects are separate from the public runtime resources; reimporting requires the supplied source projects.
 
 ## Species
 
@@ -27,7 +27,7 @@ Natural, chunk-generated and structure-spawned owls have one configurable outfit
 
 ## Bird sleeping perches
 
-`changed_synergy:eagle_owl_perch_stand` occupies two vertically adjacent blocks; `changed_synergy:eagle_owl_perch_rail` occupies two horizontally adjacent blocks. Both have four facing directions, paired placement/removal and one item drop. They are available in the functional creative tab. They use native sleep and wake state for Crow/Owl players and NPCs, including wrapped players. The stand shares one sleeping place across its halves; the rail has independent places at the outer quarter points, 1.5 blocks apart. NPC sleep is limited to natural-camp residents using beds inside their own structure, or player-camp members using bound beds. Unassigned wild birds do not search for nearby perches. Eagle Owls sleep by day and wake at night; Crows retain nighttime sleep. Combat, following and orders interrupt camp sleep. Sleeping uses the supplied folded pose; Synergy eye overlays are hidden to expose the updated closed-eye textures.
+`changed_synergy:eagle_owl_perch_stand` occupies two vertically adjacent blocks; `changed_synergy:eagle_owl_perch_rail` occupies two horizontally adjacent blocks. Both have four facing directions, paired placement/removal and one item drop. They are available in the functional creative tab. They use native sleep and wake state for Crow/Owl players and NPCs, including wrapped players. The stand shares one sleeping place across its halves; the rail has two independent, slightly inset sleeping places with 1.25 blocks between their centers. NPC sleep is limited to natural-camp residents using beds inside their own structure, or player-camp members using bound beds. Unassigned wild birds do not search for nearby perches. Eagle Owls sleep by day and wake at night; Crows retain nighttime sleep. Combat, following and orders interrupt camp sleep. Sleeping uses the supplied folded pose; Synergy eye overlays are hidden to expose the updated closed-eye textures.
 
 Airborne arm releases use the carrier's current position and clear old interpolation, then block new grabs for 20 ticks. This applies to normal and friendly holds, including other airborne forms; native suits and control transfer are unchanged.
 

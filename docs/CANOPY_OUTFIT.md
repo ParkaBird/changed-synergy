@@ -1,6 +1,6 @@
-# Canopy Outfit / 林冠装
+# Ranger Outfit / 巡林装
 
-`changed_synergy:forest_canopy_outfit` imports the author's three live Blockbench clothing projects: four arms, bipedal and female. The snapshots are retained under `outputs/forest-canopy-outfit-20261102`; `tools/import_forest_canopy_outfit.py` regenerates the layers, shared texture and item icon without editing those sources.
+`changed_synergy:forest_canopy_outfit` is the Ranger Outfit. Its four-arm, bipedal and original-female cuts come from the author's supplied forest clothing projects; the current version uses the redesigned forest-ranger geometry and icon. The internal item ID is retained for saved equipment and recipes. Authoring tools require the separately supplied source projects.
 
 The outfit uses Changed's inner or outer clothing slot and the existing Curios integration. Adult humanoid bodies wear the full set; tail, legless and taur bodies omit its lower section. Juveniles wear only the circlet in a head/face slot. The headband reserves the head slot, and leg wraps retain native trousers conflicts. It cannot be equipped twice. Unsupported adult feral anatomy is rejected rather than forcing a humanoid outfit onto it.
 
@@ -14,4 +14,4 @@ The transfur negotiation wheel now offers **Forgive**. It grants eight affection
 
 Addon Plus's Diffusion Syringe also separates an absorbed individual with their saved identity, clothing and relationships, without granting a negotiated-release reward or spawning a second copy. Assimilation retains Addon Plus's default fresh-creature split; the external assimilator and its relationships remain separate. Existing safe-separation and permanent-form policies still apply.
 
-The item icon uses the author's supplied `canopy_silk_outfit_icon.png` unchanged, including transparency. The importer retains this source instead of regenerating an icon from a model preview.
+The current item icon uses the supplied `black_forest_ranger_outfit_icon.png`. The former Canopy name and icon refer to an earlier authoring version. Headbands are fitted above the high eye style.

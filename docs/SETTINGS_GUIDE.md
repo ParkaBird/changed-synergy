@@ -100,6 +100,9 @@ permission to ignore a disabled server feature.
 | --- | --- | --- | --- |
 | `RELATIONSHIPS.TamedCompanionRegeneration` | `0` | 0 ~ 5 | Native Pet Regeneration: Regeneration level for native Changed pets. Zero disables it. |
 | `RELATIONSHIPS.CompanionAutoEat` | `true` | true / false | Companion Auto-Eating: Injured bonds and friends choose their own food by useful recovery and injury severity. Golden apples require 35% health, enchanted ones 20%. Native effects and containers are preserved. Critical bonded wrapping takes priority. Cooldown: 3 seconds. |
+| `RELATIONSHIPS.NaturalCampRoutines` | `true` | true / false | Allow authored community and small-camp residents to gather, farm, store supplies, hunt, eat and sleep on their species schedule. Turning it off preserves cargo and home boundaries. |
+| `RELATIONSHIPS.HyenaTrailclothSpawnChance` | `0.25` | 0.0 ~ 1.0 | One-time Trailcloth chance for newly natural- or structure-spawned Spotted Hyenas. Does not overwrite clothes or reroll saved creatures. |
+| `RELATIONSHIPS.EagleOwlOutfitSpawnChance` | `0.25` | 0.0 ~ 1.0 | One-time Aviator chance for newly naturally spawned Eagle Owls. Existing equipment and saved choices are preserved. |
 | `RELATIONSHIPS.CompanionSeating` | `true` | true / false | Allow trusted friends and bonds to use designated seats. Stops pending boarding when disabled; safe dismount remains available. |
 | `RELATIONSHIPS.CompanionRallyBoarding` | `true` | true / false | Call nearby following companions onto the player's vehicle. Requires CompanionSeating. |
 | `RELATIONSHIPS.OrdinaryTransfurReversal` | `true` | true / false | Ordinary Transfur Reversal: Allow Synergy transfur reversal through negotiation, bonded companions, and sleep. Takeover separation and the /untf and /untransfur recovery commands remain available when disabled. |
@@ -196,6 +199,7 @@ permission to ignore a disabled server feature.
 | `COMMUNITIES.MinimumOutpostSpacing` | `48` | 16 ~ 256 | Minimum Wild Outpost Spacing: Minimum horizontal distance in blocks between independently claimed wild outposts. Compatible nearby creatures still share an existing outpost. |
 | `COMMUNITIES.PlayerWildOutpostMinimumSpacing` | `48` | 16 ~ 256 | Player / Wild Outpost Spacing: Minimum horizontal distance between a player camp marker and a wild outpost cache when either is established. Existing outposts stay in place. |
 | `COMMUNITIES.CreatureOutposts` | `true` | true / false | Autonomous Creature Outposts: Allow wild creatures to build or claim new outposts, including ruins, hives and aquatic caches. Off preserves existing outposts, storage and deliveries. Player camps and existing facility storage are unaffected. |
+| `COMMUNITIES.WildOutpostsInStructuresOnly` | `false` | true / false | Limit new autonomous wild-outpost construction to eligible existing structures. Existing outposts remain; ruin and hive claims still require their respective switches. |
 | `COMMUNITIES.UseChangedStructureOutposts` | `true` | true / false | Claim Changed Ruins [Low impact]: Provisioners without an outpost can claim generated Changed ruins and place a compact community store in empty space. The facility is always excluded. |
 | `COMMUNITIES.LatexBeeHiveOutposts` | `true` | true / false | Latex Bee Hive Outposts [Low impact]: Latex-bee provisioners can establish a small community store beside a generated Changed beehive. |
 | `COMMUNITIES.StructureOutpostSearchRadiusChunks` | `6` | 2 ~ 12 | Structure Search Radius [Low impact]: Loaded-chunk search radius for unclaimed Changed ruins and beehives. Larger values increase the occasional search cost. |
@@ -212,6 +216,7 @@ permission to ignore a disabled server feature.
 | Key | Default | Allowed range / choices | Purpose |
 | --- | --- | --- | --- |
 | `ECOLOGY.PureWhiteWolfAdaptation` | `true` | true / false | Pure White Wolf Regional Adaptation: Pure White Wolves, pups, Cerberuses and Bloodcell Wolves develop visible eyes away from White territory and hide them on returning. Applies to creatures and players, including Instinct mode, without changing species, body or abilities. |
+| `ECOLOGY.EnableLatexBiomes` | `true` | true / false | Allow White Latex Forest and Dark Latex Plains generation in new terrain. Existing generated chunks are retained. |
 
 ### Starting Species List
 
@@ -278,6 +283,7 @@ permission to ignore a disabled server feature.
 | --- | --- | --- | --- |
 | `DIALOGUE.UsesTranslator` | `true` | true / false | Addon Translator Support: An enabled Changed Addon Plus Translator interprets creature speech, even when telepathy is disabled. Turning this off disables the item bypass; it does not grant everyone telepathy. |
 | `DIALOGUE.AddonAnimalCalls` | `true` | true / false | Addon Animal Calls: Let compatible creatures use Changed Addon's animal calls for some mood-dependent reactions. |
+| `DIALOGUE.NativeChatAnimalCalls` | `true` | true / false | Native-origin players may make a species-appropriate call when sending global or role chat. Server cooldowns prevent spam; message text is unchanged. |
 | `DIALOGUE.TelepathyEnabled` | `true` | true / false | Enable Telepathy: Allow permanent, transformed-body, hypnosis and takeover telepathic understanding. Turning this off pauses unlock progress and uses species vocalizations, while retaining saved progress. Direct speakers and supported enabled Translators remain understandable; hypnosis and takeover gameplay are unchanged. |
 | `DIALOGUE.TelepathyUnlockTransfurs` | `3` | 0 ~ 20 | Telepathy Unlock Transfurs: Completed standard transfurs needed for permanent telepathy. Set to 0 to prevent new unlocks while retaining existing understanding. Use Enable Telepathy to disable all telepathic understanding, including already unlocked players. |
 
@@ -309,6 +315,12 @@ permission to ignore a disabled server feature.
 | Key | Default | Allowed range / choices | Purpose |
 | --- | --- | --- | --- |
 | `PURE WHITE VISION.DisablePureWhiteVisionOverlays` | `false` | true / false | Remove Pure White Vision Overlays: Removes the reduced-vision veil and Synergy's pure-white consensus screen effect. Target outlines and gameplay mechanics remain available. |
+
+### Eagle Owl Vision
+
+| Key | Default | Allowed range / choices | Purpose |
+| --- | --- | --- | --- |
+| `EAGLE OWL VISION.EagleOwlMonochromeVision` | `true` | true / false | Apply Eagle Owl monochrome vision to the world and first-person hands. Lowered goggles and full-moon nights restore color. Client-only; night vision and gameplay remain unchanged. |
 
 ### Friendly Wrapping
 
@@ -367,6 +379,7 @@ permission to ignore a disabled server feature.
 | `changedSynergyCreatureLife` | `true` | Changed: Synergy Creature Life: Enable creature routines, wild communities, gathering, player camps and Pure White reformation. Turning it off pauses these activities and keeps saved camp membership. Individual AI and work switches still apply; placing or harvesting blocks respects mobGriefing. |
 | `changedSynergyHypnosisQte` | `true` | Changed: Synergy Hypnosis Gaze Struggle: Enables Synergy's gaze-resistance sequence, control lock and mesmerized penalty. Changed's base hypnosis remains when disabled. |
 | `changedSynergyGrabQteEnhancements` | `true` | Changed: Synergy Grab QTE Enhancements: Enables server-synced grab prompts and the safety stun after escape. Changed's base grab remains when disabled, and creatures can attack again immediately after an escape. |
+| `changedSynergyNoCivilizationMode` | `false` | No Civilization Mode: Treat regional reputation and local trust as neutral and pause their changes, while retaining stored records. Prevents new autonomous wild outposts; personal friendship, bonds and existing home records remain. |
 
 ## Player friendly hugs
 

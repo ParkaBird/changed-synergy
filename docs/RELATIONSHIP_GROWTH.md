@@ -46,7 +46,7 @@ A first bond needs **60 affection** and an accepted token through the wheel's Gi
 
 Aquatic classification takes priority, then Organic; otherwise the Dark, White or Variant group is used. Token classification does not change the creature's faction.
 
-An accepted token reserves the creature for you, including while either side is offline. Human players confirm **Voluntary transfur** to form a bond. Adult native players and supported permanently transformed TrueTransfur players use **Invite to Bond**, keeping their bodies and control modes.
+An accepted token reserves the creature for you, including while either side is offline. Human players confirm **Voluntary transfur** to form a bond. Players in an eligible adult full-latex body use **Invite to Bond**, keeping their bodies and control modes. This includes ordinary human-origin transformations as well as native and permanent forms; temporary wrapping does not qualify. Fixed story NPCs retain their no-bond restriction.
 
 Unused tokens can be withdrawn through the creature wheel or with `/changedsynergy bond token withdraw <creature UUID>`. Administrators can use `bond token cancel <creature UUID>`. Creature death or disabling the token requirement returns unused tokens once. Offline returns wait for the player; a full inventory causes the return to drop at the player's visible body.
 

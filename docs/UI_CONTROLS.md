@@ -4,7 +4,7 @@ Tap the ability-wheel key to open the existing click-driven menu. Hold it for ab
 
 Switching between ability and relationship wheels keeps the frame at full size. The same horizontal spring continues between the center and right-side anchors, preserving its position and velocity while the server opens the next menu. If the menu request fails, the current wheel becomes usable again.
 
-Only the ability wheel uses hold/release selection. Scrolling past its first or last page switches to the relationship wheel, which stays open for clicking after release. Returning to the ability wheel requires a fresh key press before hold selection can resume. Paging clears the old highlight; move the mouse again before selecting. Releasing during paging or a wheel handoff cancels the choice.
+Only the ability wheel uses hold/release selection. When more than eight entries are available, scrolling moves continuously through them with edge fades; Shift + scroll switches paired wheels. Left/right arrows do not page the wheel. With eight or fewer entries, ordinary scrolling switches paired wheels. The relationship wheel stays open for clicking after release. Returning to the ability wheel requires a fresh key press before hold selection can resume. Paging clears the old highlight; move the mouse again before selecting. Releasing during paging or a wheel handoff cancels the choice.
 
 Keep holding the wheel key to walk, jump, crouch or sprint while either player wheel is open. Scrolling between the two wheels does not require releasing the key, including when the hold starts in an already-open relationship wheel. Releasing there leaves the click-driven relationship menu open. Ordinary sticky menus keep their existing movement behavior.
 

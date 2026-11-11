@@ -1,17 +1,13 @@
-# Roadmap after the first public beta
+# Roadmap after 1.1.5-Beta.2
 
-The first public release should favor fixes, compatibility and performance measurement over another large system.
+The next work should follow field reports from the released community, species and companion systems. These priorities do not announce a new feature release.
 
-## Release priorities
+## Priorities
 
-1. Fix reproducible crashes and save-data problems.
-2. Measure creature counts, pathfinding cost and outpost density in real modpacks.
-3. Add automated game tests for persistence, packet validation and relationship transitions.
-4. Move more species and faction definitions into data files where upstream APIs allow it.
-5. Review mixins after every supported Changed or Changed Addon Plus update.
+1. Fix reproducible crashes, save-data problems and multiplayer interaction failures.
+2. Measure creature counts, pathfinding cost and community activity in real modpacks.
+3. Extend existing regression fixtures where reports expose an uncovered persistence, packet or relationship boundary.
+4. Keep documentation, translations and maintained dependency versions aligned with tested behavior.
+5. Review targeted mixins after supported Changed or Addon Plus updates.
 
-Larger mechanics should wait until the beta has enough field data to show which systems players actually use.
-
-Detailed post-stable concepts are recorded in
-[Future community design memo](FUTURE_COMMUNITY_DESIGN.md). They are design
-notes rather than announced or guaranteed features.
+The [future community memo](FUTURE_COMMUNITY_DESIGN.md) separates shipped foundations from unimplemented ideas. Inter-community trade, diplomacy and larger organized groups remain proposals rather than available gameplay.

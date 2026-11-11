@@ -6,7 +6,7 @@ Buildings by **Crossader**. Each small camp generates with two persistent male L
 | --- | --- | --- |
 | `changed_synergy:hyena_hideout` | `hyena_hideout.nbt` | Savanna family |
 | `changed_synergy:hyena_camp_tropical` | `hyena_camp1.nbt` | Jungle and savanna families |
-| `changed_synergy:hyena_camp_open` | `hyena_camp2.nbt` | Desert, badlands family, plains and sunflower plains |
+| `changed_synergy:hyena_camp_open` | `hyena_camp2.nbt` | Plains and sunflower plains |
 | `changed_synergy:hyena_camp_snowy` | `hyena_camp3.nbt` | Snowy plains |
 
 The hideout has a separate 32-chunk spacing / 5-chunk separation placement set with triangular spread, matching ocean-monument placement parameters. Camps share a 24 / 8 set, selecting the biome-appropriate template, and avoid hideout candidate chunks within four chunks. Hideouts avoid Changed's decayed-lab placement set within six chunks. Biome and terrain restrictions still determine actual frequency. Tropical camp storage can also contain a hideout explorer map; see `NATURAL_CAMPS.md`. All require ordinary structure generation in newly generated Overworld terrain. `/locate structure changed_synergy:<ID>` and `/place structure changed_synergy:<ID>` use the vanilla registry.

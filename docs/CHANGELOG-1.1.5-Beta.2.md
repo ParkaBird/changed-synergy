@@ -31,7 +31,7 @@
 - Added **Forgive** to transfur negotiation, granting affection and ending the negotiation while keeping the current body. Absorbed individuals retain their identity and relationships for separation with Addon Plus's Diffusion Syringe; ordinary assimilation creates a fresh creature.
 - Player **hypnosis is now a toggle**. Press once to keep using the existing ability, then press again to stop. The icon distinguishes physically holding the key from leaving the ability active after release.
 - Merged desert and badlands regional affiliation into **Arid areas**, retaining their reputation consequences and rivalries. Local communities continue to manage membership and trust independently.
-- Added **No Civilization Mode**, through configuration and the `synergyReputationNeutrality` game rule, for survival-focused packs that want individual friendship and bonding without positive regional reputation advantages or newly established wild outposts.
+- Added **No Civilization Mode**, through configuration and the `changedSynergyNoCivilizationMode` game rule, for survival-focused packs that want individual friendship and bonding without positive regional reputation advantages or newly established wild outposts.
 - Outpost workers organize deposits around matching supplies and use suitable overflow storage. Bonded companions support **Assign Seat**. Creatures that use doors can also open wooden trapdoors and fence gates.
 
 ### Interface and important fixes

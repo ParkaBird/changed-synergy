@@ -1,6 +1,6 @@
 # Local household life
 
-The forest treehouse, Hyena's Hideout and observatory are separate households. The player joins one as an ordinary member. Regional factions, ecological populations, birth identity, individual affection and bonds remain separate. Small hyena camps retain their previous routines; the laboratory Researcher does not recruit.
+The forest treehouse, Hyena's Hideout, observatory and Desert Refuge are separate households. The player joins one as an ordinary member. Regional factions, ecological populations, birth identity, individual affection and bonds remain separate. Small hyena camps, Oasis camps and Muddy Campsites retain their own routines and supplies; the laboratory Researcher does not recruit.
 
 ## Joining and living here
 
@@ -8,7 +8,7 @@ Neutral local trust and no immediate hostility allow admission. Human, existing 
 
 Trust remains between -100 and 100. At -15, shared rights are suspended until neutrality returns; at -40, membership ends. Departure keeps trust, relationships, reward history and the body. Members share public stores and free sleeping places. A visitor with local trust 40 can also borrow a sleeping place. Creative players bypass the sleep permission check. Vanilla bed occupancy, body suitability and sleep-time checks still apply. Existing respawn points are not erased.
 
-Each main community has an empty, named **Community Supplies** double chest. The Desert Refuge keeps it in the lower west study; its middle-floor common room replaces a campfire as the meal gathering place. Residents take supplies only from this reserve and put hunting, gathering and pickup proceeds into it. Donations and public requests use the same reserve. Personal requests are handed to the requesting resident’s personal inventory. A full, removed or unavailable reserve leaves cargo with the resident; other chests never become fallback storage. Loot chests stay outside this system after opening too. Small hyena camps retain their existing storage rules.
+Each main community has an empty, named **Community Supplies** double chest. The Desert Refuge uses a designated indoor meal point without requiring a campfire. Residents take supplies only from this reserve and put hunting, gathering and pickup proceeds into it. Donations and public requests use the same reserve. Personal requests are handed to the requesting resident’s personal inventory. A full, removed or unavailable reserve leaves cargo with the resident; other chests never become fallback storage. Loot chests stay outside this system after opening too. Small camps use their built-in supply containers, which remain private to players while residents can use them.
 
 Explicitly marked private containers remain personal at any local trust. Lecterns and other readable story media are freely accessible. A dedicated reserve is explicitly shared, so leaving a book in it does not turn the whole reserve private. Explicit private flags still take precedence. Both halves must belong to the reserve; attaching an ordinary chest cannot expose its contents. The added blocks appear in newly generated or newly placed structures; existing saved buildings are not overwritten.
 
@@ -42,7 +42,7 @@ Invitations respect nocturnal Owl and diurnal resident schedules. Conversation h
 
 `changed_synergy_camp_life` owns structure household records, pending requests, completion evidence and shared invitation/meal deadlines. Its key is the existing dimension-and-structure-origin home key. It survives a Chief's death or unload. Known home records retain the original dimension if an actor is transported; remote supply transfers are refused. No chunks are forced or simulated while unloaded.
 
-Network protocol 66 adds the campmate flag to the relationship roster and retains localized component arguments in the existing conversation message. Choice IDs, session nonces, revisions and eligibility remain server-owned. The existing dialogue renderer, punctuation timing, thought presentation and reduced-motion behavior are retained. New writing and text styling live in `tools/authoring/camp_life_dialogue.json`; the compiler and complete EN/ZH/RU literary editing exporter are beside it.
+The network carries the campmate flag to the relationship roster and retains localized component arguments in the existing conversation message. Choice IDs, session nonces, revisions and eligibility remain server-owned. The existing dialogue renderer, punctuation timing, thought presentation and reduced-motion behavior are retained. Clients and servers must use matching builds; `ChangedSynergyNetwork` owns the protocol definition. New writing and text styling live in `tools/authoring/camp_life_dialogue.json`; the compiler and complete EN/ZH/RU literary editing exporter are beside it.
 
 ## Focused cleanup receipt
 

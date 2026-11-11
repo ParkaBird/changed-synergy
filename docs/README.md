@@ -17,6 +17,7 @@ Start with the community guide for Beta.2's household life and admission system,
 | [TrueTransfur and Instinct mode](TRUETRANSFUR_INSTINCT_COMPAT.md) | Install TrueTransfur, switch control modes and understand player interactions |
 | [Relationship growth](RELATIONSHIP_GROWTH.md) | Check affection, cooldowns, bond tokens or relationship commands |
 | [Faction diplomacy](FACTION_DIPLOMACY.md) | Understand reputation, rivalries and alliances |
+| [Jerboa](LATEX_JERBOA.md) · [Wayfarer Outfit](WAYFARER_OUTFIT.md) | Check the desert species, charged jump and shared outfit cuts |
 
 ## Running a server
 

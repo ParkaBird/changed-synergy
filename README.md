@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ParkaBird/changed-synergy/releases"><img alt="GitHub release" src="https://img.shields.io/github/v/release/ParkaBird/changed-synergy?label=release"></a>
+  <a href="https://github.com/ParkaBird/changed-synergy/releases"><img alt="GitHub release" src="https://img.shields.io/github/v/release/ParkaBird/changed-synergy?include_prereleases&label=latest"></a>
   <a href="LICENSE.txt"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
   <img alt="Minecraft 1.20.1" src="https://img.shields.io/badge/Minecraft-1.20.1-62B47A">
   <img alt="Forge 47.4.x" src="https://img.shields.io/badge/Forge-47.4.x-E04E14">
@@ -21,7 +21,7 @@ Changed: Synergy turns aggressive latex creatures into neighbors you can get alo
 
 The new species also include [Latex Swordfish](docs/LATEX_SWORDFISH.md), an open-ocean swimmer with a Riptide-style rush, and [Latex Muntjac](docs/LATEX_MUNTJAC.md), a jungle deer relative with animated upright ears. Both have natural spawns, native origins and matching transfur items.
 
-**Beta.2 adds local communities** in treehouses, hyena hideouts, mountain observatories and desert refuges. Meet their Chiefs, ask to stay, help residents and share supplies while building local trust. Spotted Hyenas, Eagle Owls and Jerboas join the species roster, with matching outfits and new sleeping perches. See the [Beta.2 release notes](docs/CHANGELOG-1.1.5-Beta.2.md).
+**Beta.2 adds local communities** in treehouses, hyena hideouts, mountain observatories and desert refuges. Meet their Chiefs, ask to stay, help residents and share supplies while building local trust. Spotted Hyenas, Eagle Owls and Jerboas join the species roster, with matching outfits and new sleeping perches. See the [Beta.2 release notes](docs/CHANGELOG-1.1.5-Beta.2.md), [Jerboa guide](docs/LATEX_JERBOA.md) and [Wayfarer Outfit](docs/WAYFARER_OUTFIT.md).
 
 ## Player guides
 
@@ -41,7 +41,7 @@ See the [combined 1.1.5 notes](docs/CHANGELOG-1.1.5.md) for changes since [1.1.4
 
 ## What you can do
 
-- **Build relationships over time.** Patting and feeding help with first contact; the first suitable wheel gift establishes acquaintance. Continued care and gifts deepen friendship. Full affection and a species-themed token unlock a first bond. Bonds can be ended without erasing friendship and renewed later.
+- **Build relationships over time.** Patting and feeding help with first contact; the first suitable wheel gift establishes acquaintance. Continued care and gifts deepen friendship. Full affection and a species-themed token unlock a first bond. Eligible adult full-latex players can bond without changing bodies, including after an ordinary human-origin transformation. Bonds can be ended without erasing friendship and renewed later.
 - **Begin as a native latex creature.** Choose an eligible species or a human origin from the archive. Native identity, faction citizenship and a creature name persist. The archive supports category random choices and a fully random choice from its available records.
 - **Interact with real players.** Native players can use nearby role speech, expressions, gifts and mutually confirmed friendships. Language understanding follows the same rules as NPC dialogue. Instinct bodies represent their actual players rather than separate social NPCs.
 - **Build a camp.** Claim a campfire, link beds, rest points and containers, then invite trusted adult friends. Assign gathering, hunting, farming, cooking or hauling, with optional backup jobs. Shared meals bring residents around the campfire.
@@ -63,6 +63,7 @@ See the [combined 1.1.5 notes](docs/CHANGELOG-1.1.5.md) for changes since [1.1.4
 | Changed | 0.15.7 | Yes |
 | TrueTransfur | 2.x | For native origins and TrueTransfur features |
 | Mixin Args | 1.0 or newer | When using TrueTransfur 2.x |
+| Curios API | 5.14.1 (Forge) | No; clothing-slot integration |
 | Changed Addon Plus | 2.9.2c | No |
 | Changed Vanilla | 1.0.1 | No |
 | Changed Extras | 1.1.8b | No |
@@ -99,6 +100,6 @@ Report reproducible bugs through the [issue tracker](https://github.com/ParkaBir
 
 Changed: Synergy is developed by ParkaBird. Thanks to Nic, Crossader and Sword for dialogue and localization, and to TrueTransfur's author for collaboration, testing and Russian localization. This is an unofficial addon, not affiliated with the creators of Changed or Mojang Studios.
 
-Generative AI assisted with parts of the English and Chinese text and code; ParkaBird reviewed, edited, integrated and tested the work. Artwork, textures, models, screenshots and promotional images are not AI-generated. See [AI disclosure](AI_DISCLOSURE.md).
+AI-assisted tools support parts of the development workflow. ParkaBird directs the project and reviews, edits, integrates and tests the resulting work. See [AI disclosure](AI_DISCLOSURE.md).
 
 Licensed under [GPL-3.0-or-later](LICENSE.txt).

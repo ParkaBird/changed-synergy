@@ -66,7 +66,7 @@
 
 - Merged desert and badlands regional affiliation into **Arid areas**, retaining their reputation consequences and rivalries. Local communities continue to manage membership and trust independently.
 
-- Added **No Civilization Mode**, through configuration and the `synergyReputationNeutrality` game rule, for survival-focused packs that want individual friendship and bonding without positive regional reputation advantages or newly established wild outposts.
+- Added **No Civilization Mode**, through configuration and the `changedSynergyNoCivilizationMode` game rule, for survival-focused packs that want individual friendship and bonding without positive regional reputation advantages or newly established wild outposts.
 
 - Outpost workers organize deposits around matching supplies and use suitable overflow storage. Bonded companions support **Assign Seat**. Creatures that use doors can also open wooden trapdoors and fence gates.
 

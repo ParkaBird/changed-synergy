@@ -4,18 +4,21 @@ This document records design ideas for development after the current beta.
 It is not a promise that every idea will ship, and it must not be used as a
 list of features that are already available.
 
+## Status at 1.1.5-Beta.2
+
+Local household admission, community requests and contributions, ordinary peer games, player camps, travelling crews, supported Changed Vanilla integration and bonded-companion restoration are already available. See [community membership](CAMP_MEMBERSHIP_GUIDE.md), [social play](SOCIAL_GUIDE.md) and [player camps](PLAYER_CAMP_GUIDE.md).
+
+The sections below retain earlier design context. Inter-community diplomacy and trade, broader automatic structure occupation and organized war bands remain proposals. They must not be presented as current features.
+
 ## Release boundary
 
-The first stable release remains focused on bug fixes, save safety,
-multiplayer reliability, performance and compatibility. Large new community
-mechanics belong to a later beta cycle.
+Release maintenance prioritizes bug fixes, save safety, multiplayer reliability, performance and compatibility. Larger unimplemented mechanics need a separate future development cycle.
 
-The dedicated Changed Vanilla compatibility pass is now in progress. Changed
+The dedicated Changed Vanilla compatibility integration is implemented for the maintained pairing. Changed
 Vanilla is an official Changed addon and reuses much of Changed's assimilation
-system, so the stable release supports it deliberately instead of merely
-depending on incidental compatibility.
+system; Synergy supports its maintained version through dedicated compatibility hooks.
 
-The compatibility pass should verify that:
+Future compatibility checks should continue to verify that:
 
 - Changed Vanilla conversions are not replaced by Synergy's ordinary-mob
   absorption behavior;
@@ -144,8 +147,8 @@ classification can be integrated safely.
 
 ## Bonded-companion restoration
 
-Dark Latex bonded companions may eventually leave a unique broken mask when
-they die. The mask would retain the companion's identity and bond data. The
+Dark Latex bonded companions can leave an identity-bearing broken mask when
+they die. This restoration path is implemented; the following paragraphs retain its design rationale. The mask would retain the companion's identity and bond data. The
 player could repair it with Dark Latex crystals, wear it and voluntarily enter
 a compatible transfur state to provide an anchor from which the companion can
 reform.
@@ -163,7 +166,7 @@ server-side protections:
   relic;
 - the restored companion returns with limited health and temporary protection.
 
-Other factions should use faction-specific relics and restoration rituals
+The released sample/Infuser path restores other supported non-organic bonds. Additional species-specific relics remain proposals. Other factions could use faction-specific relics and restoration rituals
 rather than all dropping masks. Possible concepts include a condensed white
 core, an aquatic memory pearl, a light-latex crystal or fur sample, an organic
 cocoon, or a damaged experimental core. These should share one underlying
@@ -191,5 +194,4 @@ characters or setting-specific material.
 3. Introduce community awareness, diplomacy and limited real-stock trade.
 4. Add safe structure claims and trust-based access control.
 5. Prototype small follower groups before considering larger war bands.
-6. Build the shared bond-relic backend, then implement the Dark Latex mask
-   ritual as its first faction-specific restoration path.
+6. Extend the existing mask/sample restoration backend only when a further relic has a concrete gameplay need.

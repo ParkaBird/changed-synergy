@@ -14,6 +14,7 @@
 | TrueTransfur | 2.x |
 | Changed: Survive Protocol | 1.2.0 |
 | Farmer's Delight | 1.3.4 |
+| Curios API | 5.14.1 (Forge) |
 
 Changed is required. Changed Addon Plus is optional unless a server pack chooses to require it.
 
@@ -25,6 +26,9 @@ Synergy runs on both client and server. Every connecting player must use the sam
 
 ## Optional integrations
 
+- Curios API supplies real clothing slots for players and creatures, retaining native anatomy, conflicts, visibility and style switching. Equipped native clothes migrate on load; without Curios, Changed's original clothing interface remains available.
+- Sophisticated Storage supports linked player-camp containers, including automation filters and upgraded stack capacities. Deliveries can use multiple linked stores; communal-food and production-input withdrawals use the primary supply container.
+
 - 3D Skin Layers 1.11.4 renders the retained player skin layers on Latex Human,
   Partial Dark Latex Wolf and Addon Plus's Partial Snow Leopard. Both classic
   and slim skins are supported; partial sleeves and thighs retain their original
@@ -35,8 +39,7 @@ Synergy runs on both client and server. Every connecting player must use the sam
   Authorized Synergy takeovers use native progress and temporary suits, so infection
   processing does not erase their release dialogue. Confirmed origin re-selection
   replaces the previous settled strain; cancelling the archive preserves it.
-  Nether releases search below the bedrock ceiling. The supplied 1.2.0 JAR was
-  tested with TT 1.0.1, TT 2.0.0, and TT 2.0.0 with Addon Plus.
+  Nether releases search below the bedrock ceiling. Earlier checks of the supplied 1.2.0 JAR included TT 1.0.1; that historical result does not extend current support beyond TT 2.x.
 
 - TrueTransfur 2.x supports native origins and uses a separate Instinct body, preserving
   the real player's identity and social interactions. TrueTransfur
@@ -81,3 +84,5 @@ Synergy runs on both client and server. Every connecting player must use the sam
 - Furmutage 0.1 is coexistence-only; Synergy does not manage its gameplay systems.
 - Fabric, NeoForge and Minecraft versions other than 1.20.1 are not supported.
 - Installing two Synergy JARs causes a duplicate mod ID error.
+
+The version ranges accepted by Forge metadata can exceed this tested baseline. An accepted version is not automatically a maintained pairing.

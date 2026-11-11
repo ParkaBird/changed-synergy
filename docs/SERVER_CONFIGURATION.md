@@ -33,7 +33,7 @@ The configuration screen has three separate tabs:
 - **Server Settings**: the server's gameplay values, grouped by purpose.
   In multiplayer these are read-only; operators use the command or server TOML.
   Single-player and the main menu edit the local settings file.
-- **World Rules**: the current world's 14 Synergy gamerules. Players without
+- **World Rules**: the current world's 15 Synergy gamerules. Players without
   operator permission can inspect them. Operators can edit them and press
   **Done**, which submits ordinary `/gamerule` commands with the server's usual
   permission checks. Main-menu world rules are read-only defaults.
@@ -156,3 +156,9 @@ off again reconciles any rival alliances that became incompatible.
 ```mcfunction
 /changedsynergy config set COMMUNITIES.CreatureOutposts false
 ```
+
+## Authored communities and No Civilization Mode
+
+`RELATIONSHIPS.NaturalCampRoutines` pauses authored residents' daily activities while retaining their home records and cargo. It is separate from player-outpost production switches. `COMMUNITIES.WildOutpostsInStructuresOnly` restricts where new autonomous wild outposts can be established; it does not restrict authored structure generation.
+
+Use `/gamerule changedSynergyNoCivilizationMode true` for a world without reputation or local-trust progression. Scores are temporarily evaluated as zero and changes are paused; saved values, home membership and personal relationships are retained. Turning it off restores the saved scores. This rule also prevents new autonomous wild outposts. See [world rules](GAMERULES.md) for its full scope.

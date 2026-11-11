@@ -4,7 +4,7 @@ Story conversations support emotional text staging inside the existing bottom di
 
 ## Authoring a fragment
 
-Text staging is declared per `parts` entry in a story NPC profile. Keep prose in both language files. A fragment can carry an emotion preset, an explicit effect, a speed multiplier, an intensity multiplier and a pause after its text.
+Text staging is declared per `parts` entry in a story NPC profile. Keep prose in the English, Chinese and Russian language entries. A fragment can carry an emotion preset, an explicit effect, a speed multiplier, an intensity multiplier and a pause after its text.
 
 ```json
 {
@@ -65,15 +65,15 @@ The supplied conversations now use restrained, context-specific staging. The can
 
 Reduced UI Motion removes all spatial displacement, rotation, scale changes and entrance pops. Static emotional colors and speaking cadence remain. Reading can always be completed with the existing controls; mental speech uses a short, whole-sentence fade. Effects use glyph-local transforms, with no screen shake, flashing backgrounds, text replacement or additional sound loop.
 
-Understood thoughts share the preceding spoken passage, with their own paragraph and channel on each fragment. They fade as a sentence and use teal strikethrough text rather than a Thought label or a separate server page. Speech keeps its existing typewriter timing and emotion colors. Reply options appear above the bottom-anchored body frame; controls and the page/choice counter sit above the reply list, aligned to its text insets. A fragment can set `beat: true` to start the next conversational beat. The compiler preserves forty such breaks across all three languages, with no text changes. These breaks drive paging; viewport overflow is a fallback that prefers full sentences or clauses and keeps an aside with its related speech whenever possible.
+Understood thoughts share the preceding spoken passage, with their own paragraph and channel on each fragment. They fade as a sentence and use teal strikethrough text rather than a Thought label or a separate server page. Speech keeps its existing typewriter timing and emotion colors. Reply options appear above the bottom-anchored body frame; controls and the page/choice counter sit above the reply list, aligned to its text insets. A fragment can set `beat: true` to start the next conversational beat. The compiler preserves authored breaks across all three languages, with no text changes. These breaks drive paging; viewport overflow is a fallback that prefers full sentences or clauses and keeps an aside with its related speech whenever possible.
 
-Network protocol is **65**, so clients and servers need this build. Additional part metadata is supplied by the server; clients do not choose conversational effects or bypass server-side choice validation.
+Clients and servers must run matching builds. The current protocol is defined in `ChangedSynergyNetwork`. Additional part metadata is supplied by the server; clients do not choose conversational effects or bypass server-side choice validation.
 
 The revised dialogue trees are authored in `tools/authoring/story_npc_dialogue.json`. Chiefs now enroll visitors into their own local camp households, with independent trust; the researcher retains the ordinary Wanderer role. The window uses the hand-drawn social panel, larger text and content-based page height. Text is laid out before playback, so typewriter reveal never moves the frame or changes wrapping.
 
 ## Current performance pass
 
-All 124 conditional lines retain their English prose and forty authored page turns. The supplied Chinese and Russian lines and choices use matching phrase-level emotional accents. Around three quarters of the English text has no continuous effect. The Weaver uses a steady, gentle voice with brief moth distractions; the Matriarch moves between open hospitality, protective firmness and subdued memories; the Archivist balances drowsiness, embarrassment and quiet wonder; the Researcher tries to keep academic composure while his private reactions interrupt it. Reused greetings and permanent welcomes retain the same direction.
+Story lines retain their authored prose and conversational beat markers. The supplied Chinese and Russian lines and choices use matching phrase-level emotional accents. Continuous effects are limited to phrases that need them. The Weaver uses a steady, gentle voice with brief moth distractions; the Matriarch moves between open hospitality, protective firmness and subdued memories; the Archivist balances drowsiness, embarrassment and quiet wonder; the Researcher tries to keep academic composure while his private reactions interrupt it. The Pathfinder speaks cautiously, with restrained pauses and accents on memories, concern and practical reassurance. Reused greetings and permanent welcomes retain the same direction.
 
 Emphasis now has a readable entrance and a small resting enlargement. Exclamations have a short, bounded hit; waves, bounces and tremors are more legible at normal GUI scale and ease down after their entrance. No effect changes line wrapping. Thought colors retain a teal base with emotional tints, and their horizontal strike remains on the reserved baseline instead of shaking with the letters. Only matching outer thought brackets are hidden; spoken and nested parentheses remain. Reduced UI Motion removes movement and scale changes while keeping the reading order, timing and color.
 

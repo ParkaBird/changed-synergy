@@ -75,3 +75,17 @@ The source release intentionally excludes Gradle caches, generated build and
 run directories, local logs, crash reports, decompiled third-party files,
 third-party mod JARs, screenshots, and private test data. Do not add those
 directories to a public archive.
+
+## Repository and maintenance checks
+
+CI uses Python 3.12 and Java 17. The ordinary repository checks use Python's standard library:
+
+```text
+python tools/tests/test_release_validation.py
+python tools/validate_release.py
+python tools/validate_release.py --jar <exact-release-all.jar>
+```
+
+Gradle's ordinary build does not run the isolated Forge regression fixtures under `tools/tests`. Invoke the relevant fixture explicitly when validating a gameplay change and record its environment and result separately from compilation. Maintenance importers and NBT checks may need `nbtlib`; it is not a mod runtime dependency.
+
+Model and texture reimporters need the corresponding editable source projects supplied by their author. Paths to a developer's private `outputs` directory are not public build prerequisites; the committed runtime Java layers and resources are sufficient for the normal Gradle build.

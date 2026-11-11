@@ -26,7 +26,7 @@ Walking, swimming, crouching, four-arm actions and tail motion use Changed's exi
 
 All four wrist fur cuffs extend one model unit farther up the arms. Their original jagged tips and two-pixel-per-unit texture density are preserved in a separate atlas tile shared by the four cuffs.
 
-Each successful extra jump briefly flaps all four wings, with a slight delay on the lower pair, then returns to the normal wing pose. This listens to the original Changed jump event without changing its six-charge allowance or jump physics. Ground jumps and exhausted inputs do not trigger it. The local client predicts the flap; a server-to-client packet informs other tracking players. Network protocol 49 requires matching Synergy builds on both sides.
+Each successful extra jump briefly flaps all four wings, with a slight delay on the lower pair, then returns to the normal wing pose. This listens to the original Changed jump event without changing its six-charge allowance or jump physics. Ground jumps and exhausted inputs do not trigger it. The local client predicts the flap; a server-to-client packet informs other tracking players. Matching Synergy builds are required on both sides; `ChangedSynergyNetwork` defines the current protocol.
 
 The four dedicated flap joints are at the upper ends of the shortest wing attachment stems. Wings lift outward from those points; the original outer wing roots continue to handle Changed's resting fold and the existing gentle idle. Reparenting preserves the original rest geometry and UVs, and flap joints reset to their bind pose every frame.
 

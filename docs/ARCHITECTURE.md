@@ -12,6 +12,8 @@ No external integration may become a required type in the main entry point, API,
 - `ai`: relationship memory, bonds, following, emergency rescue, search and water pursuit.
 - `event`: relationship reconciliation, social events, disguise reactions and visual-state synchronization.
 - `dialogue`: contextual line and emote selection.
+- `npc`: fixed character profiles, server-owned conversations, local household membership, trust, requests and rites.
+- `entity`: Synergy species and shared charged-jump behavior.
 - `world.inventory`: companion inventory and radial-menu containers.
 - `network`: packets owned by the `changed_synergy` channel.
 - `compat`: optional-mod bridges.
@@ -21,11 +23,11 @@ No external integration may become a required type in the main entry point, API,
 
 `LatexSocialRelation` classifies a player as human, formerly bonded, formerly respected, same species, same category, friendly outsider, unrelated outsider, or rival. `LatexSocialMemory` adds per-creature facts such as bond ownership, provocation, warnings, truces and active wrapping. `NpcDispositionEvents` combines those facts into the final target decision.
 
-Bonded creatures and native pets cannot target their host. Friendly transformed players remain neutral until repeated or severe attacks cross the provocation threshold. Organic creatures ignore unprovoked humans as targets and do not approach or assimilate them. If a human damages one and it survives, that creature records the provocation and may pursue the attacker. Its ordinary swipes deal at most one point of health damage while also advancing Changed's native transfur progress. At 30% health or below, swipe damage and swipe transfur are disabled without clearing the target, leaving the dedicated grapple as the only assimilation attack. Transfurred outsiders remain valid combat and grapple targets. Disguises can temporarily alter the perceived relation.
+Bonded creatures and native pets cannot target their host. Friendly transformed players remain neutral until repeated or severe attacks cross the provocation threshold. Organic creatures ignore unprovoked humans as targets and do not approach or assimilate them. If a human damages one and it survives, that creature records the provocation and may pursue the attacker. Its ordinary swipes deal at most one point of health damage while also advancing Changed's native transfur progress. At 30% health or below, swipe damage and swipe transfur are disabled without clearing the target, leaving the dedicated grapple as the only assimilation attack. Transfurred outsiders are not automatically hostile merely for their form; combat and grapple eligibility still require the applicable relationship, provocation and target rules. Disguises can temporarily alter the perceived relation.
 
 ## Persistence
 
-Creature social state is stored under the `ChangedSynergySocial` compound. Player bond indices and last-known locations use `ChangedSynergy`-prefixed persistent compounds. Death and unloaded-release tombstones are server `SavedData` entries in the overworld data storage.
+Creature social state is stored under the `ChangedSynergySocial` compound. Player bond indices and last-known locations use `ChangedSynergy`-prefixed persistent compounds. Death and unloaded-release tombstones are server `SavedData` entries in the overworld data storage. Fixed identities, home membership and household requests use `changed_synergy_story_npcs`, `changed_synergy_memberships` and `changed_synergy_camp_life`. Regional reputation, local trust, individual affection and bonds are separate records.
 
 ## Encounter context
 

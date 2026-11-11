@@ -4,7 +4,7 @@ Changed: Synergy is an unofficial Minecraft mod addon.
 
 ## Community structures
 
-The ocean laboratory, white laboratory tower, red laboratory tower and green laboratory tower were built by **Crossader** and supplied for integration into Synergy.
+The ocean laboratory, white laboratory tower, red laboratory tower, green laboratory tower, Forest Treehouse, forest watchtowers (including the birch variant), Hyena's Hideout, three hyena camps and Observatory were built by **Crossader** and supplied for integration into Synergy.
 
 ## Changed
 

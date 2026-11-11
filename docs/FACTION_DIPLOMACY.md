@@ -53,3 +53,7 @@ The Desert Refuge and smaller camps retain their separate membership, local trus
 ```
 
 Previously lost reputation is not refunded. Turning the setting off resolves incompatible rival alliances. For other faction controls, see the [settings guide](SETTINGS_GUIDE.md).
+
+## No Civilization Mode
+
+`/gamerule changedSynergyNoCivilizationMode true` temporarily evaluates regional reputation and local trust as neutral and pauses changes to them. Saved values return when the rule is disabled. Individual affection, bonds and personal grievances have their own rules. See [world rules](GAMERULES.md).

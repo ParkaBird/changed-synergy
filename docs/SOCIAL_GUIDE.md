@@ -16,7 +16,7 @@ Successful transfur negotiation establishes an initial acquaintance: after resto
 
 [中文版](SOCIAL_GUIDE.zh-CN.md)
 
-These rules describe the default settings in Changed: Synergy 1.1.4. Servers can change relationship growth, bond requirements and other interaction settings. The configuration screen has **Server Settings**, **World Rules** and **Client Visuals** tabs. On multiplayer servers, gameplay values are shown read-only; operators use `/changedsynergy config` to change them and can edit world rules in their own tab. See the [settings guide](SETTINGS_GUIDE.md) for the current categories and dependencies.
+These rules describe the default settings in Changed: Synergy 1.1.5-Beta.2. Servers can change relationship growth, bond requirements and other interaction settings. The configuration screen has **Server Settings**, **World Rules** and **Client Visuals** tabs. On multiplayer servers, gameplay values are shown read-only; operators use `/changedsynergy config` to change them and can edit world rules in their own tab. See the [settings guide](SETTINGS_GUIDE.md) for the current categories and dependencies.
 
 Spectator mode keeps Changed's ability wheel available but does not open Synergy's relationship wheel. Escape closes the wheel, including during an interrupted switch.
 
@@ -117,7 +117,7 @@ Aquatic classification takes priority, followed by Organic; the other groups use
 Once accepted, the token reserves that NPC for you. It remains reserved while you or the creature are offline or unloaded.
 
 - **Human players:** select and confirm **Voluntary transfur** to establish the bond.
-- **Adult native players and supported permanently transformed TrueTransfur players:** select and confirm **Invite to Bond**. Neither participant changes bodies, and your control mode stays the same.
+- **Players in an eligible adult full-latex body:** select and confirm **Invite to Bond**. Ordinary human-origin transformations, native forms and permanent forms can qualify. Temporary wrapping does not qualify. Neither participant changes bodies, and your control mode stays the same.
 
 Any established acquaintance with an intact relationship can offer **Voluntary transfur** to a human player. Confirm it by choosing the option again within ten seconds. This ordinary option requires no bond token and creates no bond. The first successful voluntary transfur with that creature grants a substantial affection bonus; reversing and repeating it does not refill the reward. When the existing Close-friendship and token requirements for a new bond are met, the bond-forming option remains available instead.
 
@@ -229,11 +229,13 @@ The default countdown is 30 seconds, with one release negotiation and a WASD esc
 
 Time expiry, the carrier returning to PLAYER, logout, death or a missing/replaced body releases the human locally, removes the temporary suit and clears the movement lock. Release grants at least 60 seconds of protection against another temporary takeover. Operators can disable this feature or change its duration under **Player roleplay** in Server Settings. Normal NPC takeovers retain their existing rules.
 
-Transformed players' own relationship wheel omits **Ask them to vouch**. When options extend beyond the eight visible slots, use the left and right arrow keys to reveal them; the wheel displays this hint only when needed. Scrolling the mouse wheel still switches to the ability wheel.
+Transformed players' own relationship wheel omits **Ask them to vouch**. When a wheel has more than eight options, scroll to reveal further entries and hold Shift while scrolling to switch paired wheels. Additional entries move and fade into view; left/right arrow keys no longer page the wheel. With eight or fewer options, ordinary scrolling can switch paired wheels.
 
 Organic transfur can reverse after a completed night’s sleep. Servers can disable only this route with **Organic Sleep Reversal** (`RELATIONSHIPS.OrganicSleepReversal`, default on), while leaving other reversal methods available. The general reversal setting and permanent-body protections still apply.
 
 Temporary companion wrapping does not make you permanently transformed. When TrueTransfur or native origin prevents safe reversal, a companion refuses the reversal rather than attempting a lethal separation. Native origins and the first-entry choice are explained in [Native origins](NATIVE_ORIGINS.md).
+
+Hypnosis activation is a toggle: press its ability key once to keep using it, then press again to stop. Its icon is brighter while the key is physically held than while it stays active after release.
 
 With player hypnosis enabled, a player in a suitable hypnotic species can contest a human player's resistance. Both players see the same style of WASD QTE and share its progress: the creature reinforces it while the human tries to escape. Player contests last longer than NPC hypnosis. Patting the player hypnotist briefly prevents them from reinforcing the QTE.
 
