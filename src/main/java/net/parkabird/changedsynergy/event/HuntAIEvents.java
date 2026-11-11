@@ -567,12 +567,15 @@ public final class HuntAIEvents {
                     && !player.isCreative()
                     && !player.isSpectator();
         }
+        boolean organicTransformedTarget = LatexSocialMemory.isOrganic(mob)
+                && ProcessTransfur.isPlayerTransfurred(player);
         boolean playfulFusion = LatexFusionIntent.mayInitiate(mob, player);
         if (!isEligibleHunter(mob) || !player.isAlive() || player.isCreative() || player.isSpectator()
                 || HypnosisQteService.shouldPreventTargeting(mob, player)
                 || LatexSocialMemory.isNeutralOrganicHumanContact(mob, player)
                 || !playfulFusion && mob.isAlliedTo(player)
                         && !LatexSocialMemory.isProvoked(mob, player)
+                        && !organicTransformedTarget
                 || !playfulFusion && LatexSocialMemory.shouldRemainNeutral(mob, player)) {
             return false;
         }
@@ -779,7 +782,9 @@ public final class HuntAIEvents {
         if (LatexSocialMemory.isNeutralOrganicHumanContact(mob, player)) {
             return false;
         }
-        if (LatexSocialMemory.isProvoked(mob, player)) {
+        if (LatexSocialMemory.isProvoked(mob, player)
+                || LatexSocialMemory.isOrganic(mob)
+                        && ProcessTransfur.isPlayerTransfurred(player)) {
             return true;
         }
         LatexSocialRelation relation = LatexSocialRelation.between(mob, player);

@@ -6403,7 +6403,6 @@
   "camp.changed_synergy.pathfinder.reverse_rite.0": "Обещание есть обещание. Быть тушканчиком весело, но твои руки нам тоже нужны. Постой спокойно секунду.",
   "camp.changed_synergy.resident.reverse_rite.0": "Вождь может помочь снять заимствованный облик. Мы позаботимся о том, чтобы ты вернулся невредимым.",
   "camp.changed_synergy.desert_resident.reverse_rite.0": "Проводник с радостью поможет тебе вернуть человеческие руки. Не двигайся.",
-  "message.changed_synergy.camp.trust_deposit": "Припасы положены на общий склад (+%s к местному доверию)",
   "command.changed_synergy.telepathy.inspect": "Телепатия для %1$s: Разблокировано: %2$s, Завершено: %3$s, Глобально: %4$s, Трансформирован: %5$s",
   "command.changed_synergy.telepathy.granted": "Постоянное понимание телепатической сети даровано игроку %s.",
   "command.changed_synergy.telepathy.revoked": "Понимание телепатической сети отозвано у игроку %s."

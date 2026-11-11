@@ -6414,7 +6414,6 @@
   "camp.changed_synergy.pathfinder.reverse_rite.0": "A promise is a promise. Being a jerboa is fun, but your human hands are needed just as much. Hold still for a moment.",
   "camp.changed_synergy.resident.reverse_rite.0": "The Chief can help undo a borrowed coat. Let's make sure you return safely.",
   "camp.changed_synergy.desert_resident.reverse_rite.0": "The Pathfinder will gladly help you get your human hands back. Hold still.",
-  "message.changed_synergy.camp.trust_deposit": "Deposited supplies into shared stores (+%s local trust)",
   "command.changed_synergy.telepathy.inspect": "Telepathy for %1$s: Unlocked: %2$s, Completed: %3$s, GlobalEnabled: %4$s, Transfurred: %5$s",
   "command.changed_synergy.telepathy.granted": "Granted permanent telepathic network understanding to %s.",
   "command.changed_synergy.telepathy.revoked": "Revoked telepathic network understanding from %s."
