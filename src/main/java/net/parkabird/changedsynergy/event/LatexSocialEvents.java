@@ -424,8 +424,10 @@ public final class LatexSocialEvents {
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onCreatureDeathForgetContacts(LivingDeathEvent event) {
-        if (!(event.getEntity() instanceof ChangedEntity mob)
+        if (event.isCanceled()
+                || !(event.getEntity() instanceof ChangedEntity mob)
                 || !(mob.level() instanceof ServerLevel level)
+                || net.parkabird.changedsynergy.npc.StoryNpcService.keepsIdentityOnDeath(mob)
                 || !LatexSocialMemory.isSocialLatex(mob)) {
             return;
         }
@@ -447,6 +449,7 @@ public final class LatexSocialEvents {
                 || mob.getRemovalReason() == null
                 || !mob.getRemovalReason().shouldDestroy()
                 || BondedRevivalService.isProvisional(mob)
+                || net.parkabird.changedsynergy.npc.StoryNpcService.keepsIdentityOnDeath(mob)
                 || !LatexSocialMemory.isSocialLatex(mob)) {
             return;
         }

@@ -41,11 +41,18 @@ public final class StoryNpcStructures {
                 var local=entity.getList("pos",6);var pos=StructureTemplate.transform(new Vec3(local.getDouble(0),local.getDouble(1),local.getDouble(2)),Mirror.NONE,piece.getRotation(),BlockPos.ZERO).add(Vec3.atLowerCornerOf(origin));
                 var position=new ListTag();position.add(DoubleTag.valueOf(pos.x));position.add(DoubleTag.valueOf(pos.y));position.add(DoubleTag.valueOf(pos.z));tag.put("Pos",position);tag.remove("UUID");
                 var rotation=tag.getList("Rotation",5);rotation.set(0,FloatTag.valueOf(rotation.getFloat(0)+piece.getRotation().ordinal()*90));
+                var res=tag.getCompound("ForgeData").getCompound(StructureResidentGoal.DATA);
+                res.putString("Dimension",level.dimension().location().toString());
+                res.putDouble("HomeX",pos.x);res.putDouble("HomeY",pos.y);res.putDouble("HomeZ",pos.z);
+                res.putDouble("MinX",box.minX());res.putDouble("MinY",box.minY());res.putDouble("MinZ",box.minZ());
+                res.putDouble("MaxX",box.maxX()+1);res.putDouble("MaxY",box.maxY()+1);res.putDouble("MaxZ",box.maxZ()+1);
+                res.putLong("PlacementOrigin",origin.asLong());res.putInt("PlacementRotation",piece.getRotation().ordinal());
+                res.putBoolean("Resolved",true);res.remove("LocalPos");res.remove("Size");res.remove("Yaw");
                 var marker=new CompoundTag();marker.putString("Profile",profile.id());marker.putString("Key",key);tag.getCompound("ForgeData").put(StoryNpcService.DATA,marker);
                 var record=new CompoundTag();record.putString("Key",key);record.putString("Profile",profile.id());record.putString("Dimension",level.dimension().location().toString());record.putString("LastDimension",level.dimension().location().toString());record.putString("HomeKey",homeKey);
                 record.putDouble("HomeX",pos.x);record.putDouble("HomeY",pos.y);record.putDouble("HomeZ",pos.z);record.putLong("LastPos",BlockPos.containing(pos).asLong());
                 record.putDouble("MinX",box.minX());record.putDouble("MinY",box.minY());record.putDouble("MinZ",box.minZ());record.putDouble("MaxX",box.maxX()+1);record.putDouble("MaxY",box.maxY()+1);record.putDouble("MaxZ",box.maxZ()+1);
-                record.put("Snapshot",tag);record.putLong("Due",level.getServer().overworld().getGameTime()+StoryNpcService.RETURN_DELAY);store.records.put(key,record);store.setDirty();break;
+                record.put("Snapshot",tag);record.putLong("Due",level.getServer().overworld().getGameTime()+StoryNpcService.RETURN_DELAY);record.putBoolean("ConfirmedGone",true);store.records.put(key,record);store.setDirty();break;
             }
         }
     }

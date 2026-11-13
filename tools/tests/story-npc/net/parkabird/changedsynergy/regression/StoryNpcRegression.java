@@ -49,7 +49,7 @@ public final class StoryNpcRegression {
             else if(Boolean.getBoolean("changed_synergy.observatoryGeneration"))generation();
             else if(Boolean.getBoolean("changed_synergy.fixedNpcMovement")){placements();newContent();residentNavigation();}
             else if(Boolean.getBoolean("changed_synergy.storyNpcReload"))reload();
-            else{CampUnloadChecks.run(server);textStyleValidation();placements();CommunityStoreChecks.run(server,chiefs);CampRepairBondChecks.run(server,chiefs);newContent();membership();campRewards();CampLifeChecks.run(server,chiefs);dialogue();permanentConfirmation();topicProgress();forgiveness();rites();safety();returning();}
+            else{CampUnloadChecks.run(server);textStyleValidation();placements();CommunityStoreChecks.run(server,chiefs);CampRepairBondChecks.run(server,chiefs);newContent();membership();campRewards();CampLifeChecks.run(server,chiefs);dialogue();permanentConfirmation();topicProgress();forgiveness();rites();safety();returning();builtInResidentRespawn();}
             System.out.println("STORY_NPC_SERVER_PASS: "+checks+" presets, rotations, enrolment, permissions, dialogue authority, rituals, TT policies, persistence and return checks");
         }catch(Throwable failure){System.err.println("STORY_NPC_SERVER_FAIL");failure.printStackTrace();}
         finally{server.halt(false);}
@@ -547,18 +547,20 @@ public final class StoryNpcRegression {
         var friend=player(npc,"ReturnFriend");CreaturePersonality.establishRelationship(npc,friend);CreaturePersonality.rememberPatReceived(npc,friend);LatexSocialMemory.markRelationshipBetrayal(npc,friend);
         npc.setItemSlot(EquipmentSlot.MAINHAND,new ItemStack(Items.DIAMOND));npc.setDropChance(EquipmentSlot.MAINHAND,2F);
         npc.hurt(level.damageSources().genericKill(),Float.MAX_VALUE);npc.discard();
-        check(record.getLong("Due")>server.overworld().getGameTime(),"death schedules a delayed return");
+        check(StoryNpcService.RETURN_DELAY==1200L&&record.getBoolean("ConfirmedGone")&&record.getLong("Due")==server.overworld().getGameTime()+StoryNpcService.RETURN_DELAY,"death schedules a confirmed 1-minute return");
         check(!StoryNpcService.restore(server,record),"cannot return before the delay");
         server.getWorldData().overworldData().setGameTime(record.getLong("Due")+20);
         var home=BlockPos.containing(record.getDouble("HomeX"),record.getDouble("HomeY"),record.getDouble("HomeZ"));
         activate(home);flushEntities();
         for(int attempt=0;attempt<1000&&!level.areEntitiesLoaded(new net.minecraft.world.level.ChunkPos(home).toLong());attempt++){activate(home);server.pollTask();level.getChunkSource().pollTask();Thread.sleep(1);}
-        long last=record.getLong("LastPos");var unloaded=new BlockPos(900000,100,900000);record.putLong("LastPos",unloaded.asLong());
-        check(!StoryNpcService.restore(server,record)&&!level.hasChunkAt(unloaded),"unloaded last-known body is not treated as missing and never force-loaded");record.putLong("LastPos",last);
+        long last=record.getLong("LastPos");var unloaded=new BlockPos(900000,100,900000);record.putLong("LastPos",unloaded.asLong());record.putBoolean("ConfirmedGone",false);
+        check(!StoryNpcService.restore(server,record)&&!level.hasChunkAt(unloaded),"unconfirmed unloaded last-known body is not treated as missing and never force-loaded");
+        record.putBoolean("ConfirmedGone",true);
         var blocked=new LinkedHashMap<BlockPos,net.minecraft.world.level.block.state.BlockState>();
         for(var p:BlockPos.betweenClosed(home.offset(-3,-1,-3),home.offset(3,5,3))){blocked.put(p.immutable(),level.getBlockState(p));level.setBlock(p,Blocks.STONE.defaultBlockState(),2);}
         check(!StoryNpcService.restore(server,record)&&blocked.keySet().stream().allMatch(p->level.getBlockState(p).is(Blocks.STONE)),"unsafe return waits without changing the building");blocked.forEach((p,s)->level.setBlock(p,s,2));
-        check(StoryNpcService.restore(server,record),"NPC returns to a safe home position");
+        check(StoryNpcService.restore(server,record)&&!level.hasChunkAt(unloaded),"confirmed dead NPC returns to loaded home even if LastPos is in an unloaded chunk");
+        if(last!=0)record.putLong("LastPos",last);
         var restored=StoryNpcService.actor(server,record);check(restored!=null&&!restored.getUUID().equals(oldId)&&StoryNpcService.key(restored).equals(key),"new body retains the stable identity");
         check(restored.getName().getString().equals("SavedResearcher"),"name persists across death");
         check(restored.getBasicPlayerInfo().getEyeStyle()==net.ltxprogrammer.changed.entity.EyeStyle.V1&&restored.getBasicPlayerInfo().getLeftIrisColor().toInt()==0x65C98C,"researcher original mint-green eyes persist across return");
@@ -570,5 +572,71 @@ public final class StoryNpcRegression {
         var clone=npc.getType().create(level);clone.load(previous);check(!level.addFreshEntity(clone),"stale physical duplicate is rejected");
         check(!StoryNpcService.restore(server,record),"cannot spawn a second living instance");
         check(level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,restored.getBoundingBox().inflate(5),d->StoryNpcService.bound(d.getItem())).isEmpty(),"default outfit is never a repeatable drop");
+    }
+    private static void builtInResidentRespawn()throws Exception {
+        check(StoryNpcService.CAMP_MEMBER_DELAY==3600L&&StoryNpcService.SMALL_CAMP_DELAY==6000L,"community respawn tiers match configured delays");
+        var store=StoryNpcData.get(server);
+        var hyenaChief=chief("hyena_chief");
+        var campBounds=NaturalCampService.bounds(hyenaChief);
+        var resident=level.getEntitiesOfClass(ChangedEntity.class,campBounds,m->!StoryNpcService.isNpc(m)&&StoryNpcService.keepsIdentityOnDeath(m)).stream().findFirst().orElseThrow();
+        String resKey=StoryNpcService.key(resident);var resRecord=store.records.get(resKey);
+        check(resRecord!=null&&resRecord.getBoolean("Resident")&&!resRecord.getBoolean("SmallCamp")&&!StoryNpcService.isNpc(resident),"built-in main camp resident is tracked separately from Story NPCs");
+        var resFriend=player(resident,"ResidentFriend");
+        try {
+            CreaturePersonality.establishRelationship(resident,resFriend);
+            var req=CampLifeService.forResident(resident);
+            check(req!=null&&!req.getString("OwnerKey").isEmpty(),"personal resident request records stable OwnerKey");
+            String reqId=req.getString("Id");var oldResId=resident.getUUID();
+            resident.hurt(level.damageSources().genericKill(),Float.MAX_VALUE);resident.discard();
+            check(resRecord.getBoolean("ConfirmedGone")&&resRecord.getLong("Due")==server.overworld().getGameTime()+StoryNpcService.CAMP_MEMBER_DELAY,"main camp resident schedules 3-minute respawn");
+            check(!net.parkabird.changedsynergy.ai.BondedCreatureDeathData.get(server).isDead(resFriend.getUUID(),oldResId),"managed camp resident does not emit permanent bonded death tombstone");
+            check(!StoryNpcService.restore(server,resRecord),"main camp resident waits until delay");
+            server.getWorldData().overworldData().setGameTime(resRecord.getLong("Due")+20);
+            var resHome=BlockPos.containing(resRecord.getDouble("HomeX"),resRecord.getDouble("HomeY"),resRecord.getDouble("HomeZ"));
+            activate(resHome);flushEntities();
+            check(StoryNpcService.restore(server,resRecord),"main camp resident respawns cleanly");
+            var restoredRes=StoryNpcService.actor(server,resRecord);
+            check(restoredRes!=null&&!restoredRes.getUUID().equals(oldResId)&&StoryNpcService.key(restoredRes).equals(resKey)&&!StoryNpcService.isNpc(restoredRes),"respawned resident keeps stable camp key and non-Story classification");
+            check(CreaturePersonality.establishedRelationshipPlayerUuids(restoredRes).contains(resFriend.getUUID()),"resident personal relationship survives respawn");
+            var reqAfter=CampLifeService.forResident(restoredRes);
+            check(reqAfter!=null&&reqAfter.getString("Id").equals(reqId),"personal request remains bound to respawned resident via OwnerKey");
+        } finally {retire(resFriend);}
+        var chiefKey=StoryNpcService.key(hyenaChief);var chiefRecord=store.records.get(chiefKey);
+        var chiefHome=BlockPos.containing(chiefRecord.getDouble("HomeX"),chiefRecord.getDouble("HomeY"),chiefRecord.getDouble("HomeZ"));
+        var savedHead=new LinkedHashMap<BlockPos,net.minecraft.world.level.block.state.BlockState>();
+        for(var blockPos:List.of(chiefHome.above(),chiefHome.above(2))){savedHead.put(blockPos,level.getBlockState(blockPos));level.setBlock(blockPos,Blocks.STONE.defaultBlockState(),2);}
+        try {
+            hyenaChief.hurt(level.damageSources().genericKill(),Float.MAX_VALUE);hyenaChief.discard();
+            server.getWorldData().overworldData().setGameTime(chiefRecord.getLong("Due")+20);
+            activate(chiefHome);flushEntities();
+            check(StoryNpcService.restore(server,chiefRecord),"chief on blocked slab falls back to adjacent safe surface");
+            var movedChief=StoryNpcService.actor(server,chiefRecord);
+            check(movedChief!=null&&(movedChief.blockPosition().getX()!=chiefHome.getX()||movedChief.blockPosition().getZ()!=chiefHome.getZ())&&level.noCollision(movedChief),"fallback picks clear adjacent surface without clipping into neighboring blocks");
+            chiefs.remove(hyenaChief);chiefs.add(movedChief);
+        } finally {savedHead.forEach((p0,s0)->level.setBlock(p0,s0,2));}
+        var oasis=server.getStructureManager().getOrCreate(ResourceLocation.parse("changed_synergy:oasis"));
+        var oasisOrigin=new BlockPos(2600,100,1000);var oasisSettings=new StructurePlaceSettings().setRotation(Rotation.NONE);
+        var oasisBox=oasis.getBoundingBox(oasisSettings,oasisOrigin);
+        for(int cx=oasisBox.minX()>>4;cx<=oasisBox.maxX()>>4;cx++)for(int cz=oasisBox.minZ()>>4;cz<=oasisBox.maxZ()>>4;cz++)activate(new BlockPos(cx*16,100,cz*16));
+        check(oasis.placeInWorld(level,oasisOrigin,oasisOrigin,oasisSettings,net.minecraft.util.RandomSource.create(19),2),"place small camp oasis");
+        var smallResidents=level.getEntitiesOfClass(ChangedEntity.class,AABB.of(oasisBox),StoryNpcService::keepsIdentityOnDeath);
+        check(smallResidents.size()==2,"small camp registers all built-in residents for respawn");
+        var smallRes=smallResidents.get(0);String smallKey=StoryNpcService.key(smallRes);var smallRecord=store.records.get(smallKey);
+        check(smallRecord!=null&&smallRecord.getBoolean("SmallCamp")&&NaturalCampService.smallCamp(smallRes),"small camp resident tagged with SmallCamp tier");
+        smallRes.hurt(level.damageSources().genericKill(),Float.MAX_VALUE);smallRes.discard();
+        check(smallRecord.getLong("Due")==server.overworld().getGameTime()+StoryNpcService.SMALL_CAMP_DELAY,"small camp resident schedules 5-minute respawn");
+        check(level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,AABB.of(oasisBox).inflate(4),d->StoryNpcService.bound(d.getItem())).isEmpty(),"built-in camp resident outfit never drops as repeatable loot");
+        server.getWorldData().overworldData().setGameTime(smallRecord.getLong("Due")+20);
+        var smallHome=BlockPos.containing(smallRecord.getDouble("HomeX"),smallRecord.getDouble("HomeY"),smallRecord.getDouble("HomeZ"));
+        activate(smallHome);flushEntities();
+        check(StoryNpcService.restore(server,smallRecord),"small camp resident respawns after 5-minute delay");
+        var compRes=smallResidents.get(1);String compKey=StoryNpcService.key(compRes);
+        var owner=player(compRes,"CompanionOwner");
+        try {
+            LatexSocialMemory.addBond(compRes,owner);
+            check(CreatureCommunityData.isPlayerCompanion(compRes),"bonded resident becomes player companion");
+            compRes.hurt(level.damageSources().genericKill(),Float.MAX_VALUE);compRes.discard();
+            check(!store.records.containsKey(compKey)&&!compRes.getPersistentData().getBoolean("ChangedSynergyStoryNpc"),"companion resident retires from camp respawn instead of duplicating");
+        } finally {retire(owner);}
     }
 }

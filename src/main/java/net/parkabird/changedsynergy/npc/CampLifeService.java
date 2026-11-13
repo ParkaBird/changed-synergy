@@ -93,7 +93,7 @@ public final class CampLifeService {
             if(StoryNpcService.isNpc(resident)||requests.stream().map(CompoundTag.class::cast).anyMatch(r->personal(r)&&ownsRequest(resident,r)))continue;
             var inventory=belongings(resident);int food=0;for(int slot=0;slot<Math.min(24,inventory.getContainerSize());slot++)if(Supply.FOOD.accepts(inventory.getItem(slot),resident))food+=inventory.getItem(slot).getCount();
             if(food>=2)continue;
-            var request=new CompoundTag();request.putString("Id",UUID.randomUUID().toString());request.putString("Kind","FOOD");request.putString("Scope","PERSONAL");request.putUUID("Owner",resident.getUUID());request.putInt("Count",2-food);requests.add(request);camp.put("Requests",requests);CampLifeData.get(npc.level().getServer()).setDirty();
+            var request=new CompoundTag();request.putString("Id",UUID.randomUUID().toString());request.putString("Kind","FOOD");request.putString("Scope","PERSONAL");request.putUUID("Owner",resident.getUUID());String residentKey=StoryNpcService.key(resident);if(!residentKey.isEmpty())request.putString("OwnerKey",residentKey);request.putInt("Count",2-food);requests.add(request);camp.put("Requests",requests);CampLifeData.get(npc.level().getServer()).setDirty();
         }
         return requests;
     }

@@ -48,7 +48,7 @@ public final class TerritoryHudOverlay {
         if (state == null || !state.displayEnabled()) {
             return;
         }
-        if (state.facility()) {
+        if (state.facility() && ChangedSynergyClientConfig.CLIENT.facilityHud.get()) {
             renderFacility(
                     minecraft.font,
                     graphics,

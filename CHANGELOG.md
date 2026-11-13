@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.1.5-Beta.2-hotfix.2
+
+### Communities and Story NPCs
+
+- Story NPCs now return to their original home, or the nearest safe spot inside their building, one minute after confirmed death or unexpected removal. Existing generated structures restore missing Story NPC records when the structure-start chunk loads.
+- Built-in residents in main communities and smaller camps return after three and five minutes respectively. Relationships, personal requests and bound outfits persist without duplicating drops. Residents recruited as companions or assigned to a player outpost leave the camp respawn pool.
+- Protected Story NPCs and built-in camp residents from involuntary fusion or assimilation that would erase them.
+- Clarified resident language-barrier prompts and removed the repeated “ask the Chief” option loop.
+
+### Client and Interface
+
+- Added a separate Facility HUD option for hiding persistent room and zone information while retaining biome-entry subtitles.
+
+### World Generation, Stability and Performance
+
+- Fixed server stalls when approaching community structures by deferring camp and sleep initialization outside entity-join hooks and avoiding recursive chunk updates.
+- Extended bounded, cached explorer-map searches to the Forest Treehouse and Hyena's Hideout.
+- Added final biome checks at placement elevation for community structures.
+
 ## 1.1.5-Beta.2-hotfix.1
 
 - Added dialogue-triggered reversible rite reversal with community Chiefs, using a Chief holding-reversal sequence matching the radial wheel. Leaving or losing community membership also automatically reverts any borrowed reversible camp form.

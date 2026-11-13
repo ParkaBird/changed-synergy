@@ -50,7 +50,7 @@ public final class StructureResidentGoal extends Goal {
     public static void joined(EntityJoinLevelEvent event) {
         if (event.getLevel().isClientSide() || !(event.getEntity() instanceof ChangedEntity mob)) return;
         initializeEyes(mob);
-        install(mob);
+        installOnJoin(mob);
     }
 
     private static void initializeEyes(ChangedEntity mob) {
@@ -74,9 +74,20 @@ public final class StructureResidentGoal extends Goal {
     }
 
     public static void install(ChangedEntity mob) {
-        if(mob.level().isClientSide)return;
+        if (installCore(mob)) NaturalCampService.install(mob);
+    }
+
+    public static void installOnJoin(ChangedEntity mob) {
+        if (installCore(mob)) {
+            SafeEntityMutationQueue.queue(mob, "natural_camp_install",
+                    () -> { if (mob.isAlive() && !mob.isRemoved()) NaturalCampService.install(mob); });
+        }
+    }
+
+    private static boolean installCore(ChangedEntity mob) {
+        if(mob.level().isClientSide)return false;
         var data = mob.getPersistentData().getCompound(DATA);
-        if (data.isEmpty()) return;
+        if (data.isEmpty()) return false;
         if(!data.contains("Dimension"))data.putString("Dimension",mob.level().dimension().location().toString());
         if (!data.getBoolean("Resolved")) {
             var pos = data.getList("LocalPos", Tag.TAG_DOUBLE);
@@ -86,7 +97,7 @@ public final class StructureResidentGoal extends Goal {
                 var list = data.getList("Size", Tag.TAG_INT);
                 size = new int[]{list.getInt(0), list.getInt(1), list.getInt(2)};
             }
-            if (pos.size() != 3 || size.length != 3 || size[0] <= 0 || size[1] <= 0 || size[2] <= 0) return;
+            if (pos.size() != 3 || size.length != 3 || size[0] <= 0 || size[1] <= 0 || size[2] <= 0) return false;
             var rotation = Rotation.values()[Math.floorMod(Math.round((mob.getYRot() - data.getFloat("Yaw")) / 90F), 4)];
             var local = new Vec3(pos.getDouble(0), pos.getDouble(1), pos.getDouble(2));
             var transformed = StructureTemplate.transform(local, Mirror.NONE, rotation, BlockPos.ZERO);
@@ -131,7 +142,7 @@ public final class StructureResidentGoal extends Goal {
         }
         if (mob.goalSelector.getAvailableGoals().stream().noneMatch(g -> g.getGoal() instanceof StructureResidentGoal))
             mob.goalSelector.addGoal(-7, new StructureResidentGoal(mob, data));
-        NaturalCampService.install(mob);
+        return true;
     }
 
     private boolean available() {

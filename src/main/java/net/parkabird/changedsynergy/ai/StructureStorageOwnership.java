@@ -38,14 +38,13 @@ final class StructureStorageOwnership {
         var oldExtra=switch(data.getString("Template")){case "oasis"->new BlockPos(10,3,17);case "muddy_campsite"->new BlockPos(6,5,8);default->null;};
         if(oldExtra!=null&&StructureTemplate.transform(oldExtra,Mirror.NONE,rotation,BlockPos.ZERO).offset(origin).equals(pos)){
             // Retire the old added reserve without deleting a player's stored items or the chest itself.
-            be.getPersistentData().remove(NaturalCampService.PUBLIC_STORAGE);be.getPersistentData().remove(MARKER);be.setChanged();return false;
+            be.getPersistentData().remove(NaturalCampService.PUBLIC_STORAGE);be.getPersistentData().remove(MARKER);level.blockEntityChanged(pos);return false;
         }
         for (var store : layout.stores()) {
             var placed = StructureTemplate.transform(store.pos(), Mirror.NONE, rotation, BlockPos.ZERO).offset(origin);
             if (!placed.equals(pos) || !BuiltInRegistries.BLOCK.getKey(be.getBlockState().getBlock()).toString().equals(store.block())) continue;
             if (store.privateStore() || store.publicStore()) {
                 var flags=be.getPersistentData();
-                if(store.publicStore()&&be instanceof net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity loot)loot.unpackLootTable(null);
                 if(flags.getBoolean("ChangedSynergyPrivate")!=store.privateStore()||flags.getBoolean(NaturalCampService.PUBLIC_STORAGE)!=store.publicStore()) {
                     flags.putBoolean("ChangedSynergyPrivate",store.privateStore());flags.putBoolean(NaturalCampService.PUBLIC_STORAGE,store.publicStore());
                     if(be instanceof net.minecraft.world.level.block.entity.BaseContainerBlockEntity chest) {
@@ -55,7 +54,7 @@ final class StructureStorageOwnership {
                 }
             }
             be.getPersistentData().putBoolean(MARKER, true);
-            be.setChanged();
+            level.blockEntityChanged(pos);
             return true;
         }
         return false;

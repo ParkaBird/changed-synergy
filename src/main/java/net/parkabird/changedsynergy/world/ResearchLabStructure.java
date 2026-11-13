@@ -90,17 +90,16 @@ public final class ResearchLabStructure extends Structure {
         int[] offsets = mountainCamp() || redSandCamp() ? new int[]{0, -16, 16} : new int[]{0};
         for (int dx : offsets) for (int dz : offsets) {
             var anchor = context.chunkPos().getMiddleBlockPosition(0).offset(dx, 0, dz);
-            if ((mountainCamp() || redSandCamp()) && (dx != 0 || dz != 0)) {
-                int approxY = context.chunkGenerator().getBaseHeight(anchor.getX(), anchor.getZ(),
-                        Heightmap.Types.WORLD_SURFACE_WG, context.heightAccessor(), context.randomState());
-                if (!context.validBiome().test(context.biomeSource().getNoiseBiome(
-                        net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(approxY),
-                        net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler()))) continue;
-            }
+            int probeY = waterline >= 0
+                    ? context.chunkGenerator().getSeaLevel() - 1 - waterline
+                    : Math.min(context.heightAccessor().getMaxBuildHeight() - 1, 256);
+            if (!context.validBiome().test(context.biomeSource().getNoiseBiome(
+                    net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(probeY),
+                    net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler()))) continue;
             var position = groundPosition(context, size, rotation, anchor);
             if (position.isEmpty()) continue;
             var pos = position.get();
-            if ((mountainCamp() || redSandCamp()) && !context.validBiome().test(context.biomeSource().getNoiseBiome(
+            if (!context.validBiome().test(context.biomeSource().getNoiseBiome(
                     net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(pos.getY()),
                     net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler()))) continue;
             return Optional.of(new GenerationStub(anchor.atY(pos.getY()), builder -> builder.addPiece(
@@ -127,16 +126,21 @@ public final class ResearchLabStructure extends Structure {
         var origin = anchor.subtract(center);
         int[] ground = new int[9];
         int index = 0;
+        int minFloor = Integer.MAX_VALUE;
+        int maxFloor = Integer.MIN_VALUE;
         for (int x : new int[]{0, size.getX() / 2, size.getX() - 1}) {
             for (int z : new int[]{0, size.getZ() / 2, size.getZ() - 1}) {
                 var sample = StructureTemplate.transform(new BlockPos(x, 0, z), Mirror.NONE, rotation, BlockPos.ZERO).offset(origin);
                 int floor = context.chunkGenerator().getBaseHeight(sample.getX(), sample.getZ(),
                         Heightmap.Types.OCEAN_FLOOR_WG, context.heightAccessor(), context.randomState());
+                // Vanilla badlands turn to terracotta at the upper fringe of the red-sand lowlands.
+                if (redSandCamp() && floor > 70) return Optional.empty();
+                minFloor = Math.min(minFloor, floor);
+                maxFloor = Math.max(maxFloor, floor);
+                if (waterline < 0 && maxFloor - minFloor > maxTerrainSlope) return Optional.empty();
                 int surface = context.chunkGenerator().getBaseHeight(sample.getX(), sample.getZ(),
                         Heightmap.Types.WORLD_SURFACE_WG, context.heightAccessor(), context.randomState());
                 if (waterline < 0 ? !drySurface(context, sample, floor, surface) : surface - floor < waterline - 2) return Optional.empty();
-                // Vanilla badlands turn to terracotta at the upper fringe of the red-sand lowlands.
-                if (redSandCamp() && floor > 70) return Optional.empty();
                 ground[index++] = floor;
             }
         }
@@ -155,9 +159,10 @@ public final class ResearchLabStructure extends Structure {
                         var sample = StructureTemplate.transform(new BlockPos(x, 0, z), Mirror.NONE, rotation, BlockPos.ZERO).offset(origin);
                         int floor = context.chunkGenerator().getBaseHeight(sample.getX(), sample.getZ(),
                                 Heightmap.Types.OCEAN_FLOOR_WG, context.heightAccessor(), context.randomState());
+                        if (Math.abs(floor - ground[4]) > maxTerrainSlope) return Optional.empty();
                         int surface = context.chunkGenerator().getBaseHeight(sample.getX(), sample.getZ(),
                                 Heightmap.Types.WORLD_SURFACE_WG, context.heightAccessor(), context.randomState());
-                        if (!drySurface(context, sample, floor, surface) || Math.abs(floor - ground[4]) > maxTerrainSlope) return Optional.empty();
+                        if (!drySurface(context, sample, floor, surface)) return Optional.empty();
                     }
             }
         }

@@ -14,7 +14,8 @@ public final class PerchSleepService {
     public static void joined(net.minecraftforge.event.entity.EntityJoinLevelEvent event){
         // Old nearby-perch sleeps had no camp reservation to restore on reload.
         if(!event.getLevel().isClientSide()&&event.getEntity() instanceof net.ltxprogrammer.changed.entity.ChangedEntity mob
-                &&mob.getUnderlyingPlayer()==null&&perch(mob)!=null)mob.stopSleeping();
+                &&mob.getUnderlyingPlayer()==null&&perch(mob)!=null)
+            SafeEntityMutationQueue.queue(mob,"perch_sleep_reset",()->{if(mob.isAlive()&&!mob.isRemoved()&&perch(mob)!=null)mob.stopSleeping();});
     }
     private PerchSleepService(){}
     public static boolean bird(LivingEntity entity){

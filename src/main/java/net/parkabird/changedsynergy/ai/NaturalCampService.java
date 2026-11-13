@@ -141,7 +141,7 @@ public final class NaturalCampService {
             be.getPersistentData().putBoolean(PUBLIC_STORAGE,true);
             if(smallCamp(camp.getString("Template")))be.getPersistentData().putBoolean("ChangedSynergyPrivate",true);
             if(be instanceof net.minecraft.world.level.block.entity.BaseContainerBlockEntity container&&!container.hasCustomName())container.setCustomName(net.minecraft.network.chat.Component.translatable(smallCamp(camp.getString("Template"))?"container.changed_synergy.camp_supplies":"container.changed_synergy.community_supplies"));
-            be.setChanged();return true;
+            level.blockEntityChanged(pos);return true;
         }return false;
     }
     private static void changed(net.minecraft.world.level.LevelAccessor world,BlockPos pos){

@@ -47,8 +47,10 @@ public final class CampDialogue extends SimpleJsonResourceReloadListener {
         var body=new ArrayList<NpcDefinitions.Line>();var choices=new ArrayList<NpcDefinitions.Choice>();String residentVoice=CampLifeService.template(npc).equals("desert_refuge")?"desert_resident":"resident";String voice=chief(npc)?CampLifeService.voice(npc):residentVoice;
         String root=chief(npc)?"root":residentRoot(npc,player);
         if(!chief(npc)&&!net.parkabird.changedsynergy.dialogue.NpcDialogue.canUnderstand(npc,player)){
-            body.add(line(residentVoice+".gesture"));if(CampLifeService.profile(npc)!=null)choices.add(choice("camp_chief","ask_chief","camp_seekchief","none"));choices.add(choice("camp_close","later",node,"close"));
-            if(node.equals("camp_seekchief")){body.clear();body.add(line(residentVoice+".seekchief"));}
+            boolean seek=node.equals("camp_seekchief");
+            body.add(line(residentVoice+(seek?".seekchief":".gesture")));
+            if(!seek&&CampLifeService.profile(npc)!=null)choices.add(choice("camp_chief","ask_chief","camp_seekchief","none"));
+            choices.add(choice("camp_close","later",node,"close"));
             return new NpcDefinitions.Node(List.copyOf(body),List.copyOf(choices));
         }
         if(!CampLifeService.atHome(npc)){

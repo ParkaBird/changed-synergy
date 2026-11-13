@@ -2,17 +2,11 @@ package net.parkabird.changedsynergy.event;
 
 import java.util.Set;
 import net.minecraft.advancements.critereon.LocationPredicate;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
-import net.minecraft.world.level.storage.loot.functions.ExplorationMapFunction;
-import net.minecraft.world.level.storage.loot.functions.SetNameFunction;
 import net.minecraft.world.level.storage.loot.predicates.AnyOfCondition;
 import net.minecraft.world.level.storage.loot.predicates.LocationCheck;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
@@ -85,12 +79,8 @@ public final class LandmarkMapLoot {
     }
 
     private static LootPool.Builder pool(String destination, float chance) {
-        var item=LootItem.lootTableItem(Items.MAP);
-        if(destination.equals("observatory")||destination.equals("desert_refuge"))item.apply(net.parkabird.changedsynergy.world.NearbyObservatoryMapFunction.create(destination));
-        else item.apply(ExplorationMapFunction.makeExplorationMap()
-                        .setDestination(TagKey.create(Registries.STRUCTURE,id("on_"+destination+"_maps")))
-                        .setMapDecoration(MapDecoration.Type.MANSION).setZoom((byte)2).setSkipKnownStructures(false))
-                .apply(SetNameFunction.setName(Component.translatable("item.changed_synergy."+destination+"_map")));
+        var item=LootItem.lootTableItem(Items.MAP)
+                .apply(net.parkabird.changedsynergy.world.NearbyObservatoryMapFunction.create(destination));
         return LootPool.lootPool().name("changed_synergy_"+destination+"_map").setRolls(ConstantValue.exactly(1))
                 .when(LootItemRandomChanceCondition.randomChance(chance))
                 .add(item);

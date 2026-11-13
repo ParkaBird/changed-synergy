@@ -42,11 +42,11 @@ Third-party credits and licensing remain in [the notices](../THIRD_PARTY_NOTICES
 
 ## Current release
 
-- Version: `1.1.5-Beta.2-hotfix.1`.
+- Version: `1.1.5-Beta.2-hotfix.2`.
 - Release type: Beta / GitHub prerelease.
-- Display title: `Changed: Synergy 1.1.5-Beta.2-hotfix.1`.
-- Release notes: [Beta.2-hotfix.1](CHANGELOG-1.1.5-Beta.2-hotfix.1.md), describing player-visible changes since Beta.2.
-- Main artifact: `ChangedSynergy-m1.20.1-v1.1.5-Beta.2-hotfix.1-all.jar`.
+- Display title: `Changed: Synergy 1.1.5-Beta.2-hotfix.2`.
+- Release notes: [Beta.2-hotfix.2](CHANGELOG-1.1.5-Beta.2-hotfix.2.md), describing player-visible changes since Beta.2-hotfix.1.
+- Main artifact: `ChangedSynergy-m1.20.1-v1.1.5-Beta.2-hotfix.2-all.jar`.
 - Attach checksums for the exact uploaded artifact. A source JAR may be attached separately; it is not the playable mod.
 
 ## Gallery and attribution

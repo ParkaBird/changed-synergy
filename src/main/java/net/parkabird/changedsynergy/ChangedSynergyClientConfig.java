@@ -32,6 +32,7 @@ public final class ChangedSynergyClientConfig {
         public final ForgeConfigSpec.EnumValue<DialogueDisplayMode>
                 dialogueDisplayMode;
         public final ForgeConfigSpec.BooleanValue territoryHud;
+        public final ForgeConfigSpec.BooleanValue facilityHud;
         public final ForgeConfigSpec.BooleanValue mechanicHints;
         public final ForgeConfigSpec.BooleanValue negotiationNextStepHint;
         public final ForgeConfigSpec.BooleanValue qteAnimations;
@@ -109,8 +110,11 @@ public final class ChangedSynergyClientConfig {
                             "DialogueDisplayMode",
                             DialogueDisplayMode.AUTO);
             territoryHud = builder
-                    .comment("Show biome entry subtitles and the persistent facility room readout.")
+                    .comment("Show biome entry subtitles and allow the facility HUD.")
                     .define("TerritoryHud", true);
+            facilityHud = builder
+                    .comment("Show the persistent top-left facility room readout when inside a facility. Requires TerritoryHud.")
+                    .define("FacilityHud", true);
             builder.pop();
 
             builder.comment("One-time vanilla-style mechanic hints").push("TUTORIAL HINTS");

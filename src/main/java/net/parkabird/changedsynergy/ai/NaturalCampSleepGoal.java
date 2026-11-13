@@ -70,6 +70,9 @@ public final class NaturalCampSleepGoal extends Goal {
         if(mob.getSleepingPos().filter(bed::equals).isPresent())mob.stopSleeping();
         mob.getPersistentData().remove(SLEEP);
     }
-    @SubscribeEvent public static void joined(EntityJoinLevelEvent event){if(!event.getLevel().isClientSide()&&event.getEntity() instanceof ChangedEntity mob)reset(mob);}
+    @SubscribeEvent public static void joined(EntityJoinLevelEvent event){
+        if(!event.getLevel().isClientSide()&&event.getEntity() instanceof ChangedEntity mob&&mob.getPersistentData().contains(SLEEP))
+            SafeEntityMutationQueue.queue(mob,"natural_camp_sleep_reset",()->{if(mob.isAlive()&&!mob.isRemoved())reset(mob);});
+    }
     // Tracking loss iterates live entity sections; waking here can move the sleeper into another section.
 }

@@ -579,7 +579,8 @@ public final class ChangedSynergyConfigScreen extends Screen {
                         displayMode(
                                 "dialogue_display",
                                 config.dialogueDisplayMode),
-                        bool("territory_hud", config.territoryHud)),
+                        bool("territory_hud", config.territoryHud),
+                        bool("facility_hud", config.facilityHud)),
                 category("hints",
                         bool("mechanic_hints", config.mechanicHints),
                         bool("negotiation_next_step_hint", config.negotiationNextStepHint)),
