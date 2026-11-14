@@ -1888,6 +1888,876 @@
         "pause": 0,
         "intensity": 0
       }
+    ],
+    "cavern.greeting": [
+      {
+        "text": "camp.changed_synergy.cavern.greeting.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.greeting.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.food_low": [
+      {
+        "text": "camp.changed_synergy.cavern.food_low.0",
+        "emotion": "calm",
+        "effect": "droop",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.food_low.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.food_enough": [
+      {
+        "text": "camp.changed_synergy.cavern.food_enough.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      }
+    ],
+    "cavern.food_plenty": [
+      {
+        "text": "camp.changed_synergy.cavern.food_plenty.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.food_plenty.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.safe": [
+      {
+        "text": "camp.changed_synergy.cavern.safe.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      }
+    ],
+    "cavern.danger": [
+      {
+        "text": "camp.changed_synergy.cavern.danger.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.danger.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.remember": [
+      {
+        "text": "camp.changed_synergy.cavern.remember.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.remember.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.requests": [
+      {
+        "text": "camp.changed_synergy.cavern.requests.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.requests.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.no_requests": [
+      {
+        "text": "camp.changed_synergy.cavern.no_requests.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.no_requests.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.handled": [
+      {
+        "text": "camp.changed_synergy.cavern.handled.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.handled.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.watch": [
+      {
+        "text": "camp.changed_synergy.cavern.watch.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.watch.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.request": [
+      {
+        "text": "camp.changed_synergy.cavern.request.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.request.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.choose_item": [
+      {
+        "text": "camp.changed_synergy.cavern.choose_item.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.choose_item.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.donate": [
+      {
+        "text": "camp.changed_synergy.cavern.donate.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.donate.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.transfer": [
+      {
+        "text": "camp.changed_synergy.cavern.transfer.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.transfer.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.thanks": [
+      {
+        "text": "camp.changed_synergy.cavern.thanks.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.declined": [
+      {
+        "text": "camp.changed_synergy.cavern.declined.0",
+        "emotion": "whisper",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.declined.1",
+        "emotion": "whisper",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.changed": [
+      {
+        "text": "camp.changed_synergy.cavern.changed.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.changed.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.meal": [
+      {
+        "text": "camp.changed_synergy.cavern.meal.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.meal.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.watch_thanks": [
+      {
+        "text": "camp.changed_synergy.cavern.watch_thanks.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.watch_thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.watch_wait": [
+      {
+        "text": "camp.changed_synergy.cavern.watch_wait.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.watch_wait.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.outfit": [
+      {
+        "text": "camp.changed_synergy.cavern.outfit.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern.outfit.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.cavern.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0
+      }
+    ],
+    "cavern_resident.greeting": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.greeting.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.greeting.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.food_low": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.food_low.0",
+        "emotion": "calm",
+        "effect": "droop",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.food_low.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.food_enough": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.food_enough.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.food_enough.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.food_plenty": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.food_plenty.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.food_plenty.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.safe": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.safe.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.safe.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.danger": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.danger.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.danger.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.remember": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.remember.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.remember.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.requests": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.requests.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.requests.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.no_requests": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.no_requests.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.no_requests.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.handled": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.handled.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      }
+    ],
+    "cavern_resident.watch": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.watch.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.watch.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.request": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.request.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.request.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.choose_item": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.choose_item.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.choose_item.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.donate": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.donate.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.donate.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.transfer": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.transfer.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.transfer.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.thanks": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.thanks.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.declined": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.declined.0",
+        "emotion": "whisper",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.declined.1",
+        "emotion": "whisper",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.changed": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.changed.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.changed.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.meal": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.meal.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.meal.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.gesture": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.gesture.0",
+        "emotion": "whisper",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      }
+    ],
+    "cavern_resident.seekchief": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.seekchief.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.seekchief.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.playful_greeting": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.playful_greeting.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.playful_greeting.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.playful_request": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.playful_request.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.playful_request.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.playful_thanks": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.playful_thanks.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.playful_thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.cautious_greeting": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.cautious_greeting.0",
+        "emotion": "shy",
+        "effect": "wobble",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.cautious_greeting.1",
+        "emotion": "shy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.cautious_request": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.cautious_request.0",
+        "emotion": "shy",
+        "effect": "wobble",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.cautious_request.1",
+        "emotion": "shy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.cautious_thanks": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.cautious_thanks.0",
+        "emotion": "shy",
+        "effect": "wobble",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.cautious_thanks.1",
+        "emotion": "shy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.polite_greeting": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.polite_greeting.0",
+        "emotion": "whisper",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.polite_greeting.1",
+        "emotion": "whisper",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.polite_request": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.polite_request.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.polite_request.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.polite_thanks": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.polite_thanks.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.polite_thanks.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.watch_thanks": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.watch_thanks.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.watch_thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.watch_wait": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.watch_wait.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.watch_wait.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.away": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.away.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.cavern_resident.away.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "cavern_resident.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.cavern_resident.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0
+      }
     ]
   }
 }

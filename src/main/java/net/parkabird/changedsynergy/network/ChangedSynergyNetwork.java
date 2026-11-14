@@ -8,7 +8,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class ChangedSynergyNetwork {
-    private static final String PROTOCOL = "67";
+    private static final String PROTOCOL = "68";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(ChangedSynergyMod.MOD_ID, "network"),
             () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
@@ -22,6 +22,12 @@ public final class ChangedSynergyNetwork {
             return;
         }
         registered = true;
+        CHANNEL.registerMessage(46, PlayerOutpostBuildStatePacket.class, PlayerOutpostBuildStatePacket::encode,
+                PlayerOutpostBuildStatePacket::decode, PlayerOutpostBuildStatePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(47, PlayerOutpostBuildActionPacket.class, PlayerOutpostBuildActionPacket::encode,
+                PlayerOutpostBuildActionPacket::decode, PlayerOutpostBuildActionPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(44, StoryNpcStatePacket.class, StoryNpcStatePacket::encode,
                 StoryNpcStatePacket::decode, StoryNpcStatePacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(45, StoryNpcActionPacket.class, StoryNpcActionPacket::encode,

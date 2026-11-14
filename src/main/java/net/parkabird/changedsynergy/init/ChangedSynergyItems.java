@@ -54,6 +54,14 @@ public final class ChangedSynergyItems {
             "latex_spotted_hyena_female_spawn_egg", () -> new ForgeSpawnEggItem(
                     ChangedSynergyEntities.LATEX_SPOTTED_HYENA_FEMALE, 0xB18B58, 0x3D302A, new Item.Properties()));
 
+    public static final RegistryObject<Item> LATEX_SPIDTAUR_SPAWN_EGG = REGISTRY.register(
+            "latex_spidtaur_spawn_egg", () -> new ForgeSpawnEggItem(
+                    ChangedSynergyEntities.LATEX_SPIDTAUR, 0x5A534C, 0xE8E2D8, new Item.Properties()));
+
+    public static final RegistryObject<Item> PURE_WHITE_LATEX_WOLF_PARTIAL_SPAWN_EGG = REGISTRY.register(
+            "pure_white_latex_wolf_partial_spawn_egg", () -> new ForgeSpawnEggItem(
+                    ChangedSynergyEntities.PURE_WHITE_LATEX_WOLF_PARTIAL, 0xFFFFFF, 0xFAFAFA, new Item.Properties()));
+
     public static final RegistryObject<Item> BROKEN_DARK_LATEX_MASK = REGISTRY.register(
             "broken_dark_latex_mask",
             () -> new BrokenDarkLatexMaskItem(new Item.Properties()

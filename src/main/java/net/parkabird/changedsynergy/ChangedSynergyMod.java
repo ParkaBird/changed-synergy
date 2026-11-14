@@ -49,6 +49,8 @@ public final class ChangedSynergyMod {
         modBus.addListener(ChangedSynergyMod::onConfigLoading);
         modBus.addListener(ChangedSynergyMod::onCommonSetup);
         ChangedSynergyEntities.REGISTRY.register(modBus);
+        modBus.addListener(ChangedSynergyEntities::registerAliases);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(ChangedSynergyEntities::remapOldEntities);
         net.parkabird.changedsynergy.init.ChangedSynergyBlocks.REGISTRY.register(modBus);
         net.parkabird.changedsynergy.init.ChangedSynergyAbilities.REGISTRY.register(modBus);
         ChangedSynergyTransfurVariants.REGISTRY.register(modBus);

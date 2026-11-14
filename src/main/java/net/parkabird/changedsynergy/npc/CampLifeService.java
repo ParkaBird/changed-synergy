@@ -35,8 +35,8 @@ public final class CampLifeService {
     public record Taken(String home,String item) {}
     private CampLifeService(){}
     public static String template(ChangedEntity npc){return npc.getPersistentData().getCompound(StructureResidentGoal.DATA).getString("Template");}
-    public static boolean mainCamp(ChangedEntity npc){return NaturalCampService.member(npc)&&npc.getPersistentData().getCompound(StructureResidentGoal.DATA).getBoolean("Resolved")&&Set.of("forest_treehouse","hyena_hideout","observatory","desert_refuge").contains(template(npc));}
-    public static String voice(ChangedEntity npc){return switch(template(npc)){case "forest_treehouse"->"weaver";case "hyena_hideout"->"matriarch";case "observatory"->"archivist";case "desert_refuge"->"pathfinder";default->"resident";};}
+    public static boolean mainCamp(ChangedEntity npc){return NaturalCampService.member(npc)&&npc.getPersistentData().getCompound(StructureResidentGoal.DATA).getBoolean("Resolved")&&Set.of("forest_treehouse","hyena_hideout","observatory","desert_refuge","lush_cabin").contains(template(npc));}
+    public static String voice(ChangedEntity npc){return switch(template(npc)){case "forest_treehouse"->"weaver";case "hyena_hideout"->"matriarch";case "observatory"->"archivist";case "desert_refuge"->"pathfinder";case "lush_cabin"->"cavern";default->"resident";};}
     public static NpcDefinitions.Profile profile(ChangedEntity npc){return mainCamp(npc)?NpcDefinitions.all().stream().filter(p->p.chief()&&p.dialogue()&&p.template().equals(template(npc))).findFirst().orElse(null):null;}
     public static CompoundTag register(ChangedEntity npc){
         if(!NaturalCampService.publicReserveOnly(npc)||!(npc.level() instanceof ServerLevel level))return new CompoundTag();
@@ -44,7 +44,7 @@ public final class CampLifeService {
         if(tag==null){tag=new CompoundTag();var resident=npc.getPersistentData().getCompound(StructureResidentGoal.DATA);for(String field:List.of("MinX","MinY","MinZ","MaxX","MaxY","MaxZ"))tag.putDouble(field,resident.getDouble(field));tag.putString("Template",template(npc));tag.putString("Key",key);var fixed=StoryNpcData.get(level.getServer()).records.get(StoryNpcService.key(npc));tag.putString("Dimension",fixed==null?level.dimension().location().toString():fixed.getString("Dimension"));tag.put("Requests",new ListTag());store.camps.put(key,tag);store.setDirty();}
         var resident=npc.getPersistentData().getCompound(StructureResidentGoal.DATA);String dimension=resident.getString("Dimension");
         tag.putBoolean("RoutinesOnly",!mainCamp(npc));
-        if(Set.of("desert_refuge","oasis","muddy_campsite","hyena_camp_tropical","hyena_camp_open","hyena_camp_snowy").contains(template(npc))&&tag.getInt("StorageLayout")<2){
+        if(Set.of("desert_refuge","lush_cabin","oasis","muddy_campsite","hyena_camp_tropical","hyena_camp_open","hyena_camp_snowy").contains(template(npc))&&tag.getInt("StorageLayout")<2){
             var positions=NaturalCampService.authoredPublicStores(npc);
             if(!positions.isEmpty()){tag.putLongArray("PublicStores",positions.stream().mapToLong(BlockPos::asLong).toArray());tag.remove("Stores");tag.putInt("StorageLayout",2);store.setDirty();}
         }
@@ -81,7 +81,7 @@ public final class CampLifeService {
         if(!camp.contains("RequestDay")||camp.getLong("RequestDay")!=day(npc)){
             requests.removeIf(t->((CompoundTag)t).getBoolean("Done"));camp.putLong("RequestDay",day(npc));
             var wanted=new ArrayList<String>();if(foodState(npc).equals("low"))wanted.add("FOOD");
-            wanted.add(switch(template(npc)){case "forest_treehouse"->"WOOL";case "hyena_hideout"->"LEATHER";case "desert_refuge"->"LIGHT";default->"PAPER";});
+            wanted.add(switch(template(npc)){case "forest_treehouse"->"WOOL";case "hyena_hideout"->"LEATHER";case "desert_refuge","lush_cabin"->"LIGHT";default->"PAPER";});
             wanted.add("WATCH");
             for(String kind:wanted){if(requests.stream().map(CompoundTag.class::cast).filter(r->!personal(r)).count()>=3)break;if(requests.stream().map(CompoundTag.class::cast).anyMatch(r->!personal(r)&&r.getString("Kind").equals(kind)))continue;
                 if(!kind.equals("WATCH")&&count(npc,Supply.valueOf(kind))>=Supply.valueOf(kind).amount*2)continue;
@@ -130,7 +130,7 @@ public final class CampLifeService {
         if(request!=null){request.putBoolean("Done",true);request.putUUID("CompletedBy",player.getUUID());rewardOwner(npc,player,request);CampLifeData.get(player.server).setDirty();}
         account(npc,player).putLong("LastHelp",npc.level().getGameTime());CampMembershipData.get(player.server).setDirty();return true;
     }
-    public static boolean canClaimOutfit(ChangedEntity npc,ServerPlayer player){return CampDialogue.chief(npc)&&canHelp(npc,player)&&CampMembershipService.protectedMember(npc,player)&&CampMembershipService.score(npc,player)>=40&&!CampMembershipService.membership(player).getCompound("OutfitClaims").getBoolean(StoryNpcService.homeKey(npc));}
+    public static boolean canClaimOutfit(ChangedEntity npc,ServerPlayer player){var profile=StoryNpcService.profile(npc);return profile!=null&&!profile.equipment().isEmpty()&&CampDialogue.chief(npc)&&canHelp(npc,player)&&CampMembershipService.protectedMember(npc,player)&&CampMembershipService.score(npc,player)>=40&&!CampMembershipService.membership(player).getCompound("OutfitClaims").getBoolean(StoryNpcService.homeKey(npc));}
     public static boolean claimOutfit(ChangedEntity npc,ServerPlayer player){
         if(!canClaimOutfit(npc,player))return false;var profile=StoryNpcService.profile(npc);if(profile.equipment().isEmpty())return false;
         var item=BuiltInRegistries.ITEM.get(ResourceLocation.parse(profile.equipment().get(0)));var outfit=new ItemStack(item);if(outfit.isEmpty()||!player.addItem(outfit))return false;

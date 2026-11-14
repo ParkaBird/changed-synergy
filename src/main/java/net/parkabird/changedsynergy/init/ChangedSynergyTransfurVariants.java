@@ -14,6 +14,11 @@ import net.parkabird.changedsynergy.entity.LatexSwordfish;
 import net.parkabird.changedsynergy.entity.LatexMuntjac;
 import net.parkabird.changedsynergy.entity.LatexMuntjacFemale;
 import net.parkabird.changedsynergy.entity.LatexSpottedHyena;
+import net.parkabird.changedsynergy.entity.LatexSpidtaur;
+import net.parkabird.changedsynergy.entity.WhiteLatexWolfPartial;
+import net.ltxprogrammer.changed.entity.TransfurMode;
+import net.ltxprogrammer.changed.init.ChangedAbilities;
+import net.minecraft.world.entity.monster.AbstractSkeleton;
 
 public final class ChangedSynergyTransfurVariants {
     public static final DeferredRegister<TransfurVariant<?>> REGISTRY =
@@ -59,11 +64,32 @@ public final class ChangedSynergyTransfurVariants {
             REGISTRY.register("form_latex_spotted_hyena/female", () -> TransfurVariant.Builder
                     .<LatexSpottedHyena>of(ChangedSynergyEntities.LATEX_SPOTTED_HYENA_FEMALE).build());
 
+    public static final RegistryObject<TransfurVariant<LatexSpidtaur>> LATEX_SPIDTAUR =
+            REGISTRY.register("form_latex_spidtaur", () -> TransfurVariant.Builder
+                    .<LatexSpidtaur>of(ChangedSynergyEntities.LATEX_SPIDTAUR)
+                    .quadrupedal()
+                    .canClimb()
+                    .extraHands()
+                    .nightVision()
+                    .addAbility(ChangedAbilities.CREATE_COBWEB)
+                    .addAbility(ChangedAbilities.TOGGLE_NIGHT_VISION)
+                    .build());
+
+    public static final RegistryObject<TransfurVariant<WhiteLatexWolfPartial>> PURE_WHITE_LATEX_WOLF_PARTIAL =
+            REGISTRY.register("form_pure_white_latex_wolf_partial", () -> TransfurVariant.Builder
+                    .<WhiteLatexWolfPartial>of(ChangedSynergyEntities.PURE_WHITE_LATEX_WOLF_PARTIAL)
+                    .scares(AbstractSkeleton.class)
+                    .transfurMode(TransfurMode.NONE)
+                    .build());
+
     public static void registerAliases(RegisterEvent event) {
         if (!event.getRegistryKey().equals(ChangedRegistry.TRANSFUR_VARIANT.get().getRegistryKey())) return;
         var registry = (ForgeRegistry<TransfurVariant<?>>)event.<TransfurVariant<?>>getForgeRegistry();
         registry.addAlias(ResourceLocation.parse("changed_synergy:form_latex_muntjac"), LATEX_MUNTJAC.getId());
         registry.addAlias(ResourceLocation.parse("changed_synergy:form_latex_muntjac_female"), LATEX_MUNTJAC_FEMALE.getId());
+        registry.addAlias(
+                ResourceLocation.parse("changed_synergy:form_white_latex_wolf_partial"),
+                PURE_WHITE_LATEX_WOLF_PARTIAL.getId());
     }
 
     /** Saved Synergy state also compares form strings without going through the registry. */
@@ -71,6 +97,8 @@ public final class ChangedSynergyTransfurVariants {
         return switch (id) {
             case "changed_synergy:form_latex_muntjac" -> "changed_synergy:form_latex_muntjac/male";
             case "changed_synergy:form_latex_muntjac_female" -> "changed_synergy:form_latex_muntjac/female";
+            case "changed_synergy:form_white_latex_wolf_partial" ->
+                    "changed_synergy:form_pure_white_latex_wolf_partial";
             default -> id;
         };
     }
@@ -80,6 +108,7 @@ public final class ChangedSynergyTransfurVariants {
             switch (mapping.getKey().getPath()) {
                 case "form_latex_muntjac" -> mapping.remap(LATEX_MUNTJAC.get());
                 case "form_latex_muntjac_female" -> mapping.remap(LATEX_MUNTJAC_FEMALE.get());
+                case "form_white_latex_wolf_partial" -> mapping.remap(PURE_WHITE_LATEX_WOLF_PARTIAL.get());
             }
         }
     }

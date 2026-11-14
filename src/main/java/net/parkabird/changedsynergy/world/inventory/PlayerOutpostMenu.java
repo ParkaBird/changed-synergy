@@ -48,6 +48,7 @@ public final class PlayerOutpostMenu extends AbstractContainerMenu {
     public static final int MEALS = 121;
     public static final int REFRESH = 122;
     public static final int MEAL_CALL = 123;
+    public static final int BUILD = 124;
     private static final List<String> STATUSES = List.of("idle", "travelling", "harvesting", "hunting",
             "cooking", "hauling", "composting", "no_storage", "full_storage", "no_farm",
             "no_hunting", "no_campfire", "no_composter", "no_seeds", "waiting", "combat",
@@ -143,6 +144,7 @@ public final class PlayerOutpostMenu extends AbstractContainerMenu {
         if (!net.parkabird.changedsynergy.ai.PlayerOutpostService.enabled(player.level())) return;
         Outpost outpost = PlayerOutpostData.get(player.server).byOwner(player.getUUID()).orElse(null);
         if (outpost == null) return;
+        net.parkabird.changedsynergy.ai.PlayerOutpostBuildService.clear(player);
         int index = Math.max(0, Math.min(selected, Math.max(0, outpost.members.size() - 1)));
         NetworkHooks.openScreen(player,
                 new SimpleMenuProvider((id, inventory, viewer) ->
@@ -337,6 +339,9 @@ public final class PlayerOutpostMenu extends AbstractContainerMenu {
         if (id == REFRESH) {
             open(server, selected);
             return true;
+        }
+        if (id == BUILD) {
+            return net.parkabird.changedsynergy.ai.PlayerOutpostBuildService.enter(server);
         }
         if (id == MEAL_CALL) {
             return server.server.getCommands().performPrefixedCommand(server.createCommandSourceStack(),

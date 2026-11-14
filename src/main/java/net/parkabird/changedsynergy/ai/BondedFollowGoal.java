@@ -19,6 +19,10 @@ public final class BondedFollowGoal extends Goal {
     private int repathTicks;
     private int teleportRetryTicks;
     private float oldWaterCost;
+    private float oldDangerFire;
+    private float oldDamageFire;
+    private float oldLava;
+    private float oldDamageOther;
 
     public BondedFollowGoal(ChangedEntity mob) {
         this.mob = mob;
@@ -64,7 +68,16 @@ public final class BondedFollowGoal extends Goal {
         repathTicks = 0;
         teleportRetryTicks = 0;
         oldWaterCost = mob.getPathfindingMalus(BlockPathTypes.WATER);
+        oldDangerFire = mob.getPathfindingMalus(BlockPathTypes.DANGER_FIRE);
+        oldDamageFire = mob.getPathfindingMalus(BlockPathTypes.DAMAGE_FIRE);
+        oldLava = mob.getPathfindingMalus(BlockPathTypes.LAVA);
+        oldDamageOther = mob.getPathfindingMalus(BlockPathTypes.DAMAGE_OTHER);
         mob.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+        // Prefer walking around fire/traps instead of through them (issue #17).
+        mob.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 16.0F);
+        mob.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, -1.0F);
+        mob.setPathfindingMalus(BlockPathTypes.LAVA, -1.0F);
+        mob.setPathfindingMalus(BlockPathTypes.DAMAGE_OTHER, 8.0F);
         mob.getNavigation().stop();
         followNavigation.reset();
     }
@@ -103,18 +116,22 @@ public final class BondedFollowGoal extends Goal {
             boolean stuckAway = followNavigation.isStalled()
                     && distanceSqr >= STUCK_TELEPORT_DISTANCE
                             * STUCK_TELEPORT_DISTANCE;
-            if ((farAway || stuckAway)
+            boolean inHazard = mob.isOnFire() || mob.isInLava()
+                    || BondedTeleportSafety.isDangerous(mob.level().getBlockState(mob.blockPosition()))
+                    || BondedTeleportSafety.isDangerous(mob.level().getBlockState(mob.blockPosition().below()));
+            if ((farAway || stuckAway || inHazard)
                     && teleportRetryTicks <= 0
                     && !mob.isPassenger() && !mob.isLeashed()
                     && mob.level() instanceof ServerLevel level) {
                 if (BondedTeleportSafety.teleportNearOwner(level, mob, player)) {
                     followNavigation.reset();
+                    mob.clearFire();
                     return;
                 }
                 // A flying owner or a cramped room may currently have no safe
                 // landing. Retry later instead of repeatedly scanning or
                 // dropping the creature into open air.
-                teleportRetryTicks = 60;
+                teleportRetryTicks = inHazard ? 20 : 60;
             }
             followNavigation.moveToward(body, FOLLOW_SPEED);
         }
@@ -125,6 +142,10 @@ public final class BondedFollowGoal extends Goal {
         player = null;
         mob.getNavigation().stop();
         mob.setPathfindingMalus(BlockPathTypes.WATER, oldWaterCost);
+        mob.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, oldDangerFire);
+        mob.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, oldDamageFire);
+        mob.setPathfindingMalus(BlockPathTypes.LAVA, oldLava);
+        mob.setPathfindingMalus(BlockPathTypes.DAMAGE_OTHER, oldDamageOther);
         followNavigation.reset();
     }
 

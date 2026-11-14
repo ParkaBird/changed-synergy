@@ -175,41 +175,24 @@ public final class PlayerOutpostCommand {
         if (!outpost.active(level)) return error(source, "inactive");
         BlockPos pos = lookedAt(player);
         if (pos == null || !outpost.contains(pos)) return error(source, "range");
-        var block = level.getBlockState(pos).getBlock();
         if (facility == null) {
-            facility = facilityAt(level, pos);
+            facility = net.parkabird.changedsynergy.ai.PlayerOutpostBuildService.facilityAt(level, pos);
             if (facility == null) return error(source, "facility");
         }
-        PlayerOutpostData data = PlayerOutpostData.get(player.server);
-        switch (facility) {
-            case "storage" -> {
-                if (PlayerOutpostData.container(level, pos) == null
-                        || CreatureCommunityData.snapshotAtCache(level, pos).isPresent()
-                        || net.parkabird.changedsynergy.ai.NaturalCampService.isStorage(level,pos)) return error(source, "container");
-                data.setStorage(outpost, pos);
-            }
-            case "bed", "rest" -> {
-                if (facility.equals("bed") ? !net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.isBed(level.getBlockState(pos))
-                        : !net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.isRestPoint(level.getBlockState(pos)))
-                    return error(source, facility);
-                pos = net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.restingPlace(level, pos);
-                if (pos == null || !outpost.contains(pos)) return error(source, facility);
-                data.refreshRestPlaces(level, outpost);
-                if (facility.equals("bed")) data.setBed(outpost, pos);
-                else data.addRestPoint(outpost, pos);
-                data.refreshRestPlaces(level,outpost);
-            }
-            case "campfire" -> {
-                if (!(level.getBlockEntity(pos) instanceof net.minecraft.world.level.block.entity.CampfireBlockEntity)) return error(source, "cooking");
-                data.setFacility(outpost, facility, pos);
-            }
-            case "composter" -> {
-                if (!(block instanceof net.minecraft.world.level.block.ComposterBlock)) return error(source, "composter");
-                data.setFacility(outpost, facility, pos);
-            }
-            default -> { return error(source, "facility"); }
+        if (!net.parkabird.changedsynergy.ai.PlayerOutpostBuildService.registerFacility(
+                player, outpost, pos, facility)) {
+            return error(source, switch (facility) {
+                case "storage" -> "container";
+                case "campfire" -> "cooking";
+                case "bed", "rest", "composter" -> facility;
+                default -> "facility";
+            });
         }
-        success(source, "linked", Component.translatable("command.changed_synergy.outpost.facility." + facility), pos.toShortString());
+        BlockPos linked = facility.equals("bed") || facility.equals("rest")
+                ? net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.restingPlace(level, pos) : pos;
+        if (linked == null) linked = pos;
+        success(source, "linked", Component.translatable("command.changed_synergy.outpost.facility." + facility),
+                linked.toShortString());
         return 1;
     }
 
@@ -343,12 +326,7 @@ public final class PlayerOutpostCommand {
     }
 
     private static String facilityAt(ServerLevel level, BlockPos pos) {
-        var state = level.getBlockState(pos);
-        if (net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.isBed(state)) return "bed";
-        if (net.parkabird.changedsynergy.ai.PlayerOutpostRestGoal.isRestPoint(state)) return "rest";
-        if (level.getBlockEntity(pos) instanceof net.minecraft.world.level.block.entity.CampfireBlockEntity) return "campfire";
-        if (state.getBlock() instanceof net.minecraft.world.level.block.ComposterBlock) return "composter";
-        return PlayerOutpostData.container(level, pos) != null ? "storage" : null;
+        return net.parkabird.changedsynergy.ai.PlayerOutpostBuildService.facilityAt(level, pos);
     }
 
     /** The wheel is a shortcut to the same server-validated commands, not another claim system. */

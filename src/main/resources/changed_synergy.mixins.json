@@ -104,6 +104,7 @@
     "SurfaceSystemMixin",
     "WhiteLatexTerritorySpawnMixin",
     "WhiteLatexPillarContactMixin",
+    "WhiteLatexPartialTransfurMixin",
     "TakeoverAbsorptionMixin",
     "TakeoverPlayerAbsorptionMixin",
     "TakeoverGrabMixin",
@@ -177,7 +178,9 @@
     "SleepingSynergyEyesMixin",
     "PerchSleepRenderMixin",
     "PerchSleepNameTagMixin",
-    "PerchSleepModelMixin"
+    "PerchSleepModelMixin",
+    "TaurSleepRenderMixin",
+    "PartialSkinLayersHandMixin"
   ],
   "injectors": {
     "defaultRequire": 1

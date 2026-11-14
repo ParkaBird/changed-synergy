@@ -67,10 +67,15 @@ public final class PlayerOutpostScreen extends AbstractContainerScreen<PlayerOut
                 .bounds(leftPos + 19 + workButtonWidth(), topPos + lowerY(211), workButtonWidth(), 20).build());
         meals = addRenderableWidget(Button.builder(Component.empty(), ignored -> send(PlayerOutpostMenu.MEALS))
                 .bounds(leftPos + imageWidth - 126, topPos + 5, 58, 18).build());
+        // Right column: Refresh → Build → Call meal.
         addRenderableWidget(Button.builder(Component.translatable("menu.changed_synergy.player_outpost.refresh"),
                         ignored -> send(PlayerOutpostMenu.REFRESH))
                 .bounds(leftPos + imageWidth - 64, topPos + 5, 55, 18)
                 .tooltip(Tooltip.create(Component.translatable("menu.changed_synergy.player_outpost.facilities_hint"))).build());
+        addRenderableWidget(Button.builder(Component.translatable("menu.changed_synergy.player_outpost.build"),
+                        ignored -> send(PlayerOutpostMenu.BUILD))
+                .bounds(leftPos + imageWidth - 64, topPos + 30, 55, 18)
+                .tooltip(Tooltip.create(Component.translatable("menu.changed_synergy.player_outpost.build_hint"))).build());
         addRenderableWidget(Button.builder(Component.translatable("menu.changed_synergy.player_outpost.meal_call"),
                         ignored -> send(PlayerOutpostMenu.MEAL_CALL))
                 .bounds(leftPos + imageWidth - 64, topPos + 55, 55, 18)

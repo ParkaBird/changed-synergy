@@ -232,7 +232,9 @@ public final class PureWhiteWolfAdaptation {
         return creature != null && (creature.getType() == ChangedEntities.PURE_WHITE_LATEX_WOLF.get()
                 || creature.getType() == ChangedEntities.PURE_WHITE_LATEX_WOLF_PUP.get()
                 || creature.getType() == ChangedEntities.PURE_WHITE_LATEX_CERBERUS.get()
-                || creature.getType() == ChangedEntities.LATEX_MUTANT_BLOODCELL_WOLF.get());
+                || creature.getType() == ChangedEntities.LATEX_MUTANT_BLOODCELL_WOLF.get()
+                || creature.getType()
+                        == net.parkabird.changedsynergy.init.ChangedSynergyEntities.PURE_WHITE_LATEX_WOLF_PARTIAL.get());
     }
 
     private static boolean isSupportedForm(ChangedEntity creature) {

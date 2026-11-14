@@ -689,6 +689,7 @@ public final class BondedSuitService {
         ability.releaseEntity(false);
         ChangedAddonCompat.configureFriendlyGrab(ability, false);
         LatexSocialMemory.endFriendlySuit(pet, owner);
+        clearFriendlySuitCarrierPhysics(pet);
         Changed.PACKET_HANDLER.send(
                 PacketDistributor.TRACKING_ENTITY.with(() -> pet),
                 new GrabEntityPacket(pet, owner, GrabType.RELEASE));
@@ -783,13 +784,16 @@ public final class BondedSuitService {
             return false;
         }
 
-        markRescueReleased(owner);
+        // Voluntary separate must not start rescue grace — that blocked Addon
+        // LatexSuitOwnerGoal / Experiment 009 shift+remerge (issue #10).
+        LatexSocialMemory.delayEmergencyRescue(pet, MANUAL_RELEASE_COOLDOWN);
 
         boolean bondedSuit = LatexSocialMemory.isFriendlySuitActive(pet, owner);
         BondedPetSettings.clearFavor(pet);
         ability.releaseEntity(false);
         ChangedAddonCompat.configureFriendlyGrab(ability, false);
         LatexSocialMemory.endFriendlySuit(pet, owner);
+        clearFriendlySuitCarrierPhysics(pet);
         pet.getPersistentData().remove(DROWNING_SUIT);
         pet.getPersistentData().remove(TRANSFUR_SUIT);
         clearTransfurRescueRequest(pet);
@@ -869,11 +873,28 @@ public final class BondedSuitService {
         }
         ChangedAddonCompat.configureFriendlyGrab(ability, false);
         LatexSocialMemory.endFriendlySuit(pet, owner);
+        clearFriendlySuitCarrierPhysics(pet);
         pet.getPersistentData().remove(DROWNING_SUIT);
         pet.getPersistentData().remove(TRANSFUR_SUIT);
         clearTransfurRescueRequest(pet);
         syncOwnerSuitState(pet, owner, false);
         clearTemporarySuitVariant(pet, owner);
+    }
+
+    /** Keeps Synergy-only suits glued to the owner on the authoritative side. */
+    private static void maintainFriendlySuitCarrier(
+            ChangedEntity pet, GrabEntityAbilityInstance ability) {
+        ((GrabAbilityTick) ability).changedSynergy$tickHoldIfNeeded();
+        pet.setInvisible(true);
+        pet.noPhysics = true;
+        pet.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+        pet.getNavigation().stop();
+    }
+
+    private static void clearFriendlySuitCarrierPhysics(ChangedEntity pet) {
+        if (pet == null) return;
+        pet.setInvisible(false);
+        pet.noPhysics = false;
     }
 
     /** Permanently restores the bonded creature's own form to a reverted owner. */
@@ -1020,6 +1041,9 @@ public final class BondedSuitService {
         ability.attackDown = false;
         ability.useDown = false;
         ChangedAddonCompat.configureFriendlyGrab(ability, true);
+        // Non-dark bonded suits never reach Changed's native suit tickIdle; pin the
+        // carrier on the server so radial menus keep a valid distance (issue #18).
+        maintainFriendlySuitCarrier(pet, ability);
         if (owner.tickCount % 20 == 0) {
             ChangedAddonCompat.syncFriendlySuitControl(pet, owner, true);
             syncOwnerSuitState(pet, owner, true);

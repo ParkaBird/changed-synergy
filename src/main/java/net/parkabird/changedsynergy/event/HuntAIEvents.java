@@ -832,13 +832,16 @@ public final class HuntAIEvents {
         }
         LatexSocialRelation relation = LatexSocialRelation.between(mob, player);
         boolean needsVouch = !FactionReputation.isRecognized(mob, player);
+        // Combat can stay neutral via reputation while form relation is RIVAL;
+        // dialogue must follow the same rule (issue #15).
         Cue relationshipCue = switch (relation) {
             case FORMER_BONDED -> Cue.FORMER_BOND_WELCOME;
             case FORMER_RESPECTED -> needsVouch
                     ? Cue.FORMER_RESPECT_WELCOME : null;
             case FRIEND_RESPECTED -> needsVouch
                     ? Cue.FRIEND_RESPECT_WELCOME : null;
-            case RIVAL -> Cue.MEET_RIVAL;
+            case RIVAL -> LatexSocialMemory.shouldRemainNeutral(mob, player)
+                    ? null : Cue.MEET_RIVAL;
             default -> null;
         };
         if (relationshipCue != null) {

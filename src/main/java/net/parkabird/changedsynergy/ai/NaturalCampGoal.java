@@ -23,10 +23,10 @@ import net.parkabird.changedsynergy.world.inventory.PlayerOutpostCargoInventory;
 
 /** Bounded jobs use the player's existing saved cargo, storage adapters, meal and seat lifecycle. */
 public final class NaturalCampGoal extends Goal {
-    private enum Work { DEPOSIT, PICKUP, CROP, BERRIES, HUNT, MEAL }
+    private enum Work { DEPOSIT, PICKUP, CROP, BERRIES, GLOW_BERRIES, HUNT, MEAL }
     private final ChangedEntity mob;
     private Work work;
-    private BlockPos target, fire;
+    private BlockPos target, fire, harvestBlock;
     private ItemEntity drop;
     private Animal prey;
     private long nextCheck;
@@ -67,13 +67,17 @@ public final class NaturalCampGoal extends Goal {
         if(ForgeEventFactory.getMobGriefingEvent(level,mob)) {
             // Resume a bounded local scan; blocked farms never trigger a whole-building scan each tick.
             for(int scanned=0;scanned<160;scanned++) {
-                int i=Math.floorMod(scanCursor++,17*17*5);
-                int dy=new int[]{0,1,-1,2,-2}[i/(17*17)];
+                int i=Math.floorMod(scanCursor++,17*17*7);
+                int dy=new int[]{0,1,-1,2,-2,3,4}[i/(17*17)];
                 var pos=mob.blockPosition().offset(i%17-8,dy,(i/17)%17-8);
                 if(!area.contains(Vec3.atCenterOf(pos)) || !level.hasChunkAt(pos))continue;
                 var state=level.getBlockState(pos);
                 if(state.getBlock() instanceof CropBlock crop && crop.isMaxAge(state) && reachable(pos)) {target=pos;work=Work.CROP;return true;}
                 if(state.getBlock() instanceof SweetBerryBushBlock && state.getValue(SweetBerryBushBlock.AGE)>=2 && reachable(pos)) {target=pos;work=Work.BERRIES;return true;}
+                if(hasRipeGlowBerries(state)) {
+                    var stand=findGlowBerryStand(level,pos,area);
+                    if(stand!=null) {harvestBlock=pos.immutable();target=stand;work=Work.GLOW_BERRIES;return true;}
+                }
             }
         }
         if(!character && mob.getRandom().nextInt(4)==0) for(var animal:level.getEntitiesOfClass(Animal.class,area,
@@ -95,6 +99,17 @@ public final class NaturalCampGoal extends Goal {
             }
         }
         return false;
+    }
+    private BlockPos findGlowBerryStand(ServerLevel level,BlockPos vinePos,net.minecraft.world.phys.AABB area) {
+        for(int drop=0;drop<=4;drop++) for(int radius=0;radius<=1;radius++) for(int dx=-radius;dx<=radius;dx++) for(int dz=-radius;dz<=radius;dz++) {
+            if(radius>0 && Math.max(Math.abs(dx),Math.abs(dz))!=radius)continue;
+            var stand=vinePos.offset(dx,-drop,dz);
+            if(!area.contains(Vec3.atCenterOf(stand)) || !level.hasChunkAt(stand))continue;
+            var body=level.getBlockState(stand);var head=level.getBlockState(stand.above());var below=level.getBlockState(stand.below());
+            if(body.blocksMotion() || head.blocksMotion() || !level.getFluidState(stand).isEmpty() || !level.getFluidState(stand.below()).isEmpty())continue;
+            if(below.isFaceSturdy(level,stand.below(),Direction.UP) && reachable(stand))return stand.immutable();
+        }
+        return null;
     }
     private boolean reachable(BlockPos pos) {
         if(!mob.level().hasChunkAt(pos))return false;
@@ -148,6 +163,7 @@ public final class NaturalCampGoal extends Goal {
             }
         }
         if(work==Work.PICKUP && (drop==null || !drop.isAlive())){ticks=300;return;}
+        if(work==Work.GLOW_BERRIES && (harvestBlock==null || !hasRipeGlowBerries(level.getBlockState(harvestBlock)))){ticks=300;return;}
         if(seated) {
             mob.getNavigation().stop();seatedTicks++;
             mob.getLookControl().setLookAt(fire.getX()+.5,fire.getY()+.75,fire.getZ()+.5);
@@ -208,6 +224,16 @@ public final class NaturalCampGoal extends Goal {
                         && level.setBlock(target,state.setValue(SweetBerryBushBlock.AGE,1),Block.UPDATE_ALL))carry(new ItemStack(Items.SWEET_BERRIES,2));
                 ticks=300;
             }
+            case GLOW_BERRIES -> {
+                var state=harvestBlock==null?null:level.getBlockState(harvestBlock);
+                if(state!=null && hasRipeGlowBerries(state) && ForgeEventFactory.getMobGriefingEvent(level,mob)
+                        && level.setBlock(harvestBlock,state.setValue(CaveVines.BERRIES,false),Block.UPDATE_ALL)) {
+                    carry(new ItemStack(Items.GLOW_BERRIES,1+mob.getRandom().nextInt(2)));
+                    level.playSound(null,harvestBlock,net.minecraft.sounds.SoundEvents.CAVE_VINES_PICK_BERRIES,net.minecraft.sounds.SoundSource.BLOCKS,0.9F,1.0F);
+                    mob.swing(InteractionHand.MAIN_HAND);
+                }
+                ticks=300;
+            }
             case MEAL -> {
                 if(PlayerOutpostRestGoal.isRestPoint(level.getBlockState(target)))seated=PlayerOutpostRestGoal.sit(mob,level,target);
                 else seated=CreatureRestPlaces.sitOnGround(mob,level,target);
@@ -217,11 +243,14 @@ public final class NaturalCampGoal extends Goal {
             case HUNT -> { }
         }
     }
+    private static boolean hasRipeGlowBerries(net.minecraft.world.level.block.state.BlockState state) {
+        return state.getBlock() instanceof CaveVines && state.hasProperty(CaveVines.BERRIES) && state.getValue(CaveVines.BERRIES);
+    }
     private void carry(ItemStack item){var remaining=PlayerOutpostWorkGoal.acceptCargo(mob,item);if(!remaining.isEmpty())mob.spawnAtLocation(remaining);}
     @Override public void stop() {
         mob.getNavigation().stop();CreatureTaskNavigation.clearFailure(mob);
         if(seated){CompanionAutoEatGoal.cleanup(mob);CreatureComfortGoal.endSeatedActivity(mob);}
         if(prey!=null && mob.getTarget()==prey)mob.setTarget(null);
-        prey=null;drop=null;seated=false;
+        prey=null;drop=null;harvestBlock=null;seated=false;
     }
 }

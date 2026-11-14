@@ -117,11 +117,15 @@ public final class StructureResidentGoal extends Goal {
             data.remove("LocalPos"); data.remove("Size"); data.remove("Yaw");
         }
         mob.setPersistenceRequired();
-        if(data.getString("Template").equals("desert_refuge")&&!data.getBoolean("Character")&&!data.contains("DialogueRole")){
-            var rotation=Rotation.values()[Math.floorMod(data.getInt("PlacementRotation"),4)];var origin=Vec3.atLowerCornerOf(BlockPos.of(data.getLong("PlacementOrigin")));
-            var home=new Vec3(data.getDouble("HomeX"),data.getDouble("HomeY"),data.getDouble("HomeZ"));
-            String[] roles={"dorm","study","garden","lab","corridor"};double[][] positions={{31.5,7,18.5},{1.5,7,18.5},{6.5,14,15.5},{25.5,14,6},{25.5,21,18.5}};
-            for(int i=0;i<roles.length;i++)if(home.distanceToSqr(StructureTemplate.transform(new Vec3(positions[i][0],positions[i][1],positions[i][2]),Mirror.NONE,rotation,BlockPos.ZERO).add(origin))<.01){data.putString("DialogueRole",roles[i]);break;}
+        if(!data.getBoolean("Character")&&!data.contains("DialogueRole")){
+            switch(data.getString("Template")){
+                case "desert_refuge" -> assignDefaultRole(data,
+                        new String[]{"dorm","study","garden","lab","corridor"},
+                        new double[][]{{31.5,7,18.5},{1.5,7,18.5},{6.5,14,15.5},{25.5,14,6},{25.5,21,18.5}});
+                case "lush_cabin" -> assignDefaultRole(data,
+                        new String[]{"spring","kitchen","lounge","dorm","attic"},
+                        new double[][]{{21.5,6,7.5},{6.5,10,12.5},{7.5,10,19.5},{8.5,15,9.5},{8.5,20,22.5}});
+            }
         }
         if(data.getString("Template").equals("green_lab") && data.getBoolean("Character") && !data.contains("NeckOutfit"))
             data.putString("NeckOutfit","changed:red_neck_tie");
@@ -143,6 +147,21 @@ public final class StructureResidentGoal extends Goal {
         if (mob.goalSelector.getAvailableGoals().stream().noneMatch(g -> g.getGoal() instanceof StructureResidentGoal))
             mob.goalSelector.addGoal(-7, new StructureResidentGoal(mob, data));
         return true;
+    }
+
+    private static void assignDefaultRole(CompoundTag data, String[] roles, double[][] positions) {
+        var rotation = Rotation.values()[Math.floorMod(data.getInt("PlacementRotation"), 4)];
+        var origin = Vec3.atLowerCornerOf(BlockPos.of(data.getLong("PlacementOrigin")));
+        var home = new Vec3(data.getDouble("HomeX"), data.getDouble("HomeY"), data.getDouble("HomeZ"));
+        for (int i = 0; i < roles.length; i++) {
+            var expected = StructureTemplate.transform(
+                    new Vec3(positions[i][0], positions[i][1], positions[i][2]),
+                    Mirror.NONE, rotation, BlockPos.ZERO).add(origin);
+            if (home.distanceToSqr(expected) < .01) {
+                data.putString("DialogueRole", roles[i]);
+                break;
+            }
+        }
     }
 
     private boolean available() {

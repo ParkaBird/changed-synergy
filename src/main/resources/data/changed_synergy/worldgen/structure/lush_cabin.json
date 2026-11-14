@@ -1,0 +1,12 @@
+{
+  "type": "changed_synergy:research_lab",
+  "biomes": "#changed_synergy:has_structure/lush_cabins",
+  "step": "underground_structures",
+  "terrain_adaptation": "none",
+  "spawn_overrides": {},
+  "template": "changed_synergy:lush_cabin",
+  "ground_level": 6,
+  "max_terrain_slope": 16,
+  "clearing_radius": 0,
+  "underground": true
+}

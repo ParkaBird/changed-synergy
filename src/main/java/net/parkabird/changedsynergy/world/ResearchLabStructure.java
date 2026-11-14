@@ -56,7 +56,8 @@ public final class ResearchLabStructure extends Structure {
             Codec.intRange(-1, 64).optionalFieldOf("waterline", -1).forGetter(s -> s.waterline),
             Codec.intRange(0, 64).optionalFieldOf("ground_level", 0).forGetter(s -> s.groundLevel),
             Codec.intRange(0, 16).optionalFieldOf("max_terrain_slope", 6).forGetter(s -> s.maxTerrainSlope),
-            Codec.intRange(0, 8).optionalFieldOf("clearing_radius", 0).forGetter(s -> s.clearingRadius)
+            Codec.intRange(0, 8).optionalFieldOf("clearing_radius", 0).forGetter(s -> s.clearingRadius),
+            Codec.BOOL.optionalFieldOf("underground", false).forGetter(s -> s.underground)
     ).apply(instance, ResearchLabStructure::new));
 
     private final ResourceLocation template;
@@ -65,9 +66,10 @@ public final class ResearchLabStructure extends Structure {
     private final int groundLevel;
     private final int maxTerrainSlope;
     private final int clearingRadius;
+    private final boolean underground;
 
     public ResearchLabStructure(StructureSettings settings, ResourceLocation template, String requiredMod, int waterline,
-                                int groundLevel, int maxTerrainSlope, int clearingRadius) {
+                                int groundLevel, int maxTerrainSlope, int clearingRadius, boolean underground) {
         super(settings);
         this.template = template;
         this.requiredMod = requiredMod;
@@ -75,6 +77,7 @@ public final class ResearchLabStructure extends Structure {
         this.groundLevel = groundLevel;
         this.maxTerrainSlope = maxTerrainSlope;
         this.clearingRadius = clearingRadius;
+        this.underground = underground;
     }
 
     @Override
@@ -87,29 +90,121 @@ public final class ResearchLabStructure extends Structure {
         if (groundLevel >= size.getY()) return Optional.empty();
         var rotation = Rotation.getRandom(context.random());
         // A snowy mountain rarely has a large flat patch exactly at the candidate chunk center.
-        int[] offsets = mountainCamp() || redSandCamp() ? new int[]{0, -16, 16} : new int[]{0};
+        int[] offsets = mountainCamp() || redSandCamp() || underground ? new int[]{0, -16, 16} : new int[]{0};
         for (int dx : offsets) for (int dz : offsets) {
             var anchor = context.chunkPos().getMiddleBlockPosition(0).offset(dx, 0, dz);
-            int probeY = waterline >= 0
-                    ? context.chunkGenerator().getSeaLevel() - 1 - waterline
-                    : Math.min(context.heightAccessor().getMaxBuildHeight() - 1, 256);
-            if (!context.validBiome().test(context.biomeSource().getNoiseBiome(
-                    net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(probeY),
-                    net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler()))) continue;
-            var position = groundPosition(context, size, rotation, anchor);
+            if (underground) {
+                // Lush caves (and other cave biomes) only exist on underground noise slices.
+                int surface = context.chunkGenerator().getBaseHeight(anchor.getX(), anchor.getZ(),
+                        Heightmap.Types.WORLD_SURFACE_WG, context.heightAccessor(), context.randomState());
+                boolean biomeOk = false;
+                for (int probeY : new int[]{0, 16, 32, Math.max(0, surface / 3), Math.max(0, surface / 2)}) {
+                    if (context.validBiome().test(context.biomeSource().getNoiseBiome(
+                            net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(probeY),
+                            net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler()))) {
+                        biomeOk = true;
+                        break;
+                    }
+                }
+                if (!biomeOk) continue;
+            } else {
+                int probeY = waterline >= 0
+                        ? context.chunkGenerator().getSeaLevel() - 1 - waterline
+                        : Math.min(context.heightAccessor().getMaxBuildHeight() - 1, 256);
+                if (!context.validBiome().test(context.biomeSource().getNoiseBiome(
+                        net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(probeY),
+                        net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler()))) continue;
+            }
+            var position = underground ? undergroundPosition(context, size, rotation, anchor)
+                    : groundPosition(context, size, rotation, anchor);
             if (position.isEmpty()) continue;
             var pos = position.get();
+            int biomeY = underground ? pos.getY() + size.getY() / 2 : pos.getY();
             if (!context.validBiome().test(context.biomeSource().getNoiseBiome(
-                    net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(pos.getY()),
+                    net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(biomeY),
                     net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler()))) continue;
             return Optional.of(new GenerationStub(anchor.atY(pos.getY()), builder -> builder.addPiece(
-                    new Piece(context.structureTemplateManager(), template, pos, rotation, waterline >= 0, clearingRadius))));
+                    new Piece(context.structureTemplateManager(), template, pos, rotation, waterline >= 0, clearingRadius, underground))));
         }
         return Optional.empty();
     }
 
     private boolean mountainCamp() { return template.getPath().equals("observatory"); }
     private boolean redSandCamp() { return template.getPath().equals("muddy_campsite"); }
+
+    /**
+     * Sit the authored living floor on a real cave floor inside an open chamber.
+     * Requiring solid embedding carved rectangular voids next to lush caves; open-air
+     * sampling keeps the cabin in the cavern instead of inside neighboring stone.
+     */
+    private Optional<BlockPos> undergroundPosition(GenerationContext context, net.minecraft.core.Vec3i size,
+                                                   Rotation rotation, BlockPos anchor) {
+        var center = StructureTemplate.transform(new BlockPos(size.getX() / 2, 0, size.getZ() / 2),
+                Mirror.NONE, rotation, BlockPos.ZERO);
+        var origin = anchor.subtract(center);
+        int livingFloor = Math.max(1, groundLevel > 0 ? groundLevel : 6);
+        int surface = context.chunkGenerator().getBaseHeight(anchor.getX(), anchor.getZ(),
+                Heightmap.Types.WORLD_SURFACE_WG, context.heightAccessor(), context.randomState());
+        int minBuild = context.heightAccessor().getMinBuildHeight() + 8;
+        int maxLiving = surface - (size.getY() - livingFloor) - 8;
+        if (maxLiving <= minBuild + livingFloor) return Optional.empty();
+        var centerColumn = context.chunkGenerator().getBaseColumn(anchor.getX(), anchor.getZ(),
+                context.heightAccessor(), context.randomState());
+        int[] floors = new int[64];
+        int floorCount = 0;
+        for (int y = minBuild + livingFloor; y <= maxLiving && floorCount < floors.length; y++) {
+            var below = centerColumn.getBlock(y - 1);
+            var here = centerColumn.getBlock(y);
+            if (below.canOcclude() && below.getFluidState().isEmpty() && here.isAir()) floors[floorCount++] = y;
+        }
+        if (floorCount == 0) return Optional.empty();
+        // Prefer mid-depth chambers; try a shuffled sample of discovered floors.
+        var random = context.random();
+        for (int i = floorCount - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            int tmp = floors[i];
+            floors[i] = floors[j];
+            floors[j] = tmp;
+        }
+        int attempts = Math.min(floorCount, 24);
+        for (int attempt = 0; attempt < attempts; attempt++) {
+            int livingY = floors[attempt];
+            int y = livingY - livingFloor;
+            if (y < minBuild || y + size.getY() > surface - 5) continue;
+            if (!context.validBiome().test(context.biomeSource().getNoiseBiome(
+                    net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(livingY),
+                    net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler()))) continue;
+            int solidFloor = 0;
+            int openAir = 0;
+            boolean flooded = false;
+            for (int x : new int[]{0, size.getX() / 4, size.getX() / 2, (size.getX() * 3) / 4, size.getX() - 1}) {
+                for (int z : new int[]{0, size.getZ() / 4, size.getZ() / 2, (size.getZ() * 3) / 4, size.getZ() - 1}) {
+                    var sample = StructureTemplate.transform(new BlockPos(x, 0, z), Mirror.NONE, rotation, BlockPos.ZERO)
+                            .offset(origin.getX(), 0, origin.getZ());
+                    var column = context.chunkGenerator().getBaseColumn(sample.getX(), sample.getZ(),
+                            context.heightAccessor(), context.randomState());
+                    var support = column.getBlock(livingY - 1);
+                    var low = column.getBlock(livingY + 1);
+                    var mid = column.getBlock(livingY + Math.min(8, size.getY() - livingFloor - 2));
+                    var high = column.getBlock(livingY + Math.min(14, size.getY() - livingFloor - 2));
+                    if (!support.getFluidState().isEmpty() || !low.getFluidState().isEmpty()
+                            || !mid.getFluidState().isEmpty()) {
+                        flooded = true;
+                        break;
+                    }
+                    if (support.canOcclude()) solidFloor++;
+                    if (low.isAir()) openAir++;
+                    if (mid.isAir()) openAir++;
+                    if (high.isAir()) openAir++;
+                }
+                if (flooded) break;
+            }
+            // 5x5 footprint samples: need a real floor and an open chamber, not a solid wall pocket.
+            if (flooded || solidFloor < 18 || openAir < 45) continue;
+            return Optional.of(new BlockPos(origin.getX(), y, origin.getZ()));
+        }
+        return Optional.empty();
+    }
 
     private boolean drySurface(GenerationContext context, BlockPos sample, int floor, int surface) {
         if (surface == floor) return true;
@@ -180,6 +275,7 @@ public final class ResearchLabStructure extends Structure {
     public static final class Piece extends TemplateStructurePiece {
         private final boolean ocean;
         private final int clearingRadius;
+        private final boolean underground;
         // Used only during placement; the piece saves its radius and rotation, not this processor.
         private static final BlockIgnoreProcessor RESTORE_CHANGED = new BlockIgnoreProcessor(java.util.List.of()) {
             @Override public StructureTemplate.StructureBlockInfo processBlock(LevelReader level, BlockPos origin, BlockPos pivot,
@@ -192,13 +288,18 @@ public final class ResearchLabStructure extends Structure {
         };
 
         public Piece(StructureTemplateManager manager, ResourceLocation template, BlockPos position, Rotation rotation, boolean ocean) {
-            this(manager, template, position, rotation, ocean, template.getPath().equals("forest_treehouse") ? 3 : 0);
+            this(manager, template, position, rotation, ocean, template.getPath().equals("forest_treehouse") ? 3 : 0, false);
         }
 
         public Piece(StructureTemplateManager manager, ResourceLocation template, BlockPos position, Rotation rotation, boolean ocean, int clearingRadius) {
+            this(manager, template, position, rotation, ocean, clearingRadius, false);
+        }
+
+        public Piece(StructureTemplateManager manager, ResourceLocation template, BlockPos position, Rotation rotation, boolean ocean, int clearingRadius, boolean underground) {
             super(PIECE.get(), 0, manager, template, template.toString(), settings(rotation), position);
             this.ocean = ocean;
             this.clearingRadius = clearingRadius;
+            this.underground = underground;
             expandClearing();
         }
 
@@ -206,6 +307,7 @@ public final class ResearchLabStructure extends Structure {
             super(PIECE.get(), tag, manager, location -> settings(Rotation.valueOf(tag.getString("Rot"))));
             this.ocean = tag.getBoolean("Ocean");
             this.clearingRadius = tag.getInt("Clearing");
+            this.underground = tag.getBoolean("Underground");
             expandClearing();
         }
 
@@ -230,6 +332,7 @@ public final class ResearchLabStructure extends Structure {
             tag.putString("Rot", placeSettings.getRotation().name());
             tag.putBoolean("Ocean", ocean);
             tag.putInt("Clearing", clearingRadius);
+            tag.putBoolean("Underground", underground);
         }
 
         @Override
@@ -240,6 +343,8 @@ public final class ResearchLabStructure extends Structure {
             if (hasClearing()) clearLandscape(level, clip, false);
             template.placeInWorld(level, templatePosition, pivot, placeSettings, random,
                     Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+            // Cave shells already replace stone; do not pour foundations into neighboring voids.
+            if (underground) return;
             // Fill only beneath actual load-bearing base blocks, inside the current chunk.
             int base = templatePosition.getY() + (ocean ? 1 : 0);
             for (int x = Math.max(clip.minX(), boundingBox.minX()); x <= Math.min(clip.maxX(), boundingBox.maxX()); x++) {

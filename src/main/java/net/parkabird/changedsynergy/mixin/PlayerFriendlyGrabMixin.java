@@ -84,11 +84,16 @@ public abstract class PlayerFriendlyGrabMixin implements PlayerHugAccess {
     }
     @Inject(method = "grabEntity", at = @At("RETURN"))
     private void changedSynergy$markFriendly(LivingEntity target, CallbackInfoReturnable<Boolean> callback) {
-        if (callback.getReturnValue()) {
-            PlayerHugService.began(changedSynergy$self());
+        if (!callback.getReturnValue()) return;
+        var grab = changedSynergy$self();
+        // Only intentional friendly-hug sessions; combat grabs on humanoids stay native.
+        if (PlayerHugService.mode(grab) && PlayerHugService.validTarget(grab, target)) {
+            PlayerHugService.began(grab);
             changedSynergy$heldForm = PlayerHugService.form(target);
-            var owner = PlayerHugService.escapePlayer(changedSynergy$self());
+            var owner = PlayerHugService.escapePlayer(grab);
             changedSynergy$heldOwner = owner == null ? null : owner.getUUID();
+        } else {
+            net.parkabird.changedsynergy.compat.ChangedAddonCompat.configureFriendlyGrab(grab, false, true);
         }
     }
     @Inject(method = "tickIdle", at = @At("HEAD"), cancellable = true)

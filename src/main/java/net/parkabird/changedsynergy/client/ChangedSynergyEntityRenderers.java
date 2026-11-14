@@ -12,6 +12,7 @@ import net.parkabird.changedsynergy.client.model.LatexMuntjacModel;
 import net.parkabird.changedsynergy.client.model.LatexMuntjacFemaleModel;
 import net.parkabird.changedsynergy.client.model.LatexSpottedHyenaModel;
 import net.parkabird.changedsynergy.client.model.SpottedHyenaModelLayers;
+import net.parkabird.changedsynergy.client.model.LatexSpidtaurModel;
 
 /** Client-only entity renderer registration. */
 @Mod.EventBusSubscriber(
@@ -36,6 +37,7 @@ public final class ChangedSynergyEntityRenderers {
         event.registerEntityRenderer(ChangedSynergyEntities.LATEX_MUNTJAC_FEMALE.get(), LatexMuntjacFemaleRenderer::new);
         event.registerEntityRenderer(ChangedSynergyEntities.LATEX_SPOTTED_HYENA_MALE.get(), context -> new LatexSpottedHyenaRenderer(context, false));
         event.registerEntityRenderer(ChangedSynergyEntities.LATEX_SPOTTED_HYENA_FEMALE.get(), context -> new LatexSpottedHyenaRenderer(context, true));
+        event.registerEntityRenderer(ChangedSynergyEntities.LATEX_SPIDTAUR.get(), LatexSpidtaurRenderer::new);
     }
 
     @SubscribeEvent
@@ -52,5 +54,18 @@ public final class ChangedSynergyEntityRenderers {
         event.registerLayerDefinition(LatexMuntjacFemaleModel.LAYER_LOCATION, LatexMuntjacFemaleModel::createBodyLayer);
         event.registerLayerDefinition(LatexSpottedHyenaModel.MALE_LAYER, SpottedHyenaModelLayers::male);
         event.registerLayerDefinition(LatexSpottedHyenaModel.FEMALE_LAYER, SpottedHyenaModelLayers::female);
+        event.registerLayerDefinition(LatexSpidtaurModel.LAYER_LOCATION, LatexSpidtaurModel::createBodyLayer);
+        event.registerLayerDefinition(
+                net.parkabird.changedsynergy.client.model.WhiteLatexWolfPartialModel.LAYER_LOCATION_HUMAN,
+                () -> net.parkabird.changedsynergy.client.model.WhiteLatexWolfPartialModel.createHumanLayer(false));
+        event.registerLayerDefinition(
+                net.parkabird.changedsynergy.client.model.WhiteLatexWolfPartialModel.LAYER_LOCATION_HUMAN_SLIM,
+                () -> net.parkabird.changedsynergy.client.model.WhiteLatexWolfPartialModel.createHumanLayer(true));
+        event.registerLayerDefinition(
+                net.parkabird.changedsynergy.client.model.WhiteLatexWolfPartialModel.LAYER_LOCATION_LATEX,
+                () -> net.parkabird.changedsynergy.client.model.WhiteLatexWolfPartialModel.createLatexLayer(false));
+        event.registerLayerDefinition(
+                net.parkabird.changedsynergy.client.model.WhiteLatexWolfPartialModel.LAYER_LOCATION_LATEX_SLIM,
+                () -> net.parkabird.changedsynergy.client.model.WhiteLatexWolfPartialModel.createLatexLayer(true));
     }
 }

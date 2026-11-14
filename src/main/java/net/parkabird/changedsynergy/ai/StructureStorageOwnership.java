@@ -25,7 +25,7 @@ final class StructureStorageOwnership {
         var be = level.getBlockEntity(pos);
         if (be == null) return false;
         var data = mob.getPersistentData().getCompound(StructureResidentGoal.DATA);
-        if (be.getPersistentData().getBoolean(MARKER) && !Set.of("desert_refuge","oasis","muddy_campsite","hyena_camp_tropical","hyena_camp_open","hyena_camp_snowy").contains(data.getString("Template"))) return true;
+        if (be.getPersistentData().getBoolean(MARKER) && !Set.of("desert_refuge","lush_cabin","oasis","muddy_campsite","hyena_camp_tropical","hyena_camp_open","hyena_camp_snowy").contains(data.getString("Template"))) return true;
         var id = ResourceLocation.tryParse(data.getString("Template"));
         if (id == null || !data.getBoolean("Resolved")) return false;
         if (id.getNamespace().equals("minecraft")) id = ResourceLocation.fromNamespaceAndPath("changed_synergy", id.getPath());

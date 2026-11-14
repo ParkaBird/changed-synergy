@@ -1,0 +1,14 @@
+{
+  "entities": [
+    "changed_synergy:pure_white_latex_wolf_partial"
+  ],
+  "slots": [
+    "changed:body",
+    "changed:hands",
+    "changed:head",
+    "changed:face",
+    "changed:full_body",
+    "changed:legs",
+    "changed:neck"
+  ]
+}

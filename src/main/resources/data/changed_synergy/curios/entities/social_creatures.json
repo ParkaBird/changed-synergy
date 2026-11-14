@@ -62,6 +62,7 @@
     "changed:latex_squid_dog_male",
     "changed:latex_squirrel",
     "changed:latex_stiger",
+    "changed_synergy:latex_spidtaur",
     "changed:latex_tiger_shark",
     "changed:latex_traffic_cone_dragon",
     "changed:latex_translucent_lizard",
@@ -84,7 +85,8 @@
     "changed_synergy:latex_spotted_hyena_male",
     "changed_synergy:latex_spotted_hyena_female",
     "changed_synergy:latex_eagle_owl",
-    "changed_synergy:latex_jerboa"
+    "changed_synergy:latex_jerboa",
+    "changed_synergy:pure_white_latex_wolf_partial"
   ],
   "slots": [
     "head",

@@ -52,7 +52,9 @@ public final class CreatureGrabService {
 
     public static boolean isSafeGrab(Object value) {
         if (!(value instanceof GrabEntityAbilityInstance grab)) return false;
-        if (PlayerHugService.active(grab) || PlayerHugService.mode(grab)) return true;
+        // Friendly-hug *mode* alone must not freeze combat holds on datapack
+        // humanoids (issue #8); only an active hug session is safe.
+        if (PlayerHugService.active(grab)) return true;
         return isScriptedHold(grab) || ChangedAddonCompat.isSafeGrab(grab);
     }
 
@@ -61,7 +63,7 @@ public final class CreatureGrabService {
                 || carrier.getUnderlyingPlayer() != null || TrueTransfurCompat.isInstinctBody(carrier)) return false;
         return grab.entity.getLevel().isClientSide()
                 ? FriendlySocialHugState.isActive(carrier.getId(), grab.grabbedEntity.getId())
-                : LatexSocialMemory.isFriendlyArmHoldTarget(carrier, grab.grabbedEntity);
+                : LatexSocialMemory.isFriendlyArmHoldActive(carrier, grab.grabbedEntity);
     }
 
     public static GrabEntityAbilityInstance ensureAbility(ChangedEntity creature) {

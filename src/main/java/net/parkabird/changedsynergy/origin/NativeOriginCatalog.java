@@ -41,7 +41,8 @@ public final class NativeOriginCatalog {
                 && ChangedSynergyMod.MOD_ID.equals(entityId.getNamespace());
         return (original || synergy || ChangedSynergyConfig.COMMON.includeModdedOriginSpecies.get())
                 && (!path.contains("partial") || Set.of("changed:form_dark_latex_wolf_partial",
-                        "changed_addon:form_latex_snow_leopard_partial").contains(variant.getFormId().toString()))
+                        "changed_addon:form_latex_snow_leopard_partial",
+                        "changed_synergy:form_pure_white_latex_wolf_partial").contains(variant.getFormId().toString()))
                 && !path.contains("custom")
                 && !path.contains("benign") && !path.contains("special") && !path.contains("boss")
                 && !entityId.getPath().contains("boss")

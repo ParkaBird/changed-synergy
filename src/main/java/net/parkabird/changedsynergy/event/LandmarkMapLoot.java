@@ -25,6 +25,7 @@ public final class LandmarkMapLoot {
     private static final Set<String> MOUNTAIN_CHESTS=Set.of("chests/ancient_city","chests/igloo_chest",
             "chests/village/village_snowy_house","chests/village/village_taiga_house");
     private static final Set<String> DESERT_CHESTS=Set.of("chests/desert_pyramid","chests/village/village_desert_house","chests/abandoned_mineshaft","chests/ruined_portal","chests/simple_dungeon","chests/pillager_outpost");
+    private static final Set<String> CAVE_CHESTS=Set.of("chests/simple_dungeon","chests/abandoned_mineshaft","chests/ruined_portal");
 
     @SubscribeEvent public static void load(LootTableLoadEvent event) {
         var name=event.getName();
@@ -74,6 +75,12 @@ public final class LandmarkMapLoot {
                     LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.WINDSWEPT_FOREST)),
                     LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.MEADOW)),
                     LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.CHERRY_GROVE))));
+            event.getTable().addPool(pool.build());
+        }
+        if(tower || name.getNamespace().equals("minecraft")&&CAVE_CHESTS.contains(name.getPath())) {
+            var pool=pool("lush_cabin", tower ? .15F : .05F);
+            // Watchtowers keep a traveler's copy; dungeon/mineshaft maps only when opened in lush caves.
+            if(!tower)pool.when(LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.LUSH_CAVES)));
             event.getTable().addPool(pool.build());
         }
     }

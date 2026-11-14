@@ -4,6 +4,8 @@ Gender: Male
 Age: 32
 Blood Type: O-
 
-We tried to fuse the subject with a Custom Latex sample bred within the facility. The result was unsatisfactory; although his consciousness remained intact, overwhelming instincts caused the host to lose motor control of the body upon leaving the chamber.
+We attempted to fuse the subject with a Custom Latex sample bred within the facility, using the eastern stasis chamber and an oxygenated-water suspension.
 
-Chemical neutralization was required to calm the sample into dormancy, and the bay was vacated before cleanup could be finished.
+The result was unsatisfactory. Although telemetry confirmed the subject's consciousness remained intact, the custom strain's survival instincts proved too aggressive to synchronize with his nervous system. Upon chamber release, the host lost total voluntary control of the body, thrashing against the containment bay and scattering resin across the eastern wall.
+
+Sedative neutralization was required to halt the reaction and secure the lab. The strain will need further stabilization before the next trial.

@@ -1095,6 +1095,12 @@ public final class LatexSocialEvents {
             return;
         }
         boolean openingGiftWheel = player.isShiftKeyDown() && !emptyHand;
+        // Let Addon/Changed native pets handle shift+empty-hand (Experiment 009 remerge).
+        if (owner && emptyHand && player.isShiftKeyDown()
+                && LatexSocialMemory.usesNativePetMenu(creature)
+                && !BondedSuitService.isSuitingOwner(creature, player)) {
+            return;
+        }
         if (owner && openingGiftWheel && socialInteractions) {
             calmTowards(creature, player);
             openBondedSocialMenu(player, creature);
@@ -1908,7 +1914,8 @@ public final class LatexSocialEvents {
             case FRIENDLY_OTHER -> Cue.PAT_FRIEND;
             case OUTSIDER -> Cue.PAT_OUTSIDER;
             case HUMAN -> Cue.PAT_HUMAN;
-            case RIVAL -> Cue.PAT_RIVAL;
+            case RIVAL -> LatexSocialMemory.shouldRemainNeutral(mob, player)
+                    ? Cue.PAT_FRIEND : Cue.PAT_RIVAL;
             case FORMER_BONDED -> Cue.PAT_FORMER_BONDED;
             case FORMER_RESPECTED -> Cue.PAT_FORMER_RESPECT;
             case FRIEND_RESPECTED -> Cue.PAT_FRIEND_RESPECT;

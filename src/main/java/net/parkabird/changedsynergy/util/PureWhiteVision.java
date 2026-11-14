@@ -2,6 +2,7 @@ package net.parkabird.changedsynergy.util;
 
 import net.ltxprogrammer.changed.entity.variant.TransfurVariantInstance;
 import net.ltxprogrammer.changed.init.ChangedTransfurVariants;
+import net.parkabird.changedsynergy.init.ChangedSynergyTransfurVariants;
 
 /** Shared identification for the original pure-white hive forms. */
 public final class PureWhiteVision {
@@ -14,6 +15,7 @@ public final class PureWhiteVision {
                 && (variant.is(ChangedTransfurVariants.PURE_WHITE_LATEX_WOLF)
                         || variant.is(ChangedTransfurVariants.PURE_WHITE_LATEX_WOLF_PUP)
                         || variant.is(ChangedTransfurVariants.PURE_WHITE_LATEX_CERBERUS)
-                        || variant.is(ChangedTransfurVariants.LATEX_MUTANT_BLOODCELL_WOLF));
+                        || variant.is(ChangedTransfurVariants.LATEX_MUTANT_BLOODCELL_WOLF)
+                        || variant.is(ChangedSynergyTransfurVariants.PURE_WHITE_LATEX_WOLF_PARTIAL));
     }
 }

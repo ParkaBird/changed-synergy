@@ -3,6 +3,7 @@
   "values": [
     "changed:dark_latex_wolf_partial",
     "changed:latex_human",
+    "changed_synergy:pure_white_latex_wolf_partial",
     {
       "id": "changed_addon:latex_snow_leopard_partial",
       "required": false

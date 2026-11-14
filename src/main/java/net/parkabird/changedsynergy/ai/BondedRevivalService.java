@@ -70,6 +70,7 @@ public final class BondedRevivalService {
                 .orElseGet(() -> bonds.iterator().next());
         String name = creature.getDisplayName().getString();
         boolean itemRevival = creature.getType() != ChangedEntities.DARK_LATEX_WOLF_PARTIAL.get()
+                && creature.getType() != net.parkabird.changedsynergy.init.ChangedSynergyEntities.PURE_WHITE_LATEX_WOLF_PARTIAL.get()
                 && !LatexSocialMemory.isOrganic(creature) && creature.getSelfVariant() != null;
         String form = creature.getSelfVariant() == null ? "" : creature.getSelfVariant().getFormId().toString();
         boolean darkMask = HunterFaction.of(creature) == HunterFaction.DARK;

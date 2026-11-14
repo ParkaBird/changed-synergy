@@ -5,7 +5,8 @@
     "changed:latex_manta_ray_female",
     "changed:latex_siren",
     "changed:latex_gnoll_taur",
-    "changed:white_latex_centaur"
+    "changed:white_latex_centaur",
+    "changed_synergy:latex_spidtaur"
   ],
   "slots": [
     "changed:body",

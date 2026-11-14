@@ -20,6 +20,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.ForgeRegistry;
+import net.minecraftforge.registries.MissingMappingsEvent;
+import net.minecraftforge.registries.RegisterEvent;
 import net.minecraftforge.registries.RegistryObject;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.entity.CreatureFishingHookVisual;
@@ -28,6 +31,8 @@ import net.parkabird.changedsynergy.entity.LatexSwordfish;
 import net.parkabird.changedsynergy.entity.LatexMuntjac;
 import net.parkabird.changedsynergy.entity.LatexMuntjacFemale;
 import net.parkabird.changedsynergy.entity.LatexSpottedHyena;
+import net.parkabird.changedsynergy.entity.LatexSpidtaur;
+import net.parkabird.changedsynergy.entity.WhiteLatexWolfPartial;
 
 /** Entity types owned by Synergy. */
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -83,6 +88,18 @@ public final class ChangedSynergyEntities {
                     .sized(0.6F, 1.93F).clientTrackingRange(10)
                     .build(ChangedSynergyMod.MOD_ID + ":latex_spotted_hyena_female"));
 
+    public static final RegistryObject<EntityType<LatexSpidtaur>> LATEX_SPIDTAUR =
+            REGISTRY.register("latex_spidtaur", () -> EntityType.Builder
+                    .<LatexSpidtaur>of(LatexSpidtaur::new, MobCategory.MONSTER)
+                    .sized(1.1F, 2.0F).clientTrackingRange(10)
+                    .build(ChangedSynergyMod.MOD_ID + ":latex_spidtaur"));
+
+    public static final RegistryObject<EntityType<WhiteLatexWolfPartial>> PURE_WHITE_LATEX_WOLF_PARTIAL =
+            REGISTRY.register("pure_white_latex_wolf_partial", () -> EntityType.Builder
+                    .<WhiteLatexWolfPartial>of(WhiteLatexWolfPartial::new, MobCategory.MONSTER)
+                    .sized(0.7F, 1.93F).clientTrackingRange(10)
+                    .build(ChangedSynergyMod.MOD_ID + ":pure_white_latex_wolf_partial"));
+
     public static final RegistryObject<EntityType<CreatureFishingHookVisual>>
             CREATURE_FISHING_HOOK = REGISTRY.register(
                     "creature_fishing_hook",
@@ -99,6 +116,22 @@ public final class ChangedSynergyEntities {
     private ChangedSynergyEntities() {
     }
 
+    public static void registerAliases(RegisterEvent event) {
+        if (!event.getRegistryKey().equals(ForgeRegistries.ENTITY_TYPES.getRegistryKey())) return;
+        var registry = (ForgeRegistry<EntityType<?>>) event.<EntityType<?>>getForgeRegistry();
+        registry.addAlias(
+                ResourceLocation.parse("changed_synergy:white_latex_wolf_partial"),
+                PURE_WHITE_LATEX_WOLF_PARTIAL.getId());
+    }
+
+    public static void remapOldEntities(MissingMappingsEvent event) {
+        for (var mapping : event.getMappings(ForgeRegistries.ENTITY_TYPES.getRegistryKey(), ChangedSynergyMod.MOD_ID)) {
+            if ("white_latex_wolf_partial".equals(mapping.getKey().getPath())) {
+                mapping.remap(PURE_WHITE_LATEX_WOLF_PARTIAL.get());
+            }
+        }
+    }
+
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(LATEX_JERBOA.get(),ChangedEntity.createLatexAttributes().build());
@@ -109,6 +142,8 @@ public final class ChangedSynergyEntities {
         event.put(LATEX_MUNTJAC_FEMALE.get(), ChangedEntity.createLatexAttributes().build());
         event.put(LATEX_SPOTTED_HYENA_MALE.get(), ChangedEntity.createLatexAttributes().build());
         event.put(LATEX_SPOTTED_HYENA_FEMALE.get(), ChangedEntity.createLatexAttributes().build());
+        event.put(LATEX_SPIDTAUR.get(), ChangedEntity.createLatexAttributes().build());
+        event.put(PURE_WHITE_LATEX_WOLF_PARTIAL.get(), ChangedEntity.createLatexAttributes().build());
     }
 
     @SubscribeEvent
@@ -144,6 +179,12 @@ public final class ChangedSynergyEntities {
         event.register(LATEX_SILK_MOTH.get(), SpawnPlacements.Type.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ChangedEntity::checkEntitySpawnRules,
                 SpawnPlacementRegisterEvent.Operation.REPLACE);
+        event.register(LATEX_SPIDTAUR.get(), SpawnPlacements.Type.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, LatexSpidtaur::checkSpidtaurSpawnRules,
+                SpawnPlacementRegisterEvent.Operation.REPLACE);
+        event.register(PURE_WHITE_LATEX_WOLF_PARTIAL.get(), SpawnPlacements.Type.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ChangedEntity::checkEntitySpawnRules,
+                SpawnPlacementRegisterEvent.Operation.REPLACE);
     }
 
     @SubscribeEvent
@@ -163,6 +204,11 @@ public final class ChangedSynergyEntities {
                 LATEX_SPOTTED_HYENA_MALE.getId(), 0xB18B58, 0x3D302A));
         event.enqueueWork(() -> ChangedEntities.registerEntityColor(
                 LATEX_SPOTTED_HYENA_FEMALE.getId(), 0xB18B58, 0x3D302A));
+        event.enqueueWork(() -> ChangedEntities.registerEntityColor(
+                LATEX_SPIDTAUR.getId(), 0x5A534C, 0xE8E2D8));
+        // Match Changed pure-white latex beasts (primary 0xFFFFFF, secondary 0xFAFAFA).
+        event.enqueueWork(() -> ChangedEntities.registerEntityColor(
+                PURE_WHITE_LATEX_WOLF_PARTIAL.getId(), 0xFFFFFF, 0xFAFAFA));
     }
 
     @SubscribeEvent
@@ -176,6 +222,8 @@ public final class ChangedSynergyEntities {
             event.accept(ChangedSynergyItems.LATEX_MUNTJAC_FEMALE_SPAWN_EGG);
             event.accept(ChangedSynergyItems.LATEX_SPOTTED_HYENA_MALE_SPAWN_EGG);
             event.accept(ChangedSynergyItems.LATEX_SPOTTED_HYENA_FEMALE_SPAWN_EGG);
+            event.accept(ChangedSynergyItems.LATEX_SPIDTAUR_SPAWN_EGG);
+            event.accept(ChangedSynergyItems.PURE_WHITE_LATEX_WOLF_PARTIAL_SPAWN_EGG);
         }
         if (event.getTabKey().location().equals(ChangedTabs.TAB_CHANGED_CLOTHING.getId())) {
             event.accept(ChangedSynergyItems.DESERT_NOMAD_OUTFIT);
@@ -193,7 +241,9 @@ public final class ChangedSynergyEntities {
                     ChangedSynergyTransfurVariants.LATEX_MUNTJAC.getId(),
                     ChangedSynergyTransfurVariants.LATEX_MUNTJAC_FEMALE.getId(),
                     ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_MALE.getId(),
-                    ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_FEMALE.getId())) {
+                    ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_FEMALE.getId(),
+                    ChangedSynergyTransfurVariants.LATEX_SPIDTAUR.getId(),
+                    ChangedSynergyTransfurVariants.PURE_WHITE_LATEX_WOLF_PARTIAL.getId())) {
                 for (var item : java.util.List.of(ChangedItems.LATEX_SYRINGE.get(), ChangedItems.LATEX_FLASK.get(), ChangedItems.LATEX_TIPPED_ARROW.get())) {
                     ItemStack anchor = null;
                     for (var existing : event.getEntries()) if (existing.getKey().is(item)) anchor = existing.getKey();

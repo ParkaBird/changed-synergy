@@ -1,0 +1,21 @@
+{
+  "type": "changed:infuser",
+  "form": "changed_synergy:form_latex_spidtaur",
+  "ingredients": [
+    {
+      "item": "changed:latex_base"
+    },
+    {
+      "item": "changed:white_latex_goo"
+    },
+    {
+      "item": "minecraft:spider_eye"
+    },
+    {
+      "item": "minecraft:string"
+    },
+    {
+      "item": "minecraft:cobweb"
+    }
+  ]
+}

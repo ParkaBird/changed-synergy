@@ -22,7 +22,10 @@ public final class MuntjacJumpService {
     }
 
     private static boolean chargedJumper(Object body) {
-        return body instanceof LatexMuntjac || body instanceof LatexMuntjacFemale || body instanceof LatexJerboa;
+        return body instanceof LatexMuntjac
+                || body instanceof LatexMuntjacFemale
+                || body instanceof LatexJerboa
+                || body instanceof LatexSpidtaur;
     }
 
     private static Object form(Player player) {
