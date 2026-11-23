@@ -72,3 +72,4 @@ scratch_*
 discord_*.json
 discord_*.txt
 *.zip
+AGENTS.md
