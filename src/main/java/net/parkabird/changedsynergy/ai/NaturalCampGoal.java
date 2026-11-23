@@ -21,7 +21,12 @@ import net.parkabird.changedsynergy.entity.SpottedHyenaDiet;
 import net.parkabird.changedsynergy.performance.SynergyPerformanceTracker;
 import net.parkabird.changedsynergy.world.inventory.PlayerOutpostCargoInventory;
 
-/** Bounded jobs use the player's existing saved cargo, storage adapters, meal and seat lifecycle. */
+/**
+ * Camp tasks that may leave the idle station: deposit, pickup, crop (farming), berries,
+ * glow berries, hunt, and meal. On {@link #stop()} the resident is marked to walk HomeX/Y/Z
+ * again via {@link StructureResidentGoal.IdleStationGoal}. Solo meals use NEXT_MEAL; chief
+ * summons use {@link NaturalCampService#hasActiveMealCall}.
+ */
 public final class NaturalCampGoal extends Goal {
     private enum Work { DEPOSIT, PICKUP, CROP, BERRIES, GLOW_BERRIES, HUNT, MEAL }
     private final ChangedEntity mob;
@@ -43,7 +48,8 @@ public final class NaturalCampGoal extends Goal {
     }
     private static final int MAX_MEAL_TRAVEL_TICKS = 1200;
     private static final int MAX_STALLED_TICKS = 140;
-    private static final double MEAL_WALK_SPEED = 0.40D;
+    /** Same as ChangedEntity RandomStrollGoal — ordinary latex walk, not a sprint modifier. */
+    private static final double MEAL_WALK_SPEED = 0.3D;
     private static final java.util.Map<ChangedEntity, BlockPos> ACTIVE_MEALS = new java.util.WeakHashMap<>();
     private net.minecraft.world.level.pathfinder.Path initialPath;
     private Vec3 lastPos;
@@ -96,11 +102,22 @@ public final class NaturalCampGoal extends Goal {
                     if(stand!=null) {harvestBlock=pos.immutable();target=stand;work=Work.GLOW_BERRIES;return true;}
                 }
             }
-        }
-        if(!character && mob.getRandom().nextInt(4)==0) for(var animal:level.getEntitiesOfClass(Animal.class,area,
-                a->PlayerOutpostWorkGoal.huntable(a) && !a.getTags().contains("changed_synergy:camp_livestock"))
-                .stream().sorted(Comparator.comparingDouble(mob::distanceToSqr)).limit(4).toList()) {
-            if(reachable(animal.blockPosition())) {prey=animal;target=animal.blockPosition();work=Work.HUNT;return true;}
+            if(!character && mob.getRandom().nextInt(4)==0) {
+                long now=level.getGameTime();
+                for(var animal:level.getEntitiesOfClass(Animal.class,area,
+                        a->PlayerOutpostWorkGoal.huntable(a) && !a.getTags().contains("changed_synergy:camp_livestock"))
+                        .stream().sorted(Comparator.comparingDouble(mob::distanceToSqr)).limit(4).toList()) {
+                    var data=animal.getPersistentData();
+                    if(data.getLong(CreatureSettlementService.HUNT_CLAIMED_UNTIL)>now
+                            && data.hasUUID(CreatureSettlementService.HUNT_CLAIMED_BY)
+                            && !data.getUUID(CreatureSettlementService.HUNT_CLAIMED_BY).equals(mob.getUUID())) continue;
+                    if(!reachable(animal.blockPosition())) continue;
+                    prey=animal;target=animal.blockPosition();work=Work.HUNT;
+                    data.putUUID(CreatureSettlementService.HUNT_CLAIMED_BY, mob.getUUID());
+                    data.putLong(CreatureSettlementService.HUNT_CLAIMED_UNTIL, now+640L);
+                    return true;
+                }
+            }
         }
         return false;
     }
@@ -220,7 +237,11 @@ public final class NaturalCampGoal extends Goal {
     @Override public void tick() {
         ticks++;var level=(ServerLevel)mob.level();
         if(work==Work.HUNT) {
-            if(prey==null || !prey.isAlive() || !NaturalCampService.activityBounds(mob).contains(prey.position())) {ticks=300;return;}
+            var claim=prey==null?null:prey.getPersistentData();
+            if(prey==null || !prey.isAlive() || !NaturalCampService.activityBounds(mob).contains(prey.position())
+                    || !ForgeEventFactory.getMobGriefingEvent(level,mob)
+                    || claim.hasUUID(CreatureSettlementService.HUNT_CLAIMED_BY)
+                        && !claim.getUUID(CreatureSettlementService.HUNT_CLAIMED_BY).equals(mob.getUUID())) {ticks=300;return;}
             target=prey.blockPosition();
             if(mob.distanceToSqr(prey)<5 && ticks%20==0) {
                 mob.swing(InteractionHand.MAIN_HAND);
@@ -248,10 +269,8 @@ public final class NaturalCampGoal extends Goal {
                 }
                 if(stalledTicks>=MAX_STALLED_TICKS)return;
                 if((mob.getNavigation().isDone() || stalledTicks>=40) && PlayerOutpostGoal.canNavigate(mob)) {
-                    int acc=mob.distanceToSqr(Vec3.atCenterOf(target))<=9.0D?0:1;
-                    var repath=NaturalCampService.path(mob,target,acc);
-                    if((repath==null||!repath.canReach())&&acc==0)repath=NaturalCampService.path(mob,target,1);
-                    if(repath!=null&&repath.canReach())mob.getNavigation().moveTo(repath,MEAL_WALK_SPEED);
+                    // Ordinary walk + failure backoff — avoid accuracy-0 grinding into blocked cells.
+                    if(!CreatureTaskNavigation.moveTo(mob,target,1,MEAL_WALK_SPEED))stalledTicks=Math.min(MAX_STALLED_TICKS,stalledTicks+20);
                 }
             } else if(ticks%40==1 && !CreatureTaskNavigation.moveTo(mob,target,1,.35))ticks=300;
             return;
@@ -331,12 +350,16 @@ public final class NaturalCampGoal extends Goal {
         ACTIVE_MEALS.remove(mob);
         mob.getNavigation().stop();CreatureTaskNavigation.clearFailure(mob);
         if(seated){CompanionAutoEatGoal.cleanup(mob);CreatureComfortGoal.endSeatedActivity(mob);}
-        if(work==Work.MEAL && (seated || stalledTicks>=MAX_STALLED_TICKS)){
+        // Always drop the meal call on exit (arrive, stall, or travel timeout) so sleep / station-return can resume.
+        if(work==Work.MEAL){
             mob.getPersistentData().remove(NaturalCampService.MEAL_CALL_UNTIL);
             mob.getPersistentData().remove(NaturalCampService.MEAL_CALL_LEADER);
         }
+        if(work==Work.HUNT) CreatureSettlementService.releaseHuntClaim(mob, prey);
         if(mob.getPose()==net.minecraft.world.entity.Pose.CROUCHING&&mob.level().noCollision(mob,mob.getDimensions(net.minecraft.world.entity.Pose.STANDING).makeBoundingBox(mob.position())))mob.setPose(net.minecraft.world.entity.Pose.STANDING);
         if(prey!=null && mob.getTarget()==prey)mob.setTarget(null);
         prey=null;drop=null;harvestBlock=null;seated=false;initialPath=null;lastPos=null;stalledTicks=0;
+        // Harvest / hunt / deposit / meal all leave station; ask IdleStation to reclaim once no higher job runs.
+        NaturalCampService.markWantsStation(mob);
     }
 }

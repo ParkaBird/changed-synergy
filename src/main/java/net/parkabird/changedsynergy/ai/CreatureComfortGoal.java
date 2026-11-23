@@ -460,6 +460,7 @@ public final class CreatureComfortGoal extends Goal {
                 || mob.isLeashed()
                 || CreatureSettlementService.hasCargo(mob)
                 || mob.getTarget() != null
+                || NaturalCampService.shouldYieldPlay(mob)
                 || net.parkabird.changedsynergy.npc.NpcConversations.holds(mob)
                 || SocialAudienceGoal.isActive(mob)
                 || CreatureGrabService.isGrabberBusy(mob)

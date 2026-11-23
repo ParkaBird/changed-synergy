@@ -28,7 +28,7 @@ final class CreatureTaskNavigation {
         if (previous != null && now < previous.retryAt()) return false;
         var path = NaturalCampService.path(mob, target, accuracy);
         boolean closeToGoal = mob.position().distanceToSqr(Vec3.atBottomCenterOf(target)) <= 6.25D;
-        // Distant deliveries may use partial paths, while already standing right beside the destination avoids artificial distSqr+1 stalls.
+        // Partial routes that still get closer are allowed; dead-end grinding is handled by failure backoff.
         boolean advances = path != null && (path.canReach()
                 || closeToGoal && path.getNodeCount() >= 1
                 || path.getNodeCount() >= 2 && path.getEndNode() != null

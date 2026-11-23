@@ -23,17 +23,13 @@ import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.advancement.SynergyAdvancements;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.parkabird.changedsynergy.compat.ChangedAddonCompat;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
@@ -99,8 +95,6 @@ public final class LatexSocialMemory {
             SUPPRESSED_MOVEMENT_GOALS = new WeakHashMap<>();
     private static final Map<ChangedEntity, GoalMutation>
             PENDING_GOAL_MUTATIONS = new WeakHashMap<>();
-    private static final TagKey<EntityType<?>> ORGANIC_LATEX = TagKey.create(
-            Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath("changed", "organic_latex"));
     private static final ClassValue<Boolean> NATIVE_PET_MENU = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> type) {
@@ -136,12 +130,16 @@ public final class LatexSocialMemory {
         return mob.getUnderlyingPlayer() == null
                 && CreatureSocialProfile.allowsSynergySystems(mob)
                 && (mob.getType().is(ChangedTags.EntityTypes.LATEX)
-                        || mob.getType().is(ORGANIC_LATEX));
+                        || HunterFaction.isOrganicType(mob.getType()));
     }
 
-    /** Organic Changed creatures use physical assimilation rather than latex wrapping. */
+    /**
+     * Organic Changed creatures use physical assimilation rather than latex wrapping.
+     * Matches {@link HunterFaction#isOrganicType}: Addon biosynth organics are often
+     * named {@code *_organic} but omitted from {@code changed:organic_latex}.
+     */
     public static boolean isOrganic(ChangedEntity mob) {
-        return mob.getType().is(ORGANIC_LATEX);
+        return HunterFaction.isOrganicType(mob.getType());
     }
 
     /** Unprovoked humans are neutral to organic creatures and are not valid assimilation targets. */

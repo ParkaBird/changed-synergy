@@ -1,8 +1,13 @@
 package net.parkabird.changedsynergy.mixin;
 
-import net.ltxprogrammer.changed.block.LabTable;
 import net.ltxprogrammer.changed.block.AbstractLabDoor;
 import net.ltxprogrammer.changed.block.AbstractLargeLabDoor;
+import net.ltxprogrammer.changed.block.BarTopBlock;
+import net.ltxprogrammer.changed.block.Generator;
+import net.ltxprogrammer.changed.block.LabTable;
+import net.ltxprogrammer.changed.block.RailingBlock;
+import net.ltxprogrammer.changed.block.StasisChamber;
+import net.minecraft.world.level.block.Block;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Pose;
@@ -25,7 +30,11 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** A table is too high to step onto, so keep land paths off its top cell. */
+/**
+ * Changed furniture with partial collision often looks path-open to A* while still
+ * body-blocking mobs (lab tables, bar tops, railings, generators, stasis chambers).
+ * Force those cells blocked so land routes go around.
+ */
 @Mixin(WalkNodeEvaluator.class)
 public abstract class LabTablePathfindingMixin extends NodeEvaluator {
     @Inject(
@@ -37,8 +46,12 @@ public abstract class LabTablePathfindingMixin extends NodeEvaluator {
             remap = false)
     private void changedSynergy$planTallCrouchClearance(
             PathNavigationRegion region, Mob walker, CallbackInfo callback) {
-        if (CompanionOpenDoorGoal.isCrouchPlanning() && this.entityHeight > 2) {
-            this.entityHeight = 2;
+        if (!CompanionOpenDoorGoal.isCrouchPlanning()) return;
+        // Standing height 2.0 already uses entityHeight=2; still shrink so 2-block doors clear.
+        if (this.entityHeight >= 2) this.entityHeight = 2;
+        // bbWidth 1.0–1.25 still rounds to entityWidth=2; allow single-block doorways while crouch-planning.
+        if (walker instanceof ChangedEntity creature && creature.getBbWidth() <= 1.25F && this.entityWidth > 1) {
+            this.entityWidth = 1;
         }
     }
 
@@ -87,14 +100,22 @@ public abstract class LabTablePathfindingMixin extends NodeEvaluator {
             at = @At("HEAD"),
             cancellable = true,
             remap = false)
-    private static void changedSynergy$avoidLabTables(
+    private static void changedSynergy$avoidPartialFurniture(
             BlockGetter level,
             BlockPos position,
             CallbackInfoReturnable<BlockPathTypes> callback) {
-        if (level.getBlockState(position).getBlock() instanceof LabTable
-                || level.getBlockState(position.below()).getBlock()
-                        instanceof LabTable) {
+        if (blocksLandPath(level.getBlockState(position).getBlock())
+                || blocksLandPath(level.getBlockState(position.below()).getBlock())) {
             callback.setReturnValue(BlockPathTypes.BLOCKED);
         }
+    }
+
+    @Unique
+    private static boolean blocksLandPath(Block block) {
+        return block instanceof LabTable
+                || block instanceof BarTopBlock
+                || block instanceof RailingBlock
+                || block instanceof Generator
+                || block instanceof StasisChamber;
     }
 }

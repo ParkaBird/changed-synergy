@@ -84,7 +84,6 @@ public final class HuntAIEvents {
     private static final String COMPATRIOT_RALLY_UNTIL =
             "ChangedSynergyCompatriotRallyUntil";
     private static final TagKey<EntityType<?>> LATEXES = tag("changed", "latexes");
-    private static final TagKey<EntityType<?>> ORGANIC_LATEX = tag("changed", "organic_latex");
     private static final TagKey<EntityType<?>> BENIGN_LATEXES = tag("changed", "benign_latexes");
     private static final TagKey<EntityType<?>> HUNT_AI_EXCLUDED = tag("changed_synergy", "hunt_ai_excluded");
 
@@ -796,7 +795,7 @@ public final class HuntAIEvents {
     }
 
     private static boolean isHunterKind(ChangedEntity mob) {
-        return (mob.getType().is(LATEXES) || mob.getType().is(ORGANIC_LATEX))
+        return (mob.getType().is(LATEXES) || HunterFaction.isOrganicType(mob.getType()))
                 && !mob.getType().is(BENIGN_LATEXES)
                 && !mob.getType().is(HUNT_AI_EXCLUDED)
                 && LatexSocialMemory.petOwnerUuid(mob).isEmpty()

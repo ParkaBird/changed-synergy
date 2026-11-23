@@ -14,7 +14,12 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 
-/** Authored camps belong to their structure, separately from player camps and constructed wild outposts. */
+/**
+ * Authored camp lifecycle for built-in residents with an idle station:
+ * idle near HomeX/Y/Z → leave for tasks (crop/hunt/combat/meal/…) → return home →
+ * night bed sleep → wake and return home. Chief dialogue can summon currently idle
+ * members to a meal; ordinary members keep a private NEXT_MEAL timer.
+ */
 @Mod.EventBusSubscriber(modid=ChangedSynergyMod.MOD_ID)
 public final class NaturalCampService {
     /** Shared by residents; player access is independently controlled by private storage. */
@@ -46,6 +51,12 @@ public final class NaturalCampService {
                 &&(net.parkabird.changedsynergy.npc.CampLifeService.mainCamp(mob)
                         ||net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(mob));
     }
+    /** After a task, IdleStationGoal must reach this tight disk around HomeX/Y/Z (约一两格). */
+    public static final double STATION_ARRIVE_H=2.0D;
+    public static final double STATION_ARRIVE_V=2.0D;
+    /** Daytime idle stroll / comfort stay inside this wider disk once returned. */
+    public static final double STATION_IDLE_H=12.0D;
+    public static final double STATION_IDLE_V=3.5D;
     public static Vec3 homeAnchor(ChangedEntity mob) {
         var data=mob.getPersistentData().getCompound(StructureResidentGoal.DATA);
         return new Vec3(data.getDouble("HomeX"),data.getDouble("HomeY"),data.getDouble("HomeZ"));
@@ -56,8 +67,13 @@ public final class NaturalCampService {
         double dx=pos.x-home.x, dz=pos.z-home.z;
         return dx*dx+dz*dz<=maxHorizontal*maxHorizontal&&Math.abs(pos.y-home.y)<=maxVertical;
     }
+    /** True when standing on/near the authored spawn anchor (±一两格). */
+    public static boolean atHomeAnchor(ChangedEntity mob) {
+        return withinStation(mob,mob.position(),STATION_ARRIVE_H,STATION_ARRIVE_V);
+    }
+    /** Comfort props stay inside the same idle-station disk used by BoundedStroll. */
     public static boolean allowsComfortSite(ChangedEntity mob, BlockPos cursor, boolean emergencyHeal) {
-        return emergencyHeal||withinStation(mob,Vec3.atCenterOf(cursor),14.0D,4.0D);
+        return emergencyHeal||withinStation(mob,Vec3.atCenterOf(cursor),STATION_IDLE_H,STATION_IDLE_V);
     }
     public static boolean restsHere(ChangedEntity mob){return member(mob)||laboratoryResident(mob);}
     public static AABB restBounds(ChangedEntity mob){
@@ -67,6 +83,18 @@ public final class NaturalCampService {
     }
     public static final String MEAL_CALL_UNTIL="ChangedSynergyNaturalCampMealCallUntil";
     public static final String MEAL_CALL_LEADER="ChangedSynergyNaturalCampMealCallLeader";
+    /** Set when a camp job/sleep/combat ends so IdleStationGoal rechecks without waiting on its cooldown. */
+    public static final String WANT_STATION="ChangedSynergyWantStation";
+    public static void markWantsStation(ChangedEntity mob) {
+        if(hasIdleStation(mob) && !atHomeAnchor(mob))
+            mob.getPersistentData().putBoolean(WANT_STATION,true);
+    }
+    public static void clearWantsStation(ChangedEntity mob) {
+        mob.getPersistentData().remove(WANT_STATION);
+    }
+    public static boolean wantsStation(ChangedEntity mob) {
+        return mob.getPersistentData().getBoolean(WANT_STATION);
+    }
     private static final net.minecraft.resources.ResourceLocation STOVE_ID=net.minecraft.resources.ResourceLocation.tryBuild("farmersdelight","stove");
     private static final net.minecraft.resources.ResourceLocation CANVAS_RUG_ID=net.minecraft.resources.ResourceLocation.tryBuild("farmersdelight","canvas_rug");
     private static final net.minecraft.resources.ResourceLocation FULL_TATAMI_ID=net.minecraft.resources.ResourceLocation.tryBuild("farmersdelight","full_tatami_mat");
@@ -128,11 +156,27 @@ public final class NaturalCampService {
     public static boolean shouldYieldPlay(ChangedEntity mob){
         return isRoutineActive(mob)||(restsHere(mob)&&PlayerOutpostRestGoal.sleepTime(mob));
     }
+    /**
+     * Chief meal summons only currently idle built-in members: not sleeping, not in dialogue,
+     * and not mid crop/hunt/deposit/meal/sleep/approach work. Sleepers are left alone.
+     */
+    public static boolean isCampTaskBusy(ChangedEntity mob){
+        if(mob==null||mob.level().isClientSide)return true;
+        if(mob.isSleeping())return true;
+        if(net.parkabird.changedsynergy.npc.NpcConversations.holds(mob))return true;
+        return mob.goalSelector.getRunningGoals().anyMatch(g->{
+            var goal=g.getGoal();
+            return goal instanceof NaturalCampGoal
+                    ||goal instanceof NaturalCampSleepGoal
+                    ||goal instanceof net.parkabird.changedsynergy.npc.CampApproachGoal;
+        });
+    }
     public static boolean canJoinMealCall(ChangedEntity mob){
         return member(mob)&&inHomeDimension(mob)&&net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.naturalCampRoutines.get()
                 &&CreatureLifeMemory.enabled(mob)&&mob.isAlive()&&!mob.isNoAi()&&mob.getUnderlyingPlayer()==null
                 &&!followingOwner(mob)&&!PlayerOutpostService.hasAssignment(mob)&&!PlayerOutpostService.isWorking(mob)
                 &&!CompanionSeatingService.commandedSeat(mob)
+                &&!isCampTaskBusy(mob)
                 &&(mob.getTarget()==null||!mob.getTarget().isAlive())
                 &&HypnosisQteService.getActiveVictim(mob)==null
                 &&!CreatureGrabService.isGrabberBusy(mob)&&!TakeoverService.carrying(mob)
@@ -144,12 +188,12 @@ public final class NaturalCampService {
         data.remove("ChangedSynergyNaturalCampNextMeal");
         data.putLong(MEAL_CALL_UNTIL,until);
         if(leader!=null)data.putUUID(MEAL_CALL_LEADER,leader.getUUID());
-        wakeForMeal(mob);
+        prepareIdleMeal(mob);
     }
-    public static void wakeForMeal(ChangedEntity mob){
-        if(mob==null||mob.level().isClientSide)return;
+    /** Clears soft idle holds (seat / play) so an already-idle member can walk to the meal. Never wakes sleepers. */
+    public static void prepareIdleMeal(ChangedEntity mob){
+        if(mob==null||mob.level().isClientSide||mob.isSleeping())return;
         mob.getPersistentData().remove("ChangedSynergyNaturalCampNextMeal");
-        if(mob.isSleeping())mob.stopSleeping();
         if(mob.isPassenger()&&mob.getVehicle() instanceof net.ltxprogrammer.changed.entity.SeatEntity&&!CompanionSeatingService.commandedSeat(mob)){
             CreatureComfortGoal.endSeatedActivity(mob);
             if(mob.isPassenger())mob.stopRiding();
@@ -159,6 +203,9 @@ public final class NaturalCampService {
             if(wrapped.getGoal() instanceof NaturalCampGoal campGoal)campGoal.resetWait();
         }
     }
+    /** @deprecated use {@link #prepareIdleMeal}; kept for call sites that still expect the old name. */
+    @Deprecated
+    public static void wakeForMeal(ChangedEntity mob){prepareIdleMeal(mob);}
     public static List<BlockPos> mealPoints(ChangedEntity mob){
         var result=new ArrayList<BlockPos>();
         for(var p:sites(mob).fires()){
@@ -191,8 +238,15 @@ public final class NaturalCampService {
         if(restsHere(mob)&&mob.goalSelector.getAvailableGoals().stream().noneMatch(g->g.getGoal() instanceof NaturalCampSleepGoal))
             mob.goalSelector.addGoal(0,new NaturalCampSleepGoal(mob));
         if(member(mob)&&!(mob instanceof net.ltxprogrammer.changed.entity.beast.AquaticEntity)
-                &&mob.getNavigation() instanceof net.minecraft.world.entity.ai.navigation.GroundPathNavigation ground)
+                &&mob.getNavigation() instanceof net.minecraft.world.entity.ai.navigation.GroundPathNavigation ground){
             ground.setCanFloat(true);
+            // Camp interiors use wooden/mangrove doors; without these flags A* treats closed doors as walls.
+            ground.setCanOpenDoors(true);
+            ground.setCanPassDoors(true);
+        }
+        if(member(mob)&&mob.goalSelector.getAvailableGoals().stream()
+                .noneMatch(g->g.getGoal() instanceof CompanionOpenDoorGoal))
+            mob.goalSelector.addGoal(2,new CompanionOpenDoorGoal(mob));
         StructureResidentGoal.installStationTether(mob);
         if(publicReserveOnly(mob))net.parkabird.changedsynergy.npc.CampLifeService.rememberStores(mob);
     }
@@ -293,7 +347,10 @@ public final class NaturalCampService {
                 && bounds(hunter).contains(target.position());
     }
     @SubscribeEvent public static void target(LivingChangeTargetEvent event) {
-        if(event.getEntity() instanceof ChangedEntity mob && event.getNewTarget()!=null && livestock(mob,event.getNewTarget()))event.setNewTarget(null);
+        if(!(event.getEntity() instanceof ChangedEntity mob))return;
+        if(event.getNewTarget()!=null && livestock(mob,event.getNewTarget()))event.setNewTarget(null);
+        // After a fight ends (or livestock nulls the target), reclaim the authored station when idle.
+        if(event.getNewTarget()==null && event.getOriginalTarget()!=null) markWantsStation(mob);
     }
     @SubscribeEvent public static void attack(LivingAttackEvent event) {
         if(event.getSource().getEntity() instanceof ChangedEntity mob && livestock(mob,event.getEntity()))event.setCanceled(true);

@@ -1,0 +1,75 @@
+{
+  "source_world": "D:\\Program Files\\.minecraft\\versions\\测试专用\\saves\\Synergy-普罗米修斯编辑-20261119",
+  "cameras": 8,
+  "doors_library_to_lab": 54,
+  "crate_box_swap_blocks": 4,
+  "camera_positions": [
+    [
+      11,
+      4,
+      40
+    ],
+    [
+      17,
+      5,
+      28
+    ],
+    [
+      29,
+      10,
+      27
+    ],
+    [
+      30,
+      4,
+      36
+    ],
+    [
+      39,
+      4,
+      35
+    ],
+    [
+      39,
+      11,
+      18
+    ],
+    [
+      46,
+      4,
+      16
+    ],
+    [
+      50,
+      3,
+      1
+    ]
+  ],
+  "swap_positions": [
+    [
+      47,
+      2,
+      19
+    ],
+    [
+      47,
+      3,
+      19
+    ],
+    [
+      48,
+      2,
+      19
+    ],
+    [
+      48,
+      3,
+      19
+    ]
+  ],
+  "output_sha256": "28a4f9576c37c481e0e023991d190d474db4e62776c7e7a29750dbc97e2d53d9",
+  "notes": [
+    "Only iron_crate/cardboard_box stair swap, cameras, and library->lab doors were synced.",
+    "Farmer's Delight gaps, entity loss, and other edits were ignored."
+  ]
+}

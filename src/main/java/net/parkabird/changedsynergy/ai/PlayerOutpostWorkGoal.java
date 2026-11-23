@@ -57,8 +57,6 @@ public final class PlayerOutpostWorkGoal extends Goal {
     private static final String FARM_BATCH = "ChangedSynergyPlayerOutpostFarmBatch";
     private static final String HAUL_BATCH = "ChangedSynergyPlayerOutpostHaulBatch";
     private static final String OUTPUT = "ChangedSynergyPlayerOutpostWorkOutput";
-    private static final String HUNT_OWNER = "ChangedSynergyHuntClaimedBy";
-    private static final String HUNT_UNTIL = "ChangedSynergyHuntClaimedUntil";
     private static final int BAG_SLOTS = PlayerOutpostCargoInventory.WORK_SLOTS;
     private static final int BATCH_SIZE = 4;
     private static final int MAX_PATH_PROBES = 16;
@@ -236,8 +234,8 @@ public final class PlayerOutpostWorkGoal extends Goal {
                 if (!huntable(prey) || !camp.huntContains(prey.blockPosition())
                         || camp.farmContains(prey.blockPosition())
                         || prey.blockPosition().distSqr(camp.marker) < 64.0D
-                        || !prey.getPersistentData().hasUUID(HUNT_OWNER)
-                        || !mob.getUUID().equals(prey.getPersistentData().getUUID(HUNT_OWNER))
+                        || !prey.getPersistentData().hasUUID(CreatureSettlementService.HUNT_CLAIMED_BY)
+                        || !mob.getUUID().equals(prey.getPersistentData().getUUID(CreatureSettlementService.HUNT_CLAIMED_BY))
                         || !mayModify(level, prey.blockPosition())) { remaining = 0; return; }
                 stand = prey.blockPosition();
                 mob.getLookControl().setLookAt(prey, 30.0F, 30.0F);
@@ -539,12 +537,12 @@ public final class PlayerOutpostWorkGoal extends Goal {
                     || animals.stream().filter(other -> other.getType() == candidate.getType()
                             && other.distanceToSqr(candidate) < 24.0D * 24.0D).count() < 3) continue;
             CompoundTag data = candidate.getPersistentData();
-            if (data.getLong(HUNT_UNTIL) > level.getGameTime() && data.hasUUID(HUNT_OWNER)
-                    && !data.getUUID(HUNT_OWNER).equals(mob.getUUID())) continue;
+            if (data.getLong(CreatureSettlementService.HUNT_CLAIMED_UNTIL) > level.getGameTime() && data.hasUUID(CreatureSettlementService.HUNT_CLAIMED_BY)
+                    && !data.getUUID(CreatureSettlementService.HUNT_CLAIMED_BY).equals(mob.getUUID())) continue;
             if (!target(level, candidate.blockPosition(), Action.HUNT, "hunting")) continue;
             prey = candidate;
-            data.putUUID(HUNT_OWNER, mob.getUUID());
-            data.putLong(HUNT_UNTIL, level.getGameTime() + 640L);
+            data.putUUID(CreatureSettlementService.HUNT_CLAIMED_BY, mob.getUUID());
+            data.putLong(CreatureSettlementService.HUNT_CLAIMED_UNTIL, level.getGameTime() + 640L);
             return true;
         }
         member.workStatus = "no_prey";

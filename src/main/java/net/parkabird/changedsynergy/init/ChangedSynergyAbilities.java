@@ -31,10 +31,16 @@ public final class ChangedSynergyAbilities {
     public static AbstractAbility<?> wingFlap(){return ChangedRegistry.ABILITY.get().getValue(net.minecraft.resources.ResourceLocation.parse("changed_addon:wing_flap"));}
 
     @net.minecraftforge.eventbus.api.SubscribeEvent
-    public static void removedWingFlap(net.minecraftforge.registries.MissingMappingsEvent event){
+    public static void removedAbilities(net.minecraftforge.registries.MissingMappingsEvent event){
         for(var mapping:event.<AbstractAbility<?>>getMappings(ChangedRegistry.ABILITY.get().getRegistryKey(),ChangedSynergyMod.MOD_ID)){
-            if(!mapping.getKey().getPath().equals("wing_flap"))continue;
-            var original=wingFlap();if(original==null)mapping.ignore();else mapping.remap(original);
+            switch (mapping.getKey().getPath()) {
+                case "wing_flap" -> {
+                    var original = wingFlap();
+                    if (original == null) mapping.ignore();
+                    else mapping.remap(original);
+                }
+                case "wall_climb", "charged_jump" -> mapping.ignore();
+            }
         }
     }
 

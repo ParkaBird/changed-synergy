@@ -47,8 +47,6 @@ public final class PlayerOutpostCrewGatherGoal extends Goal {
     private static final double HUNT_SPEED = 0.4D;
     private static final int HUNT_ATTACK_TICKS = 16;
     private static final int HUNT_COOLDOWN_TICKS = 1800;
-    private static final String HUNT_OWNER = "ChangedSynergyHuntClaimedBy";
-    private static final String HUNT_UNTIL = "ChangedSynergyHuntClaimedUntil";
     private enum Action { MINE, ORANGE, SWEET_BERRIES, GLOW_BERRIES, HUNT, LOOT, DEPOSIT }
     private final ChangedEntity mob;
     private Outpost camp;
@@ -263,8 +261,8 @@ public final class PlayerOutpostCrewGatherGoal extends Goal {
                     || camp.dimension.equals(level.dimension().location().toString())
                         && (camp.farmContains(candidate.blockPosition()) || candidate.blockPosition().distSqr(camp.marker) < 64)) return false;
             var claim = candidate.getPersistentData();
-            return claim.getLong(HUNT_UNTIL) <= now || !claim.hasUUID(HUNT_OWNER)
-                    || claim.getUUID(HUNT_OWNER).equals(mob.getUUID());
+            return claim.getLong(CreatureSettlementService.HUNT_CLAIMED_UNTIL) <= now || !claim.hasUUID(CreatureSettlementService.HUNT_CLAIMED_BY)
+                    || claim.getUUID(CreatureSettlementService.HUNT_CLAIMED_BY).equals(mob.getUUID());
         });
         boolean eligible = false;
         for (Animal candidate : animals.stream().sorted(Comparator.comparingDouble(mob::distanceToSqr)).limit(16).toList()) {
@@ -282,7 +280,7 @@ public final class PlayerOutpostCrewGatherGoal extends Goal {
                 }
             }
             prey = candidate; block = candidate.blockPosition(); stand = block; action = Action.HUNT;
-            data.putUUID(HUNT_OWNER, mob.getUUID()); data.putLong(HUNT_UNTIL, level.getGameTime() + 640);
+            data.putUUID(CreatureSettlementService.HUNT_CLAIMED_BY, mob.getUUID()); data.putLong(CreatureSettlementService.HUNT_CLAIMED_UNTIL, level.getGameTime() + 640);
             member.workStatus = "hunting";
             return true;
         }
@@ -335,8 +333,8 @@ public final class PlayerOutpostCrewGatherGoal extends Goal {
                 || !ForgeEventFactory.getMobGriefingEvent(level, mob)) return false;
         if (action == Action.LOOT) return true;
         if (action == Action.HUNT) return prey != null && prey.isAlive() && PlayerOutpostWorkGoal.huntable(prey)
-                && prey.distanceToSqr(ownerBody) < 32 * 32 && prey.getPersistentData().hasUUID(HUNT_OWNER)
-                && prey.getPersistentData().getUUID(HUNT_OWNER).equals(mob.getUUID())
+                && prey.distanceToSqr(ownerBody) < 32 * 32 && prey.getPersistentData().hasUUID(CreatureSettlementService.HUNT_CLAIMED_BY)
+                && prey.getPersistentData().getUUID(CreatureSettlementService.HUNT_CLAIMED_BY).equals(mob.getUUID())
                 && !(camp.dimension.equals(level.dimension().location().toString())
                         && (camp.farmContains(prey.blockPosition()) || prey.blockPosition().distSqr(camp.marker) < 64));
         return level.hasChunkAt(block) && level.getBlockState(block).equals(selectedState) && resource(level, block) == action;

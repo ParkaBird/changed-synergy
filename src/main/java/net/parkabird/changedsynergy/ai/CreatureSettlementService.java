@@ -141,10 +141,8 @@ public final class CreatureSettlementService {
             "ChangedSynergyFacilityOrangeRoom";
     private static final String FACILITY_STORAGE_POS =
             "ChangedSynergyFacilityStoragePos";
-    private static final String HUNT_CLAIMED_BY =
-            "ChangedSynergyHuntClaimedBy";
-    private static final String HUNT_CLAIMED_UNTIL =
-            "ChangedSynergyHuntClaimedUntil";
+    static final String HUNT_CLAIMED_BY = "ChangedSynergyHuntClaimedBy";
+    static final String HUNT_CLAIMED_UNTIL = "ChangedSynergyHuntClaimedUntil";
     private static final String MINECART_CLAIMED_BY =
             "ChangedSynergyMinecartClaimedBy";
     private static final String MINECART_CLAIMED_UNTIL =

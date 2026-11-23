@@ -2,11 +2,13 @@ package net.parkabird.changedsynergy.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.parkabird.changedsynergy.ai.PlayerOutpostSupplyType;
 import net.parkabird.changedsynergy.ai.PlayerOutpostData.Role;
@@ -165,7 +167,7 @@ public final class PlayerOutpostScreen extends AbstractContainerScreen<PlayerOut
                     .append(Component.literal("\n")).append(Component.translatable(member.loaded()
                                     ? "menu.changed_synergy.player_outpost.member_current_location"
                                     : "menu.changed_synergy.player_outpost.member_location",
-                            member.name(), member.dimension(), member.position().toShortString()))));
+                            member.name(), dimensionName(member.dimension()), member.position().toShortString()))));
         }
         MemberView selected = selectedIndex >= 0 && selectedIndex < roster.size() ? roster.get(selectedIndex) : null;
         boolean crew = selected != null && selected.role() == Role.CREW;
@@ -199,6 +201,13 @@ public final class PlayerOutpostScreen extends AbstractContainerScreen<PlayerOut
 
     private static Component crewName(CrewJob job) {
         return Component.translatable("menu.changed_synergy.player_outpost.crew." + job.name().toLowerCase(java.util.Locale.ROOT));
+    }
+
+    /** Prefer the language-pack dimension title (e.g. 主世界) over the registry id. */
+    private static Component dimensionName(String dimension) {
+        ResourceLocation id = ResourceLocation.tryParse(dimension);
+        if (id == null) return Component.literal(dimension == null ? "" : dimension);
+        return Component.translatable(Util.makeDescriptionId("dimension", id));
     }
 
     private void cycleWork(boolean backup) {
@@ -262,7 +271,7 @@ public final class PlayerOutpostScreen extends AbstractContainerScreen<PlayerOut
         Component home = Component.translatable(
                 menu.active() ? "menu.changed_synergy.player_outpost.active"
                         : "menu.changed_synergy.player_outpost.inactive",
-                menu.dimension(), menu.marker().toShortString());
+                dimensionName(menu.dimension()), menu.marker().toShortString());
         graphics.drawString(font, font.plainSubstrByWidth(home.getString(), imageWidth - 18),
                 9, 22, dark, false);
         Component storage = Component.translatable("menu.changed_synergy.player_outpost.storage",
@@ -283,17 +292,19 @@ public final class PlayerOutpostScreen extends AbstractContainerScreen<PlayerOut
             Component location = Component.translatable(
                     member.loaded() ? "menu.changed_synergy.player_outpost.member_current_location"
                             : "menu.changed_synergy.player_outpost.member_location", name,
-                    member.dimension(), member.position().toShortString());
+                    dimensionName(member.dimension()), member.position().toShortString());
             graphics.drawString(font, font.plainSubstrByWidth(location.getString(), imageWidth - 18),
                     9, lowerY(199), dark, false);
             graphics.drawString(font, font.plainSubstrByWidth(Component.translatable(
                             "menu.changed_synergy.player_outpost.member_status", Component.translatable(
                                     "menu.changed_synergy.player_outpost.status." + member.workStatus())).getString(), imageWidth - 18),
                     9, lowerY(234), dark, false);
-        } else {
-            graphics.drawString(font, font.plainSubstrByWidth(Component.translatable(
-                    "menu.changed_synergy.player_outpost.empty").getString(), imageWidth - 18),
-                    9, lowerY(199), dark, false);
+        } else if (menu.members().isEmpty()) {
+            // Centered inside the member list inset; no invite-command tip under the pager.
+            int boxTop = 74;
+            int boxMidY = (boxTop + lowerY(177) - font.lineHeight) / 2;
+            graphics.drawCenteredString(font, Component.translatable("menu.changed_synergy.player_outpost.empty"),
+                    imageWidth / 2, boxMidY, dark);
         }
     }
 

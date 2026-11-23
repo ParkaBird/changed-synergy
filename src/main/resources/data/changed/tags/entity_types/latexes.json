@@ -1,5 +1,9 @@
 {
   "replace": false,
+  "remove": [
+    "changed_addon:snow_leopard_male_organic",
+    "changed_addon:snow_leopard_female_organic"
+  ],
   "values": [
     "changed_synergy:latex_silk_moth",
     "changed_synergy:latex_swordfish",
