@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import net.ltxprogrammer.changed.ability.GrabEntityAbility;
+import net.ltxprogrammer.changed.block.BarStool;
 import net.ltxprogrammer.changed.block.CardboardBoxTall;
 import net.ltxprogrammer.changed.block.OfficeChair;
 import net.ltxprogrammer.changed.block.Pillow;
@@ -218,7 +219,7 @@ public final class PlayerOutpostRestGoal extends Goal {
         if (state.getBlock() instanceof Pillow)
             return !state.getValue(Pillow.OCCUPIED) && level.getBlockEntity(pos) instanceof PillowBlockEntity pillow
                     && pillow.getSeatedEntity() == null;
-        if (state.getBlock() instanceof OfficeChair)
+        if (isChairSeat(state))
             return level.getBlockEntity(pos) instanceof ChairBlockEntity chair && chair.getSeatedEntity() == null;
         return state.getBlock() instanceof CardboardBoxTall
                 && level.getBlockEntity(pos.above()) instanceof CardboardBoxTallBlockEntity box
@@ -230,8 +231,17 @@ public final class PlayerOutpostRestGoal extends Goal {
     }
     static boolean reserved(ChangedEntity mob,BlockPos pos){return pos!=null&&pos.equals(ACTIVE_RESTS.get(mob));}
 
+    /** Changed office chairs (lower half) and bar stools share ChairBlockEntity seating. */
+    public static boolean isChairSeat(BlockState state) {
+        if (state.getBlock() instanceof BarStool) return true;
+        return state.getBlock() instanceof OfficeChair
+                && state.hasProperty(OfficeChair.HALF)
+                && state.getValue(OfficeChair.HALF) == DoubleBlockHalf.LOWER;
+    }
+
     public static boolean isRestPoint(BlockState state) {
-        return state.is(net.minecraft.tags.BlockTags.WOOL_CARPETS) || state.getBlock() instanceof Pillow || state.getBlock() instanceof OfficeChair
+        return state.is(net.minecraft.tags.BlockTags.WOOL_CARPETS) || state.getBlock() instanceof Pillow
+                || state.getBlock() instanceof OfficeChair || state.getBlock() instanceof BarStool
                 || state.getBlock() instanceof CardboardBoxTall;
     }
     public static boolean sleepTime(ChangedEntity mob) {

@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "changed_synergy:block/surveillance_camera",
+      "y": 0
+    },
+    "facing=east": {
+      "model": "changed_synergy:block/surveillance_camera",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "changed_synergy:block/surveillance_camera",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "changed_synergy:block/surveillance_camera",
+      "y": 270
+    }
+  }
+}

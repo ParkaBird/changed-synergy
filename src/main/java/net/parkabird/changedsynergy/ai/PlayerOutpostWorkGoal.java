@@ -258,7 +258,9 @@ public final class PlayerOutpostWorkGoal extends Goal {
             if (++actionTicks == 5) mob.swing(InteractionHand.MAIN_HAND);
             if (actionTicks >= 12) {
                 switch (action) {
-                    case DEPOSIT -> deposit(level);
+                    case DEPOSIT -> {
+                        if (deposit(level)) return;
+                    }
                     case PICKUP -> collectPickup(level);
                     case FARM -> {
                         if (!farm(level) && hasCargo(mob))
@@ -317,7 +319,7 @@ public final class PlayerOutpostWorkGoal extends Goal {
 
     private boolean chooseWork(ServerLevel level, Work work) {
         return switch (work) {
-            case FARM, COMPOST -> ChangedSynergyConfig.COMMON.playerOutpostFarming.get()
+            case FARM -> ChangedSynergyConfig.COMMON.playerOutpostFarming.get()
                     && (chooseFarm(level, false)
                             || count(PlayerOutpostData.container(level, camp.storage), new ItemStack(Items.BONE_MEAL)) > 0
                                     && chooseFarm(level, true)
@@ -335,11 +337,11 @@ public final class PlayerOutpostWorkGoal extends Goal {
         return target(level, targetPos, Action.DEPOSIT, "returning");
     }
 
-    private void deposit(ServerLevel level) {
+    private boolean deposit(ServerLevel level) {
         if (block == null || !level.hasChunkAt(block)
-                || !camp.contains(block) || mob.distanceToSqr(Vec3.atCenterOf(block)) > 16.0D) return;
+                || !camp.contains(block) || mob.distanceToSqr(Vec3.atCenterOf(block)) > 16.0D) return false;
         Container chest = PlayerOutpostData.container(level, block);
-        if (chest == null) { member.workStatus = "no_storage"; return; }
+        if (chest == null) { member.workStatus = "no_storage"; return false; }
         List<ItemStack> remaining = new ArrayList<>();
         boolean delivered = false;
         for (ItemStack stack : bag(mob)) {
@@ -358,10 +360,11 @@ public final class PlayerOutpostWorkGoal extends Goal {
             member.workStatus = "idle";
         } else {
             BlockPos nextPos = PlayerOutpostGoal.findBestStorage(level, mob, camp, remaining);
-            if (nextPos != null && !nextPos.equals(block) && target(level, nextPos, Action.DEPOSIT, "returning")) return;
+            if (nextPos != null && !nextPos.equals(block) && target(level, nextPos, Action.DEPOSIT, "returning")) return true;
             member.workStatus = "full_storage";
         }
         if (!remaining.isEmpty()) nextScan = level.getGameTime() + 200L;
+        return false;
     }
 
     private boolean chooseHaul(ServerLevel level) {

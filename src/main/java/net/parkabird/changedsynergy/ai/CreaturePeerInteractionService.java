@@ -579,7 +579,8 @@ public final class CreaturePeerInteractionService {
                 || creature.getTarget() != null || recentlyHurt(creature) || SocialAudienceGoal.isActive(creature)
                 || CreatureSettlementService.hasCargo(creature) || PlayerOutpostGoal.hasCargo(creature)
                 || PlayerOutpostWorkGoal.hasCargo(creature) || PlayerOutpostService.isWorking(creature)
-                || campDuty(creature) || ProvisionerTradeService.isTrading(creature)
+                || campDuty(creature) || NaturalCampService.shouldYieldPlay(creature)
+                || ProvisionerTradeService.isTrading(creature)
                 || CreatureLifeMemory.role(creature) == CreatureLifeMemory.GroupRole.CHIEF
                 || net.parkabird.changedsynergy.npc.CampDialogue.chief(creature)
                 || creature.getPersistentData().hasUUID("ChangedSynergyRestOwner")
@@ -594,6 +595,7 @@ public final class CreaturePeerInteractionService {
             Goal goal = wrapped.getGoal();
             if (!goal.getFlags().contains(Goal.Flag.MOVE) || goal instanceof CreaturePeerInteractionGoal
                     || goal instanceof RandomStrollGoal || goal instanceof BondedFollowGoal
+                    || goal instanceof StructureResidentGoal.IdleStationGoal
                     || goal instanceof SocialFollowGoal || goal instanceof FollowOwnerGoal
                     || aquaticIdle(goal)
                     || goal instanceof SocialAudienceGoal && !SocialAudienceGoal.isActive(creature)) return false;

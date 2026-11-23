@@ -16,7 +16,7 @@ public final class EagleOwlVisionClient {
     public static void render(float partialTick){
         var mc=Minecraft.getInstance();
         if(reload){close();failed=false;reload=false;}
-        if(!active()){close();return;}if(failed)return;
+        if(!active())return;if(failed)return;
         try{
             if(chain==null){chain=new PostChain(mc.getTextureManager(),mc.getResourceManager(),mc.getMainRenderTarget(),ResourceLocation.parse("changed_synergy:shaders/post/eagle_owl_grayscale.json"));width=height=-1;}
             if(width!=mc.getWindow().getWidth()||height!=mc.getWindow().getHeight()){width=mc.getWindow().getWidth();height=mc.getWindow().getHeight();chain.resize(width,height);}

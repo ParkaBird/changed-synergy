@@ -5,6 +5,8 @@
     {
       "id": "changed_addon:mirror_white_tiger",
       "required": false
-    }
+    },
+    "changed_synergy:latex_gray_fox",
+    "changed_synergy:latex_gray_fox_female"
   ]
 }

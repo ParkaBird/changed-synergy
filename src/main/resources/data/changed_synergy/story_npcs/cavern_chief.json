@@ -3,7 +3,9 @@
   "species": "changed_synergy:latex_spidtaur",
   "trait": "CALM",
   "chief": true,
-  "equipment": [],
+  "equipment": [
+    "changed_synergy:cave_miner_outfit"
+  ],
   "nodes": {
     "root": {
       "lines": [
@@ -15,9 +17,9 @@
               "text": "npc.changed_synergy.cavern_chief.root.0.0",
               "effect": "impact",
               "emotion": "surprised",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.9,
+              "pause": 160,
+              "speed": 1.05,
+              "intensity": 0.92,
               "beat": false
             },
             {
@@ -26,7 +28,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -37,20 +39,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.root.1.0",
-              "effect": "none",
+              "effect": "whisper",
               "emotion": "curious",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.95,
+              "intensity": 0.45,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.root.1.1",
               "effect": "wobble",
               "emotion": "shy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 160,
+              "speed": 1.08,
+              "intensity": 0.85,
               "beat": false
             }
           ]
@@ -63,9 +65,9 @@
               "text": "npc.changed_synergy.cavern_chief.root.2.0",
               "effect": "wave",
               "emotion": "happy",
-              "pause": 140,
+              "pause": 150,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.75,
               "beat": false
             },
             {
@@ -74,7 +76,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -87,18 +89,18 @@
               "text": "npc.changed_synergy.cavern_chief.root.3.0",
               "effect": "whisper",
               "emotion": "whisper",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 0.92,
+              "intensity": 0.72,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.root.3.1",
-              "effect": "none",
+              "effect": "wobble",
               "emotion": "shy",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "pause": 140,
+              "speed": 1.04,
+              "intensity": 0.75,
               "beat": false
             }
           ]
@@ -175,7 +177,7 @@
               "emotion": "happy",
               "pause": 140,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.72,
               "beat": false
             },
             {
@@ -184,7 +186,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -195,11 +197,11 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.return.1.0",
-              "effect": "none",
+              "effect": "whisper",
               "emotion": "curious",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.95,
+              "intensity": 0.45,
               "beat": false
             }
           ]
@@ -212,9 +214,9 @@
               "text": "npc.changed_synergy.cavern_chief.return.2.0",
               "effect": "bounce",
               "emotion": "happy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 1.04,
+              "intensity": 0.8,
               "beat": false
             },
             {
@@ -223,7 +225,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -236,9 +238,9 @@
               "text": "npc.changed_synergy.cavern_chief.return.3.0",
               "effect": "wobble",
               "emotion": "shy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 1.05,
+              "intensity": 0.8,
               "beat": false
             }
           ]
@@ -315,16 +317,16 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.about.0.1",
-              "effect": "emphasis",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "effect": "droop",
+              "emotion": "sad",
+              "pause": 180,
+              "speed": 0.9,
+              "intensity": 0.78,
               "beat": false
             },
             {
@@ -333,7 +335,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -344,20 +346,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.about.1.0",
-              "effect": "none",
-              "emotion": "whisper",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "effect": "tremble",
+              "emotion": "fearful",
+              "pause": 150,
+              "speed": 0.96,
+              "intensity": 0.72,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.about.1.1",
               "effect": "float",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "dreamy",
+              "pause": 160,
+              "speed": 0.94,
+              "intensity": 0.82,
               "beat": false
             }
           ]
@@ -394,26 +396,33 @@
               "emotion": "happy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.home.0.1",
               "effect": "bounce",
-              "emotion": "happy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "excited",
+              "pause": 160,
+              "speed": 1.05,
+              "intensity": 0.82,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.home.0.2",
+              "emotion": "calm",
               "effect": "none",
-              "emotion": "happy",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "speed": 1.0,
+              "intensity": 0.0
+            },
+            {
+              "text": "npc.changed_synergy.cavern_chief.home.0.3",
+              "emotion": "happy",
+              "effect": "bounce",
+              "pause": 150,
+              "speed": 1.06,
+              "intensity": 0.85
             }
           ]
         },
@@ -423,11 +432,11 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.home.1.0",
-              "effect": "none",
+              "effect": "whisper",
               "emotion": "whisper",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.94,
+              "intensity": 0.5,
               "beat": false
             }
           ]
@@ -477,19 +486,19 @@
             {
               "text": "npc.changed_synergy.cavern_chief.water_spring.0.0",
               "effect": "emphasis",
-              "emotion": "calm",
-              "pause": 140,
+              "emotion": "determined",
+              "pause": 150,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.7,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.water_spring.0.1",
-              "effect": "none",
+              "effect": "droop",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.95,
+              "intensity": 0.5,
               "beat": false
             }
           ]
@@ -500,12 +509,19 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.water_spring.1.0",
-              "effect": "wobble",
               "emotion": "shy",
+              "effect": "wobble",
               "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
-              "beat": false
+              "speed": 1.04,
+              "intensity": 0.72
+            },
+            {
+              "text": "npc.changed_synergy.cavern_chief.water_spring.1.1",
+              "emotion": "fearful",
+              "effect": "tremble",
+              "pause": 170,
+              "speed": 0.9,
+              "intensity": 0.88
             }
           ]
         }
@@ -549,17 +565,17 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.quarters.0.1",
               "effect": "wobble",
               "emotion": "shy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
-              "beat": false
+              "pause": 170,
+              "speed": 0.94,
+              "intensity": 0.85,
+              "beat": true
             }
           ]
         },
@@ -571,9 +587,9 @@
               "text": "npc.changed_synergy.cavern_chief.quarters.1.0",
               "effect": "wobble",
               "emotion": "shy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 1.06,
+              "intensity": 0.82,
               "beat": false
             }
           ]
@@ -616,18 +632,18 @@
               "text": "npc.changed_synergy.cavern_chief.amethyst.0.0",
               "effect": "bounce",
               "emotion": "happy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 1.05,
+              "intensity": 0.82,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.amethyst.0.1",
-              "effect": "none",
-              "emotion": "happy",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "effect": "pulse",
+              "emotion": "dreamy",
+              "pause": 130,
+              "speed": 0.97,
+              "intensity": 0.68,
               "beat": false
             }
           ]
@@ -640,9 +656,9 @@
               "text": "npc.changed_synergy.cavern_chief.amethyst.1.0",
               "effect": "float",
               "emotion": "dreamy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 160,
+              "speed": 0.93,
+              "intensity": 0.82,
               "beat": false
             }
           ]
@@ -683,20 +699,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.bond.0.0",
-              "effect": "emphasis",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "effect": "pulse",
+              "emotion": "determined",
+              "pause": 160,
+              "speed": 0.96,
+              "intensity": 0.75,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.bond.0.1",
-              "effect": "none",
-              "emotion": "calm",
-              "pause": 0,
+              "effect": "wave",
+              "emotion": "curious",
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.6,
               "beat": false
             }
           ]
@@ -709,9 +725,9 @@
               "text": "npc.changed_synergy.cavern_chief.bond.1.0",
               "effect": "wobble",
               "emotion": "shy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 1.03,
+              "intensity": 0.78,
               "beat": false
             }
           ]
@@ -752,20 +768,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.chores.0.0",
-              "effect": "none",
-              "emotion": "calm",
-              "pause": 0,
+              "effect": "pulse",
+              "emotion": "curious",
+              "pause": 140,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.6,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.chores.0.1",
               "effect": "emphasis",
-              "emotion": "curious",
-              "pause": 140,
+              "emotion": "calm",
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.58,
               "beat": false
             }
           ]
@@ -776,11 +792,11 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.chores.1.0",
-              "effect": "none",
-              "emotion": "whisper",
+              "effect": "droop",
+              "emotion": "sad",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.92,
+              "intensity": 0.6,
               "beat": false
             }
           ]
@@ -823,9 +839,9 @@
               "text": "npc.changed_synergy.cavern_chief.attic.0.0",
               "effect": "wobble",
               "emotion": "shy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 170,
+              "speed": 1.1,
+              "intensity": 0.88,
               "beat": false
             },
             {
@@ -834,7 +850,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -847,9 +863,9 @@
               "text": "npc.changed_synergy.cavern_chief.attic.1.0",
               "effect": "wobble",
               "emotion": "shy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 1.05,
+              "intensity": 0.78,
               "beat": false
             }
           ]
@@ -894,16 +910,16 @@
               "emotion": "happy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.enrol.0.1",
               "effect": "bounce",
               "emotion": "happy",
-              "pause": 140,
+              "pause": 150,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.78,
               "beat": false
             }
           ]
@@ -918,25 +934,25 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "intensity": 0.0,
+              "beat": true
             },
             {
               "text": "npc.changed_synergy.cavern_chief.enrol.1.1",
               "effect": "emphasis",
               "emotion": "determined",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 0.97,
+              "intensity": 0.8,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.enrol.1.2",
-              "effect": "none",
-              "emotion": "calm",
-              "pause": 0,
+              "effect": "wave",
+              "emotion": "happy",
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.65,
               "beat": false
             }
           ]
@@ -948,19 +964,19 @@
             {
               "text": "npc.changed_synergy.cavern_chief.enrol.2.0",
               "effect": "tremble",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "sad",
+              "pause": 160,
+              "speed": 0.93,
+              "intensity": 0.75,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.enrol.2.1",
-              "effect": "none",
+              "effect": "pulse",
               "emotion": "calm",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "pause": 120,
+              "speed": 0.96,
+              "intensity": 0.55,
               "beat": false
             }
           ]
@@ -1009,48 +1025,53 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.explain_form.0.0",
-              "effect": "none",
               "emotion": "calm",
+              "effect": "none",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "speed": 0.96,
+              "intensity": 0.0
             },
             {
               "text": "npc.changed_synergy.cavern_chief.explain_form.0.1",
+              "emotion": "curious",
               "effect": "emphasis",
-              "emotion": "calm",
               "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "speed": 1.0,
+              "intensity": 0.75,
               "beat": true
             },
             {
               "text": "npc.changed_synergy.cavern_chief.explain_form.0.2",
-              "effect": "none",
-              "emotion": "calm",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "emotion": "happy",
+              "effect": "pulse",
+              "pause": 130,
+              "speed": 1.0,
+              "intensity": 0.6
+            },
+            {
+              "text": "npc.changed_synergy.cavern_chief.explain_form.0.5",
+              "emotion": "shy",
+              "effect": "wobble",
+              "pause": 150,
+              "speed": 0.95,
+              "intensity": 0.72
             },
             {
               "text": "npc.changed_synergy.cavern_chief.explain_form.0.3",
-              "effect": "emphasis",
               "emotion": "determined",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "effect": "emphasis",
+              "pause": 150,
+              "speed": 0.96,
+              "intensity": 0.8,
               "beat": true
             },
             {
               "text": "npc.changed_synergy.cavern_chief.explain_form.0.4",
-              "effect": "none",
-              "emotion": "calm",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "emotion": "happy",
+              "effect": "float",
+              "pause": 130,
+              "speed": 1.0,
+              "intensity": 0.65
             }
           ]
         }
@@ -1101,17 +1122,17 @@
               "effect": "none",
               "emotion": "determined",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.95,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.confirm_permanent.0.1",
               "effect": "pulse",
               "emotion": "determined",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 180,
+              "speed": 0.9,
+              "intensity": 0.85,
               "beat": false
             },
             {
@@ -1119,26 +1140,26 @@
               "effect": "none",
               "emotion": "determined",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.95,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.confirm_permanent.0.3",
-              "effect": "none",
+              "effect": "pulse",
               "emotion": "calm",
-              "pause": 0,
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.58,
               "beat": true
             },
             {
               "text": "npc.changed_synergy.cavern_chief.confirm_permanent.0.4",
-              "effect": "none",
+              "effect": "emphasis",
               "emotion": "determined",
-              "pause": 0,
+              "pause": 150,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.78,
               "beat": false
             }
           ]
@@ -1172,10 +1193,10 @@
             {
               "text": "npc.changed_synergy.cavern_chief.welcome_human.0.0",
               "effect": "bounce",
-              "emotion": "happy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "excited",
+              "pause": 160,
+              "speed": 1.05,
+              "intensity": 0.85,
               "beat": false
             },
             {
@@ -1184,7 +1205,7 @@
               "emotion": "happy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1195,11 +1216,11 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.welcome_human.1.0",
-              "effect": "none",
-              "emotion": "happy",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "effect": "pulse",
+              "emotion": "excited",
+              "pause": 140,
+              "speed": 1.05,
+              "intensity": 0.75,
               "beat": false
             }
           ]
@@ -1233,10 +1254,10 @@
             {
               "text": "npc.changed_synergy.cavern_chief.welcome_latex.0.0",
               "effect": "bounce",
-              "emotion": "happy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "excited",
+              "pause": 160,
+              "speed": 1.05,
+              "intensity": 0.85,
               "beat": false
             },
             {
@@ -1245,7 +1266,7 @@
               "emotion": "happy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1281,26 +1302,26 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.94,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.welcome_copy.0.1",
               "effect": "float",
               "emotion": "dreamy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 170,
+              "speed": 0.94,
+              "intensity": 0.82,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.welcome_copy.0.2",
-              "effect": "none",
+              "effect": "bounce",
               "emotion": "happy",
-              "pause": 0,
+              "pause": 140,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.72,
               "beat": false
             }
           ]
@@ -1313,18 +1334,18 @@
               "text": "npc.changed_synergy.cavern_chief.welcome_copy.1.0",
               "effect": "impact",
               "emotion": "surprised",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.9,
+              "pause": 170,
+              "speed": 1.06,
+              "intensity": 0.92,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.welcome_copy.1.1",
-              "effect": "none",
+              "effect": "wobble",
               "emotion": "happy",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "pause": 140,
+              "speed": 1.04,
+              "intensity": 0.74,
               "beat": false
             }
           ]
@@ -1360,26 +1381,26 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.94,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.welcome_permanent.0.1",
               "effect": "float",
               "emotion": "dreamy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 170,
+              "speed": 0.94,
+              "intensity": 0.82,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.welcome_permanent.0.2",
-              "effect": "none",
+              "effect": "bounce",
               "emotion": "happy",
-              "pause": 0,
+              "pause": 140,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.72,
               "beat": false
             }
           ]
@@ -1392,18 +1413,18 @@
               "text": "npc.changed_synergy.cavern_chief.welcome_permanent.1.0",
               "effect": "impact",
               "emotion": "surprised",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.9,
+              "pause": 170,
+              "speed": 1.06,
+              "intensity": 0.92,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.welcome_permanent.1.1",
-              "effect": "none",
+              "effect": "wobble",
               "emotion": "happy",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "pause": 140,
+              "speed": 1.04,
+              "intensity": 0.74,
               "beat": false
             }
           ]
@@ -1440,16 +1461,16 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.membership.0.1",
               "effect": "pulse",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "happy",
+              "pause": 150,
+              "speed": 0.96,
+              "intensity": 0.75,
               "beat": false
             }
           ]
@@ -1484,9 +1505,9 @@
               "text": "npc.changed_synergy.cavern_chief.confirm_leave.0.0",
               "effect": "emphasis",
               "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 160,
+              "speed": 0.95,
+              "intensity": 0.68,
               "beat": false
             }
           ]
@@ -1522,17 +1543,17 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.96,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.left.0.1",
               "effect": "droop",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "sad",
+              "pause": 180,
+              "speed": 0.9,
+              "intensity": 0.78,
               "beat": false
             }
           ]
@@ -1566,10 +1587,10 @@
             {
               "text": "npc.changed_synergy.cavern_chief.goodbye.0.0",
               "effect": "wave",
-              "emotion": "calm",
-              "pause": 140,
+              "emotion": "happy",
+              "pause": 150,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.72,
               "beat": false
             }
           ]
@@ -1598,16 +1619,16 @@
               "emotion": "curious",
               "pause": 140,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.68,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.resident_spring.0.1",
-              "effect": "none",
-              "emotion": "curious",
-              "pause": 0,
+              "effect": "float",
+              "emotion": "calm",
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.52,
               "beat": false
             }
           ]
@@ -1619,10 +1640,10 @@
             {
               "text": "npc.changed_synergy.cavern_chief.resident_spring.1.0",
               "effect": "wobble",
-              "emotion": "calm",
+              "emotion": "happy",
               "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "speed": 1.03,
+              "intensity": 0.68,
               "beat": false
             }
           ]
@@ -1663,21 +1684,28 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_spring_0.0.0",
-              "effect": "emphasis",
+              "effect": "float",
               "emotion": "calm",
               "pause": 140,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.6,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.resident_spring_0.0.1",
-              "effect": "none",
               "emotion": "calm",
+              "effect": "none",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "speed": 1.0,
+              "intensity": 0.0
+            },
+            {
+              "text": "npc.changed_synergy.cavern_chief.resident_spring_0.0.2",
+              "emotion": "angry",
+              "effect": "shout",
+              "pause": 160,
+              "speed": 1.06,
+              "intensity": 0.82
             }
           ]
         }
@@ -1709,20 +1737,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_spring_1.0.0",
-              "effect": "emphasis",
-              "emotion": "calm",
+              "effect": "pulse",
+              "emotion": "happy",
               "pause": 140,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.6,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.resident_spring_1.0.1",
-              "effect": "none",
-              "emotion": "calm",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "effect": "wobble",
+              "emotion": "shy",
+              "pause": 140,
+              "speed": 1.04,
+              "intensity": 0.75,
               "beat": false
             }
           ]
@@ -1755,20 +1783,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_kitchen.0.0",
-              "effect": "wave",
-              "emotion": "curious",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "effect": "impact",
+              "emotion": "surprised",
+              "pause": 160,
+              "speed": 1.08,
+              "intensity": 0.88,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.resident_kitchen.0.1",
               "effect": "none",
-              "emotion": "curious",
+              "emotion": "happy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1779,11 +1807,11 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_kitchen.1.0",
-              "effect": "wobble",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "effect": "float",
+              "emotion": "dreamy",
+              "pause": 160,
+              "speed": 0.92,
+              "intensity": 0.8,
               "beat": false
             }
           ]
@@ -1825,10 +1853,10 @@
             {
               "text": "npc.changed_synergy.cavern_chief.resident_kitchen_0.0.0",
               "effect": "emphasis",
-              "emotion": "calm",
+              "emotion": "determined",
               "pause": 140,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.68,
               "beat": false
             },
             {
@@ -1837,7 +1865,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1870,20 +1898,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_kitchen_1.0.0",
-              "effect": "emphasis",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "effect": "bounce",
+              "emotion": "excited",
+              "pause": 150,
+              "speed": 1.05,
+              "intensity": 0.8,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.resident_kitchen_1.0.1",
-              "effect": "none",
+              "effect": "float",
               "emotion": "calm",
-              "pause": 0,
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.52,
               "beat": false
             }
           ]
@@ -1916,11 +1944,11 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_lounge.0.0",
-              "effect": "wave",
-              "emotion": "curious",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "effect": "emphasis",
+              "emotion": "surprised",
+              "pause": 150,
+              "speed": 1.06,
+              "intensity": 0.78,
               "beat": false
             },
             {
@@ -1929,7 +1957,7 @@
               "emotion": "curious",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1940,11 +1968,11 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_lounge.1.0",
-              "effect": "wobble",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "effect": "whisper",
+              "emotion": "determined",
+              "pause": 160,
+              "speed": 0.93,
+              "intensity": 0.82,
               "beat": false
             }
           ]
@@ -1985,20 +2013,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_lounge_0.0.0",
-              "effect": "emphasis",
-              "emotion": "calm",
+              "effect": "none",
+              "emotion": "curious",
               "pause": 140,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.resident_lounge_0.0.1",
-              "effect": "none",
-              "emotion": "calm",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "effect": "wobble",
+              "emotion": "shy",
+              "pause": 130,
+              "speed": 0.96,
+              "intensity": 0.58,
               "beat": false
             }
           ]
@@ -2031,20 +2059,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_lounge_1.0.0",
-              "effect": "emphasis",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
+              "effect": "droop",
+              "emotion": "sad",
+              "pause": 150,
+              "speed": 0.94,
               "intensity": 0.65,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.resident_lounge_1.0.1",
-              "effect": "none",
-              "emotion": "calm",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "effect": "bounce",
+              "emotion": "happy",
+              "pause": 140,
+              "speed": 1.05,
+              "intensity": 0.78,
               "beat": false
             }
           ]
@@ -2079,18 +2107,18 @@
               "text": "npc.changed_synergy.cavern_chief.resident_dorm.0.0",
               "effect": "whisper",
               "emotion": "whisper",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 180,
+              "speed": 0.88,
+              "intensity": 0.78,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.resident_dorm.0.1",
               "effect": "none",
-              "emotion": "whisper",
+              "emotion": "dreamy",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.95,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -2101,12 +2129,19 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_dorm.1.0",
-              "effect": "wobble",
               "emotion": "whisper",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
-              "beat": false
+              "effect": "whisper",
+              "pause": 130,
+              "speed": 0.94,
+              "intensity": 0.65
+            },
+            {
+              "text": "npc.changed_synergy.cavern_chief.resident_dorm.1.1",
+              "emotion": "angry",
+              "effect": "shake",
+              "pause": 160,
+              "speed": 1.08,
+              "intensity": 0.88
             }
           ]
         }
@@ -2146,8 +2181,8 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_dorm_0.0.0",
-              "effect": "emphasis",
-              "emotion": "calm",
+              "effect": "pulse",
+              "emotion": "happy",
               "pause": 140,
               "speed": 1,
               "intensity": 0.65,
@@ -2159,7 +2194,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -2192,20 +2227,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_dorm_1.0.0",
-              "effect": "emphasis",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "effect": "pulse",
+              "emotion": "dreamy",
+              "pause": 150,
+              "speed": 0.95,
+              "intensity": 0.74,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.resident_dorm_1.0.1",
-              "effect": "none",
-              "emotion": "calm",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "effect": "bounce",
+              "emotion": "happy",
+              "pause": 140,
+              "speed": 1.04,
+              "intensity": 0.75,
               "beat": false
             }
           ]
@@ -2238,11 +2273,11 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_attic.0.0",
-              "effect": "wave",
-              "emotion": "curious",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "effect": "impact",
+              "emotion": "surprised",
+              "pause": 170,
+              "speed": 1.08,
+              "intensity": 0.9,
               "beat": false
             },
             {
@@ -2251,7 +2286,7 @@
               "emotion": "curious",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -2263,10 +2298,10 @@
             {
               "text": "npc.changed_synergy.cavern_chief.resident_attic.1.0",
               "effect": "wobble",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "shy",
+              "pause": 150,
+              "speed": 1.04,
+              "intensity": 0.8,
               "beat": false
             }
           ]
@@ -2307,20 +2342,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.cavern_chief.resident_attic_0.0.0",
-              "effect": "emphasis",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "effect": "bounce",
+              "emotion": "happy",
+              "pause": 150,
+              "speed": 1.04,
+              "intensity": 0.75,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.cavern_chief.resident_attic_0.0.1",
-              "effect": "none",
+              "effect": "wave",
               "emotion": "calm",
-              "pause": 0,
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.55,
               "beat": false
             }
           ]
@@ -2354,7 +2389,7 @@
             {
               "text": "npc.changed_synergy.cavern_chief.resident_attic_1.0.0",
               "effect": "emphasis",
-              "emotion": "calm",
+              "emotion": "determined",
               "pause": 140,
               "speed": 1,
               "intensity": 0.65,
@@ -2362,11 +2397,11 @@
             },
             {
               "text": "npc.changed_synergy.cavern_chief.resident_attic_1.0.1",
-              "effect": "none",
+              "effect": "pulse",
               "emotion": "calm",
-              "pause": 0,
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.52,
               "beat": false
             }
           ]

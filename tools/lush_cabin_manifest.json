@@ -1,0 +1,76 @@
+{
+  "source": "D:\\Downloads\\lush_cabin.nbt",
+  "source_sha256": "3c0185215fe552f5238aea583b581ddc30455a1445304c3867e0b1ff30feb262",
+  "output_sha256": "de1f12455a16cd0cb81cdeddfe6f5f90a2e3a58cfd5a97673fd5969bd950b1e0",
+  "size": [
+    30,
+    30,
+    32
+  ],
+  "underground": true,
+  "ground_level": 0,
+  "chief": false,
+  "residents": [
+    {
+      "species": "changed:latex_stiger",
+      "position": [
+        21.5,
+        6,
+        7.5
+      ],
+      "chief": false
+    },
+    {
+      "species": "changed:latex_traffic_cone_dragon",
+      "position": [
+        7.5,
+        10,
+        19.5
+      ],
+      "chief": false
+    },
+    {
+      "species": "changed:latex_translucent_lizard",
+      "position": [
+        6.5,
+        10,
+        12.5
+      ],
+      "chief": false
+    },
+    {
+      "species": "changed:latex_kobold",
+      "position": [
+        8.5,
+        15,
+        9.5
+      ],
+      "chief": false
+    },
+    {
+      "species": "changed:latex_stiger",
+      "position": [
+        8.5,
+        20,
+        22.5
+      ],
+      "chief": false
+    }
+  ],
+  "community_storage": {
+    "positions": [
+      [
+        24,
+        6,
+        10
+      ],
+      [
+        24,
+        6,
+        11
+      ]
+    ],
+    "facing": "west"
+  },
+  "authored_blocks_stories_loot_preserved": true
+}

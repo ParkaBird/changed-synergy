@@ -212,13 +212,11 @@ public final class PlayerOutpostScreen extends AbstractContainerScreen<PlayerOut
         if (member.role() != Role.SUPPLY) return;
         if (!backup) {
             int next = (member.work().ordinal() + 1) % Work.values().length;
-            if (Work.values()[next] == Work.COMPOST) next = 0;
             send(PlayerOutpostMenu.MAIN_WORK_BASE + next);
             return;
         }
         int next = member.backupWork() == null ? 0 : member.backupWork().ordinal() + 1;
-        while (next < Work.values().length
-                && (Work.values()[next] == member.work() || Work.values()[next] == Work.COMPOST)) next++;
+        while (next < Work.values().length && Work.values()[next] == member.work()) next++;
         send(PlayerOutpostMenu.BACKUP_WORK_BASE + next);
     }
 

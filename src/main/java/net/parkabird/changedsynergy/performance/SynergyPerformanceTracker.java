@@ -151,7 +151,8 @@ public final class SynergyPerformanceTracker {
     private static boolean isScheduled(ChangedEntity creature, int interval) {
         int phase = ChangedSynergyConfig.COMMON.staggerBackgroundAi.get()
                 ? Math.floorMod(creature.getId(), interval) : 0;
-        return Math.floorMod(creature.tickCount, interval) == phase;
+        // Vanilla GoalSelector polls inactive canUse() every 2 ticks; a 1-tick gate misses half of even intervals.
+        return Math.floorMod(creature.tickCount - phase, interval) < 2;
     }
 
     private static boolean isCritical(

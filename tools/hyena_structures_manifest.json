@@ -54,7 +54,7 @@
   "hyena_camp_tropical": {
     "source_filename": "hyena_camp1.nbt",
     "source_sha256": "bf2e9069f58245748f1e2faf41b1029f180b0768109ad0e8dcad8e0dc65e5fba",
-    "output_sha256": "ca4420f758eebcfcd849d626442ccc1eb74e4cf0deb548e0975490fb723684b0",
+    "output_sha256": "ed6f9921a0a39c78052bc10aa4993dcb131d514703309dcd992b9a55f7c9be59",
     "size": [
       15,
       9,
@@ -67,19 +67,12 @@
       "added persistent hyena residents": 2,
       "structure resident boundaries and camp metadata": 1,
       "landmark map loot pool": 1
-    },
-    "public_storage": [
-      [
-        3,
-        1,
-        1
-      ]
-    ]
+    }
   },
   "hyena_camp_open": {
     "source_filename": "hyena_camp2.nbt",
     "source_sha256": "2fac68408f46dd58d450283649bd6aea94c9dff02a9bb5289603dc625b557e62",
-    "output_sha256": "c278869c598ba1aa2d1e3bf5c2ed9f3b5335638bfe013f16e478a3fcad8bba6a",
+    "output_sha256": "f9d686b95e0b345a65bf305e7397adb2d6897d2e3b0012958302225a77e12fad",
     "size": [
       10,
       11,
@@ -92,19 +85,12 @@
       "removed empty latex-cover records": 1100,
       "added persistent hyena residents": 2,
       "structure resident boundaries and camp metadata": 1
-    },
-    "public_storage": [
-      [
-        5,
-        1,
-        2
-      ]
-    ]
+    }
   },
   "hyena_camp_snowy": {
     "source_filename": "hyena_camp3.nbt",
     "source_sha256": "1416b199c36bd0c8209bd7bafdadc05f8359e30bd8a249adc687deeeb8159931",
-    "output_sha256": "8b6fa56e244f9b7a8b273ccf264a5c1155ace633a7ad581f945e4224526430c5",
+    "output_sha256": "98018f8f6be41f62b09225ac5fd4ab35627a83308b6dbfc60798d212cc048a31",
     "size": [
       15,
       6,
@@ -117,13 +103,6 @@
       "removed empty latex-cover records": 630,
       "added persistent hyena residents": 2,
       "structure resident boundaries and camp metadata": 1
-    },
-    "public_storage": [
-      [
-        2,
-        1,
-        4
-      ]
-    ]
+    }
   }
 }

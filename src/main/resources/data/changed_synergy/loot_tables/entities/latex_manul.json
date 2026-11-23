@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:entity",
+  "pools": [
+    {"rolls":1,"entries":[{"type":"minecraft:loot_table","name":"changed:entities/latex_snow_leopard_male"}]},
+    {"rolls":1,"entries":[{"type":"minecraft:loot_table","name":"changed_synergy:entities/common_white_latex"}]}
+  ]
+}

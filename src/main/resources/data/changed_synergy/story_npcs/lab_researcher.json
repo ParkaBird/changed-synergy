@@ -289,21 +289,21 @@
           "id": "lab_researcher_about",
           "text": "npc.changed_synergy.lab_researcher.root.choice.lab_researcher_about",
           "next": "about",
-          "condition": "always",
+          "condition": "clue:green_doctors_note",
           "effect": "none"
         },
         {
           "id": "lab_researcher_farewell",
           "text": "npc.changed_synergy.lab_researcher.root.choice.lab_researcher_farewell",
           "next": "farewell",
-          "condition": "always",
+          "condition": "clue:green_farewell",
           "effect": "none"
         },
         {
           "id": "lab_researcher_experiment",
           "text": "npc.changed_synergy.lab_researcher.root.choice.lab_researcher_experiment",
           "next": "experiment",
-          "condition": "always",
+          "condition": "clue:green_reports",
           "effect": "none",
           "requires": [
             "about",
@@ -493,7 +493,7 @@
           "id": "tail",
           "text": "npc.changed_synergy.lab_researcher.about.choice.tail",
           "next": "tail",
-          "condition": "always",
+          "condition": "clue:green_doctors_note",
           "effect": "none"
         },
         {
@@ -1099,21 +1099,21 @@
           "id": "muntjacs",
           "text": "npc.changed_synergy.lab_researcher.experiment.choice.muntjacs",
           "next": "muntjacs",
-          "condition": "always",
+          "condition": "clue:green_muntjac",
           "effect": "none"
         },
         {
           "id": "crystal",
           "text": "npc.changed_synergy.lab_researcher.experiment.choice.crystal",
           "next": "crystal",
-          "condition": "always",
+          "condition": "clue:green_crystal",
           "effect": "none"
         },
         {
           "id": "initials",
           "text": "npc.changed_synergy.lab_researcher.experiment.choice.initials",
           "next": "initials",
-          "condition": "always",
+          "condition": "clue:green_botany",
           "effect": "none"
         },
         {
@@ -1945,21 +1945,21 @@
           "id": "lab_researcher_about",
           "text": "npc.changed_synergy.lab_researcher.return.choice.lab_researcher_about",
           "next": "about",
-          "condition": "always",
+          "condition": "clue:green_doctors_note",
           "effect": "none"
         },
         {
           "id": "lab_researcher_farewell",
           "text": "npc.changed_synergy.lab_researcher.return.choice.lab_researcher_farewell",
           "next": "farewell",
-          "condition": "always",
+          "condition": "clue:green_farewell",
           "effect": "none"
         },
         {
           "id": "lab_researcher_experiment",
           "text": "npc.changed_synergy.lab_researcher.return.choice.lab_researcher_experiment",
           "next": "experiment",
-          "condition": "always",
+          "condition": "clue:green_reports",
           "effect": "none",
           "requires": [
             "about",

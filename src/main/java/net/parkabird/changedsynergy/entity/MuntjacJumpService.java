@@ -53,7 +53,7 @@ public final class MuntjacJumpService {
     }
 
     public static float input(Player player, boolean down) {
-        if (!refresh(player)) return -1;
+        if (!refresh(player) || (down && !player.isShiftKeyDown() && !player.isCrouching())) return -1;
         var state = state(player);
         float power = state.input(down, player.tickCount, player.onGround());
         if (power >= 0) state.queueJump(power, player.tickCount);
@@ -85,8 +85,13 @@ public final class MuntjacJumpService {
 
     @SubscribeEvent public static void tick(TickEvent.PlayerTickEvent event) {
         if (event.phase == TickEvent.Phase.END && state(event.player).bound() && refresh(event.player)) {
-            state(event.player).tick(event.player.tickCount, event.player.onGround());
-            state(event.player).trackFlight(event.player.getY(), event.player.onGround());
+            var state = state(event.player);
+            if (state.holding() && !event.player.isShiftKeyDown() && !event.player.isCrouching()) {
+                state.cancel(false);
+            } else {
+                state.tick(event.player.tickCount, event.player.onGround());
+            }
+            state.trackFlight(event.player.getY(), event.player.onGround());
         }
     }
 }

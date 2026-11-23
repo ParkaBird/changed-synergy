@@ -37,11 +37,18 @@ public record PlayerOutpostBuildActionPacket(int action, BlockPos pos, Direction
     }
 
     public static PlayerOutpostBuildActionPacket decode(FriendlyByteBuf buffer) {
+        int action = buffer.readVarInt();
+        BlockPos pos = buffer.readBlockPos();
+        Direction face = buffer.readEnum(Direction.class);
+        double x = buffer.readDouble();
+        double y = buffer.readDouble();
+        double z = buffer.readDouble();
+        boolean finite = Double.isFinite(x) && Double.isFinite(y) && Double.isFinite(z);
         return new PlayerOutpostBuildActionPacket(
-                buffer.readVarInt(),
-                buffer.readBlockPos(),
-                buffer.readEnum(Direction.class),
-                new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()));
+                finite || action != PLACE ? action : -1,
+                pos,
+                face,
+                finite ? new Vec3(x, y, z) : Vec3.ZERO);
     }
 
     public static void handle(PlayerOutpostBuildActionPacket packet, Supplier<NetworkEvent.Context> supplier) {

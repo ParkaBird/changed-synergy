@@ -130,7 +130,7 @@ public final class NpcConversations {
             case "night_transformed" -> !s.npc.level().isDay()&&available("transformed",s);
             case "human_join" -> available("human",s)&&CampMembershipService.canJoin(s.npc,s.player);
             case "transformed_join" -> available("transformed",s)&&CampMembershipService.canJoin(s.npc,s.player);
-            default -> true;
+            default -> !condition.startsWith("clue:") || StoryClueService.hasClue(s.player, condition);
         };
     }
     private static void send(Session s) {

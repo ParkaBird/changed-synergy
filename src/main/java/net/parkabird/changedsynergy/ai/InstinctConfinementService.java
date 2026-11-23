@@ -202,11 +202,23 @@ public final class InstinctConfinementService {
         }
     }
     @SubscribeEvent public static void login(PlayerEvent.PlayerLoggedInEvent event) {
-        if(event.getEntity() instanceof ServerPlayer human&&human.getPersistentData().hasUUID(RECOVERY)) {
-            restoreHumanForm(human,human.getPersistentData().getString(SUIT_FORM));human.getPersistentData().remove(SUIT_FORM);
-            human.getPersistentData().remove(RECOVERY);human.noPhysics=false;human.getPersistentData().putLong(GRACE,human.server.overworld().getGameTime()+1200);
-            if(human instanceof net.ltxprogrammer.changed.entity.LivingEntityDataExtension extension)extension.setGrabbedBy(null);
-        }
+        if(!(event.getEntity() instanceof ServerPlayer human)||!human.getPersistentData().hasUUID(RECOVERY))return;
+        human.server.execute(() -> {
+            if(human.connection==null)return;
+            try {
+                restoreHumanForm(human,human.getPersistentData().getString(SUIT_FORM));
+                human.getPersistentData().remove(SUIT_FORM);
+                human.getPersistentData().remove(RECOVERY);
+                human.noPhysics=false;
+                human.getPersistentData().putLong(GRACE,human.server.overworld().getGameTime()+1200);
+                if(human instanceof net.ltxprogrammer.changed.entity.LivingEntityDataExtension extension)extension.setGrabbedBy(null);
+            } catch(RuntimeException exception) {
+                ChangedSynergyMod.LOGGER.error("Instinct confinement login recovery failed for {}",human.getUUID(),exception);
+                human.getPersistentData().remove(SUIT_FORM);
+                human.getPersistentData().remove(RECOVERY);
+                human.noPhysics=false;
+            }
+        });
     }
     @SubscribeEvent public static void stopping(ServerStoppingEvent event) {for(Session session:ACTIVE.values().toArray(Session[]::new))release(session.human);}
 }

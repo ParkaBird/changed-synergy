@@ -80,7 +80,8 @@ public class WhiteLatexWolfPartialRenderer
             PoseStack pose,
             MultiBufferSource bufferSource,
             int packedLight) {
-        if (latex.getUnderlyingPlayer() instanceof AbstractClientPlayer clientPlayer) {
+        AbstractClientPlayer clientPlayer = InstinctPlayerSkinClient.resolveClientPlayer(latex);
+        if (clientPlayer != null) {
             this.model.setModelProperties(clientPlayer);
         } else {
             this.model.defaultModelProperties();

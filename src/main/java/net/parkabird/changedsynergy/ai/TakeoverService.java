@@ -168,9 +168,17 @@ public final class TakeoverService {
                     ? point : player.position();
             this.releaseAttempts = Math.max(0, saved.getInt("ReleaseAttempts"));
             long tick = now(player.server);
-            this.session = saved.contains("Exoskeleton") ? TakeoverSession.exoskeleton(tick)
-                    : TakeoverSession.ordinary(tick, 600, false, false);
-            this.session.interrupt(tick);
+            TakeoverSession restored;
+            try {
+                restored = TakeoverSessionNbt.read(saved, tick);
+            } catch (IllegalArgumentException exception) {
+                restored = saved.contains("Exoskeleton") ? TakeoverSession.exoskeleton(tick)
+                        : TakeoverSession.ordinary(tick, 600, false, false);
+            }
+            if (restored.getPhase() != TakeoverSession.Phase.FINISHED) {
+                restored.interrupt(tick);
+            }
+            this.session = restored;
             this.announcedPhase = session.getPhase();
         }
     }
@@ -1684,8 +1692,24 @@ public final class TakeoverService {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         Entry e = ACTIVE.get(player.getUUID());
         if (e == null) return;
+        ChangedEntity carrier = carrier(player.server, e);
+        if (event.isWasDeath()) {
+            if (carrier != null) {
+                carrier.getPersistentData().putBoolean(RELEASE, true);
+                try {
+                    releaseHold(BondedSuitService.ability(carrier), player);
+                } finally {
+                    carrier.getPersistentData().remove(RELEASE);
+                }
+            }
+            if (player instanceof LivingEntityDataExtension extension) extension.setGrabbedBy(null);
+            player.noPhysics = false;
+            sync(e, player, carrier, true);
+            clear(e, player, carrier);
+            return;
+        }
         e.session.interrupt(now(player.server));
-        tryRelease(e, player, carrier(player.server, e), true);
+        tryRelease(e, player, carrier, true);
     }
 
     @SubscribeEvent
@@ -1700,19 +1724,40 @@ public final class TakeoverService {
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        Entry pending = ACTIVE.get(player.getUUID());
-        if (pending != null) {
-            pending.session.interrupt(now(player.server));
-            tryRelease(pending, player, carrier(player.server, pending), true);
-            if (ACTIVE.get(player.getUUID()) == pending) sync(pending, player, carrier(player.server, pending), true);
-            return;
+        // Release can teleport, untransfur, or touch missing carriers. Never let that
+        // fail PlayerList.placeNewPlayer with "Invalid player data".
+        player.server.execute(() -> recoverAfterLogin(player));
+    }
+
+    private static void recoverAfterLogin(ServerPlayer player) {
+        if (player.connection == null) return;
+        try {
+            Entry pending = ACTIVE.get(player.getUUID());
+            if (pending != null) {
+                pending.session.interrupt(now(player.server));
+                tryRelease(pending, player, carrier(player.server, pending), true);
+                if (ACTIVE.get(player.getUUID()) == pending) {
+                    sync(pending, player, carrier(player.server, pending), true);
+                }
+                return;
+            }
+            CompoundTag root = persisted(player);
+            if (!root.contains(SAVE)) return;
+            Entry recovery = new Entry(player, root.getCompound(SAVE));
+            ACTIVE.put(player.getUUID(), recovery);
+            tryRelease(recovery, player, carrier(player.server, recovery), true);
+            if (ACTIVE.get(player.getUUID()) == recovery) {
+                sync(recovery, player, carrier(player.server, recovery), true);
+            }
+        } catch (RuntimeException exception) {
+            ChangedSynergyMod.LOGGER.error(
+                    "Takeover login recovery failed for {}; clearing persisted session",
+                    player.getUUID(), exception);
+            ACTIVE.remove(player.getUUID());
+            persisted(player).remove(SAVE);
+            player.getPersistentData().remove(CLIENT);
+            player.noPhysics = false;
         }
-        CompoundTag root = persisted(player);
-        if (!root.contains(SAVE)) return;
-        Entry recovery = new Entry(player, root.getCompound(SAVE));
-        ACTIVE.put(player.getUUID(), recovery);
-        tryRelease(recovery, player, carrier(player.server, recovery), true);
-        if (ACTIVE.get(player.getUUID()) == recovery) sync(recovery, player, carrier(player.server, recovery), true);
     }
 
     @SubscribeEvent

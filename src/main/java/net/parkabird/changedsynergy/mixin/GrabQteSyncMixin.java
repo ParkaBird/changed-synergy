@@ -166,6 +166,10 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance
 
     @Unique
     @Nullable
+    private LivingEntity changedSynergy$releasedPeer;
+
+    @Unique
+    @Nullable
     private ServerPlayer changedSynergy$releasedSuitOwner;
 
     @Unique
@@ -234,6 +238,13 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance
             held.setPos(carrier.getX(), carrier.getY(), carrier.getZ());
         } else {
             TransfurVariantInstance.syncEntityPosRotWithEntity(held, carrier);
+        }
+        if (held.noPhysics) {
+            var motion = held.getDeltaMovement();
+            if (motion.y < 0.0D) {
+                held.setDeltaMovement(motion.x, 0.0D, motion.z);
+            }
+            held.resetFallDistance();
         }
     }
 
@@ -419,6 +430,23 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance
             }
             if (friendlySuit) BondedSuitService.onNativeSuitReleased(creature, releasedOwner);
         }
+        LivingEntity releasedPeer = changedSynergy$releasedPeer;
+        changedSynergy$releasedPeer = null;
+        if (grabbedEntity == null && !entity.getLevel().isClientSide()) {
+            LivingEntity actor = entity.getEntity();
+            if (actor != null && actor.getDeltaMovement().y < 0.0D) {
+                var m = actor.getDeltaMovement();
+                actor.setDeltaMovement(m.x, 0.0D, m.z);
+            }
+            if (actor != null) actor.resetFallDistance();
+            if (releasedPeer != null && !releasedPeer.isRemoved()) {
+                if (releasedPeer.getDeltaMovement().y < 0.0D) {
+                    var m = releasedPeer.getDeltaMovement();
+                    releasedPeer.setDeltaMovement(m.x, 0.0D, m.z);
+                }
+                releasedPeer.resetFallDistance();
+            }
+        }
         ReleasePlacementService.PendingRelease release = changedSynergy$pendingRelease;
         changedSynergy$pendingRelease = null;
         if (release != null && grabbedEntity == null) {
@@ -431,6 +459,7 @@ public abstract class GrabQteSyncMixin extends AbstractAbilityInstance
             boolean applyDebuffs,
             CallbackInfo callback) {
         changedSynergy$harmlessRelease = changedSynergy$harmlessArmHold();
+        changedSynergy$releasedPeer = !entity.getLevel().isClientSide() ? grabbedEntity : null;
         changedSynergy$releasedSuitOwner = !entity.getLevel().isClientSide()
                 && entity.getEntity() instanceof ChangedEntity
                 && grabbedEntity instanceof ServerPlayer owner

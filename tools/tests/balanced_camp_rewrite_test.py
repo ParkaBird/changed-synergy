@@ -25,12 +25,7 @@ def main():
         line = profile['nodes']['confirm_permanent']['lines'][0]
         assert sum(p.get('beat', False) for p in line['parts']) == 2
     for key,line in camp['lines'].items():
-        if any('%s' in p['text']['en_us'] for p in line['parts']):
-            if key.startswith(('pathfinder.','desert_resident.')):
-                # A styled suffix may be separate; all substitutions must stay together in one part.
-                assert sum('%s' in p['text']['en_us'] for p in line['parts']) == 1, key
-                for part in line['parts']:assert len({text.count('%s') for text in part['text'].values()}) == 1, key
-            else:assert len(line['parts']) == 1, key
+        if any('%s' in p['text']['en_us'] for p in line['parts']): assert len(line['parts']) == 1, key
     print('BALANCED_CAMP_REWRITE_PASS: all 125 supplied entries in three languages, intact substitutions and three-beat permanent consent')
 
 

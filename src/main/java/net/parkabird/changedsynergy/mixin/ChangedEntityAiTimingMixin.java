@@ -16,7 +16,7 @@ public abstract class ChangedEntityAiTimingMixin {
     private long changedSynergy$aiStartedNanos;
 
     @Inject(
-            method = {"serverAiStep()V", "m_8024_()V"},
+            method = {"serverAiStep()V", "m_6140_()V"},
             at = @At("HEAD"),
             require = 1)
     private void changedSynergy$beginAiTiming(CallbackInfo callback) {
@@ -26,7 +26,7 @@ public abstract class ChangedEntityAiTimingMixin {
     }
 
     @Inject(
-            method = {"serverAiStep()V", "m_8024_()V"},
+            method = {"serverAiStep()V", "m_6140_()V"},
             at = @At("RETURN"),
             require = 1)
     private void changedSynergy$endAiTiming(CallbackInfo callback) {

@@ -19,7 +19,7 @@ def main():
             assert len(node['lines']) == len(source['lines'])
             for line, baseline in zip(node['lines'], source['lines']):
                 assert [p.get('beat', False) for p in line['parts']] == [p.get('beat', False) for p in baseline['parts']]
-                beats += sum(p.get('beat', False) for p in line['parts']) if name != 'desert_chief' else 0
+                beats += sum(p.get('beat', False) for p in line['parts'])
                 for lang, words in languages.items():
                     actual = ''.join(words[part['text']] for part in line['parts'])
                     expected = ''.join(part['text'][lang] for part in baseline['parts'])
@@ -65,7 +65,7 @@ def main():
             for role in ('welcome', 'care', 'organize', 'warning'):
                 key = f'dialogue.changed_synergy.context.chief.{name}.{role}'
                 actual[key] = languages[lang][key]
-        assert {key: hashlib.sha256(text.encode()).hexdigest() for key, text in actual.items() if not key.startswith('desert_chief/')} == expected, lang
+        assert {key: hashlib.sha256(text.encode()).hexdigest() for key, text in actual.items()} == expected, lang
     print(f'REVISED_NPC_DATA_PASS: {len(manifest["utterances"])} complete English source utterances, 124 localized lines, 171 replies, 12 ambient lines, {nodes} three-language nodes, {beats} authored pacing breaks, guarded rituals and both observatory biomes')
 
 if __name__ == '__main__': main()

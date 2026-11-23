@@ -5,6 +5,7 @@
   "terrain_adaptation": "none",
   "spawn_overrides": {},
   "template": "changed_synergy:lush_cabin",
+  "farmersdelight_template": "changed_synergy:lush_cabin_fd",
   "ground_level": 6,
   "max_terrain_slope": 16,
   "clearing_radius": 0,

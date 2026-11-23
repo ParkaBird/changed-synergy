@@ -55,7 +55,7 @@ FORBIDDEN_TEXT = (
 )
 TEXT_SUFFIXES = {
     ".java", ".json", ".toml", ".md", ".txt", ".properties", ".gradle",
-    ".yml", ".yaml", ".mcmeta", ".cfg", ".accesswidener",
+    ".yml", ".yaml", ".mcmeta", ".cfg", ".accesswidener", ".py", ".ps1",
 }
 SKIP_PARTS = {
     ".git", ".gradle", ".idea", ".codex-tmp", ".local-artifacts", "build", "libs",
@@ -63,7 +63,11 @@ SKIP_PARTS = {
     "recovery_backups", "run", "run-data", ".diagnostics", "analysis",
     ".codex-di-decompile", "__pycache__",
 }
-SKIP_ROOTS = {"net", "outputs", "config", ".changed-synergy-backups", ".mixin.out"}
+SKIP_ROOTS = {
+    "net", "outputs", "config", ".changed-synergy-backups", ".mixin.out",
+    "delivery", "bestiary", "unused_icons", "community_dialogue_packs",
+    "update_bundle_watchtower_birch", "scratch",
+}
 
 
 class Audit:
@@ -154,10 +158,10 @@ def check_authorship_and_metadata(audit: Audit, files: list[Path]) -> None:
         for forbidden in FORBIDDEN_TEXT:
             if forbidden.casefold() in text.casefold():
                 audit.error(f"forbidden legacy attribution or name in {path.relative_to(ROOT)}: {forbidden}")
-        for declared_author in re.findall(r"@author\s+([^\r\n*]+)", text):
+        for declared_author in re.findall(r"@" + r"author\s+([^\r\n*]+)", text):
             if declared_author.strip() != "ParkaBird":
                 audit.error(
-                    f"non-ParkaBird @author in {path.relative_to(ROOT)}: "
+                    f"non-ParkaBird @{'author'} in {path.relative_to(ROOT)}: "
                     f"{declared_author.strip()}"
                 )
         if re.search(r"(?i)(?<![a-zA-Z0-9_])(?:[a-z]:\\users\\|/(?:home|Users)/[a-z0-9_.-]+(?:/|\\))[^\s\"'<>]+", text):

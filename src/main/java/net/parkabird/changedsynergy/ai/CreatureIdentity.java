@@ -152,6 +152,7 @@ public final class CreatureIdentity {
         if (mob instanceof net.parkabird.changedsynergy.entity.LatexMuntjac
                 || mob instanceof net.parkabird.changedsynergy.entity.LatexMuntjacFemale) return "herbivore";
         if (mob instanceof net.parkabird.changedsynergy.entity.LatexSwordfish) return "aquatic";
+        if (mob instanceof net.parkabird.changedsynergy.entity.LatexSpidtaur) return "insect";
         if (net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType()).toString().equals("changed:latex_leaf")) return "draconic";
         if (CreatureSocialProfile.isJuvenile(mob)) {
             ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(mob.getType());
@@ -161,6 +162,7 @@ public final class CreatureIdentity {
         return switch (SpeciesProfile.of(mob)) {
             case WOLF, FOX, DOG, CERBERUS -> "canine";
             case CAT, BIG_CAT -> "feline";
+            case BEAR -> "ursine";
             case SHARK, ORCA, RAY, EEL, SQUID_DOG, SIREN -> "aquatic";
             case DRAGON, WYVERN, YUFENG -> "draconic";
             case AVIAN -> "avian";
@@ -194,8 +196,10 @@ public final class CreatureIdentity {
         if (pendingNegotiation || ChangedSynergyGameRules.enabled(
                 mob.level(), ChangedSynergyGameRules.CREATURE_LIFE)) {
             mob.setPersistenceRequired();
-        } else if (!(mob instanceof TamableLatexEntity nativePet
-                && nativePet.isTame())) {
+        } else if (synergyIdentity
+                && (identity == null || !identity.getBoolean(PLAYER_NAMED))
+                && !(mob instanceof TamableLatexEntity nativePet
+                        && nativePet.isTame())) {
             mob.persistenceRequired = false;
         }
     }
@@ -222,8 +226,14 @@ public final class CreatureIdentity {
     private static boolean matchesGeneratedName(
             ChangedEntity mob,
             CompoundTag identity) {
-        return Component.Serializer.toJson(generatedName(identity))
-                .equals(Component.Serializer.toJson(mob.getCustomName()));
+        Component custom = mob.getCustomName();
+        if (custom == null) {
+            return false;
+        }
+        Component generated = generatedName(identity);
+        return generated.getString().equals(custom.getString())
+                && Component.Serializer.toJson(generated)
+                        .equals(Component.Serializer.toJson(custom));
     }
 
     private static void markPlayerNamed(CompoundTag identity) {
@@ -570,6 +580,7 @@ public final class CreatureIdentity {
         CERBERUS("cerberus"),
         CAT("cat"),
         BIG_CAT("big_cat"),
+        BEAR("bear"),
         SHARK("shark"),
         ORCA("orca"),
         RAY("ray"),
@@ -610,29 +621,30 @@ public final class CreatureIdentity {
 
             if (containsAny(path, "dragon_snow_leopard_shark",
                     "squid_tiger_shark")) return HYBRID;
-            if (containsAny(path, "centaur", "_taur", "double_yufeng")) {
+            if (containsAny(path, "centaur", "_taur", "spidtaur", "double_yufeng")) {
                 return CENTAUR;
             }
             if (path.contains("cerberus")) return CERBERUS;
             if (containsAny(path, "squid_dog", "squid_tiger")) return SQUID_DOG;
             if (path.contains("orca")) return ORCA;
             if (path.contains("manta")) return RAY;
-            if (path.contains("eel")) return EEL;
+            if (containsAny(path, "eel", "swordfish")) return EEL;
             if (path.contains("shark")) return SHARK;
             if (path.contains("siren")) return SIREN;
             if (containsAny(path, "wyvern", "pink_yuin")) return WYVERN;
             if (containsAny(path, "yufeng", "beifeng", "latex_yuin")) return YUFENG;
             if (path.contains("dragon")) return DRAGON;
             if (containsAny(path, "kitsune", "fox", "puro_kind")) return FOX;
-            if (containsAny(path, "wolfy", "dog", "collie", "gnoll")) return DOG;
+            if (containsAny(path, "wolfy", "dog", "collie", "gnoll", "hyena")) return DOG;
             if (path.contains("wolf")) return WOLF;
             if (containsAny(path, "tiger", "leopard", "cheetah")) return BIG_CAT;
-            if (containsAny(path, "cat", "lynx")) return CAT;
-            if (containsAny(path, "crow", "avali", "bird")) return AVIAN;
-            if (path.contains("deer")) return DEER;
+            if (containsAny(path, "cat", "lynx", "manul")) return CAT;
+            if (containsAny(path, "grizzly", "bear")) return BEAR;
+            if (containsAny(path, "crow", "avali", "bird", "owl")) return AVIAN;
+            if (containsAny(path, "deer", "muntjac")) return DEER;
             if (containsAny(path, "rabbit", "buny")) return RABBIT;
             if (containsAny(path, "raccoon", "panda", "skunk", "squirrel",
-                    "otter", "fennec")) return SMALL_MAMMAL;
+                    "otter", "fennec", "jerboa")) return SMALL_MAMMAL;
             if (containsAny(path, "bee", "moth", "stiger", "insect")) {
                 return INSECT;
             }

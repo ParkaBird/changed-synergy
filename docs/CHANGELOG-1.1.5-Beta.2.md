@@ -1,44 +1,66 @@
 # Changed: Synergy 1.1.5-Beta.2
 
-### Communities and NPCs
+Changes since **1.1.5-Beta.1**.
 
-- Join a **Forest Treehouse**, **Hyena's Hideout**, **Observatory** or **Desert Refuge** as your home community. Each household has its own membership and **local trust**, separate from regional reputation and personal affection. Leaving or changing homes preserves your relationships and local records.
-- Meet the Silk Moth **Weaver**, Hyena **Matriarch**, Eagle Owl **Archivist** and Jerboa **Pathfinder**, with branching conversations based on their journals and surroundings. The green laboratory's **Researcher** also tells his story. Dialogue and community reactions are available in English, Simplified Chinese and Russian, with hand-drawn species-colored frames, paced speech, emotional text and understood private thoughts.
-- Join in your current body or choose a reversible or permanent transformation ritual. **Permanent rituals require TrueTransfur and a second confirmation**, and grant Native Origin latex identity. Ordinary reversal is blocked; authorized Native Origin re-selection can return you to human. Reversible rituals retain reversal eligibility with TT installed.
-- Help through conversation: donate supplies, fulfill community or personal requests, tend crops, protect residents and share meals. Residents can approach and ask to talk. There is no attendance requirement or penalty for declining a request or spending time away. High local trust unlocks the community's outfit.
-- Main communities use dedicated **Community Supplies** chests for donations, food and gathered resources. Personal requests go directly to their owner. Marked private storage remains private to members, with witnessed warnings and trust penalties for repeated searching; books and other readable story media remain open to visitors.
-- Residents gather, farm, hunt suitable prey, eat together and sleep in available beds or perches within their home, including sleeping places you add. They stay near their community. Joining introduces the residents and marks campmates in the relationship roster; ordinary residents can also become bonded companions, with both identities shown.
-- Chiefs offer human visitors a temporary respite from their household's transfur pursuit, allowing safe introductions. Fixed characters retain their home duties and return after confirmed death or disappearance, preserving relationships and story progress. They cannot become bonded followers or be taken over.
+### New species and structures
 
-### Species and clothing
+- Added **Latex Eagle Owl**, a playable mountain species with natural spawns, matching transfur items and an archive entry. It has slightly stronger Crow attributes, four extra jumps with wing beats, gliding, the existing Wing Flap ability when Addon Plus is installed, toggleable night vision, monochrome sight (with color restored on full-moon nights), 270-degree head movement and responsive ear tufts. Airborne grabs extend its talons forward, then draw caught targets back beneath its body, carrying them face-down by the back before blending into an ordinary hold on landing.
+- Added the **Aviator Outfit** with raised/lowered goggles, native style sounds and support for bipedal, tail, legless and juvenile bodies; juveniles wear only goggles. Lowered goggles restore Owl color vision; the recipe uses amethyst shards. New owls have a configurable 25% chance to wear it. Aviator and Trailcloth outfits fit either the inner or outer clothing slot, retaining clothing conflicts; Trailcloth connects its back strap on non-hyena wearers.
+- Added standing and horizontal two-block bird perches using the supplied sleeping pose. The stand sleeps one bird; the rail sleeps two at opposite ends. Both face the placing player, preserve native sleep/wake behavior and let camp residents use them as beds; Eagle Owls sleep by day and Crows by night. Updated beam ends, transparent decorations and the centered rail item icon.
 
-- Added male and female **Latex Spotted Hyenas**, with playable origins, natural spawns, responsive ears and matching transfur items. They belong to the jungle and savanna population, with camp residents elsewhere. Their diet includes bones, leather and suitable brewing ingredients for temporary benefits.
-- Added the mountain **Latex Eagle Owl**, with gliding, extra jumps and wing beats, toggleable night vision, 270-degree head tracking and talon-based aerial grabbing. It sees in monochrome, regaining color on full-moon nights or through lowered Aviator goggles. It supports Addon Plus's existing **Wing Flap** ability.
-- Added the desert **Latex Jerboa**, a smaller, fragile but quick species with responsive ears, a playable origin and matching transfur items. **Jerboas and Muntjacs** can charge a higher jump by holding jump, with a horse-style charge meter and protection from the charged jump's own landing damage; extra drops still hurt.
-- Added the **Trailcloth**, **Aviator**, **Ranger** and **Wayfarer** outfits, with recipes and fitting for different body shapes and human skins. Wayfarer automatically uses its Pathfinder cut on Jerboas. Aviator goggles can be raised or lowered, and Trailcloth and Aviator can use either inner or outer clothing slots. Updated Synergy female bodies and their fitted clothing.
-- With **Curios** installed, players and creatures use real Curios clothing slots and storage, replacing the original clothing interface while retaining native restrictions, visibility controls and style switching. Existing equipped clothes migrate automatically; the original interface remains available without Curios.
-- Added standing and horizontal two-block **bird perches**, sleeping one or two eligible birds. They work in communities and can be bound to player camps. Eagle Owls sleep by day and are active at night; perch sleep uses third person. Synergy creatures close their eyes while sleeping.
+- Added a forest treehouse with its canopy Silk Moth wearing the Canopy Outfit and a group of Forest-population creatures. It generates in ordinary forests with a level foundation, protected building space and a small terrain transition around its clearing.
+- Added the supplied forest watchtower, retaining its loot and decorations without creature residents. It uses the same forest-only placement and terrain checks.
+- Added male and female **Latex Spotted Hyenas**, with playable origins, spawn eggs and matching transfur syringes, flasks and arrows. The synthesizer selects their sex. They belong to the savanna population, and their ears react to jumping, landing and quick head turns.
+- Added **Hyena's Hideout** and three smaller camps, **built by Crossader**. Hideouts generate in savannas; tropical camps in jungle and savanna biomes; open-country camps in deserts, badlands and plains (including sunflower plains); snowy camps in snowy plains. Their supplies, paintings and other authored contents are retained, except for the removed draft-book chest beside the hideout well.
+- Spotted Hyenas spawn normally in jungle and savanna biomes, including their hideout. In other biomes, they spawn only within their camps. Each small camp starts with two persistent males; the hideout starts with four males and one female. Structures replenish males only, while tropical wilderness can still spawn either sex. Both sexes fit the camps' doors and passages.
 
-### Exploration
+- Removed the draft-book chests beside the treehouse campfire and the hideout well, preserving the rest of each structure.
 
-- Added **Forest Treehouses**, **Forest Watchtowers** including a birch variant, **Hyena's Hideout**, three smaller hyena camps and the mountain **Observatory**, built by **Crossader**. Treehouses and watchtowers generate in forests, hideouts in savannas, and observatories in **Snowy Slopes and Grove**. Small hyena camps serve tropical, plains and snowy regions.
-- Added the rare **Desert Refuge**, a subterranean community beneath surface ruins, plus **Oasis** camps in deserts and **Muddy Campsites** on badlands red-sand lowlands. These structures include residents, supplies, sleeping places and authored discoveries.
-- Explorer maps to the main communities can appear in selected biome-related loot chests and watchtowers. Smaller camps retain their own residents, supplies and routines without separate Chief admission or remote inventory sharing.
-- Rebalanced White Latex Forest and Dark Latex Plains generation, and restored surface features in White Latex Lakes and Dark Latex Lakes. Wild orange trees follow normal terrain placement rules; latex players can harvest fruiting leaves with an empty hand, and harvested fruit can regrow.
+### Gameplay and fixes
 
-### Social play and camp behavior
+- Added the **Canopy Outfit** with authored four-arm, bipedal and female styles, native inner/outer clothing slots and Curios support. Tail, legless and taur bodies wear only the upper section; juveniles wear its headband. Improved Canopy and Aviator fitting for classic and slim human skins.
+- **Forgive** in transfur negotiations grants affection once and ends the negotiation while keeping the current form. Absorbed creatures retain their identity and relationship for later external separation.
+- Updated the treehouse canopy resident to an outfitted Silk Moth and matched its lectern journal, continuing long passages on additional pages without shortening the prose.
+- Addon Plus's Diffusion Syringe now restores the saved individual after absorption, preserving identity and relationships without duplicating it. Assimilation still produces a fresh creature through Addon's default split.
 
-- Added **Forgive** to transfur negotiation, granting affection and ending the negotiation while keeping the current body. Absorbed individuals retain their identity and relationships for separation with Addon Plus's Diffusion Syringe; ordinary assimilation creates a fresh creature.
-- Player **hypnosis is now a toggle**. Press once to keep using the existing ability, then press again to stop. The icon distinguishes physically holding the key from leaving the ability active after release.
-- Merged desert and badlands regional affiliation into **Arid areas**, retaining their reputation consequences and rivalries. Local communities continue to manage membership and trust independently.
-- Added **No Civilization Mode**, through configuration and the `changedSynergyNoCivilizationMode` game rule, for survival-focused packs that want individual friendship and bonding without positive regional reputation advantages or newly established wild outposts.
-- Outpost workers organize deposits around matching supplies and use suitable overflow storage. Bonded companions support **Assign Seat**. Creatures that use doors can also open wooden trapdoors and fence gates.
+- Airborne arm releases keep their target at the carrier's current location, clear stale tracking interpolation and prevent reacquisition for one second. Normal and friendly holds share this release protection. Server-rejected Owl grabs now immediately clear the client's predicted hold instead of leaving a ghost catch that snaps back on release.
+- Bird perches can be registered as player-camp beds and discovered inside natural camps. Eligible structure residents prefer free perches to ordinary beds. Unassigned wild NPCs do not seek nearby perches; player-camp members use bound beds. Eagle Owls sleep by day and wake at night, with corrected upright placement on the beam. Perch sleep uses third person and restores the previous view after waking.
 
-### Interface and important fixes
+- Fixed native-origin archive pages briefly flashing back before settling. Page curls now finish with the page handoff, and their animation starts after the source snapshot is ready.
 
-- Replaced the **Native Origin archive** with hand-drawn pixel artwork and authored Crisscross notes. Wheels with more than eight entries scroll through additional choices; **Shift + scroll** switches paired wheels. Added optional native-player animal calls and human-start TT Instinct access.
-- Fixed human-start transformed players being unable to establish bonds, organic creatures pursuing neutral transformed players solely for their form, and the infection bar remaining full after a companion's release or revival.
-- Guards respond to nearby visible hostile monsters, combat no longer repeatedly stalls, and pursuers retain players they are carrying. Escaping a grab no longer counts as an attack that rallies unrelated nearby latexes; ordinary hostile escape penalties remain.
-- Friendly play hugs and core companion grabbing, rescue and evacuation work independently of **Changed Addon Plus**. Updated current **TrueTransfur 2.x** compatibility. Fixed Swordfish transformation crashes involving **Entity Model Features / Fresh Moves**, Swordfish Rush startup crashes reported with **RosmontisLib**.
+- Wheels with more than eight options now use continuous mouse-wheel scrolling, with fading incoming/outgoing icons. Shift+scroll switches paired wheels; smaller wheels retain plain scrolling to switch. Removed arrow-key paging and shortened control hints.
+- Applied closed-eye base textures to all supplied Synergy species and hide their eye overlays while sleeping. Updated eight Chinese advancement titles without changing their criteria or IDs.
 
-Servers and clients should both update to **1.1.5-Beta.2**. New structure layouts and resident rosters apply to newly generated or placed structures; existing saved buildings are not overwritten. Community gameplay guides are available in English and Chinese.
+- Fixed transparent perch decorations appearing black, Eagle Owl eyes flickering and inventory-head orientation. Airborne talons now acquire eligible contacted targets without mouse aiming while preserving normal/friendly target restrictions and independent wing animation. Monochrome vision now includes first-person hands and has a client option beside Pure White vision settings.
+- Entering **Talk about this transfur** from an NPC social wheel now keeps the wheel on the right and opens the negotiation page immediately, without sliding through the center or replaying its opening animation.
+- Fixed human-start players being unable to invite an NPC bond after transforming normally. Existing closeness, token, confirmation and ownership requirements remain; TT Instinct interactions use the controlled body for proximity and the player inventory for offerings.
+
+- Creatures that can open doors can also open wooden trapdoors and fence gates along their route, then close them once the opening is clear. Iron trapdoors remain redstone-operated. Fixed a missing ground column beside the hideout's well chest.
+- Authored treehouse and hyena-camp residents now maintain their own camps: they collect and store supplies, harvest and replant crops, hunt wild prey, share campfire meals and sleep in their structure's beds at night. Beds are reserved individually, and residents wake at dawn or when interrupted. Camp storage uses existing reputation reactions, livestock are protected, and residents do not build another outpost. Added a separate routine setting.
+- The hideout's female Hyena starts in the orange-bed room wearing Trailcloth. The canopy Silk Moth and green laboratory's Gas Wolf also retain their structure boundaries; the Gas Wolf wears a lab coat and red necktie. Home and clothing state survive reload, preserving later player changes.
+- Player and creature clothing uses genuine Curios equipment slots and storage when installed, replacing the original clothing slots while retaining native anatomy, effects and clothing conflicts. Equipped garments retain right-click style changes, and Curios visibility toggles control their rendering. Existing clothing migrates on load; creature storage remains accessible. The original clothing interface remains when Curios is absent.
+- Applied the author's updated male/female Trailcloth models and textures without green dots, and shortened its Chinese name to **行猎装**. Tail and taur bodies retain the upper outfit only.
+- Added carpet seating between native seats and bare ground in rest-place preferences.
+- Native-origin players can occasionally make animal calls while chatting, with a separate setting and server cooldown. Both global and local role chat use the controlled body's position.
+- Hyenas can eat leather for brief Resistance and selected positive brewing ingredients for their corresponding effects. Negative ingredients provide food without effects. Rotten flesh restores six food points without Hunger, and toxic food does not apply new harmful effects.
+- Fixed Muntjac charge input preventing creative players from taking off with a double tap; charging and normal flight controls remain available.
+- Added the **Trailcloth Outfit**, using the supplied icon, geometry and gender-specific styles. It fits adult humanoid forms, with only the upper section on tail and taur bodies; juvenile and pure feral bodies cannot wear it. Includes native clothing rules, a crafting recipe and first-person sleeves.
+- Newly generated Spotted Hyenas and camp residents have a configurable **25% chance** to wear Trailcloth. Existing clothing and saved residents are preserved.
+- Spotted Hyenas can chew bones for a little food and eight seconds of a random level-I effect: Speed, Haste, Strength, Resistance or Regeneration. Friendly and bonded hyenas can eat stored bones when injured, and outpost residents can include them in shared meals.
+- Female Spotted Hyenas have slightly higher health (26 versus 24), movement speed (1.13 versus 1.075) and jump strength (1.05 versus 1), for both NPCs and transformed players.
+- Fixed female Spotted Hyena eyes disappearing when looking down, and applied the updated eyebrow textures.
+- Fixed hyena structures appearing above their surroundings because their existing soil layers and hideout basement were combined with terrain adaptation.
+- Male and female **Latex Muntjacs** can charge a higher jump by holding the jump key, with a horse-style charge meter replacing the experience bar while charging. A short press gives a normal jump. This passive also works when a human controls a Muntjac's wrapping body. Updated their names to follow Changed's male/female naming convention.
+- Fixed the infection bar remaining at 100% after leaving a bonded wrap or completing a companion's revival.
+- Fixed friendly social holds showing the wrong pose or missing their held pose when synchronization arrived before the creature, including for players who began watching an existing hold.
+- Friendly play hugs and core companion grab, rescue, evacuation and combat-policy handling now work independently of **Changed Addon Plus**. Addon-specific items and features retain their optional integration.
+- Fixed pursuing creatures being removed or leaving pursuit while still carrying a player.
+- Continued the overflowing passage in the aquatic laboratory's **Homogeneity** book onto another page, preserving its text and signature.
+- Updated the bond advancement's description to reflect that White Latex binding pillars are no longer dangerous. The Chinese Spin Silk advancement is now named **自给自足**.
+
+### Compatibility
+
+- Fixed Swordfish transfur and world-loading crashes involving **Entity Model Features / Fresh Moves** during the transformation animation.
+- Fixed a startup crash in Swordfish Rush's armor-penetration handling when another mod adds armor-damage method overloads, as reported with **RosmontisLib**.
+
+Servers and clients must both update to Beta.2.

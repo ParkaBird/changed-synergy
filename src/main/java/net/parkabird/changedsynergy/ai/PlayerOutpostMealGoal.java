@@ -232,7 +232,7 @@ public final class PlayerOutpostMealGoal extends Goal {
         status("meal_sit");
         mob.getLookControl().setLookAt(fire.getX() + 0.5D, fire.getY() + 0.75D, fire.getZ() + 0.5D);
         ServerPlayer owner = level.getServer().getPlayerList().getPlayer(outpost.owner);
-        if (owner != null && owner.level() == level && owner.distanceToSqr(mob) <= 144.0D
+        if (owner != null && owner.level() == level && owner.distanceToSqr(mob) <= 256.0D
                 && mob.getRandom().nextInt(3) == 0)
             NpcDialogue.context(mob, owner, "player_outpost.meal." + tone());
     }
@@ -323,7 +323,7 @@ public final class PlayerOutpostMealGoal extends Goal {
             PlayerOutpostData.get(level.getServer()).refreshRestPlaces(level, outpost);
             for (BlockPos point : outpost.restPoints)
                 if (!claimed(level, point) && safePlace(level, point, true)) candidates.add(point);
-        } else for (BlockPos cursor : BlockPos.betweenClosed(fire.offset(-6, -2, -6), fire.offset(6, 2, 6))) {
+        } else for (BlockPos cursor : BlockPos.betweenClosed(fire.offset(-8, -2, -8), fire.offset(8, 2, 8))) {
             if (!claimed(level, cursor) && safePlace(level, cursor, false)) candidates.add(cursor.immutable());
         }
         double angle = Math.toRadians(Math.floorMod(mob.getUUID().hashCode(), 360));
@@ -345,7 +345,7 @@ public final class PlayerOutpostMealGoal extends Goal {
         double width = bodyWidth;
         double dx = pos.getX() - fire.getX(), dz = pos.getZ() - fire.getZ();
         double distance = dx * dx + dz * dz;
-        if (distance < Math.pow(1.5D + width / 2.0D, 2) || distance > 36.0D) return false;
+        if (distance < Math.pow(1.5D + width / 2.0D, 2) || distance > 64.0D) return false;
         BlockState state = level.getBlockState(pos);
         if (onPillow) {
             if (!PlayerOutpostRestGoal.isRestPoint(state) || !PlayerOutpostRestGoal.free(mob, level, pos)) return false;

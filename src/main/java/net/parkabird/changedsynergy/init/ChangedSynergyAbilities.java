@@ -21,6 +21,12 @@ public final class ChangedSynergyAbilities {
     public static final RegistryObject<net.parkabird.changedsynergy.ability.SwordfishRushAbility> SWORDFISH_RUSH =
             REGISTRY.register("swordfish_rush", net.parkabird.changedsynergy.ability.SwordfishRushAbility::new);
 
+    public static final RegistryObject<net.parkabird.changedsynergy.ability.GrizzlyClawsAbility> GRIZZLY_CLAWS =
+            REGISTRY.register("grizzly_claws", net.parkabird.changedsynergy.ability.GrizzlyClawsAbility::new);
+
+    public static final RegistryObject<net.parkabird.changedsynergy.ability.ManulCrouchRestAbility> MANUL_CROUCH_REST =
+            REGISTRY.register("manul_crouch_rest", net.parkabird.changedsynergy.ability.ManulCrouchRestAbility::new);
+
     /** Share the existing flight ability and its tuning without requiring Addon Plus. */
     public static AbstractAbility<?> wingFlap(){return ChangedRegistry.ABILITY.get().getValue(net.minecraft.resources.ResourceLocation.parse("changed_addon:wing_flap"));}
 

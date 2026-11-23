@@ -52,6 +52,7 @@ public final class ChangedSynergyMod {
         modBus.addListener(ChangedSynergyEntities::registerAliases);
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(ChangedSynergyEntities::remapOldEntities);
         net.parkabird.changedsynergy.init.ChangedSynergyBlocks.REGISTRY.register(modBus);
+        net.parkabird.changedsynergy.init.ChangedSynergyBlockEntities.REGISTRY.register(modBus);
         net.parkabird.changedsynergy.init.ChangedSynergyAbilities.REGISTRY.register(modBus);
         ChangedSynergyTransfurVariants.REGISTRY.register(modBus);
         modBus.addListener(ChangedSynergyTransfurVariants::registerAliases);
@@ -73,6 +74,10 @@ public final class ChangedSynergyMod {
                 ChangedSynergyTransfurVariants.LATEX_MUNTJAC, ChangedSynergyTransfurVariants.LATEX_MUNTJAC_FEMALE));
         event.enqueueWork(() -> net.ltxprogrammer.changed.init.ChangedTransfurVariants.Gendered.registerPair(
                 ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_MALE, ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_FEMALE));
+        event.enqueueWork(() -> net.ltxprogrammer.changed.init.ChangedTransfurVariants.Gendered.registerPair(
+                ChangedSynergyTransfurVariants.LATEX_MANUL, ChangedSynergyTransfurVariants.LATEX_MANUL_FEMALE));
+        event.enqueueWork(() -> net.ltxprogrammer.changed.init.ChangedTransfurVariants.Gendered.registerPair(
+                ChangedSynergyTransfurVariants.LATEX_GRAY_FOX, ChangedSynergyTransfurVariants.LATEX_GRAY_FOX_FEMALE));
     }
 
     private static void onConfigLoading(ModConfigEvent.Loading event) {

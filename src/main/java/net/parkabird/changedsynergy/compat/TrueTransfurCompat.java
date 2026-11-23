@@ -28,6 +28,24 @@ public final class TrueTransfurCompat {
                 && entity.getPersistentData().hasUUID("TrueTransfurOwner");
     }
 
+    /** Synched carrier UUID so clients render Instinct shells with the owner's player skin. */
+    public interface InstinctOwnerState {
+        @Nullable UUID changedSynergy$getInstinctOwner();
+        void changedSynergy$setInstinctOwner(@Nullable UUID owner);
+    }
+
+    @Nullable
+    public static UUID instinctOwnerUuid(@Nullable ChangedEntity entity) {
+        if (entity == null) return null;
+        if (entity.getUnderlyingPlayer() != null) return entity.getUnderlyingPlayer().getUUID();
+        if (entity instanceof InstinctOwnerState state && state.changedSynergy$getInstinctOwner() != null) {
+            return state.changedSynergy$getInstinctOwner();
+        }
+        return !entity.level().isClientSide() && isInstinctBody(entity)
+                ? entity.getPersistentData().getUUID("TrueTransfurOwner")
+                : null;
+    }
+
     /** Old TrueTransfur releases drive the player directly and have no hidden shell. */
     public static boolean isInstinctShell(Player player) {
         return player instanceof ServerPlayer server && ModList.get().isLoaded("true_transfur")
@@ -70,12 +88,45 @@ public final class TrueTransfurCompat {
         private static final Method active = method("TransfurController", "isTrueTransfurActive");
         private static final Method mode = method("TransfurController", "isInstinctControlled");
         private static final Method body = method("InstinctRuntime", "getControlledEntity");
+        private static final Method controlModeGetter = method("TransfurController", "getControlMode");
+        private static final Object reverseTransfurDeathConfig = reverseDeathFlag();
+        private static final Class<?> controlModeEnum = controlModeType();
+        private static final Method switchControlMode = controlModeEnum == null ? null : changeModeMethod(controlModeEnum);
+        private static final Object playerControlMode = playerModeConstant(controlModeEnum);
 
         private static Method method(String type, String name) {
             try {
                 return Class.forName("com.lugert.true_transfur.transfur." + type)
                         .getMethod(name, ServerPlayer.class);
             } catch (ReflectiveOperationException | LinkageError exception) { return null; }
+        }
+
+        private static Object reverseDeathFlag() {
+            try {
+                return Class.forName("com.lugert.true_transfur.config.TrueTransfurConfig")
+                        .getField("ENABLE_REVERSE_TRANSFUR_DEATH").get(null);
+            } catch (ReflectiveOperationException | LinkageError exception) { return null; }
+        }
+
+        private static Class<?> controlModeType() {
+            try {
+                return Class.forName("com.lugert.true_transfur.transfur.ControlMode");
+            } catch (ReflectiveOperationException | LinkageError exception) { return null; }
+        }
+
+        private static Method changeModeMethod(Class<?> modeType) {
+            try {
+                Class<?> controller = Class.forName("com.lugert.true_transfur.transfur.TransfurController");
+                try { return controller.getMethod("switchControlMode", ServerPlayer.class, modeType); }
+                catch (NoSuchMethodException exception) { return controller.getMethod("setControlMode", ServerPlayer.class, modeType); }
+            } catch (ReflectiveOperationException | LinkageError exception) { return null; }
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private static Object playerModeConstant(Class<?> modeType) {
+            if (modeType == null) return null;
+            try { return Enum.valueOf((Class)modeType, "PLAYER"); }
+            catch (IllegalArgumentException | LinkageError exception) { return null; }
         }
     }
 
@@ -124,17 +175,10 @@ public final class TrueTransfurCompat {
                 .map(TransfurVariantInstance::isTemporaryFromSuit)
                 .orElse(false)) return false;
         try {
-            Class<?> config = Class.forName(
-                    "com.lugert.true_transfur.config.TrueTransfurConfig");
-            Object deathSetting = config.getField("ENABLE_REVERSE_TRANSFUR_DEATH").get(null);
-            if (!(deathSetting instanceof ForgeConfigSpec.BooleanValue flag))
+            if (!(InstinctApi.reverseTransfurDeathConfig instanceof ForgeConfigSpec.BooleanValue flag))
                 return ProcessTransfur.isPlayerTransfurred(player);
-            if (!flag.get()) return false;
-            Class<?> controller = Class.forName(
-                    "com.lugert.true_transfur.transfur.TransfurController");
-            return Boolean.TRUE.equals(controller
-                    .getMethod("isTrueTransfurActive", ServerPlayer.class)
-                    .invoke(null, player));
+            if (!flag.get() || InstinctApi.active == null) return false;
+            return Boolean.TRUE.equals(InstinctApi.active.invoke(null, player));
         } catch (ReflectiveOperationException | LinkageError exception) {
             // A changed TrueTransfur API must never turn a safe release into death.
             return ProcessTransfur.isPlayerTransfurred(player);
@@ -143,13 +187,9 @@ public final class TrueTransfurCompat {
 
     /** Only the inspected backend API enables new irreversible origin choices. */
     public static boolean supportsNativeOrigin() {
-        if (!ModList.get().isLoaded("true_transfur")) return false;
-        try {
-            Class<?> controller = Class.forName("com.lugert.true_transfur.transfur.TransfurController");
-            controller.getMethod("isTrueTransfurActive", ServerPlayer.class);
-            controller.getMethod("getControlMode", ServerPlayer.class);
-            return true;
-        } catch (ReflectiveOperationException | LinkageError exception) { return false; }
+        return ModList.get().isLoaded("true_transfur")
+                && InstinctApi.active != null
+                && InstinctApi.controlModeGetter != null;
     }
 
     /** Shared body initialization for a chosen native origin and a consenting permanent ritual. */
@@ -166,19 +206,14 @@ public final class TrueTransfurCompat {
         return true;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public static void ensurePlayerControl(ServerPlayer player) {
-        if (!supportsNativeOrigin()) return;
+        if (!supportsNativeOrigin()
+                || InstinctApi.mode == null
+                || InstinctApi.switchControlMode == null
+                || InstinctApi.playerControlMode == null) return;
         try {
-            Class<?> controller = Class.forName("com.lugert.true_transfur.transfur.TransfurController");
-            Class mode = Class.forName("com.lugert.true_transfur.transfur.ControlMode");
-            if (Boolean.TRUE.equals(controller.getMethod("isInstinctControlled", ServerPlayer.class).invoke(null, player))) {
-                Method changeMode;
-                try { changeMode = controller.getMethod("switchControlMode", ServerPlayer.class, mode); }
-                catch (NoSuchMethodException exception) {
-                    changeMode = controller.getMethod("setControlMode", ServerPlayer.class, mode);
-                }
-                changeMode.invoke(null, player, Enum.valueOf(mode, "PLAYER"));
+            if (Boolean.TRUE.equals(InstinctApi.mode.invoke(null, player))) {
+                InstinctApi.switchControlMode.invoke(null, player, InstinctApi.playerControlMode);
             }
         } catch (ReflectiveOperationException | LinkageError exception) {
             // Unknown APIs never drive the player from this optional bridge.

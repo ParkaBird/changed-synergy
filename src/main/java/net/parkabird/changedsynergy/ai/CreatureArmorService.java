@@ -1,5 +1,10 @@
 package net.parkabird.changedsynergy.ai;
 
+import java.util.ArrayList;
+import java.util.List;
+import net.ltxprogrammer.changed.ability.GrabEntityAbility;
+import net.ltxprogrammer.changed.ability.GrabEntityAbilityInstance;
+import net.ltxprogrammer.changed.ability.IAbstractChangedEntity;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.variant.ClothingShape;
 import net.ltxprogrammer.changed.item.ExtendedItemProperties;
@@ -7,8 +12,12 @@ import net.ltxprogrammer.changed.item.QuadrupedalArmor;
 import net.ltxprogrammer.changed.world.enchantments.FormFittingEnchantment;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.AxeItem;
@@ -17,6 +26,7 @@ import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TridentItem;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -29,7 +39,101 @@ import net.parkabird.changedsynergy.world.inventory.BondedCreatureInventory;
 /** Shared checks and direct interactions for creature equipment. */
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID)
 public final class CreatureArmorService {
+    private static final EquipmentSlot[] ARMOR_SLOTS = {
+            EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
+    };
+
     private CreatureArmorService() {
+    }
+
+    @SubscribeEvent
+    public static void onPlayerHurtInBondedSuit(LivingHurtEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)
+                || event.getAmount() <= 0.0F
+                || event.getSource().is(DamageTypeTags.BYPASSES_ARMOR)
+                || TakeoverService.active(player)) {
+            return;
+        }
+        IAbstractChangedEntity grabber = GrabEntityAbility.getGrabber(player);
+        if (grabber == null || !(grabber.getEntity() instanceof ChangedEntity carrier)) {
+            return;
+        }
+        GrabEntityAbilityInstance ability = BondedSuitService.ability(carrier);
+        if (ability == null || !ability.suited || ability.grabbedEntity != player) {
+            return;
+        }
+        if (!LatexSocialMemory.isBonded(carrier, player)
+                && !LatexSocialMemory.isPetOwner(carrier, player)) {
+            return;
+        }
+
+        double extraArmor = 0.0D;
+        double extraToughness = 0.0D;
+        List<EquipmentSlot> borrowed = new ArrayList<>(4);
+        for (EquipmentSlot slot : ARMOR_SLOTS) {
+            if (!player.getItemBySlot(slot).isEmpty()) continue;
+            ItemStack partnerPiece = carrier.getItemBySlot(slot);
+            if (partnerPiece.isEmpty()) continue;
+            double slotArmor = additionModifierTotal(partnerPiece, slot, Attributes.ARMOR);
+            double slotToughness = additionModifierTotal(partnerPiece, slot, Attributes.ARMOR_TOUGHNESS);
+            if (slotArmor > 0.0D || slotToughness > 0.0D) {
+                extraArmor += slotArmor;
+                extraToughness += slotToughness;
+                borrowed.add(slot);
+            }
+        }
+        if (borrowed.isEmpty()) {
+            return;
+        }
+
+        float rawAmount = event.getAmount();
+        float scaled = scaleDamageWithBorrowedArmor(
+                rawAmount,
+                player.getArmorValue(),
+                player.getAttributeValue(Attributes.ARMOR_TOUGHNESS),
+                extraArmor,
+                extraToughness);
+        if (scaled < rawAmount) {
+            event.setAmount(scaled);
+        }
+        int durabilityDamage = Math.max(1, (int) (rawAmount / 4.0F));
+        for (EquipmentSlot slot : borrowed) {
+            ItemStack piece = carrier.getItemBySlot(slot);
+            if (!piece.isEmpty() && piece.isDamageableItem()) {
+                piece.hurtAndBreak(durabilityDamage, carrier, entity -> entity.broadcastBreakEvent(slot));
+            }
+        }
+    }
+
+    private static double additionModifierTotal(ItemStack stack, EquipmentSlot slot, Attribute attribute) {
+        double total = 0.0D;
+        for (AttributeModifier modifier : stack.getAttributeModifiers(slot).get(attribute)) {
+            if (modifier.getOperation() == AttributeModifier.Operation.ADDITION) {
+                total += modifier.getAmount();
+            }
+        }
+        return total;
+    }
+
+    static float scaleDamageWithBorrowedArmor(
+            float amount,
+            double playerArmor,
+            double playerToughness,
+            double extraArmor,
+            double extraToughness) {
+        if (amount <= 0.0F || (extraArmor <= 0.0D && extraToughness <= 0.0D)) {
+            return amount;
+        }
+        float afterPlayer = CombatRules.getDamageAfterAbsorb(
+                amount, (float) Math.max(0.0D, playerArmor), (float) Math.max(0.0D, playerToughness));
+        if (afterPlayer <= 0.0F) {
+            return amount;
+        }
+        float afterCombined = CombatRules.getDamageAfterAbsorb(
+                amount,
+                (float) Math.max(0.0D, playerArmor + extraArmor),
+                (float) Math.max(0.0D, playerToughness + extraToughness));
+        return afterCombined < afterPlayer ? amount * (afterCombined / afterPlayer) : amount;
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

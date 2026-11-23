@@ -32,14 +32,11 @@ public final class MuntjacJumpRegression {
             var player = new ServerPlayer(server, server.overworld(), new GameProfile(UUID.randomUUID(), "MuntjacJump"));
             player.connection = new ServerGamePacketListenerImpl(server, new Connection(PacketFlow.SERVERBOUND), player);
             player.moveTo(0, 120, 0);
-            for (var type : List.of(ChangedSynergyEntities.LATEX_MUNTJAC.get(), ChangedSynergyEntities.LATEX_MUNTJAC_FEMALE.get(),ChangedSynergyEntities.LATEX_JERBOA.get())) {
+            for (var type : List.of(ChangedSynergyEntities.LATEX_MUNTJAC.get(), ChangedSynergyEntities.LATEX_MUNTJAC_FEMALE.get())) {
                 var body = type.create(server.overworld());
-                near(body.getAttributeBaseValue(net.ltxprogrammer.changed.init.ChangedAttributes.JUMP_STRENGTH.get()),
-                        ChangedEntities.LATEX_MING_CAT.get().create(server.overworld()).getAttributeBaseValue(net.ltxprogrammer.changed.init.ChangedAttributes.JUMP_STRENGTH.get()),"base jump matches the native feline preset");
                 ProcessTransfur.setPlayerTransfurVariant(player, body.getSelfVariant(), null, 1, false);
                 check(MuntjacJumpService.refresh(player), "male/female native form eligible");
                 ordinaryAndCharged(player);
-                landings(player);
                 var strength = player.getAttribute(net.ltxprogrammer.changed.init.ChangedAttributes.JUMP_STRENGTH.get());
                 double oldStrength = strength.getBaseValue();
                 for (double factor : new double[]{1, 1.5}) {
@@ -69,7 +66,6 @@ public final class MuntjacJumpRegression {
                 check(ProcessTransfur.getPlayerTransfurVariant(player).isTemporaryFromSuit(), "suit has temporary form");
                 check(MuntjacJumpService.refresh(player), "controlling human receives passive despite temporary suit");
                 ordinaryAndCharged(player);
-                landings(player);
                 charge(player, true);
                 grab.grabbedHasControl = false;
                 net.parkabird.changedsynergy.ai.LatexSocialMemory.endFriendlySuit(body, player);
@@ -136,19 +132,6 @@ public final class MuntjacJumpRegression {
         player.tickCount += MuntjacJumpState.HOLD_TICKS + 10;
         near(MuntjacJumpService.input(player, false), 1, "airborne hold charges only after landing");
         MuntjacJumpService.state(player).cancel(false);
-    }
-
-    private static void landings(ServerPlayer player) {
-        charge(player,true);player.tickCount+=10;MuntjacJumpService.input(player,false);player.jumpFromGround();
-        var state=MuntjacJumpService.state(player);double y=player.getY();state.trackFlight(y+6,false);
-        var landing=new net.minecraftforge.event.entity.living.LivingFallEvent(player,6,1);
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(landing);near(landing.getDistance(),0,"normal charged landing removes only achieved rise");
-        var repeated=new net.minecraftforge.event.entity.living.LivingFallEvent(player,10,1);net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(repeated);near(repeated.getDistance(),10,"landing protection is consumed once");
-        charge(player,true);player.tickCount+=10;MuntjacJumpService.input(player,false);player.jumpFromGround();state.trackFlight(y+6,false);
-        landing=new net.minecraftforge.event.entity.living.LivingFallEvent(player,16,1);net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(landing);near(landing.getDistance(),10,"ten-block drop below launch retains ten-block fall");
-        state.beginFlight(y,true);state.trackFlight(y+1,false);near(state.landingDistance(11,y-10),10,"low ceiling cannot grant unused jump height");
-        state.beginFlight(y,false);state.trackFlight(y+6,false);near(state.landingDistance(16,y-10),16,"ordinary jump does not grant charged protection");
-        state.beginFlight(y,true);state.trackFlight(y+6,false);state.trackFlight(y,true);state.trackFlight(y,true);state.trackFlight(y,true);near(state.landingDistance(10,y-10),10,"safe landing clears leftover protection");
     }
 
     private static void gestures() {

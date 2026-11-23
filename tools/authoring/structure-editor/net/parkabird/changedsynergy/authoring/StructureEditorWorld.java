@@ -34,9 +34,11 @@ import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 @Mod.EventBusSubscriber(modid="changed_synergy", value=Dist.DEDICATED_SERVER)
 public final class StructureEditorWorld {
     private static final boolean TREEHOUSE=Boolean.getBoolean("changed_synergy.treehouseEditor");
-    private static final String[] NAMES=TREEHOUSE?new String[]{"forest_treehouse"}:new String[]{"white_lab_tower","red_lab_tower","green_lab","water_tower_changed"};
-    private static final String[] LABELS=TREEHOUSE?new String[]{"森林树屋"}:new String[]{"白色实验室塔","红色实验室塔","绿色实验室塔","水下实验室"};
-    private static final BlockPos[] ORIGINS=TREEHOUSE?new BlockPos[]{new BlockPos(0,63,0)}:new BlockPos[]{new BlockPos(0,64,0),new BlockPos(160,64,0),new BlockPos(0,64,160),new BlockPos(160,64,160)};
+    private static final boolean CLEAN=Boolean.getBoolean("changed_synergy.editorClean");
+    private static final String CUSTOM=System.getProperty("changed_synergy.editorTemplate","");
+    private static final String[] NAMES=!CUSTOM.isEmpty()?new String[]{CUSTOM}:TREEHOUSE?new String[]{"forest_treehouse"}:new String[]{"white_lab_tower","red_lab_tower","green_lab","water_tower_changed"};
+    private static final String[] LABELS=!CUSTOM.isEmpty()?new String[]{CUSTOM}:TREEHOUSE?new String[]{"森林树屋"}:new String[]{"白色实验室塔","红色实验室塔","绿色实验室塔","水下实验室"};
+    private static final BlockPos[] ORIGINS=!CUSTOM.isEmpty()?new BlockPos[]{new BlockPos(0,64,0)}:TREEHOUSE?new BlockPos[]{new BlockPos(0,63,0)}:new BlockPos[]{new BlockPos(0,64,0),new BlockPos(160,64,0),new BlockPos(0,64,160),new BlockPos(160,64,160)};
     private static int books,containers,creatures;
 
     @SubscribeEvent public static void build(ServerStartedEvent event) {
@@ -99,23 +101,27 @@ public final class StructureEditorWorld {
                     if(count>0){entity.load(saved);siteBooks+=count;}
                 }
                 books+=siteBooks;containers+=siteContainers;
-                for(int x=-2;x<=size.getX()+1;x++)for(int z:new int[]{-2,size.getZ()+1})level.setBlock(origin.offset(x,TREEHOUSE?0:-1,z),Blocks.YELLOW_CONCRETE.defaultBlockState(),2);
-                for(int z=-2;z<=size.getZ()+1;z++)for(int x:new int[]{-2,size.getX()+1})level.setBlock(origin.offset(x,TREEHOUSE?0:-1,z),Blocks.YELLOW_CONCRETE.defaultBlockState(),2);
-                var board=origin.offset(size.getX()/2,TREEHOUSE?1:0,-5);level.setBlock(board,Blocks.OAK_SIGN.defaultBlockState(),3);
-                if(level.getBlockEntity(board) instanceof SignBlockEntity sign) {
-                    var text=new SignText().setMessage(0,Component.literal(LABELS[i])).setMessage(1,Component.literal("方块／书籍／光盘可编辑"))
-                            .setMessage(2,Component.literal(i==3?"原海平面 Y=91":"改完后保存并退出"))
-                            .setMessage(3,Component.literal("范围角点 "+origin.toShortString()));
-                    sign.setText(text,true);sign.setText(text,false);sign.setChanged();
+                if(!CLEAN) {
+                    for(int x=-2;x<=size.getX()+1;x++)for(int z:new int[]{-2,size.getZ()+1})level.setBlock(origin.offset(x,TREEHOUSE?0:-1,z),Blocks.YELLOW_CONCRETE.defaultBlockState(),2);
+                    for(int z=-2;z<=size.getZ()+1;z++)for(int x:new int[]{-2,size.getX()+1})level.setBlock(origin.offset(x,TREEHOUSE?0:-1,z),Blocks.YELLOW_CONCRETE.defaultBlockState(),2);
+                    var board=origin.offset(size.getX()/2,TREEHOUSE?1:0,-5);level.setBlock(board,Blocks.OAK_SIGN.defaultBlockState(),3);
+                    if(level.getBlockEntity(board) instanceof SignBlockEntity sign) {
+                        var text=new SignText().setMessage(0,Component.literal(LABELS[i])).setMessage(1,Component.literal("方块／书籍／光盘可编辑"))
+                                .setMessage(2,Component.literal(i==3?"原海平面 Y=91":"改完后保存并退出"))
+                                .setMessage(3,Component.literal("范围角点 "+origin.toShortString()));
+                        sign.setText(text,true);sign.setText(text,false);sign.setChanged();
+                    }
                 }
                 if(siteContainers==0)throw new AssertionError("No editable containers: "+id);
                 System.out.println("EDITOR_SITE_READY "+NAMES[i]+" origin="+origin+" size="+size+" books="+siteBooks+" containers="+siteContainers);
             }
-            if(books==0)throw new AssertionError("Authored books were not made editable");
-            level.setBlock(new BlockPos(-12,64,-10),Blocks.CHEST.defaultBlockState(),3);
-            var chest=(Container)level.getBlockEntity(new BlockPos(-12,64,-10));
-            chest.setItem(0,guide());chest.setItem(1,new ItemStack(Items.WRITABLE_BOOK,8));chest.setItem(2,new ItemStack(Items.ENDER_PEARL,16));chest.setItem(3,new ItemStack(Items.MILK_BUCKET));
-            chest.setChanged();
+            if(books==0 && CUSTOM.isEmpty())throw new AssertionError("Authored books were not made editable");
+            if(!CLEAN) {
+                level.setBlock(new BlockPos(-12,64,-10),Blocks.CHEST.defaultBlockState(),3);
+                var chest=(Container)level.getBlockEntity(new BlockPos(-12,64,-10));
+                chest.setItem(0,guide());chest.setItem(1,new ItemStack(Items.WRITABLE_BOOK,8));chest.setItem(2,new ItemStack(Items.ENDER_PEARL,16));chest.setItem(3,new ItemStack(Items.MILK_BUCKET));
+                chest.setChanged();
+            }
             Files.writeString(server.getWorldPath(LevelResource.ROOT).resolve("synergy_editing/generation.txt"),"Editable books="+books+"\nContainers="+containers+"\nFrozen creatures="+creatures+"\nSource templates use Rotation.NONE.\n");
             System.out.println("STRUCTURE_EDITOR_WORLD_PASS: structures="+NAMES.length+"; editable books="+books+"; containers="+containers+"; frozen creatures="+creatures);
         } catch(Throwable failure) {System.err.println("STRUCTURE_EDITOR_WORLD_FAIL");failure.printStackTrace();}

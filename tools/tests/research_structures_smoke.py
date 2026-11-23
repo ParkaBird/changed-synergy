@@ -1,5 +1,6 @@
 """Run the structure fixture in a fresh, loopback-only normal world."""
 from pathlib import Path
+import os
 import shutil
 import subprocess
 import sys
@@ -28,7 +29,7 @@ shutil.copy2(fixture, run / 'mods' / fixture.name)
 (run / 'server.properties').write_text('server-ip=127.0.0.1\nserver-port=0\nonline-mode=false\nlevel-name=research-fixture\n'
         'level-seed=220261025\nlevel-type=minecraft:normal\ngenerate-structures=true\nspawn-protection=0\n'
         'view-distance=2\nsimulation-distance=5\nmax-tick-time=-1\n', encoding='utf-8')
-java = Path('C:/Users/ZhuanZ（无密码）/AppData/Roaming/.minecraft/runtime/java-runtime-beta/bin/java.exe')
+java = Path(os.environ['APPDATA']) / '.minecraft/runtime/java-runtime-beta/bin/java.exe'
 startup = subprocess.STARTUPINFO()
 startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 startup.wShowWindow = subprocess.SW_HIDE

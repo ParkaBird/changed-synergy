@@ -53,6 +53,8 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
             "container.changed_synergy.relationship_manager");
     private static final String NEXT_ACTIVITY =
             "ChangedSynergyNextRelationshipGroupActivity";
+    private static final String NEXT_MEDIATE =
+            "ChangedSynergyNextRelationshipMediate";
     private static final String CANCEL_CONFIRMATION =
             "ChangedSynergyRelationshipCancelConfirmation";
     private final Player player;
@@ -513,7 +515,20 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
     }
 
     private void mediate(ServerPlayer origin, CompoundTag payload) {
-        if (net.ltxprogrammer.changed.process.ProcessTransfur.isPlayerTransfurred(origin)) return;
+        if (!origin.isAlive()
+                || origin.isSpectator()
+                || net.parkabird.changedsynergy.ai.TakeoverService.active(origin)
+                || net.parkabird.changedsynergy.ai.HypnosisQteService.isPlayerControlLocked(origin)
+                || net.parkabird.changedsynergy.origin.NativeOriginService.pending(origin)
+                || net.ltxprogrammer.changed.process.ProcessTransfur.isPlayerTransfurred(origin)) return;
+        long now = origin.level().getGameTime();
+        long next = origin.getPersistentData().getLong(NEXT_MEDIATE);
+        if (next > now) {
+            origin.displayClientMessage(Component.translatable(
+                    "message.changed_synergy.relationship.activity_cooldown",
+                    Math.max(1L, (next - now + 19L) / 20L)), true);
+            return;
+        }
         var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(origin);
         if (!payload.hasUUID("contact")) {
             return;
@@ -521,6 +536,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
         ChangedEntity mediator = PlayerRelationshipSettings.findLoaded(
                 origin, payload.getUUID("contact"));
         if (mediator == null || mediator.level() != origin.level()
+                || mediator.distanceToSqr(body) > 24.0D * 24.0D
                 || !CreaturePersonality.hasTrustedRelationship(mediator, origin)) {
             origin.displayClientMessage(Component.translatable(
                     "message.changed_synergy.relationship.mediator_unavailable"), true);
@@ -547,6 +563,9 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
             CreaturePersonality.adjustFamiliarityFromInteraction(
                     candidate, origin, 1);
             calmed++;
+        }
+        if (calmed > 0) {
+            origin.getPersistentData().putLong(NEXT_MEDIATE, now + 200L);
         }
         origin.displayClientMessage(Component.translatable(
                 calmed > 0

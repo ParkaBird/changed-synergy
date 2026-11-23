@@ -45,7 +45,7 @@ final class CommunityStoreChecks {
         for(var p:publicPositions){
             check(level.getBlockState(p.below()).isFaceSturdy(level,p.below(),Direction.UP),"chest rests on solid authored ground");
             check(!level.getBlockState(p.above()).isRedstoneConductor(level,p.above()),"chest lid has clearance");
-            check(CampLifeService.template(chief).equals("desert_refuge")?NaturalCampService.mealPoints(chief).size()==1:NaturalCampService.sites(chief).fires().stream().anyMatch(f->f.distSqr(p)<=25),"community has its authored reserve and gathering place");
+            check(NaturalCampService.sites(chief).fires().stream().anyMatch(f->f.distSqr(p)<=25),"community reserve remains beside the campfire");
             check(!level.getBlockEntity(p).saveWithFullMetadata().contains("LootTable"),"community reserve is not a loot chest");
         }
         var loot=NaturalCampService.sites(chief).storage().stream().filter(p->!publicPositions.contains(p)).findFirst().orElseThrow();

@@ -795,7 +795,6 @@ public final class PlayerOutpostGoal extends Goal {
             return new AABB(camp.huntStart).minmax(new AABB(camp.huntEnd)).inflate(3, 3, 3);
         BlockPos anchor = switch (member.work) {
             case COOK -> camp.cooking;
-            case COMPOST -> camp.composter;
             case GATHER, HAUL -> camp.storage;
             default -> camp.marker;
         };

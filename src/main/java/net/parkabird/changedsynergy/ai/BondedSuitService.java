@@ -899,50 +899,27 @@ public final class BondedSuitService {
 
     /** Permanently restores the bonded creature's own form to a reverted owner. */
     public static boolean reassimilateOwner(ChangedEntity pet, ServerPlayer owner) {
-        if (!pet.isAlive()
-                || !LatexSocialMemory.isPetOwner(pet, owner)
-                || ProcessTransfur.isPlayerTransfurred(owner)) {
-            return false;
-        }
-        TransfurVariant<?> sourceVariant = pet.getSelfVariant();
-        if (sourceVariant == null) {
-            return false;
-        }
-
-        TransfurContext context = TransfurContext.npcLatexHazard(pet, TransfurCause.GRAB_REPLICATE);
-        float progress = owner.level().getGameRules()
-                .getBoolean(ChangedGameRules.RULE_DO_TRANSFUR_ANIMATION) ? 0.0F : 1.0F;
-        TransfurVariantInstance<?> instance = ProcessTransfur.setPlayerTransfurVariant(
-                owner, sourceVariant, context, progress);
-        if (instance == null) {
-            return false;
-        }
-        instance.transfurContext = context;
-        instance.transfurProgressionO = progress;
-        instance.transfurProgression = progress;
-        instance.setTemporaryForSuit(false);
-        Changed.PACKET_HANDLER.send(
-                PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> owner),
-                SyncTransfurPacket.Builder.of(owner));
-        if (LatexSocialMemory.isOrganic(pet)) {
-            ChangedSounds.broadcastSound(
-                    owner, ChangedSounds.TRANSFUR_BY_NOT_LATEX, 1.0F, 1.0F);
-        } else {
-            ChangedSounds.broadcastSound(owner, sourceVariant.sound, 1.0F, 1.0F);
-        }
-        LatexSocialMemory.addBond(pet, owner);
-        LatexSocialEvents.calmTowards(pet, owner);
-        NpcDialogue.trigger(pet, owner, Cue.BOND_REASSIMILATE);
-        return true;
+        return LatexSocialMemory.isPetOwner(pet, owner) && reassimilatePlayer(pet, owner, true);
     }
 
     /** Permanently takes a reverted native pet owner into the pet's own form. */
     public static boolean reassimilateNativePet(ChangedEntity pet, ServerPlayer owner) {
-        if (!pet.isAlive()
+        return owner.distanceToSqr(pet) <= 64.0D
+                && pet instanceof TamableLatexEntity nativePet
+                && nativePet.getOwner() == owner
+                && reassimilatePlayer(pet, owner, false);
+    }
+
+    private static boolean reassimilatePlayer(ChangedEntity pet, ServerPlayer owner, boolean addBond) {
+        if (owner == null
+                || !owner.isAlive()
+                || owner.isSpectator()
+                || !pet.isAlive()
+                || pet.isRemoved()
                 || pet.level() != owner.level()
-                || owner.distanceToSqr(pet) > 64.0D
-                || !(pet instanceof TamableLatexEntity nativePet)
-                || nativePet.getOwner() != owner
+                || HypnosisQteService.isPlayerControlLocked(owner)
+                || net.parkabird.changedsynergy.origin.NativeOriginService.pending(owner)
+                || GrabEntityAbility.getGrabber(owner) != null
                 || ProcessTransfur.isPlayerTransfurred(owner)) {
             return false;
         }
@@ -971,6 +948,9 @@ public final class BondedSuitService {
                     owner, ChangedSounds.TRANSFUR_BY_NOT_LATEX, 1.0F, 1.0F);
         } else {
             ChangedSounds.broadcastSound(owner, sourceVariant.sound, 1.0F, 1.0F);
+        }
+        if (addBond) {
+            LatexSocialMemory.addBond(pet, owner);
         }
         LatexSocialEvents.calmTowards(pet, owner);
         NpcDialogue.trigger(pet, owner, Cue.BOND_REASSIMILATE);

@@ -1,4 +1,4 @@
-"""Dedicated, empty community reserves, separate from authored loot."""
+"""Dedicated, empty community chests beside the three households' campfires."""
 from copy import deepcopy
 import gzip
 import hashlib
@@ -12,7 +12,6 @@ LAYOUTS = {
     'forest_treehouse': ([(20, 1, 6), (20, 1, 7)], 'east'),
     'hyena_hideout': ([(11, 4, 18), (11, 4, 19)], 'east'),
     'observatory': ([(31, 1, 5), (31, 1, 6)], 'east'),
-    'desert_refuge': ([(8, 14, 15), (8, 14, 16)], 'west'),
 }
 PREVIOUS_POSITIONS = {
     'forest_treehouse': [(26,1,4),(26,1,5)],
@@ -41,9 +40,8 @@ def add_public_store(template, name):
         if existing:
             assert str(template['palette'][int(block['state'])]['Name']) == 'minecraft:chest'
         else:
-            converted = name == 'desert_refuge' and str(template['palette'][int(block['state'])]['Name']) == 'minecraft:chest'
-            assert converted or str(template['palette'][int(block['state'])]['Name']) == 'minecraft:air', (name, pos, 'occupied public-store site')
-            assert converted or 'nbt' not in block, (name, pos, 'existing block entity')
+            assert str(template['palette'][int(block['state'])]['Name']) == 'minecraft:air', (name, pos, 'occupied public-store site')
+            assert 'nbt' not in block, (name, pos, 'existing block entity')
         assert str(template['palette'][int(blocks[(pos[0],pos[1]+1,pos[2])]['state'])]['Name']) == 'minecraft:air', (name, pos, 'blocked lid')
         state = nbt.Compound({'Name': nbt.String('minecraft:chest'), 'Properties': nbt.Compound({
             'facing': nbt.String(facing), 'type': nbt.String(side), 'waterlogged': nbt.String('false')})})
@@ -76,8 +74,8 @@ def main():
                 assert before[key] == template[key], (name, key)
         buffer = io.BytesIO(); template.write(buffer)
         path.write_bytes(gzip.compress(buffer.getvalue(), mtime=0))
-        manifest = root/'tools'/({'forest_treehouse':'forest_treehouse_manifest.json', 'hyena_hideout':'hyena_structures_manifest.json', 'observatory':'observatory_manifest.json','desert_refuge':'desert_refuge_manifest.json'}[name])
-        data = json.loads(manifest.read_text(encoding='utf-8')) if manifest.exists() else {}
+        manifest = root/'tools'/({'forest_treehouse':'forest_treehouse_manifest.json', 'hyena_hideout':'hyena_structures_manifest.json', 'observatory':'observatory_manifest.json'}[name])
+        data = json.loads(manifest.read_text(encoding='utf-8'))
         record = data[name] if name == 'hyena_hideout' else data
         record['output_sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
         record['community_storage'] = {'positions':positions, 'facing':facing, 'empty':True, 'loot_table':False}

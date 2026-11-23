@@ -38,6 +38,11 @@ public final class ChangedSynergyEntityRenderers {
         event.registerEntityRenderer(ChangedSynergyEntities.LATEX_SPOTTED_HYENA_MALE.get(), context -> new LatexSpottedHyenaRenderer(context, false));
         event.registerEntityRenderer(ChangedSynergyEntities.LATEX_SPOTTED_HYENA_FEMALE.get(), context -> new LatexSpottedHyenaRenderer(context, true));
         event.registerEntityRenderer(ChangedSynergyEntities.LATEX_SPIDTAUR.get(), LatexSpidtaurRenderer::new);
+        event.registerEntityRenderer(ChangedSynergyEntities.LATEX_GRIZZLY.get(), LatexGrizzlyRenderer::new);
+        event.registerEntityRenderer(ChangedSynergyEntities.LATEX_MANUL.get(), context -> new LatexManulRenderer<>(context, false));
+        event.registerEntityRenderer(ChangedSynergyEntities.LATEX_MANUL_FEMALE.get(), context -> new LatexManulRenderer<>(context, true));
+        event.registerEntityRenderer(ChangedSynergyEntities.LATEX_GRAY_FOX.get(), context -> new LatexGrayFoxRenderer<>(context, false));
+        event.registerEntityRenderer(ChangedSynergyEntities.LATEX_GRAY_FOX_FEMALE.get(), context -> new LatexGrayFoxRenderer<>(context, true));
     }
 
     @SubscribeEvent
@@ -46,6 +51,7 @@ public final class ChangedSynergyEntityRenderers {
         net.parkabird.changedsynergy.client.model.EagleOwlArmor.SET.registerDefinitions(event::registerLayerDefinition);
         event.registerLayerDefinition(net.parkabird.changedsynergy.client.model.LatexJerboaModel.LAYER,net.parkabird.changedsynergy.client.model.JerboaModelLayers::body);
         net.parkabird.changedsynergy.client.model.SynergyFemaleArmor.SLIM.registerDefinitions(event::registerLayerDefinition);
+        net.parkabird.changedsynergy.client.model.SynergyFemaleArmor.REGULAR.registerDefinitions(event::registerLayerDefinition);
         net.parkabird.changedsynergy.client.model.SynergyFemaleArmor.HYENA.registerDefinitions(event::registerLayerDefinition);
         event.registerLayerDefinition(net.parkabird.changedsynergy.client.model.LatexEagleOwlModel.LAYER,net.parkabird.changedsynergy.client.model.EagleOwlModelLayers::body);
         event.registerLayerDefinition(LatexSilkMothModel.LAYER_LOCATION, LatexSilkMothModel::createBodyLayer);
@@ -55,6 +61,24 @@ public final class ChangedSynergyEntityRenderers {
         event.registerLayerDefinition(LatexSpottedHyenaModel.MALE_LAYER, SpottedHyenaModelLayers::male);
         event.registerLayerDefinition(LatexSpottedHyenaModel.FEMALE_LAYER, SpottedHyenaModelLayers::female);
         event.registerLayerDefinition(LatexSpidtaurModel.LAYER_LOCATION, LatexSpidtaurModel::createBodyLayer);
+        net.parkabird.changedsynergy.client.model.SpidtaurArmor.UPPER_SET.registerDefinitions(event::registerLayerDefinition);
+        net.parkabird.changedsynergy.client.model.SpidtaurArmor.LOWER_SET.registerDefinitions(event::registerLayerDefinition);
+        net.parkabird.changedsynergy.client.model.GrizzlyArmor.SET.registerDefinitions(event::registerLayerDefinition);
+        event.registerLayerDefinition(
+                net.parkabird.changedsynergy.client.model.LatexGrizzlyModel.LAYER_LOCATION,
+                net.parkabird.changedsynergy.client.model.LatexGrizzlyModel::createBodyLayer);
+        event.registerLayerDefinition(
+                net.parkabird.changedsynergy.client.model.LatexManulModel.MALE_LAYER,
+                net.parkabird.changedsynergy.client.model.ManulModelLayers::male);
+        event.registerLayerDefinition(
+                net.parkabird.changedsynergy.client.model.LatexManulModel.FEMALE_LAYER,
+                net.parkabird.changedsynergy.client.model.ManulModelLayers::female);
+        event.registerLayerDefinition(
+                net.parkabird.changedsynergy.client.model.LatexGrayFoxModel.MALE_LAYER,
+                net.parkabird.changedsynergy.client.model.GrayFoxModelLayers::male);
+        event.registerLayerDefinition(
+                net.parkabird.changedsynergy.client.model.LatexGrayFoxModel.FEMALE_LAYER,
+                net.parkabird.changedsynergy.client.model.GrayFoxModelLayers::female);
         event.registerLayerDefinition(
                 net.parkabird.changedsynergy.client.model.WhiteLatexWolfPartialModel.LAYER_LOCATION_HUMAN,
                 () -> net.parkabird.changedsynergy.client.model.WhiteLatexWolfPartialModel.createHumanLayer(false));

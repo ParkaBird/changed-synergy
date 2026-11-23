@@ -59,3 +59,16 @@ outputs/
 config/
 __pycache__/
 *.pyc
+handoff_*/
+temp_extract/
+delivery/
+bestiary/
+unused_icons/
+community_dialogue_packs/
+update_bundle_watchtower_birch/
+scratch/
+scratch_*
+.codex-*.log
+discord_*.json
+discord_*.txt
+*.zip

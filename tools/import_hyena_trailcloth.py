@@ -29,14 +29,13 @@ def layer(data,section,lower=LOWER):
                 cube=cubes[node]
                 if (cube['name'] in lower)!=(section=='Lower'):continue
                 assert cube['type']=='cube' and cube.get('box_uv',data['meta']['box_uv'])
+                assert cube.get('stretch',[1,1,1])==[1,1,1]
                 origin=cube.get('origin',pivot);rotation=cube.get('rotation',[0,0,0]);low,high=cube['from'],cube['to']
                 offset=[pivot[0]-origin[0],pivot[1]-origin[1],origin[2]-pivot[2]]
                 angles=[math.radians(-rotation[0]),math.radians(-rotation[1]),math.radians(rotation[2])]
                 box=[origin[0]-high[0],origin[1]-high[1],low[2]-origin[2]]+[high[i]-low[i] for i in range(3)]
                 uv=cube.get('uv_offset',[0,0]);mirror='.mirror()' if cube.get('mirror_uv',False) else ''
-                stretch=cube.get('stretch',[1,1,1]);deformation=[cube.get('inflate',0)+(high[i]-low[i])*(stretch[i]-1)/2 for i in range(3)]
-                deform=number(deformation[0]) if deformation.count(deformation[0])==3 else vector(deformation)
-                builder=f'CubeListBuilder.create().texOffs({uv[0]}, {uv[1]}){mirror}.addBox({vector(box)}, new CubeDeformation({deform}))'
+                builder=f'CubeListBuilder.create().texOffs({uv[0]}, {uv[1]}){mirror}.addBox({vector(box)}, new CubeDeformation({number(cube.get("inflate",0))}))'
                 if cube.get('synergy_hidden_faces'):
                     directions=', '.join('net.minecraft.core.Direction.'+face.upper() for face in cube['synergy_hidden_faces'])
                     builder=f'((net.ltxprogrammer.changed.client.CubeListBuilderExtender){builder}).removeLastFaces({directions}).finish()'

@@ -28,6 +28,11 @@ import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.entity.CreatureFishingHookVisual;
 import net.parkabird.changedsynergy.entity.LatexSilkMoth;
 import net.parkabird.changedsynergy.entity.LatexSwordfish;
+import net.parkabird.changedsynergy.entity.LatexGrizzly;
+import net.parkabird.changedsynergy.entity.LatexGrayFox;
+import net.parkabird.changedsynergy.entity.LatexGrayFoxFemale;
+import net.parkabird.changedsynergy.entity.LatexManul;
+import net.parkabird.changedsynergy.entity.LatexManulFemale;
 import net.parkabird.changedsynergy.entity.LatexMuntjac;
 import net.parkabird.changedsynergy.entity.LatexMuntjacFemale;
 import net.parkabird.changedsynergy.entity.LatexSpottedHyena;
@@ -100,6 +105,36 @@ public final class ChangedSynergyEntities {
                     .sized(0.7F, 1.93F).clientTrackingRange(10)
                     .build(ChangedSynergyMod.MOD_ID + ":pure_white_latex_wolf_partial"));
 
+    public static final RegistryObject<EntityType<LatexGrizzly>> LATEX_GRIZZLY =
+            REGISTRY.register("latex_grizzly", () -> EntityType.Builder
+                    .<LatexGrizzly>of(LatexGrizzly::new, MobCategory.MONSTER)
+                    .sized(0.8F, 2.3F).clientTrackingRange(10)
+                    .build(ChangedSynergyMod.MOD_ID + ":latex_grizzly"));
+
+    public static final RegistryObject<EntityType<LatexManul>> LATEX_MANUL =
+            REGISTRY.register("latex_manul", () -> EntityType.Builder
+                    .<LatexManul>of(LatexManul::new, MobCategory.MONSTER)
+                    .sized(0.7F, 1.93F).clientTrackingRange(10)
+                    .build(ChangedSynergyMod.MOD_ID + ":latex_manul"));
+
+    public static final RegistryObject<EntityType<LatexManulFemale>> LATEX_MANUL_FEMALE =
+            REGISTRY.register("latex_manul_female", () -> EntityType.Builder
+                    .<LatexManulFemale>of(LatexManulFemale::new, MobCategory.MONSTER)
+                    .sized(0.7F, 1.93F).clientTrackingRange(10)
+                    .build(ChangedSynergyMod.MOD_ID + ":latex_manul_female"));
+
+    public static final RegistryObject<EntityType<LatexGrayFox>> LATEX_GRAY_FOX =
+            REGISTRY.register("latex_gray_fox", () -> EntityType.Builder
+                    .<LatexGrayFox>of(LatexGrayFox::new, MobCategory.MONSTER)
+                    .sized(0.7F, 1.93F).clientTrackingRange(10)
+                    .build(ChangedSynergyMod.MOD_ID + ":latex_gray_fox"));
+
+    public static final RegistryObject<EntityType<LatexGrayFoxFemale>> LATEX_GRAY_FOX_FEMALE =
+            REGISTRY.register("latex_gray_fox_female", () -> EntityType.Builder
+                    .<LatexGrayFoxFemale>of(LatexGrayFoxFemale::new, MobCategory.MONSTER)
+                    .sized(0.7F, 1.93F).clientTrackingRange(10)
+                    .build(ChangedSynergyMod.MOD_ID + ":latex_gray_fox_female"));
+
     public static final RegistryObject<EntityType<CreatureFishingHookVisual>>
             CREATURE_FISHING_HOOK = REGISTRY.register(
                     "creature_fishing_hook",
@@ -144,6 +179,11 @@ public final class ChangedSynergyEntities {
         event.put(LATEX_SPOTTED_HYENA_FEMALE.get(), ChangedEntity.createLatexAttributes().build());
         event.put(LATEX_SPIDTAUR.get(), ChangedEntity.createLatexAttributes().build());
         event.put(PURE_WHITE_LATEX_WOLF_PARTIAL.get(), ChangedEntity.createLatexAttributes().build());
+        event.put(LATEX_GRIZZLY.get(), ChangedEntity.createLatexAttributes().build());
+        event.put(LATEX_MANUL.get(), ChangedEntity.createLatexAttributes().build());
+        event.put(LATEX_MANUL_FEMALE.get(), ChangedEntity.createLatexAttributes().build());
+        event.put(LATEX_GRAY_FOX.get(), ChangedEntity.createLatexAttributes().build());
+        event.put(LATEX_GRAY_FOX_FEMALE.get(), ChangedEntity.createLatexAttributes().build());
     }
 
     @SubscribeEvent
@@ -185,6 +225,21 @@ public final class ChangedSynergyEntities {
         event.register(PURE_WHITE_LATEX_WOLF_PARTIAL.get(), SpawnPlacements.Type.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ChangedEntity::checkEntitySpawnRules,
                 SpawnPlacementRegisterEvent.Operation.REPLACE);
+        event.register(LATEX_GRIZZLY.get(), SpawnPlacements.Type.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ChangedEntity::checkEntitySpawnRules,
+                SpawnPlacementRegisterEvent.Operation.REPLACE);
+        event.register(LATEX_MANUL.get(), SpawnPlacements.Type.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ChangedEntity::checkEntitySpawnRules,
+                SpawnPlacementRegisterEvent.Operation.REPLACE);
+        event.register(LATEX_MANUL_FEMALE.get(), SpawnPlacements.Type.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ChangedEntity::checkEntitySpawnRules,
+                SpawnPlacementRegisterEvent.Operation.REPLACE);
+        event.register(LATEX_GRAY_FOX.get(), SpawnPlacements.Type.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ChangedEntity::checkEntitySpawnRules,
+                SpawnPlacementRegisterEvent.Operation.REPLACE);
+        event.register(LATEX_GRAY_FOX_FEMALE.get(), SpawnPlacements.Type.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ChangedEntity::checkEntitySpawnRules,
+                SpawnPlacementRegisterEvent.Operation.REPLACE);
     }
 
     @SubscribeEvent
@@ -209,6 +264,16 @@ public final class ChangedSynergyEntities {
         // Match Changed pure-white latex beasts (primary 0xFFFFFF, secondary 0xFAFAFA).
         event.enqueueWork(() -> ChangedEntities.registerEntityColor(
                 PURE_WHITE_LATEX_WOLF_PARTIAL.getId(), 0xFFFFFF, 0xFAFAFA));
+        event.enqueueWork(() -> ChangedEntities.registerEntityColor(
+                LATEX_GRIZZLY.getId(), 0x6E4931, 0xA8825E));
+        event.enqueueWork(() -> ChangedEntities.registerEntityColor(
+                LATEX_MANUL.getId(), 0x8E8E8E, 0xC9C3B4));
+        event.enqueueWork(() -> ChangedEntities.registerEntityColor(
+                LATEX_MANUL_FEMALE.getId(), 0x8E8E8E, 0xC9C3B4));
+        event.enqueueWork(() -> ChangedEntities.registerEntityColor(
+                LATEX_GRAY_FOX.getId(), 0x7A7E85, 0xC7C9CC));
+        event.enqueueWork(() -> ChangedEntities.registerEntityColor(
+                LATEX_GRAY_FOX_FEMALE.getId(), 0x7A7E85, 0xC7C9CC));
     }
 
     @SubscribeEvent
@@ -224,11 +289,19 @@ public final class ChangedSynergyEntities {
             event.accept(ChangedSynergyItems.LATEX_SPOTTED_HYENA_FEMALE_SPAWN_EGG);
             event.accept(ChangedSynergyItems.LATEX_SPIDTAUR_SPAWN_EGG);
             event.accept(ChangedSynergyItems.PURE_WHITE_LATEX_WOLF_PARTIAL_SPAWN_EGG);
+            event.accept(ChangedSynergyItems.LATEX_GRIZZLY_SPAWN_EGG);
+            event.accept(ChangedSynergyItems.LATEX_MANUL_SPAWN_EGG);
+            event.accept(ChangedSynergyItems.LATEX_MANUL_FEMALE_SPAWN_EGG);
+            event.accept(ChangedSynergyItems.LATEX_GRAY_FOX_SPAWN_EGG);
+            event.accept(ChangedSynergyItems.LATEX_GRAY_FOX_FEMALE_SPAWN_EGG);
         }
         if (event.getTabKey().location().equals(ChangedTabs.TAB_CHANGED_CLOTHING.getId())) {
             event.accept(ChangedSynergyItems.DESERT_NOMAD_OUTFIT);
             event.accept(ChangedSynergyItems.EAGLE_OWL_AVIATOR_OUTFIT);
             event.accept(ChangedSynergyItems.FOREST_CANOPY_OUTFIT);
+            event.accept(ChangedSynergyItems.CAVE_MINER_OUTFIT);
+            event.accept(ChangedSynergyItems.FIELD_COAT);
+            event.accept(ChangedSynergyItems.BURROW_SHAWL);
             var outfit = new ItemStack(ChangedSynergyItems.HYENA_TRAILCLOTH_OUTFIT.get());
             ItemStack clothesAnchor = null;
             for (var entry : event.getEntries()) if (entry.getKey().is(ChangedItems.WETSUIT.get())) clothesAnchor = entry.getKey();
@@ -243,7 +316,12 @@ public final class ChangedSynergyEntities {
                     ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_MALE.getId(),
                     ChangedSynergyTransfurVariants.LATEX_SPOTTED_HYENA_FEMALE.getId(),
                     ChangedSynergyTransfurVariants.LATEX_SPIDTAUR.getId(),
-                    ChangedSynergyTransfurVariants.PURE_WHITE_LATEX_WOLF_PARTIAL.getId())) {
+                    ChangedSynergyTransfurVariants.PURE_WHITE_LATEX_WOLF_PARTIAL.getId(),
+                    ChangedSynergyTransfurVariants.LATEX_GRIZZLY.getId(),
+                    ChangedSynergyTransfurVariants.LATEX_MANUL.getId(),
+                    ChangedSynergyTransfurVariants.LATEX_MANUL_FEMALE.getId(),
+                    ChangedSynergyTransfurVariants.LATEX_GRAY_FOX.getId(),
+                    ChangedSynergyTransfurVariants.LATEX_GRAY_FOX_FEMALE.getId())) {
                 for (var item : java.util.List.of(ChangedItems.LATEX_SYRINGE.get(), ChangedItems.LATEX_FLASK.get(), ChangedItems.LATEX_TIPPED_ARROW.get())) {
                     ItemStack anchor = null;
                     for (var existing : event.getEntries()) if (existing.getKey().is(item)) anchor = existing.getKey();

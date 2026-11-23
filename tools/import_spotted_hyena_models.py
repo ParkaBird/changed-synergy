@@ -44,7 +44,7 @@ def convert(source, sex, texture_name=None, required_bones=None):
                 offset = [pivot[0]-origin[0], pivot[1]-origin[1], origin[2]-pivot[2]]
                 rotation = group.get('rotation', [0, 0, 0])
                 angles = [math.radians(-rotation[0]), math.radians(-rotation[1]), math.radians(rotation[2])]
-                tail_joint = name.startswith('Tail') and name != 'Tail'
+                tail_joint = name in {'TailPrimary', 'TailSecondary', 'TailTertiary'}
                 lines.append(f'        PartDefinition {name} = {parent}.addOrReplaceChild("{name}", CubeListBuilder.create(), PartPose.offsetAndRotation({vector(offset + ([0, 0, 0] if tail_joint else angles))}));')
                 content = name
                 if tail_joint:
@@ -56,6 +56,7 @@ def convert(source, sex, texture_name=None, required_bones=None):
                 if not cube.get('export', True):
                     continue
                 assert cube['type'] == 'cube' and cube.get('box_uv', data['meta']['box_uv'])
+                assert cube.get('stretch', [1, 1, 1]) == [1, 1, 1]
                 count += 1
                 # Static helper suffix prevents EMF/Fresh Moves from treating geometry as an animated bone.
                 name = f'cube_{count}_r1'
@@ -67,10 +68,7 @@ def convert(source, sex, texture_name=None, required_bones=None):
                 box = [origin[0]-high[0], origin[1]-high[1], low[2]-origin[2]] + [high[i]-low[i] for i in range(3)]
                 uv = cube.get('uv_offset', [0, 0])
                 mirror = '.mirror()' if cube.get('mirror_uv', False) else ''
-                stretch = cube.get('stretch', [1, 1, 1])
-                deformation = [cube.get('inflate', 0) + (high[i]-low[i])*(stretch[i]-1)/2 for i in range(3)]
-                deform = number(deformation[0]) if deformation.count(deformation[0]) == 3 else vector(deformation)
-                lines.append(f'        {parent}.addOrReplaceChild("{name}", CubeListBuilder.create().texOffs({uv[0]}, {uv[1]}){mirror}.addBox({vector(box)}, new CubeDeformation({deform})), PartPose.offsetAndRotation({vector(offset + angles)}));')
+                lines.append(f'        {parent}.addOrReplaceChild("{name}", CubeListBuilder.create().texOffs({uv[0]}, {uv[1]}){mirror}.addBox({vector(box)}, new CubeDeformation({number(cube.get("inflate", 0))})), PartPose.offsetAndRotation({vector(offset + angles)}));')
 
     visit(data['outliner'], 'root', [0, 24, 0])
     assert not any('NOT_EXPORTED' in n for n in names)

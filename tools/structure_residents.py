@@ -74,7 +74,10 @@ def bind_residents(template, name):
         elif name == 'observatory' and kind == 'changed_synergy:latex_eagle_owl':
             outfit = 'changed_synergy:eagle_owl_aviator_outfit'
             character = True
-        camp = name in ('forest_treehouse', 'observatory', 'desert_refuge') or name.startswith('hyena_')
+        elif name == 'burrow' and kind in (
+                'changed_synergy:latex_manul', 'changed_synergy:latex_manul_female', 'changed_synergy:latex_gray_fox_female'):
+            character = True
+        camp = name in ('forest_treehouse', 'observatory', 'burrow') or name.startswith('hyena_')
         if not character and not (camp and kind.startswith(('changed:', 'changed_synergy:'))):
             if camp and kind in ('minecraft:sheep', 'minecraft:cow', 'minecraft:pig', 'minecraft:chicken', 'minecraft:rabbit'):
                 tags = tag.setdefault('Tags', nbt.List[nbt.String]())
@@ -85,10 +88,8 @@ def bind_residents(template, name):
         tag['PersistenceRequired'] = nbt.Byte(1)
         if name == 'forest_treehouse':
             tag.setdefault('ForgeData', nbt.Compound())['ChangedSynergyLightReputationGroup'] = nbt.String('forest')
-        elif name == 'observatory':
+        elif name in ('observatory', 'burrow'):
             tag.setdefault('ForgeData', nbt.Compound())['ChangedSynergyLightReputationGroup'] = nbt.String('mountain')
-        elif name == 'desert_refuge':
-            tag.setdefault('ForgeData', nbt.Compound())['ChangedSynergyLightReputationGroup'] = nbt.String('desert')
         tag.setdefault('ForgeData', nbt.Compound())['ChangedSynergyStructureResident'] = nbt.Compound({
             'Template': nbt.String(name), 'LocalPos': deepcopy(entity['pos']),
             'Size': deepcopy(template['size']),
@@ -103,6 +104,13 @@ def bind_residents(template, name):
             info.update({'eyeStyle': nbt.Int(style), 'irisLeft': nbt.Int(iris), 'irisRight': nbt.Int(iris)})
             tag['ForgeData'].pop('ChangedSynergyRandomStructureEyes', None)
         if character:
-            role = {'forest_treehouse': 'canopy_chief', 'hyena_hideout': 'hyena_chief', 'observatory': 'observatory_chief', 'green_lab': 'lab_researcher'}[name]
-            tag['CustomName'] = nbt.String('{"translate":"npc.changed_synergy.' + role + '.title"}')
+            role = {
+                'forest_treehouse': 'canopy_chief',
+                'hyena_hideout': 'hyena_chief',
+                'observatory': 'observatory_chief',
+                'green_lab': 'lab_researcher',
+                'burrow': 'manul_chief' if kind in ('changed_synergy:latex_manul', 'changed_synergy:latex_manul_female') else None,
+            }.get(name)
+            if role:
+                tag['CustomName'] = nbt.String('{"translate":"npc.changed_synergy.' + role + '.title"}')
         mark_default_eyes(tag)

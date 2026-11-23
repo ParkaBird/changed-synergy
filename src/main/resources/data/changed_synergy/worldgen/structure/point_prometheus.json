@@ -1,0 +1,11 @@
+{
+  "type": "changed_synergy:research_lab",
+  "biomes": "#changed_synergy:has_structure/point_prometheus",
+  "step": "surface_structures",
+  "terrain_adaptation": "none",
+  "spawn_overrides": {},
+  "template": "changed_synergy:point_prometheus",
+  "ground_level": 0,
+  "max_terrain_slope": 8,
+  "clearing_radius": 3
+}

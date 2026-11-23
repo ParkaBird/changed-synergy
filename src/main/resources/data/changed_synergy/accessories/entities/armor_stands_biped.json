@@ -1,0 +1,15 @@
+{
+  "entities": [
+    "minecraft:armor_stand",
+    "changed:biped_armor_stand"
+  ],
+  "slots": [
+    "changed:body",
+    "changed:hands",
+    "changed:head",
+    "changed:face",
+    "changed:full_body",
+    "changed:legs",
+    "changed:neck"
+  ]
+}

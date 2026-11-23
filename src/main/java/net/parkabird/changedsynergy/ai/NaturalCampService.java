@@ -39,27 +39,135 @@ public final class NaturalCampService {
         var data=mob.getPersistentData().getCompound(StructureResidentGoal.DATA);
         return data.getBoolean("Character")&&data.getString("Template").equals("green_lab");
     }
+    public static boolean hasIdleStation(ChangedEntity mob) {
+        var data=mob.getPersistentData().getCompound(StructureResidentGoal.DATA);
+        return mob.getUnderlyingPlayer()==null&&data.getBoolean("Resolved")
+                &&!CreatureCommunityData.isPlayerCompanion(mob)&&!PlayerOutpostService.hasAssignment(mob)
+                &&(net.parkabird.changedsynergy.npc.CampLifeService.mainCamp(mob)
+                        ||net.parkabird.changedsynergy.npc.StoryNpcService.isNpc(mob));
+    }
+    public static Vec3 homeAnchor(ChangedEntity mob) {
+        var data=mob.getPersistentData().getCompound(StructureResidentGoal.DATA);
+        return new Vec3(data.getDouble("HomeX"),data.getDouble("HomeY"),data.getDouble("HomeZ"));
+    }
+    public static boolean withinStation(ChangedEntity mob, Vec3 pos, double maxHorizontal, double maxVertical) {
+        if(!hasIdleStation(mob))return true;
+        var home=homeAnchor(mob);
+        double dx=pos.x-home.x, dz=pos.z-home.z;
+        return dx*dx+dz*dz<=maxHorizontal*maxHorizontal&&Math.abs(pos.y-home.y)<=maxVertical;
+    }
+    public static boolean allowsComfortSite(ChangedEntity mob, BlockPos cursor, boolean emergencyHeal) {
+        return emergencyHeal||withinStation(mob,Vec3.atCenterOf(cursor),14.0D,4.0D);
+    }
     public static boolean restsHere(ChangedEntity mob){return member(mob)||laboratoryResident(mob);}
     public static AABB restBounds(ChangedEntity mob){
         var box=bounds(mob);if(!laboratoryResident(mob))return box;
         double floor=mob.getPersistentData().getCompound(StructureResidentGoal.DATA).getDouble("HomeY");
         return new AABB(box.minX,Math.max(box.minY,floor-.1),box.minZ,box.maxX,Math.min(box.maxY,floor+6),box.maxZ);
     }
+    public static final String MEAL_CALL_UNTIL="ChangedSynergyNaturalCampMealCallUntil";
+    public static final String MEAL_CALL_LEADER="ChangedSynergyNaturalCampMealCallLeader";
+    private static final net.minecraft.resources.ResourceLocation STOVE_ID=net.minecraft.resources.ResourceLocation.tryBuild("farmersdelight","stove");
+    private static final net.minecraft.resources.ResourceLocation CANVAS_RUG_ID=net.minecraft.resources.ResourceLocation.tryBuild("farmersdelight","canvas_rug");
+    private static final net.minecraft.resources.ResourceLocation FULL_TATAMI_ID=net.minecraft.resources.ResourceLocation.tryBuild("farmersdelight","full_tatami_mat");
+    private static final net.minecraft.resources.ResourceLocation HALF_TATAMI_ID=net.minecraft.resources.ResourceLocation.tryBuild("farmersdelight","half_tatami_mat");
     public static boolean publicReserveOnly(ChangedEntity mob){return net.parkabird.changedsynergy.npc.CampLifeService.mainCamp(mob)||mob.getPersistentData().getCompound(StructureResidentGoal.DATA).getBoolean("ReserveOnly")||smallCamp(mob);}
     public static List<BlockPos> authoredPublicStores(ChangedEntity mob){return StructureStorageOwnership.publicPositions(mob);}
-    public static net.minecraft.world.level.pathfinder.Path path(ChangedEntity mob,BlockPos target,int accuracy){
+    public static boolean isFloorRug(net.minecraft.world.level.block.state.BlockState state){
+        var key=net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(state.getBlock());
+        return CANVAS_RUG_ID.equals(key)||FULL_TATAMI_ID.equals(key)||HALF_TATAMI_ID.equals(key);
+    }
+    public static boolean walkableSurface(ServerLevel level,ChangedEntity mob,BlockPos pos){
+        if(!level.hasChunkAt(pos)||!level.getFluidState(pos).isEmpty())return false;
+        var state=level.getBlockState(pos);
+        boolean openSurface=state.isAir()
+                ||state.is(net.minecraft.tags.BlockTags.WOOL_CARPETS)
+                ||isFloorRug(state)
+                ||(state.getBlock() instanceof net.minecraft.world.level.block.SnowLayerBlock&&state.getValue(net.minecraft.world.level.block.SnowLayerBlock.LAYERS)<=4);
+        if(!openSurface)return false;
+        var below=pos.below();
+        if(!level.hasChunkAt(below)||!level.getBlockState(below).isFaceSturdy(level,below,net.minecraft.core.Direction.UP))return false;
+        var shape=state.getCollisionShape(level,pos);
+        double top=shape.isEmpty()?0.0D:Math.max(0.0D,shape.max(net.minecraft.core.Direction.Axis.Y));
+        var feet=Vec3.atBottomCenterOf(pos).add(0.0D,top,0.0D);
+        var standing=mob.getDimensions(net.minecraft.world.entity.Pose.STANDING).makeBoundingBox(feet);
+        if(!PlayerOutpostGoal.onCampfire(level,standing)&&!level.getBlockCollisions(mob,standing).iterator().hasNext())return true;
+        if(!CompanionOpenDoorGoal.canAutoCrouch(mob))return false;
+        var crouch=mob.getDimensions(net.minecraft.world.entity.Pose.CROUCHING).makeBoundingBox(feet);
+        return !PlayerOutpostGoal.onCampfire(level,crouch)&&!level.getBlockCollisions(mob,crouch).iterator().hasNext();
+    }
+    static int computeExtendedRange(int baseFollowRange,double span,double outsideDist){
+        return Math.min(128,Math.max(baseFollowRange,Math.max(80,(int)Math.ceil(span+outsideDist))));
+    }
+    public static int extendedRange(ChangedEntity mob){
+        int base=(int)Math.ceil(mob.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.FOLLOW_RANGE));
         var data=mob.getPersistentData().getCompound(StructureResidentGoal.DATA);
-        if(!restsHere(mob)||!data.getBoolean("Resolved")||!activityBounds(mob).contains(Vec3.atCenterOf(target)))return mob.getNavigation().createPath(target,accuracy);
+        if(!member(mob)||!data.getBoolean("Resolved"))return base;
         var box=bounds(mob);
-        // Spiral stairs can exceed native pursuit distance while remaining inside the building.
-        int distance=(int)Math.max(mob.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.FOLLOW_RANGE),Math.min(96,box.getXsize()+box.getYsize()+box.getZsize()));
-        return mob.getNavigation().createPath(target,accuracy,distance);
+        double span=box.getXsize()+box.getYsize()+box.getZsize();
+        double outside=box.contains(mob.position())?0.0D:mob.position().distanceTo(box.getCenter());
+        return computeExtendedRange(base,span,outside);
+    }
+    public static net.minecraft.world.level.pathfinder.Path path(ChangedEntity mob,BlockPos target,int accuracy){
+        return target==null?null:pathAny(mob,java.util.List.of(target),accuracy);
+    }
+    public static net.minecraft.world.level.pathfinder.Path pathAny(ChangedEntity mob,java.util.Collection<BlockPos> targets,int accuracy){
+        if(targets==null||targets.isEmpty())return null;
+        return mob.getNavigation().createPath(java.util.Set.copyOf(targets),8,false,accuracy,extendedRange(mob));
+    }
+    public static boolean hasActiveMealCall(ChangedEntity mob){
+        return mob!=null&&!mob.level().isClientSide&&mob.getPersistentData().getLong(MEAL_CALL_UNTIL)>mob.level().getGameTime();
+    }
+    public static boolean isRoutineActive(ChangedEntity mob){
+        if(mob==null||mob.level().isClientSide)return false;
+        if(mob.isSleeping()||hasActiveMealCall(mob))return true;
+        return mob.goalSelector.getRunningGoals().anyMatch(g->g.getGoal() instanceof NaturalCampGoal
+                ||g.getGoal() instanceof NaturalCampSleepGoal
+                ||g.getGoal() instanceof net.parkabird.changedsynergy.npc.CampApproachGoal);
+    }
+    public static boolean shouldYieldPlay(ChangedEntity mob){
+        return isRoutineActive(mob)||(restsHere(mob)&&PlayerOutpostRestGoal.sleepTime(mob));
+    }
+    public static boolean canJoinMealCall(ChangedEntity mob){
+        return member(mob)&&inHomeDimension(mob)&&net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.naturalCampRoutines.get()
+                &&CreatureLifeMemory.enabled(mob)&&mob.isAlive()&&!mob.isNoAi()&&mob.getUnderlyingPlayer()==null
+                &&!followingOwner(mob)&&!PlayerOutpostService.hasAssignment(mob)&&!PlayerOutpostService.isWorking(mob)
+                &&!CompanionSeatingService.commandedSeat(mob)
+                &&(mob.getTarget()==null||!mob.getTarget().isAlive())
+                &&HypnosisQteService.getActiveVictim(mob)==null
+                &&!CreatureGrabService.isGrabberBusy(mob)&&!TakeoverService.carrying(mob)
+                &&net.ltxprogrammer.changed.ability.GrabEntityAbility.getGrabberSafe(mob).isEmpty();
+    }
+    public static void triggerMealCall(ChangedEntity mob,ChangedEntity leader,long until){
+        if(mob==null||mob.level().isClientSide||!canJoinMealCall(mob))return;
+        var data=mob.getPersistentData();
+        data.remove("ChangedSynergyNaturalCampNextMeal");
+        data.putLong(MEAL_CALL_UNTIL,until);
+        if(leader!=null)data.putUUID(MEAL_CALL_LEADER,leader.getUUID());
+        wakeForMeal(mob);
+    }
+    public static void wakeForMeal(ChangedEntity mob){
+        if(mob==null||mob.level().isClientSide)return;
+        mob.getPersistentData().remove("ChangedSynergyNaturalCampNextMeal");
+        if(mob.isSleeping())mob.stopSleeping();
+        if(mob.isPassenger()&&mob.getVehicle() instanceof net.ltxprogrammer.changed.entity.SeatEntity&&!CompanionSeatingService.commandedSeat(mob)){
+            CreatureComfortGoal.endSeatedActivity(mob);
+            if(mob.isPassenger())mob.stopRiding();
+        }
+        CreaturePeerInteractionService.cancel(mob);
+        for(var wrapped:mob.goalSelector.getAvailableGoals()){
+            if(wrapped.getGoal() instanceof NaturalCampGoal campGoal)campGoal.resetWait();
+        }
     }
     public static List<BlockPos> mealPoints(ChangedEntity mob){
         var result=new ArrayList<BlockPos>();
         for(var p:sites(mob).fires()){
             var state=mob.level().getBlockState(p);
-            if(state.getBlock() instanceof net.minecraft.world.level.block.CampfireBlock&&state.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)&&!state.getValue(net.minecraft.world.level.block.CampfireBlock.WATERLOGGED))result.add(p);
+            if(state.getBlock() instanceof net.minecraft.world.level.block.CampfireBlock){
+                if(state.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)&&!state.getValue(net.minecraft.world.level.block.CampfireBlock.WATERLOGGED))result.add(p);
+            }else if(STOVE_ID.equals(net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(state.getBlock()))
+                    &&state.getOptionalValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT).orElse(false)
+                    &&!state.getOptionalValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED).orElse(false))result.add(p);
         }
         var data=mob.getPersistentData().getCompound(StructureResidentGoal.DATA);
         if(data.getString("Template").equals("desert_refuge")&&data.getBoolean("Resolved")){
@@ -82,6 +190,10 @@ public final class NaturalCampService {
             mob.goalSelector.addGoal(1,new NaturalCampGoal(mob));
         if(restsHere(mob)&&mob.goalSelector.getAvailableGoals().stream().noneMatch(g->g.getGoal() instanceof NaturalCampSleepGoal))
             mob.goalSelector.addGoal(0,new NaturalCampSleepGoal(mob));
+        if(member(mob)&&!(mob instanceof net.ltxprogrammer.changed.entity.beast.AquaticEntity)
+                &&mob.getNavigation() instanceof net.minecraft.world.entity.ai.navigation.GroundPathNavigation ground)
+            ground.setCanFloat(true);
+        StructureResidentGoal.installStationTether(mob);
         if(publicReserveOnly(mob))net.parkabird.changedsynergy.npc.CampLifeService.rememberStores(mob);
     }
     static boolean available(ChangedEntity mob) {
@@ -108,7 +220,8 @@ public final class NaturalCampService {
             PerchSleepService.addBeds(chunk,box,beds);
             for(var entity:chunk.getBlockEntities().values()) {
                 var pos=entity.getBlockPos();if(!box.contains(Vec3.atCenterOf(pos)))continue;
-                if(entity instanceof CampfireBlockEntity)fires.add(pos);
+                if(entity instanceof CampfireBlockEntity
+                        ||STOVE_ID.equals(net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(entity.getBlockState().getBlock())))fires.add(pos);
                 else if(entity instanceof net.minecraft.world.level.block.entity.BedBlockEntity
                         && level.getBlockState(pos).getValue(net.minecraft.world.level.block.BedBlock.PART)==net.minecraft.world.level.block.state.properties.BedPart.HEAD)beds.add(pos);
                 else if(member(mob)&&PlayerOutpostData.container(level,pos)!=null){storage.add(pos);StructureStorageOwnership.owns(mob,pos);}

@@ -1,0 +1,77 @@
+{
+  "male": {
+    "source": "latex_manul.bbmodel",
+    "sha256": "0605ed9c6b7d60b5ab5b6dd7d092ee0c1ee719e4b36837ac6b9231f4c412a0aa",
+    "cubes": 30,
+    "bones": [
+      "Hair",
+      "Head",
+      "LeftArm",
+      "LeftEar",
+      "LeftEarPivot",
+      "LeftFoot",
+      "LeftLeg",
+      "LeftLowerLeg",
+      "LeftPad",
+      "RightArm",
+      "RightEar",
+      "RightEarPivot",
+      "RightFoot",
+      "RightLeg",
+      "RightLowerLeg",
+      "RightPad",
+      "Tail",
+      "TailPrimary",
+      "TailQuaternary",
+      "TailQuinary",
+      "TailSecondary",
+      "TailTertiary",
+      "Torso"
+    ],
+    "resolution": [
+      96,
+      96
+    ]
+  },
+  "female": {
+    "source": "latex_manul_female.bbmodel",
+    "sha256": "030a88c08d0d46110e04b0b027d4cd1bd3ad3e82d8fc6ed8217a84d28d88a5ec",
+    "cubes": 32,
+    "bones": [
+      "Hair",
+      "Head",
+      "LeftArm",
+      "LeftEar",
+      "LeftEarPivot",
+      "LeftFoot",
+      "LeftLeg",
+      "LeftLowerLeg",
+      "LeftPad",
+      "Plantoids",
+      "RightArm",
+      "RightEar",
+      "RightEarPivot",
+      "RightFoot",
+      "RightLeg",
+      "RightLowerLeg",
+      "RightPad",
+      "Tail",
+      "TailPrimary",
+      "TailQuaternary",
+      "TailQuinary",
+      "TailSecondary",
+      "TailTertiary",
+      "Torso"
+    ],
+    "resolution": [
+      96,
+      96
+    ]
+  },
+  "textures": {
+    "latex_manul.png": "4fcd89db24a8fd8da24f5d20ba41530579485aa32d067da7394a2ee4aa210893",
+    "latex_manul_female.png": "cb78f2f6bafa2d2bf5158cb2e36ee7fab94effecdf81c59ddd6eabf0e930e65c",
+    "latex_manul_orange.png": "01debca8d00fb2bcfb427e05b8e14fd92ee4eef51995fb9f21d538dcc8ffce9f",
+    "latex_manul_female_orange.png": "e2c965f4594592115788eb615775a79cc6e4536143bbdfec7967d04e7a6969f7"
+  }
+}

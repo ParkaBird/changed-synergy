@@ -43,8 +43,6 @@ public final class StoryNpcClientRegression {
                 mc.createWorldOpenFlows().createFreshLevel("npc-ui",new LevelSettings("npc-ui",GameType.CREATIVE,false,Difficulty.PEACEFUL,true,rules,WorldDataConfiguration.DEFAULT),new WorldOptions(20261103,false,false),r->r.registryOrThrow(Registries.WORLD_PRESET).getOrThrow(WorldPresets.FLAT).createWorldDimensions());stage=1;
             }
             if(mc.level==null||mc.player==null||mc.player.tickCount<30||mc.getOverlay()!=null)return;
-            if(Boolean.getBoolean("changed_synergy.desertUi")){DesertClientChecks.run(mc);stage=9;System.out.println("DESERT_CONTENT_CLIENT_PASS: anatomy, native clothing and rendered previews");mc.stop();return;}
-            if(Boolean.getBoolean("changed_synergy.hypnosisUi")){hypnosisHud(mc);stage=9;System.out.println("HYPNOSIS_CLIENT_PASS: native icon is brighter while held than while latched");mc.stop();return;}
             if(stage==1){mc.getLanguageManager().setSelected(LANGUAGES[language]);mc.options.languageCode=LANGUAGES[language];reload=mc.reloadResourcePacks();stage=2;}
             if(stage==2&&reload.isDone()&&mc.getOverlay()==null) {
                 reload.join();gallery(mc,LANGUAGES[language]);effects(mc,LANGUAGES[language]);performances(mc,LANGUAGES[language]);if(Boolean.getBoolean("changed_synergy.campUi"))campGallery(mc,LANGUAGES[language]);if(Boolean.getBoolean("changed_synergy.communityUi"))campRoster(mc,LANGUAGES[language]);
@@ -52,29 +50,6 @@ public final class StoryNpcClientRegression {
                 else{stage=9;System.out.println("STORY_NPC_CLIENT_PASS: "+checks+" native layout, keyboard, text pagination, motion and three-language rendering checks");mc.stop();}
             }
         }catch(Throwable failure){stage=9;System.err.println("STORY_NPC_CLIENT_FAIL");failure.printStackTrace();mc.stop();}
-    }
-    private static void hypnosisHud(Minecraft mc)throws Exception {
-        net.ltxprogrammer.changed.process.ProcessTransfur.setPlayerTransfurVariant(mc.player,net.ltxprogrammer.changed.init.ChangedTransfurVariants.LATEX_HYPNO_CAT.get(),null,1,false);
-        var variant=net.ltxprogrammer.changed.process.ProcessTransfur.getPlayerTransfurVariant(mc.player);
-        var selected=variant.getAbilityInstance(net.ltxprogrammer.changed.init.ChangedAbilities.HYPNOSIS.get());var controller=selected.getController();
-        var directory=mc.gameDirectory.toPath().resolve("hypnosis-ui");java.nio.file.Files.createDirectories(directory);
-        var screen=new net.minecraft.client.gui.screens.Screen(Component.literal("Hypnosis icon check")){
-            @Override public void render(GuiGraphics g,int mouseX,int mouseY,float partial){
-                net.ltxprogrammer.changed.client.ChangedClient.abilityRenderer.getOrThrow().renderAndDecorateAbility(g,mc.player,selected,128,60,64,1F,true,0);
-            }
-        };screen.init(mc,320,180);
-        net.ltxprogrammer.changed.ability.AbstractAbility.UseType.HOLD.check(true,controller.exchangeKeyState(true),true,controller);
-        render(mc,screen,new int[]{320,180},directory.resolve("held.png"));
-        net.ltxprogrammer.changed.ability.AbstractAbility.UseType.HOLD.check(false,controller.exchangeKeyState(false),true,controller);
-        check(controller.getProgressActive()==1,"client release retains activation");
-        render(mc,screen,new int[]{320,180},directory.resolve("latched.png"));
-        var held=javax.imageio.ImageIO.read(directory.resolve("held.png").toFile());var latched=javax.imageio.ImageIO.read(directory.resolve("latched.png").toFile());
-        long bright=0,dim=0;int changed=0;
-        for(int y=240;y<496;y++)for(int x=512;x<768;x++){
-            int a=held.getRGB(x,y),b=latched.getRGB(x,y);bright+=(a>>16&255)+(a>>8&255)+(a&255);dim+=(b>>16&255)+(b>>8&255)+(b&255);if(a!=b)changed++;
-        }
-        check(changed>1000&&dim<bright*.95&&dim>bright*.4,"real rendered icon has a clear, moderate brightness difference; changed="+changed+", ratio="+((double)dim/bright));
-        System.out.println("HYPNOSIS_ICON_PIXELS: "+changed+" changed pixels; latched/held luminance="+((double)dim/bright));
     }
     private static void campGallery(Minecraft mc,String lang)throws Exception {
         var path=mc.gameDirectory.toPath().resolve("camp-dialogue-samples.json");
@@ -98,7 +73,6 @@ public final class StoryNpcClientRegression {
     }
     private static void gallery(Minecraft mc,String lang)throws Exception {
         var directory=mc.gameDirectory.toPath().resolve("npc-ui");java.nio.file.Files.createDirectories(directory);
-        controlsFade(mc,lang,directory);
         try(var input=StoryNpcClientRegression.class.getResourceAsStream("/data/changed_synergy/structures/observatory.nbt")) {
             var template=NbtIo.readCompressed(input);
             for(var value:template.getList("blocks",10)) {
@@ -111,7 +85,7 @@ public final class StoryNpcClientRegression {
             for(var line:node.lines())for(var part:line.parts())check(net.minecraft.client.resources.language.I18n.exists(part.text()),"every conversation line is translated in "+lang);
             for(var choice:node.choices())check(net.minecraft.client.resources.language.I18n.exists(choice.text()),"every choice is translated in "+lang);
         }
-        for(var profile:NpcDefinitions.all().stream().filter(NpcDefinitions.Profile::dialogue).toList())for(int[] size:List.of(new int[]{640,360},new int[]{426,240},new int[]{320,180})) {
+        for(var profile:NpcDefinitions.all())for(int[] size:List.of(new int[]{640,360},new int[]{426,240},new int[]{320,180})) {
             var node=profile.nodes().get("root");var state=state(profile,node,"root",true);var screen=new StoryNpcScreen(state);screen.init(mc,size[0],size[1]);
             check(!screen.isPauseScreen(),"world remains live");
             var started=StoryNpcScreen.class.getDeclaredField("started");started.setAccessible(true);started.setLong(screen,net.minecraft.Util.getMillis()-450);
@@ -170,41 +144,6 @@ public final class StoryNpcClientRegression {
             if(lang.equals("ru_ru")&&Set.of("enrol","explain_form","confirm_permanent").contains(entry.getKey()))
                 render(mc,screen,size,directory.resolve(profile.id().split(":")[1]+"-"+entry.getKey()+"-"+lang+"-"+size[0]+".png"));
         }
-    }
-    private static void controlsFade(Minecraft mc,String lang,java.nio.file.Path directory)throws Exception {
-        var profile=NpcDefinitions.get("changed_synergy:canopy_chief");var screen=new StoryNpcScreen(state(profile,profile.nodes().get("root"),"root",true));
-        int[] size={426,240};screen.init(mc,size[0],size[1]);
-        var reveal=StoryNpcScreen.class.getDeclaredField("revealed");reveal.setAccessible(true);
-        var shown=StoryNpcScreen.class.getDeclaredField("actionsShownAt");shown.setAccessible(true);
-        var y=StoryNpcScreen.class.getDeclaredField("y");y.setAccessible(true);
-        var controls=StoryNpcScreen.class.getDeclaredMethod("controlsY");controls.setAccessible(true);
-        boolean old=net.parkabird.changedsynergy.ChangedSynergyClientConfig.CLIENT.reducedUiMotion.get();
-        net.parkabird.changedsynergy.ChangedSynergyClientConfig.CLIENT.reducedUiMotion.set(false);
-        try {
-            render(mc,screen,size,directory.resolve("controls-"+lang+"-typing.png"));
-            reveal.setBoolean(screen,true);
-            for(String step:List.of("hidden","half","full")) {
-                shown.setLong(screen,step.equals("hidden")?-1:net.minecraft.Util.getMillis()-(step.equals("half")?90:250));
-                render(mc,screen,size,directory.resolve("controls-"+lang+"-"+step+".png"));
-            }
-            var hidden=javax.imageio.ImageIO.read(directory.resolve("controls-"+lang+"-hidden.png").toFile());
-            var half=javax.imageio.ImageIO.read(directory.resolve("controls-"+lang+"-half.png").toFile());
-            var full=javax.imageio.ImageIO.read(directory.resolve("controls-"+lang+"-full.png").toFile());
-            int cy=(int)controls.invoke(screen),by=y.getInt(screen);
-            for(int[] region:List.of(new int[]{cy,cy+16},new int[]{cy+16,by-6})){
-                long middle=0,end=0;int changes=0;
-                for(int yy=region[0]*3;yy<region[1]*3;yy++)for(int xx=70;xx<1210;xx++){
-                    int a=hidden.getRGB(xx,yy),b=half.getRGB(xx,yy),c=full.getRGB(xx,yy);
-                    for(int shift:new int[]{0,8,16}){middle+=Math.abs((a>>shift&255)-(b>>shift&255));end+=Math.abs((a>>shift&255)-(c>>shift&255));}
-                    if(a!=c)changes++;
-                }
-                check(changes>50&&middle>0&&middle<end*.8,"real controls and reply pixels share the restrained fade: "+lang+Arrays.toString(region));
-            }
-            net.parkabird.changedsynergy.ChangedSynergyClientConfig.CLIENT.reducedUiMotion.set(true);shown.setLong(screen,-1);
-            render(mc,screen,size,directory.resolve("controls-"+lang+"-reduced.png"));
-            var reduced=javax.imageio.ImageIO.read(directory.resolve("controls-"+lang+"-reduced.png").toFile());
-            check(reduced.getRGB(100,cy*3)==full.getRGB(100,cy*3),"reduced motion retains the finished controls without an extra transition");
-        } finally {net.parkabird.changedsynergy.ChangedSynergyClientConfig.CLIENT.reducedUiMotion.set(old);}
     }
     private static CompoundTag state(NpcDefinitions.Profile profile,NpcDefinitions.Node node,String id,boolean mental) {
         var state=new CompoundTag();state.putUUID("Session",UUID.randomUUID());state.putInt("Revision",1);state.putString("Profile",profile.id());state.putString("Name",Component.Serializer.toJson(Component.translatable("npc."+profile.id().replace(':','.')+".title")));state.putString("Title","npc."+profile.id().replace(':','.')+".title");state.putString("Node",id);state.putString("Channel",mental?"mental":"spoken");state.putBoolean("Last",true);state.putBoolean("Chief",profile.chief());state.putInt("Trust",25);

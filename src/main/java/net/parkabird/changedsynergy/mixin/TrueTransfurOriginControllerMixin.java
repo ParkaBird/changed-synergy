@@ -12,11 +12,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Pseudo
 @Mixin(targets = "com.lugert.true_transfur.transfur.TransfurController", remap = false)
 public abstract class TrueTransfurOriginControllerMixin {
-    @Inject(method = "isTrueTransfurActive", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "isTrueTransfurActive", at = @At("HEAD"), cancellable = true, require = 0, remap = false)
     private static void changedSynergy$onlyNative(ServerPlayer player, CallbackInfoReturnable<Boolean> callback) {
         if (!NativeOriginPolicy.allows(player)) callback.setReturnValue(false);
     }
-    @Inject(method="isChangedTransfurred",at=@At("HEAD"),cancellable=true,remap=false)
+    @Inject(method="isChangedTransfurred",at=@At("HEAD"),cancellable=true,require=0,remap=false)
     private static void changedSynergy$controlEligibility(ServerPlayer player,CallbackInfoReturnable<Boolean> callback) {
         if(!NativeOriginPolicy.allows(player))callback.setReturnValue(false);
     }

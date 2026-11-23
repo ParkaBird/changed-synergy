@@ -3916,28 +3916,44 @@ public final class CreatureSettlementService {
             int searchRadius) {
         for (int radius = 1; radius <= searchRadius; radius++) {
             for (int dx = -radius; dx <= radius; dx++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
-                        continue;
-                    }
-                    int x = center.getX() + dx;
-                    int z = center.getZ() + dz;
-                    BlockPos column = new BlockPos(x, center.getY(), z);
-                    if (!level.hasChunkAt(column)) {
-                        continue;
-                    }
-                    BlockPos stand = new BlockPos(
-                            x,
-                            level.getHeight(
-                                    Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                                    x, z),
-                            z);
-                    if (isOpenNaturalShore(level, stand)
-                            && isNearWater(level, stand, 5)) {
-                        return Optional.of(stand.immutable());
+                for (int edge = -1; edge <= 1; edge += 2) {
+                    Optional<BlockPos> candidate = dryShoreCandidate(
+                            level, center, center.getX() + dx, center.getZ() + edge * radius);
+                    if (candidate.isPresent()) {
+                        return candidate;
                     }
                 }
             }
+            for (int dz = -radius + 1; dz <= radius - 1; dz++) {
+                for (int edge = -1; edge <= 1; edge += 2) {
+                    Optional<BlockPos> candidate = dryShoreCandidate(
+                            level, center, center.getX() + edge * radius, center.getZ() + dz);
+                    if (candidate.isPresent()) {
+                        return candidate;
+                    }
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<BlockPos> dryShoreCandidate(
+            ServerLevel level,
+            BlockPos center,
+            int x,
+            int z) {
+        BlockPos column = new BlockPos(x, center.getY(), z);
+        if (!level.hasChunkAt(column)) {
+            return Optional.empty();
+        }
+        BlockPos stand = new BlockPos(
+                x,
+                level.getHeight(
+                        Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                        x, z),
+                z);
+        if (isOpenNaturalShore(level, stand) && isNearWater(level, stand, 5)) {
+            return Optional.of(stand.immutable());
         }
         return Optional.empty();
     }

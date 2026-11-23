@@ -1,0 +1,12 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#changed_synergy:grizzly_spawns",
+  "spawners": [
+    {
+      "type": "changed_synergy:latex_grizzly",
+      "weight": 6,
+      "minCount": 1,
+      "maxCount": 2
+    }
+  ]
+}

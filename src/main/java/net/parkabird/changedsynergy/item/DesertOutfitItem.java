@@ -15,7 +15,14 @@ import net.minecraft.world.level.Level;
 /** One native garment, including the author's full juvenile saddle-and-scarf cut. */
 public final class DesertOutfitItem extends ShirtItem {
     public DesertOutfitItem(){}
-    public static boolean fits(LivingEntity wearer){return wearer instanceof Player||HyenaTrailclothItem.body(wearer)!=null;}
+        public static boolean fits(LivingEntity wearer){
+        if (wearer.isBaby()) return false;
+        var standShape = HyenaTrailclothItem.standShape(wearer);
+        if (standShape != null) {
+            return standShape.torsoShape == net.ltxprogrammer.changed.entity.variant.ClothingShape.Torso.ANTHRO;
+        }
+        return wearer instanceof Player || HyenaTrailclothItem.body(wearer) != null;
+    }
     @Override public boolean allowedInSlot(ItemStack stack,LivingEntity wearer,AccessorySlotType slot){
         if(!fits(wearer))return false;
         boolean pup=EagleOwlAviatorItem.juvenile(wearer);

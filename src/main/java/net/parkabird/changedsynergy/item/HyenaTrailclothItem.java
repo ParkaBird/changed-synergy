@@ -30,8 +30,27 @@ public final class HyenaTrailclothItem extends ShirtItem {
         return IAbstractChangedEntity.forEitherSafe(wearer).map(IAbstractChangedEntity::getChangedEntity).orElse(null);
     }
 
+    @javax.annotation.Nullable
+    public static net.ltxprogrammer.changed.entity.variant.EntityShape standShape(@javax.annotation.Nullable LivingEntity wearer) {
+        if (wearer instanceof net.ltxprogrammer.changed.entity.decoration.AbstractArmorStand stand) {
+            return stand.getEntityShape();
+        }
+        if (wearer instanceof net.minecraft.world.entity.decoration.ArmorStand) {
+            return net.ltxprogrammer.changed.entity.variant.EntityShape.ANTHRO;
+        }
+        return null;
+    }
+
+    public static boolean isArmorStand(@javax.annotation.Nullable LivingEntity wearer) {
+        return wearer instanceof net.minecraft.world.entity.decoration.ArmorStand;
+    }
+
     public static boolean fits(LivingEntity wearer) {
         if (wearer.isBaby()) return false;
+        var standShape = standShape(wearer);
+        if (standShape != null) {
+            return standShape.torsoShape == ClothingShape.Torso.ANTHRO;
+        }
         var body = body(wearer);
         return body == null ? wearer instanceof Player
                 : !body.isBaby() && !CreatureSocialProfile.isJuvenile(body)
@@ -40,6 +59,10 @@ public final class HyenaTrailclothItem extends ShirtItem {
     }
 
     public static boolean hasLowerSection(LivingEntity wearer) {
+        var standShape = standShape(wearer);
+        if (standShape != null) {
+            return standShape.legsShape == ClothingShape.Legs.BIPEDAL;
+        }
         var body = body(wearer);
         return body == null || body.getEntityShape().legsShape == ClothingShape.Legs.BIPEDAL;
     }

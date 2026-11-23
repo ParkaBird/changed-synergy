@@ -25,7 +25,7 @@ final class StructureStorageOwnership {
         var be = level.getBlockEntity(pos);
         if (be == null) return false;
         var data = mob.getPersistentData().getCompound(StructureResidentGoal.DATA);
-        if (be.getPersistentData().getBoolean(MARKER) && !Set.of("desert_refuge","lush_cabin","oasis","muddy_campsite","hyena_camp_tropical","hyena_camp_open","hyena_camp_snowy").contains(data.getString("Template"))) return true;
+        if (be.getPersistentData().getBoolean(MARKER) && !Set.of("desert_refuge","lush_cabin","point_prometheus","burrow","oasis","muddy_campsite","hyena_camp_tropical","hyena_camp_open","hyena_camp_snowy").contains(data.getString("Template"))) return true;
         var id = ResourceLocation.tryParse(data.getString("Template"));
         if (id == null || !data.getBoolean("Resolved")) return false;
         if (id.getNamespace().equals("minecraft")) id = ResourceLocation.fromNamespaceAndPath("changed_synergy", id.getPath());
@@ -45,11 +45,15 @@ final class StructureStorageOwnership {
             if (!placed.equals(pos) || !BuiltInRegistries.BLOCK.getKey(be.getBlockState().getBlock()).toString().equals(store.block())) continue;
             if (store.privateStore() || store.publicStore()) {
                 var flags=be.getPersistentData();
-                if(flags.getBoolean("ChangedSynergyPrivate")!=store.privateStore()||flags.getBoolean(NaturalCampService.PUBLIC_STORAGE)!=store.publicStore()) {
+                boolean dirty = flags.getBoolean("ChangedSynergyPrivate")!=store.privateStore()||flags.getBoolean(NaturalCampService.PUBLIC_STORAGE)!=store.publicStore();
+                if (dirty) {
                     flags.putBoolean("ChangedSynergyPrivate",store.privateStore());flags.putBoolean(NaturalCampService.PUBLIC_STORAGE,store.publicStore());
-                    if(be instanceof net.minecraft.world.level.block.entity.BaseContainerBlockEntity chest) {
-                        if(store.publicStore())chest.setCustomName(net.minecraft.network.chat.Component.translatable(NaturalCampService.smallCamp(mob)?"container.changed_synergy.camp_supplies":"container.changed_synergy.community_supplies"));
-                        else if(chest.getCustomName()!=null&&chest.getCustomName().getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents text&&text.getKey().equals("container.changed_synergy.community_supplies"))chest.setCustomName(null);
+                }
+                if(be instanceof net.minecraft.world.level.block.entity.BaseContainerBlockEntity chest) {
+                    if(store.publicStore() && !chest.hasCustomName()) {
+                        chest.setCustomName(net.minecraft.network.chat.Component.translatable(NaturalCampService.smallCamp(mob)?"container.changed_synergy.camp_supplies":"container.changed_synergy.community_supplies"));
+                    } else if(!store.publicStore() && chest.getCustomName()!=null&&chest.getCustomName().getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents text&&text.getKey().equals("container.changed_synergy.community_supplies")) {
+                        chest.setCustomName(null);
                     }
                 }
             }

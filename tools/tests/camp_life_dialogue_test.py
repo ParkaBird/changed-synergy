@@ -22,7 +22,7 @@ def main():
     for path in (ROOT/'src/main/resources/data/changed_synergy/tags/items').glob('camp_*.json'):
         assert not any('changed_addon:' in str(v) for v in json.loads(path.read_text())['values']),path
     network=(ROOT/'src/main/java/net/parkabird/changedsynergy/network/ChangedSynergyNetwork.java').read_text()
-    assert 'PROTOCOL = "67"' in network
+    assert 'PROTOCOL = "66"' in network
     print(f'CAMP_DIALOGUE_DATA_PASS: {len(source["lines"])} passages and {len(source["words"])} labels in three languages; localized placeholders, native item tags, no faction metadata')
 
 if __name__=='__main__':main()

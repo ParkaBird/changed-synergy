@@ -16,6 +16,11 @@ import net.minecraft.world.level.Level;
 /** Native clothing: adult upper/lower sections, or only the circlet for juveniles. */
 public final class ForestCanopyItem extends ShirtItem {
     public static boolean fits(LivingEntity wearer) {
+        if (wearer.isBaby()) return false;
+        var standShape = HyenaTrailclothItem.standShape(wearer);
+        if (standShape != null) {
+            return standShape.torsoShape == ClothingShape.Torso.ANTHRO;
+        }
         var body = HyenaTrailclothItem.body(wearer);
         return body == null ? wearer instanceof Player : EagleOwlAviatorItem.juvenile(wearer)
                 || body instanceof net.ltxprogrammer.changed.entity.beast.MilkPudding

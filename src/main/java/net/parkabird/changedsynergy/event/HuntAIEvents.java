@@ -77,6 +77,9 @@ public final class HuntAIEvents {
     private static final String NEXT_SOCIAL_TICK = "ChangedSynergyNextSocialTick";
     private static final String LAST_SOCIAL_SIGHT_PREFIX =
             "ChangedSynergyLastSocialSight_";
+    private static final String LAST_SOCIAL_SIGHTS =
+            "ChangedSynergyLastSocialSights";
+    private static final int MAX_SOCIAL_SIGHT_RECORDS = 24;
     private static final long REUNION_ABSENCE_TICKS = 3600L;
     private static final String COMPATRIOT_RALLY_UNTIL =
             "ChangedSynergyCompatriotRallyUntil";
@@ -628,7 +631,7 @@ public final class HuntAIEvents {
             }
         }
 
-        applyChaseBoost(mob);
+        removeChaseBoost(mob);
         if (visible) {
             HuntMemory.setLostSightTicks(mob, 0);
             return;
@@ -885,7 +888,8 @@ public final class HuntAIEvents {
 
         long now = level.getGameTime();
         List<SocialEncounterCandidate> candidates = new ArrayList<>();
-        String sightKey = LAST_SOCIAL_SIGHT_PREFIX + player.getStringUUID();
+        String playerKey = player.getStringUUID();
+        String legacySightKey = LAST_SOCIAL_SIGHT_PREFIX + playerKey;
         for (ChangedEntity mob : level.getEntitiesOfClass(
                 ChangedEntity.class,
                 player.getBoundingBox().inflate(14.0),
@@ -895,9 +899,8 @@ public final class HuntAIEvents {
                 continue;
             }
 
-            boolean seenBefore = mob.getPersistentData().contains(sightKey);
-            long lastSeen = mob.getPersistentData().getLong(sightKey);
-            mob.getPersistentData().putLong(sightKey, now);
+            long lastSeen = updateSocialSight(mob, playerKey, legacySightKey, now);
+            boolean seenBefore = lastSeen >= 0L;
             if (isFollowingPlayer(mob, player)
                     || mob.getTarget() == player
                     || mob.getPersistentData().getLong(NEXT_SOCIAL_TICK) > now
@@ -1049,10 +1052,38 @@ public final class HuntAIEvents {
                 : null;
     }
 
-    private static void applyChaseBoost(ChangedEntity mob) {
-        // Search and alert behavior remain active, but pursuit now uses the
-        // entity's own movement attribute and original melee-goal speed.
-        removeChaseBoost(mob);
+    private static long updateSocialSight(
+            ChangedEntity mob,
+            String playerKey,
+            String legacyKey,
+            long now) {
+        net.minecraft.nbt.CompoundTag root = mob.getPersistentData();
+        net.minecraft.nbt.CompoundTag sights = root.getCompound(LAST_SOCIAL_SIGHTS);
+        long previous = -1L;
+        if (sights.contains(playerKey)) {
+            previous = sights.getLong(playerKey);
+        } else if (root.contains(legacyKey)) {
+            previous = root.getLong(legacyKey);
+            root.remove(legacyKey);
+        }
+        sights.putLong(playerKey, now);
+        while (sights.size() > MAX_SOCIAL_SIGHT_RECORDS) {
+            String oldestKey = null;
+            long oldestTick = Long.MAX_VALUE;
+            for (String key : sights.getAllKeys()) {
+                long tick = sights.getLong(key);
+                if (tick < oldestTick) {
+                    oldestTick = tick;
+                    oldestKey = key;
+                }
+            }
+            if (oldestKey == null) {
+                break;
+            }
+            sights.remove(oldestKey);
+        }
+        root.put(LAST_SOCIAL_SIGHTS, sights);
+        return previous;
     }
 
     private static void removeChaseBoost(ChangedEntity mob) {

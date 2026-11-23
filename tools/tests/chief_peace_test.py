@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_observatory_quartz_patch():
     nbt_path = ROOT / 'src/main/resources/data/changed_synergy/structures/observatory.nbt'
     manifest_path = ROOT / 'tools/observatory_manifest.json'
-
+    
     # 1. SHA256 match
     nbt_bytes = nbt_path.read_bytes()
     manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
@@ -78,13 +78,13 @@ def test_orange_tree_worldgen_placement():
         assert 'minecraft:surface_water_depth_filter' in types, f'Missing water depth filter in {f.name}'
         assert 'minecraft:heightmap' in types, f'Missing heightmap in {f.name}'
         assert 'minecraft:block_predicate_filter' in types, f'Missing block predicate in {f.name}'
-
+        
         water_filter = next(p for p in placement if p['type'] == 'minecraft:surface_water_depth_filter')
         assert water_filter['max_water_depth'] == 0, f'Water depth not 0 in {f.name}'
-
+        
         heightmap = next(p for p in placement if p['type'] == 'minecraft:heightmap')
         assert heightmap['heightmap'] == 'OCEAN_FLOOR', f'Heightmap not OCEAN_FLOOR in {f.name}'
-
+        
         pred_filter = next(p for p in placement if p['type'] == 'minecraft:block_predicate_filter')
         assert pred_filter['predicate']['type'] == 'minecraft:would_survive', f'Predicate not would_survive in {f.name}'
         assert pred_filter['predicate']['state']['Name'] == 'minecraft:oak_sapling', f'State not oak_sapling in {f.name}'
@@ -101,16 +101,16 @@ def test_desert_refuge_deployment():
     assert list(map(int, nbt['size'])) == [36, 37, 39]
     entities = nbt['entities']
     residents = [e for e in entities if e.get('nbt', {}).get('ForgeData', {}).get('ChangedSynergyStructureResident')]
-    assert len(residents) == 6, f'Expected five residents and a Chief, found {len(residents)}'
+    assert len(residents) == 5, f'Expected 5 residents, found {len(residents)}'
     for r in residents:
         r_nbt = r['nbt']
-        assert r_nbt['id'] in ('changed:latex_fennec_fox', 'changed:latex_snake', 'changed:green_lizard','changed_synergy:latex_jerboa')
+        assert r_nbt['id'] in ('changed:latex_fennec_fox', 'changed:latex_snake', 'changed:green_lizard')
         fd = r_nbt['ForgeData']
         assert fd['ChangedSynergyLightReputationGroup'] == 'desert'
         csr = fd['ChangedSynergyStructureResident']
         assert csr['Template'] == 'desert_refuge'
         assert csr['Camp'] == 1
-        assert csr['Character'] == (1 if r_nbt['id']=='changed_synergy:latex_jerboa' else 0)
+        assert csr['Character'] == 0
 
     # 2. Worldgen structure JSON
     struct_path = ROOT / 'src/main/resources/data/changed_synergy/worldgen/structure/desert_refuge.json'

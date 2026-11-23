@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.TamableLatexEntity;
@@ -94,7 +95,7 @@ public final class LatexSocialMemory {
     private static final long PROVOCATION_DURATION = 1200L;
     private static final double ESCORT_RADIUS = 16.0;
     private static final double FOLLOW_COMBAT_LEASH_SQR = 24.0D * 24.0D;
-    private static final Map<ChangedEntity, List<SuppressedMovementGoal>>
+    private static final Map<UUID, List<SuppressedMovementGoal>>
             SUPPRESSED_MOVEMENT_GOALS = new WeakHashMap<>();
     private static final Map<ChangedEntity, GoalMutation>
             PENDING_GOAL_MUTATIONS = new WeakHashMap<>();
@@ -682,6 +683,7 @@ public final class LatexSocialMemory {
                 .clear(player.getUUID(), mob.getUUID());
         if (bondedPlayerUuids(mob).isEmpty()) {
             BondedCreatureLifecycle.untrack(mob);
+        clearSuppressedMovementGoals(mob);
         }
     }
 
@@ -703,6 +705,7 @@ public final class LatexSocialMemory {
         }
         if (bondedPlayerUuids(mob).isEmpty()) {
             BondedCreatureLifecycle.untrack(mob);
+        clearSuppressedMovementGoals(mob);
         }
         return !owners.isEmpty();
     }
@@ -710,7 +713,11 @@ public final class LatexSocialMemory {
     /** Returns every player UUID whose bond is stored on this creature. */
     public static Set<UUID> bondedPlayerUuids(ChangedEntity mob) {
         Set<UUID> players = new LinkedHashSet<>();
-        for (String key : child(mob, BONDS).getAllKeys()) {
+        CompoundTag bonds = existingChild(mob, BONDS);
+        if (bonds == null) {
+            return players;
+        }
+        for (String key : bonds.getAllKeys()) {
             try {
                 players.add(UUID.fromString(key));
             } catch (IllegalArgumentException ignored) {
@@ -735,6 +742,7 @@ public final class LatexSocialMemory {
         }
 
         BondedCreatureLifecycle.untrack(mob);
+        clearSuppressedMovementGoals(mob);
         BondedCreatureDeathData deaths = BondedCreatureDeathData.get(level.getServer());
         CompoundTag notice = new CompoundTag();
         notice.putString("Name", mob.getDisplayName().getString());
@@ -1284,7 +1292,7 @@ public final class LatexSocialMemory {
             return;
         }
         SUPPRESSED_MOVEMENT_GOALS
-                .computeIfAbsent(mob, ignored -> new ArrayList<>())
+                .computeIfAbsent(mob.getUUID(), ignored -> new ArrayList<>())
                 .addAll(incompatible);
         incompatible.stream()
                 .map(SuppressedMovementGoal::goal)
@@ -1295,8 +1303,14 @@ public final class LatexSocialMemory {
         queueGoalMutation(mob, GoalMutation.RESTORE);
     }
 
+    public static void clearSuppressedMovementGoals(ChangedEntity mob) {
+        if (mob != null) {
+            SUPPRESSED_MOVEMENT_GOALS.remove(mob.getUUID());
+        }
+    }
+
     private static void applySuppressedGoalRestoration(ChangedEntity mob) {
-        List<SuppressedMovementGoal> suppressed = SUPPRESSED_MOVEMENT_GOALS.remove(mob);
+        List<SuppressedMovementGoal> suppressed = SUPPRESSED_MOVEMENT_GOALS.remove(mob.getUUID());
         if (suppressed == null) {
             return;
         }
@@ -1802,10 +1816,11 @@ public final class LatexSocialMemory {
     public static boolean hasRelationshipBetrayal(
             ChangedEntity mob,
             UUID playerId) {
-        return ChangedSynergyGameRules.enabled(
+        CompoundTag betrayals = existingChild(mob, RELATIONSHIP_BETRAYALS);
+        return betrayals != null && ChangedSynergyGameRules.enabled(
                         mob.level(), ChangedSynergyGameRules.FRIENDSHIP_SYSTEM)
-                && child(mob, RELATIONSHIP_BETRAYALS)
-                .getBoolean(playerId.toString());
+                && betrayals.getBoolean(playerId.toString());
+
     }
 
     /** Operator repair hook for testing or resolving an intentionally broken friendship. */
@@ -1874,6 +1889,22 @@ public final class LatexSocialMemory {
             return true;
         }
         return relation.isNormallyNeutral() && !isProvoked(mob, player);
+    }
+
+    @Nullable
+    private static CompoundTag existingData(ChangedEntity mob) {
+        CompoundTag persistent = mob.getPersistentData();
+        return persistent.contains(ROOT, Tag.TAG_COMPOUND)
+                ? persistent.getCompound(ROOT)
+                : null;
+    }
+
+    @Nullable
+    private static CompoundTag existingChild(ChangedEntity mob, String key) {
+        CompoundTag root = existingData(mob);
+        return root != null && root.contains(key, Tag.TAG_COMPOUND)
+                ? root.getCompound(key)
+                : null;
     }
 
     private static CompoundTag child(ChangedEntity mob, String key) {

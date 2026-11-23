@@ -204,10 +204,8 @@ public final class BondedLatexScreen extends AbstractRadialScreen<BondedLatexMen
         int x = (width - textWidth) / 2;
         int y = height - 18;
         float alpha = RadialWheelAnimations.overallAlpha(this);
-        int backgroundAlpha = Math.round(0x76 * alpha);
         int textAlpha = Math.round(0xE8 * alpha);
-        graphics.fill(x - 5, y - 3, x + textWidth + 5, y + 11,
-                backgroundAlpha << 24);
+        if (textAlpha < 4) return;
         graphics.drawString(font, hint, x, y,
                 textAlpha << 24 | 0x00FFFFFF, true);
     }

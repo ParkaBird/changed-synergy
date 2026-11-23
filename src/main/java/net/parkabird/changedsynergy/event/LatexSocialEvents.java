@@ -443,6 +443,9 @@ public final class LatexSocialEvents {
      */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onCreaturePermanentlyRemoved(EntityLeaveLevelEvent event) {
+        if (!event.getLevel().isClientSide() && event.getEntity() instanceof ChangedEntity leavingMob) {
+            LatexSocialMemory.clearSuppressedMovementGoals(leavingMob);
+        }
         if (event.getLevel().isClientSide()
                 || !(event.getEntity() instanceof ChangedEntity mob)
                 || !(event.getLevel() instanceof ServerLevel level)
@@ -1711,14 +1714,22 @@ public final class LatexSocialEvents {
 
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        // Bond / alias repair touches SavedData that may have been wiped mid-season.
+        // Keep the join path non-throwing; defer the rest like negotiation already does.
+        try {
             CreatureMorphAliasData.get(player.server).apply(player);
             LatexSocialMemory.applyPendingBondDeaths(player);
             BondedRevivalService.applyCompletedReferences(player);
-            player.server.execute(() -> BondedCreatureLifecycle.audit(player));
-            player.server.execute(() ->
-                    InvoluntaryTransfurNegotiation.onPlayerReady(player));
+        } catch (RuntimeException exception) {
+            ChangedSynergyMod.LOGGER.error(
+                    "Bond login repair failed for {}", player.getUUID(), exception);
         }
+        player.server.execute(() -> BondedCreatureLifecycle.audit(player));
+        player.server.execute(() ->
+                InvoluntaryTransfurNegotiation.onPlayerReady(player));
     }
 
     @SubscribeEvent

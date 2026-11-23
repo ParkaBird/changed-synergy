@@ -2758,6 +2758,2100 @@
         "pause": 0,
         "intensity": 0
       }
+    ],
+    "supervisor.greeting": [
+      {
+        "text": "camp.changed_synergy.supervisor.greeting.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.greeting.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.food_low": [
+      {
+        "text": "camp.changed_synergy.supervisor.food_low.0",
+        "emotion": "calm",
+        "effect": "droop",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.food_low.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.food_enough": [
+      {
+        "text": "camp.changed_synergy.supervisor.food_enough.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      }
+    ],
+    "supervisor.food_plenty": [
+      {
+        "text": "camp.changed_synergy.supervisor.food_plenty.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.food_plenty.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.safe": [
+      {
+        "text": "camp.changed_synergy.supervisor.safe.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      }
+    ],
+    "supervisor.danger": [
+      {
+        "text": "camp.changed_synergy.supervisor.danger.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.danger.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.remember": [
+      {
+        "text": "camp.changed_synergy.supervisor.remember.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.remember.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.requests": [
+      {
+        "text": "camp.changed_synergy.supervisor.requests.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.requests.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.no_requests": [
+      {
+        "text": "camp.changed_synergy.supervisor.no_requests.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.no_requests.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.handled": [
+      {
+        "text": "camp.changed_synergy.supervisor.handled.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.handled.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.watch": [
+      {
+        "text": "camp.changed_synergy.supervisor.watch.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.watch.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.request": [
+      {
+        "text": "camp.changed_synergy.supervisor.request.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.request.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.choose_item": [
+      {
+        "text": "camp.changed_synergy.supervisor.choose_item.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.choose_item.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.donate": [
+      {
+        "text": "camp.changed_synergy.supervisor.donate.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.donate.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.transfer": [
+      {
+        "text": "camp.changed_synergy.supervisor.transfer.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.transfer.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.thanks": [
+      {
+        "text": "camp.changed_synergy.supervisor.thanks.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.declined": [
+      {
+        "text": "camp.changed_synergy.supervisor.declined.0",
+        "emotion": "whisper",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.declined.1",
+        "emotion": "whisper",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.changed": [
+      {
+        "text": "camp.changed_synergy.supervisor.changed.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.changed.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.meal": [
+      {
+        "text": "camp.changed_synergy.supervisor.meal.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.meal.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.watch_thanks": [
+      {
+        "text": "camp.changed_synergy.supervisor.watch_thanks.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.watch_thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.watch_wait": [
+      {
+        "text": "camp.changed_synergy.supervisor.watch_wait.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.watch_wait.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.outfit": [
+      {
+        "text": "camp.changed_synergy.supervisor.outfit.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor.outfit.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.supervisor.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0
+      }
+    ],
+    "supervisor_resident.greeting": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.greeting.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.greeting.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.food_low": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.food_low.0",
+        "emotion": "calm",
+        "effect": "droop",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.food_low.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.food_enough": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.food_enough.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.food_enough.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.food_plenty": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.food_plenty.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.food_plenty.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.safe": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.safe.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.safe.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.danger": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.danger.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.danger.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.remember": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.remember.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.remember.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.requests": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.requests.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.requests.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.no_requests": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.no_requests.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.no_requests.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.handled": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.handled.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      }
+    ],
+    "supervisor_resident.watch": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.watch.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.watch.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.request": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.request.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.request.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.choose_item": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.choose_item.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.choose_item.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.donate": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.donate.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.donate.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.transfer": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.transfer.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.transfer.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.thanks": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.thanks.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.declined": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.declined.0",
+        "emotion": "whisper",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.declined.1",
+        "emotion": "whisper",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.changed": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.changed.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.changed.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.meal": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.meal.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.meal.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.gesture": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.gesture.0",
+        "emotion": "whisper",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      }
+    ],
+    "supervisor_resident.seekchief": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.seekchief.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.seekchief.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.playful_greeting": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.playful_greeting.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.playful_greeting.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.playful_request": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.playful_request.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.playful_request.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.playful_thanks": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.playful_thanks.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.playful_thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.cautious_greeting": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.cautious_greeting.0",
+        "emotion": "shy",
+        "effect": "wobble",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.cautious_greeting.1",
+        "emotion": "shy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.cautious_request": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.cautious_request.0",
+        "emotion": "shy",
+        "effect": "wobble",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.cautious_request.1",
+        "emotion": "shy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.cautious_thanks": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.cautious_thanks.0",
+        "emotion": "shy",
+        "effect": "wobble",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.cautious_thanks.1",
+        "emotion": "shy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.polite_greeting": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.polite_greeting.0",
+        "emotion": "whisper",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.polite_greeting.1",
+        "emotion": "whisper",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.polite_request": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.polite_request.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.polite_request.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.polite_thanks": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.polite_thanks.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.polite_thanks.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.watch_thanks": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.watch_thanks.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.watch_thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.watch_wait": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.watch_wait.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.watch_wait.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.away": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.away.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.supervisor_resident.away.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "supervisor_resident.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.supervisor_resident.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0
+      }
+    ],
+    "steward.greeting": [
+      {
+        "text": "camp.changed_synergy.steward.greeting.0",
+        "emotion": "calm",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.greeting.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.food_low": [
+      {
+        "text": "camp.changed_synergy.steward.food_low.0",
+        "emotion": "sad",
+        "effect": "droop",
+        "pause": 150,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.steward.food_low.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.food_enough": [
+      {
+        "text": "camp.changed_synergy.steward.food_enough.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      }
+    ],
+    "steward.food_plenty": [
+      {
+        "text": "camp.changed_synergy.steward.food_plenty.0",
+        "emotion": "happy",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.steward.food_plenty.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.safe": [
+      {
+        "text": "camp.changed_synergy.steward.safe.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      }
+    ],
+    "steward.danger": [
+      {
+        "text": "camp.changed_synergy.steward.danger.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 150,
+        "intensity": 0.75
+      },
+      {
+        "text": "camp.changed_synergy.steward.danger.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.remember": [
+      {
+        "text": "camp.changed_synergy.steward.remember.0",
+        "emotion": "calm",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.remember.1",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 0,
+        "intensity": 0.35
+      }
+    ],
+    "steward.requests": [
+      {
+        "text": "camp.changed_synergy.steward.requests.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.requests.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.no_requests": [
+      {
+        "text": "camp.changed_synergy.steward.no_requests.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.no_requests.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.handled": [
+      {
+        "text": "camp.changed_synergy.steward.handled.0",
+        "emotion": "happy",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.handled.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.watch": [
+      {
+        "text": "camp.changed_synergy.steward.watch.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 150,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.steward.watch.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.request": [
+      {
+        "text": "camp.changed_synergy.steward.request.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.request.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.choose_item": [
+      {
+        "text": "camp.changed_synergy.steward.choose_item.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.choose_item.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.donate": [
+      {
+        "text": "camp.changed_synergy.steward.donate.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.donate.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.transfer": [
+      {
+        "text": "camp.changed_synergy.steward.transfer.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.transfer.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.thanks": [
+      {
+        "text": "camp.changed_synergy.steward.thanks.0",
+        "emotion": "happy",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.steward.thanks.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.declined": [
+      {
+        "text": "camp.changed_synergy.steward.declined.0",
+        "emotion": "whisper",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.declined.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.changed": [
+      {
+        "text": "camp.changed_synergy.steward.changed.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.changed.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.meal": [
+      {
+        "text": "camp.changed_synergy.steward.meal.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.meal.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.watch_thanks": [
+      {
+        "text": "camp.changed_synergy.steward.watch_thanks.0",
+        "emotion": "happy",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.steward.watch_thanks.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.watch_wait": [
+      {
+        "text": "camp.changed_synergy.steward.watch_wait.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.steward.watch_wait.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "steward.outfit": [
+      {
+        "text": "camp.changed_synergy.steward.outfit.0",
+        "emotion": "happy",
+        "effect": "emphasis",
+        "pause": 150,
+        "intensity": 0.75
+      },
+      {
+        "text": "camp.changed_synergy.steward.outfit.1",
+        "emotion": "calm",
+        "effect": "wave",
+        "pause": 0,
+        "intensity": 0.35
+      }
+    ],
+    "steward.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.steward.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "whisper",
+        "pause": 0,
+        "intensity": 0.4
+      }
+    ],
+    "lookout.greeting": [
+      {
+        "text": "camp.changed_synergy.lookout.greeting.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 130,
+        "intensity": 0.75
+      },
+      {
+        "text": "camp.changed_synergy.lookout.greeting.1",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 0,
+        "intensity": 0.3
+      }
+    ],
+    "lookout.food_low": [
+      {
+        "text": "camp.changed_synergy.lookout.food_low.0",
+        "emotion": "sad",
+        "effect": "droop",
+        "pause": 150,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.lookout.food_low.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "lookout.food_enough": [
+      {
+        "text": "camp.changed_synergy.lookout.food_enough.0",
+        "emotion": "happy",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      }
+    ],
+    "lookout.food_plenty": [
+      {
+        "text": "camp.changed_synergy.lookout.food_plenty.0",
+        "emotion": "excited",
+        "effect": "bounce",
+        "pause": 130,
+        "intensity": 0.8
+      },
+      {
+        "text": "camp.changed_synergy.lookout.food_plenty.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.25
+      }
+    ],
+    "lookout.safe": [
+      {
+        "text": "camp.changed_synergy.lookout.safe.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.7
+      }
+    ],
+    "lookout.danger": [
+      {
+        "text": "camp.changed_synergy.lookout.danger.0",
+        "emotion": "determined",
+        "effect": "impact",
+        "pause": 140,
+        "intensity": 0.85
+      },
+      {
+        "text": "camp.changed_synergy.lookout.danger.1",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 0,
+        "intensity": 0.3
+      }
+    ],
+    "lookout.remember": [
+      {
+        "text": "camp.changed_synergy.lookout.remember.0",
+        "emotion": "happy",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.lookout.remember.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.25
+      }
+    ],
+    "lookout.requests": [
+      {
+        "text": "camp.changed_synergy.lookout.requests.0",
+        "emotion": "curious",
+        "effect": "bounce",
+        "pause": 130,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.lookout.requests.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "lookout.no_requests": [
+      {
+        "text": "camp.changed_synergy.lookout.no_requests.0",
+        "emotion": "happy",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.lookout.no_requests.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "lookout.handled": [
+      {
+        "text": "camp.changed_synergy.lookout.handled.0",
+        "emotion": "excited",
+        "effect": "bounce",
+        "pause": 130,
+        "intensity": 0.75
+      },
+      {
+        "text": "camp.changed_synergy.lookout.handled.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "lookout.watch": [
+      {
+        "text": "camp.changed_synergy.lookout.watch.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.75
+      },
+      {
+        "text": "camp.changed_synergy.lookout.watch.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "lookout.request": [
+      {
+        "text": "camp.changed_synergy.lookout.request.0",
+        "emotion": "curious",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.lookout.request.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "lookout.choose_item": [
+      {
+        "text": "camp.changed_synergy.lookout.choose_item.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.lookout.choose_item.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "lookout.donate": [
+      {
+        "text": "camp.changed_synergy.lookout.donate.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 130,
+        "intensity": 0.75
+      },
+      {
+        "text": "camp.changed_synergy.lookout.donate.1",
+        "emotion": "curious",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "lookout.transfer": [
+      {
+        "text": "camp.changed_synergy.lookout.transfer.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.lookout.transfer.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "lookout.thanks": [
+      {
+        "text": "camp.changed_synergy.lookout.thanks.0",
+        "emotion": "excited",
+        "effect": "bounce",
+        "pause": 130,
+        "intensity": 0.8
+      },
+      {
+        "text": "camp.changed_synergy.lookout.thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.25
+      }
+    ],
+    "lookout.declined": [
+      {
+        "text": "camp.changed_synergy.lookout.declined.0",
+        "emotion": "calm",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.lookout.declined.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "lookout.changed": [
+      {
+        "text": "camp.changed_synergy.lookout.changed.0",
+        "emotion": "curious",
+        "effect": "wobble",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.lookout.changed.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "lookout.meal": [
+      {
+        "text": "camp.changed_synergy.lookout.meal.0",
+        "emotion": "excited",
+        "effect": "bounce",
+        "pause": 130,
+        "intensity": 0.8
+      },
+      {
+        "text": "camp.changed_synergy.lookout.meal.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.25
+      }
+    ],
+    "lookout.watch_thanks": [
+      {
+        "text": "camp.changed_synergy.lookout.watch_thanks.0",
+        "emotion": "excited",
+        "effect": "impact",
+        "pause": 130,
+        "intensity": 0.8
+      },
+      {
+        "text": "camp.changed_synergy.lookout.watch_thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.25
+      }
+    ],
+    "lookout.watch_wait": [
+      {
+        "text": "camp.changed_synergy.lookout.watch_wait.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.lookout.watch_wait.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "lookout.outfit": [
+      {
+        "text": "camp.changed_synergy.lookout.outfit.0",
+        "emotion": "excited",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.8
+      },
+      {
+        "text": "camp.changed_synergy.lookout.outfit.1",
+        "emotion": "happy",
+        "effect": "wave",
+        "pause": 0,
+        "intensity": 0.4
+      }
+    ],
+    "lookout.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.lookout.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "wave",
+        "pause": 0,
+        "intensity": 0.45
+      }
+    ],
+    "burrow_resident.away": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.away.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.away.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.cautious_greeting": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.cautious_greeting.0",
+        "emotion": "shy",
+        "effect": "wobble",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.cautious_greeting.1",
+        "emotion": "shy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.cautious_request": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.cautious_request.0",
+        "emotion": "shy",
+        "effect": "wobble",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.cautious_request.1",
+        "emotion": "shy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.cautious_thanks": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.cautious_thanks.0",
+        "emotion": "shy",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.cautious_thanks.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.changed": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.changed.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.changed.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.choose_item": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.choose_item.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.choose_item.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.danger": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.danger.0",
+        "emotion": "fearful",
+        "effect": "tremble",
+        "pause": 140,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.danger.1",
+        "emotion": "determined",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.25
+      }
+    ],
+    "burrow_resident.declined": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.declined.0",
+        "emotion": "whisper",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.declined.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.donate": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.donate.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.donate.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.food_enough": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.food_enough.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.food_enough.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.food_low": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.food_low.0",
+        "emotion": "sad",
+        "effect": "droop",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.food_low.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.food_plenty": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.food_plenty.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.food_plenty.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.gesture": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.gesture.0",
+        "emotion": "whisper",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      }
+    ],
+    "burrow_resident.greeting": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.greeting.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.greeting.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.handled": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.handled.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.handled.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.meal": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.meal.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.meal.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.no_requests": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.no_requests.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.no_requests.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.playful_greeting": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.playful_greeting.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.playful_greeting.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.playful_request": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.playful_request.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.7
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.playful_request.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.playful_thanks": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.playful_thanks.0",
+        "emotion": "excited",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.75
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.playful_thanks.1",
+        "emotion": "happy",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.polite_greeting": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.polite_greeting.0",
+        "emotion": "whisper",
+        "effect": "whisper",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.polite_greeting.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.polite_request": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.polite_request.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.polite_request.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.polite_thanks": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.polite_thanks.0",
+        "emotion": "calm",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.polite_thanks.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.remember": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.remember.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.remember.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.request": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.request.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.request.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.requests": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.requests.0",
+        "emotion": "curious",
+        "effect": "wave",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.requests.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.reverse_rite": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.reverse_rite.0",
+        "emotion": "calm",
+        "effect": "whisper",
+        "pause": 0,
+        "intensity": 0.35
+      }
+    ],
+    "burrow_resident.safe": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.safe.0",
+        "emotion": "calm",
+        "effect": "float",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.safe.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.seekchief": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.seekchief.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.seekchief.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.thanks": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.thanks.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.thanks.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.transfer": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.transfer.0",
+        "emotion": "calm",
+        "effect": "emphasis",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.transfer.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.watch": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.watch.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.watch.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.watch_thanks": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.watch_thanks.0",
+        "emotion": "happy",
+        "effect": "bounce",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.watch_thanks.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
+    ],
+    "burrow_resident.watch_wait": [
+      {
+        "text": "camp.changed_synergy.burrow_resident.watch_wait.0",
+        "emotion": "determined",
+        "effect": "pulse",
+        "pause": 140,
+        "intensity": 0.65
+      },
+      {
+        "text": "camp.changed_synergy.burrow_resident.watch_wait.1",
+        "emotion": "calm",
+        "effect": "none",
+        "pause": 0,
+        "intensity": 0.2
+      }
     ]
   }
 }

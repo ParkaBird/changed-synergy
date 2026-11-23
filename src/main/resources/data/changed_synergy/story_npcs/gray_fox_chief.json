@@ -1,0 +1,1696 @@
+{
+  "template": "burrow",
+  "species": "changed_synergy:latex_gray_fox_female",
+  "trait": "PLAYFUL",
+  "chief": true,
+  "equipment": [
+    "changed_synergy:burrow_shawl",
+    "changed:black_tshirt",
+    "changed:navy_pants"
+  ],
+  "nodes": {
+    "root": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.root.0.0",
+              "emotion": "excited",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 110
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.root.0.1",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 150,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.root.1.0",
+              "emotion": "surprised",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 0
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.root.2.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.root.2.1",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 150,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.root.3.0",
+              "emotion": "excited",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "gray_fox_about",
+          "text": "npc.changed_synergy.gray_fox_chief.root.choice.gray_fox_about",
+          "next": "about",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "gray_fox_home",
+          "text": "npc.changed_synergy.gray_fox_chief.root.choice.gray_fox_home",
+          "next": "home",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "gray_fox_past",
+          "text": "npc.changed_synergy.gray_fox_chief.root.choice.gray_fox_past",
+          "next": "past",
+          "condition": "always",
+          "effect": "none",
+          "requires": [
+            "about",
+            "home"
+          ]
+        },
+        {
+          "id": "gray_fox_clue_terminal",
+          "text": "npc.changed_synergy.gray_fox_chief.root.choice.gray_fox_clue_terminal",
+          "next": "clue_terminal",
+          "condition": "clue:burrow_terminal",
+          "effect": "none"
+        },
+        {
+          "id": "gray_fox_clue_rules",
+          "text": "npc.changed_synergy.gray_fox_chief.root.choice.gray_fox_clue_rules",
+          "next": "clue_rules",
+          "condition": "clue:burrow_rules",
+          "effect": "none"
+        },
+        {
+          "id": "gray_fox_enrol",
+          "text": "npc.changed_synergy.gray_fox_chief.root.choice.gray_fox_enrol",
+          "next": "enrol",
+          "condition": "stranger",
+          "effect": "none"
+        },
+        {
+          "id": "gray_fox_membership",
+          "text": "npc.changed_synergy.gray_fox_chief.root.choice.gray_fox_membership",
+          "next": "membership",
+          "condition": "member",
+          "effect": "none"
+        },
+        {
+          "id": "gray_fox_goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.root.choice.gray_fox_goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "return": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.return.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 120
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.return.1.0",
+              "emotion": "shy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "gray_fox_about",
+          "text": "npc.changed_synergy.gray_fox_chief.return.choice.gray_fox_about",
+          "next": "about",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "gray_fox_home",
+          "text": "npc.changed_synergy.gray_fox_chief.return.choice.gray_fox_home",
+          "next": "home",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "gray_fox_past",
+          "text": "npc.changed_synergy.gray_fox_chief.return.choice.gray_fox_past",
+          "next": "past",
+          "condition": "always",
+          "effect": "none",
+          "requires": [
+            "about",
+            "home"
+          ]
+        },
+        {
+          "id": "gray_fox_clue_terminal",
+          "text": "npc.changed_synergy.gray_fox_chief.return.choice.gray_fox_clue_terminal",
+          "next": "clue_terminal",
+          "condition": "clue:burrow_terminal",
+          "effect": "none"
+        },
+        {
+          "id": "gray_fox_clue_rules",
+          "text": "npc.changed_synergy.gray_fox_chief.return.choice.gray_fox_clue_rules",
+          "next": "clue_rules",
+          "condition": "clue:burrow_rules",
+          "effect": "none"
+        },
+        {
+          "id": "gray_fox_enrol",
+          "text": "npc.changed_synergy.gray_fox_chief.return.choice.gray_fox_enrol",
+          "next": "enrol",
+          "condition": "stranger",
+          "effect": "none"
+        },
+        {
+          "id": "gray_fox_membership",
+          "text": "npc.changed_synergy.gray_fox_chief.return.choice.gray_fox_membership",
+          "next": "membership",
+          "condition": "member",
+          "effect": "none"
+        },
+        {
+          "id": "gray_fox_goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.return.choice.gray_fox_goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "about": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.about.0.0",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.about.0.1",
+              "emotion": "happy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 150,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.about.1.0",
+              "emotion": "excited",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "gray_fox_manul",
+          "text": "npc.changed_synergy.gray_fox_chief.about.choice.gray_fox_manul",
+          "next": "manul",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.about.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.about.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "manul": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.manul.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.manul.0.1",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.manul.1.0",
+              "emotion": "happy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.manul.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.manul.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "home": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.home.0.0",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.6,
+              "pause": 110
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.home.0.1",
+              "emotion": "happy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 120,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.home.0.2",
+              "emotion": "curious",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 150,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.home.1.0",
+              "emotion": "happy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.home.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.home.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "past": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.past.0.0",
+              "emotion": "calm",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 200
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.past.0.1",
+              "emotion": "sad",
+              "effect": "droop",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 180,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.past.0.2",
+              "emotion": "happy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 160,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.past.1.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.past.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.past.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "clue_terminal": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.clue_terminal.0.0",
+              "emotion": "curious",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 140
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.clue_terminal.0.1",
+              "emotion": "happy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.clue_terminal.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.clue_terminal.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "clue_rules": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.clue_rules.0.0",
+              "emotion": "happy",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.clue_rules.0.1",
+              "emotion": "happy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 130,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.clue_rules.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.clue_rules.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "enrol": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "transformed_join",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.enrol.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "human_join",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.enrol.1.0",
+              "emotion": "calm",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.6,
+              "pause": 110
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.enrol.1.1",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "cannot_join",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.enrol.2.0",
+              "emotion": "sad",
+              "effect": "droop",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 150
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "join_latex",
+          "text": "npc.changed_synergy.gray_fox_chief.enrol.choice.join_latex",
+          "next": "welcome_latex",
+          "condition": "transformed_join",
+          "effect": "join"
+        },
+        {
+          "id": "join_human",
+          "text": "npc.changed_synergy.gray_fox_chief.enrol.choice.join_human",
+          "next": "welcome_human",
+          "condition": "human_join",
+          "effect": "join"
+        },
+        {
+          "id": "explain_form",
+          "text": "npc.changed_synergy.gray_fox_chief.enrol.choice.explain_form",
+          "next": "explain_form",
+          "condition": "can_reversible",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.enrol.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "explain_form": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.explain_form.0.0",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.explain_form.0.1",
+              "emotion": "happy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 120,
+              "beat": true
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.explain_form.0.2",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "reversible",
+          "text": "npc.changed_synergy.gray_fox_chief.explain_form.choice.reversible",
+          "next": "welcome_copy",
+          "condition": "can_reversible",
+          "effect": "reversible"
+        },
+        {
+          "id": "permanent_menu",
+          "text": "npc.changed_synergy.gray_fox_chief.explain_form.choice.permanent_menu",
+          "next": "confirm_permanent",
+          "condition": "can_permanent",
+          "effect": "none"
+        },
+        {
+          "id": "join_human",
+          "text": "npc.changed_synergy.gray_fox_chief.explain_form.choice.join_human",
+          "next": "welcome_human",
+          "condition": "human_join",
+          "effect": "join"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.explain_form.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "confirm_permanent": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.confirm_permanent.0.0",
+              "emotion": "determined",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 170
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.confirm_permanent.0.1",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 150,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "confirm",
+          "text": "npc.changed_synergy.gray_fox_chief.confirm_permanent.choice.confirm",
+          "next": "welcome_permanent",
+          "condition": "can_permanent",
+          "effect": "permanent"
+        },
+        {
+          "id": "rethink",
+          "text": "npc.changed_synergy.gray_fox_chief.confirm_permanent.choice.rethink",
+          "next": "explain_form",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "welcome_human": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.welcome_human.0.0",
+              "emotion": "excited",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.welcome_human.1.0",
+              "emotion": "happy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.welcome_human.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.welcome_human.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "welcome_latex": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.welcome_latex.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 140
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.welcome_latex.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.welcome_latex.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "welcome_copy": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.welcome_copy.0.0",
+              "emotion": "excited",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.welcome_copy.0.1",
+              "emotion": "happy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.welcome_copy.1.0",
+              "emotion": "happy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.welcome_copy.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.welcome_copy.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "welcome_permanent": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.welcome_permanent.0.0",
+              "emotion": "excited",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.welcome_permanent.0.1",
+              "emotion": "happy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.welcome_permanent.1.0",
+              "emotion": "happy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.welcome_permanent.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.welcome_permanent.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "membership": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.membership.0.0",
+              "emotion": "calm",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.membership.0.1",
+              "emotion": "happy",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "leave_menu",
+          "text": "npc.changed_synergy.gray_fox_chief.membership.choice.leave_menu",
+          "next": "confirm_leave",
+          "condition": "member",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.membership.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "confirm_leave": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.confirm_leave.0.0",
+              "emotion": "sad",
+              "effect": "droop",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 160
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "confirm_leave",
+          "text": "npc.changed_synergy.gray_fox_chief.confirm_leave.choice.confirm_leave",
+          "next": "left",
+          "condition": "member",
+          "effect": "leave"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.confirm_leave.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "left": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.left.0.0",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.left.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.gray_fox_chief.left.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "goodbye": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.goodbye.0.0",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.6,
+              "pause": 100
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.goodbye.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_upstairs": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_upstairs.0.0",
+              "emotion": "calm",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.6,
+              "pause": 130
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_upstairs.1.0",
+              "emotion": "curious",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_0",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_upstairs.choice.topic_0",
+          "next": "resident_upstairs_0",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_upstairs.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_upstairs_0": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_upstairs_0.0.0",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_upstairs_0.0.1",
+              "emotion": "calm",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_upstairs_0.choice.back",
+          "next": "resident_upstairs",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_upstairs_0.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_farm": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_farm.0.0",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_farm.0.1",
+              "emotion": "curious",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_farm.1.0",
+              "emotion": "dreamy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_0",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_farm.choice.topic_0",
+          "next": "resident_farm_0",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_farm.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_farm_0": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_farm_0.0.0",
+              "emotion": "curious",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_farm_0.0.1",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_farm_0.choice.back",
+          "next": "resident_farm",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_farm_0.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_pond": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_pond.0.0",
+              "emotion": "determined",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_pond.0.1",
+              "emotion": "curious",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_pond.1.0",
+              "emotion": "dreamy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_0",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_pond.choice.topic_0",
+          "next": "resident_pond_0",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_pond.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_pond_0": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_pond_0.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_pond_0.0.1",
+              "emotion": "excited",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_pond_0.choice.back",
+          "next": "resident_pond",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_pond_0.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_workshop": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_workshop.0.0",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_workshop.0.1",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_workshop.1.0",
+              "emotion": "happy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_0",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_workshop.choice.topic_0",
+          "next": "resident_workshop_0",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_workshop.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_workshop_0": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_workshop_0.0.0",
+              "emotion": "calm",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_workshop_0.0.1",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_workshop_0.choice.back",
+          "next": "resident_workshop",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_workshop_0.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_library": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_library.0.0",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_library.1.0",
+              "emotion": "fearful",
+              "effect": "tremble",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_0",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_library.choice.topic_0",
+          "next": "resident_library_0",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_library.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_library_0": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_library_0.0.0",
+              "emotion": "calm",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_library_0.0.1",
+              "emotion": "happy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_library_0.choice.back",
+          "next": "resident_library",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_library_0.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_dorm": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_dorm.0.0",
+              "emotion": "shy",
+              "effect": "wobble",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_dorm.0.1",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_dorm.1.0",
+              "emotion": "fearful",
+              "effect": "tremble",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_0",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_dorm.choice.topic_0",
+          "next": "resident_dorm_0",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_dorm.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_dorm_0": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_dorm_0.0.0",
+              "emotion": "calm",
+              "effect": "none",
+              "speed": 1,
+              "intensity": 0.25,
+              "pause": 110
+            },
+            {
+              "text": "npc.changed_synergy.gray_fox_chief.resident_dorm_0.0.1",
+              "emotion": "shy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_dorm_0.choice.back",
+          "next": "resident_dorm",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.gray_fox_chief.resident_dorm_0.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    }
+  }
+}

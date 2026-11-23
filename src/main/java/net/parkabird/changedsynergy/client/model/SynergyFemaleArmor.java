@@ -10,16 +10,17 @@ import net.minecraft.core.Direction;
 
 /** Native clothing/armor UVs and behavior, fitted to Synergy's flat, curved female bodies. */
 public final class SynergyFemaleArmor {
-    public static final ArmorModelSet<ChangedEntity, ArmorLatexMaleWolfModel<ChangedEntity>> SLIM = set("slim", false);
-    public static final ArmorModelSet<ChangedEntity, ArmorLatexMaleWolfModel<ChangedEntity>> HYENA = set("hyena", true);
+    public static final ArmorModelSet<ChangedEntity, ArmorLatexMaleWolfModel<ChangedEntity>> SLIM = set("slim", false, true);
+    public static final ArmorModelSet<ChangedEntity, ArmorLatexMaleWolfModel<ChangedEntity>> REGULAR = set("regular", false, false);
+    public static final ArmorModelSet<ChangedEntity, ArmorLatexMaleWolfModel<ChangedEntity>> HYENA = set("hyena", true, false);
 
     private SynergyFemaleArmor() {}
 
-    private static ArmorModelSet<ChangedEntity, ArmorLatexMaleWolfModel<ChangedEntity>> set(String name, boolean hyena) {
+    private static ArmorModelSet<ChangedEntity, ArmorLatexMaleWolfModel<ChangedEntity>> set(String name, boolean hyena, boolean slimArms) {
         return ArmorModelSet.of(ResourceLocation.fromNamespaceAndPath("changed_synergy", "female_armor_" + name),
                 layer -> createLayer(layer, hyena), (root, layer) -> {
                     // Preserve standard 4-pixel sleeve UVs while fitting 3-pixel limbs.
-                    if (!hyena) for (String side : new String[]{"Left", "Right"}) {
+                    if (slimArms) for (String side : new String[]{"Left", "Right"}) {
                         var sleeve = root.getChild(side + "Arm").getChild("Sleeve");
                         sleeve.xScale = sleeve.zScale = .75F;
                     }

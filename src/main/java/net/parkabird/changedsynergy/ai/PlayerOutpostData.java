@@ -42,12 +42,14 @@ public final class PlayerOutpostData extends SavedData {
     }
 
     public enum Work {
-        GATHER, HUNT, FARM, COOK, HAUL, COMPOST;
+        GATHER, HUNT, FARM, COOK, HAUL;
 
         public static Optional<Work> parse(String value) {
+            if ("COMPOST".equalsIgnoreCase(value)) {
+                return Optional.of(FARM);
+            }
             try {
-                Work work = valueOf(value.toUpperCase(java.util.Locale.ROOT));
-                return Optional.of(work == COMPOST ? FARM : work);
+                return Optional.of(valueOf(value.toUpperCase(java.util.Locale.ROOT)));
             } catch (IllegalArgumentException exception) {
                 return Optional.empty();
             }
@@ -379,8 +381,7 @@ public final class PlayerOutpostData extends SavedData {
         if (member == null || work == null) return false;
         member.role = Role.SUPPLY;
         member.holdPosition = null;
-        member.work = work == Work.COMPOST ? Work.FARM : work;
-        if (backupWork == Work.COMPOST) backupWork = Work.FARM;
+        member.work = work;
         member.backupWork = backupWork == member.work ? null : backupWork;
         member.workStatus = "idle";
         setDirty();
@@ -497,8 +498,6 @@ public final class PlayerOutpostData extends SavedData {
         for (Outpost outpost : outposts.values()) {
             if (outpost.dimension.equals(dimension) && outpost.marker.equals(pos)) {
                 outpost.storage = null;
-                outpost.storages.remove(pos);
-                if (!outpost.storages.isEmpty()) outpost.storage = outpost.storages.iterator().next();
                 outpost.storages.clear();
                 outpost.beds.clear();
                 outpost.restPoints.clear();

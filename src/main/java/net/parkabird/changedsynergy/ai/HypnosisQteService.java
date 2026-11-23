@@ -404,7 +404,9 @@ public final class HypnosisQteService {
         }
         Session session = SESSIONS.get(player.getUUID());
         if (session == null) {
-            if (player.isAlive() && player.hasEffect(ChangedSynergyMobEffects.MESMERIZED.get())) {
+            if (player.isAlive()
+                    && !TakeoverService.active(player)
+                    && player.hasEffect(ChangedSynergyMobEffects.MESMERIZED.get())) {
                 Restraint restraint = MESMERIZED_RESTRAINTS.get(player.getUUID());
                 if (restraint == null
                         || !restraint.dimension.equals(player.level().dimension())) {

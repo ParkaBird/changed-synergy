@@ -8,6 +8,10 @@
     {
       "id": "changedvanilla:latex_ocelot",
       "required": false
-    }
+    },
+    "changed_synergy:latex_manul",
+    "changed_synergy:latex_manul_female",
+    "changed_synergy:latex_gray_fox",
+    "changed_synergy:latex_gray_fox_female"
   ]
 }

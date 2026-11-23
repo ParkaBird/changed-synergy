@@ -66,6 +66,18 @@ public final class StoryNpcService {
             if(bound(stack)){var copy=stack.copy();copy.getTag().remove(BOUND);if(copy.getTag().isEmpty())copy.setTag(null);slots.setItem(slot,copy);}
         })));
     }
+    private static void equipMissingProfileGear(ChangedEntity mob,Collection<String> ids){
+        if(ids.isEmpty())return;
+        net.ltxprogrammer.changed.entity.AccessoryEntities.INSTANCE.forceReloadAccessories(mob);
+        AccessorySlots.getForEntity(mob).ifPresent(slots->{
+            for(String itemId:ids){
+                var parsed=ResourceLocation.tryParse(itemId);
+                if(parsed==null||!BuiltInRegistries.ITEM.containsKey(parsed))continue;
+                var item=BuiltInRegistries.ITEM.get(parsed);
+                if(!AccessorySlots.isWearing(mob,s->s.is(item)))slots.quickMoveStack(new ItemStack(item));
+            }
+        });
+    }
     private static void bindEquipment(ChangedEntity mob,String key,Collection<String> ids){
         if(ids.isEmpty())return;
         AccessorySlots.getForEntity(mob).ifPresent(slots->slots.getSlotTypes().toList().forEach(slot->slots.getItem(slot).ifPresent(stack->{
@@ -119,34 +131,40 @@ public final class StoryNpcService {
                 mob.setCustomName(net.minecraft.network.chat.Component.translatable("npc."+profile.id().replace(':','.')+".title"));
                 tag.putInt("NameVersion",1);
             }
-            int presetVersion=switch(profile.id()){case "changed_synergy:hyena_chief"->4;case "changed_synergy:canopy_chief"->3;case "changed_synergy:lab_researcher"->3;case "changed_synergy:desert_chief"->2;default->1;};
+            int presetVersion=switch(profile.id()){case "changed_synergy:hyena_chief"->4;case "changed_synergy:canopy_chief"->3;case "changed_synergy:lab_researcher"->3;case "changed_synergy:desert_chief"->2;case "changed_synergy:cavern_chief"->3;case "changed_synergy:aec_chief"->1;case "changed_synergy:gray_fox_chief", "changed_synergy:manul_chief"->2;default->1;};
             if(tag.getInt("PresetVersion")<presetVersion) {
                 CreaturePersonality.setNpcPreset(mob,CreaturePersonality.Trait.valueOf(profile.trait()));
                 CreatureLifeMemory.setRole(mob,profile.chief()?CreatureLifeMemory.GroupRole.CHIEF:CreatureLifeMemory.GroupRole.WANDERER);
-                if(profile.id().equals("changed_synergy:hyena_chief")||profile.id().equals("changed_synergy:lab_researcher")||profile.id().equals("changed_synergy:canopy_chief")||profile.id().equals("changed_synergy:desert_chief")){
+                if(profile.id().equals("changed_synergy:hyena_chief")||profile.id().equals("changed_synergy:lab_researcher")||profile.id().equals("changed_synergy:canopy_chief")||profile.id().equals("changed_synergy:desert_chief")||profile.id().equals("changed_synergy:cavern_chief")||profile.id().equals("changed_synergy:aec_chief")||profile.id().equals("changed_synergy:gray_fox_chief")||profile.id().equals("changed_synergy:manul_chief")){
                     var eyes=new net.ltxprogrammer.changed.entity.BasicPlayerInfo();eyes.copyFrom(mob.getBasicPlayerInfo());
                     boolean researcher=profile.id().equals("changed_synergy:lab_researcher");
                     boolean moth=profile.id().equals("changed_synergy:canopy_chief");
                     boolean desert=profile.id().equals("changed_synergy:desert_chief");
-                    eyes.setEyeStyle(researcher?net.ltxprogrammer.changed.entity.EyeStyle.V1:moth||desert?net.ltxprogrammer.changed.entity.EyeStyle.TALL:net.ltxprogrammer.changed.entity.EyeStyle.V2);
-                    int iris=researcher?0x65C98C:moth?0x90B8C2:desert?0x70B7A5:0xB8744C;
-                    if(desert)eyes.setScleraColor(net.ltxprogrammer.changed.util.Color3.WHITE);
+                    boolean cavern=profile.id().equals("changed_synergy:cavern_chief");
+                    boolean aec=profile.id().equals("changed_synergy:aec_chief");
+                    boolean lookout=profile.id().equals("changed_synergy:gray_fox_chief");
+                    boolean steward=profile.id().equals("changed_synergy:manul_chief");
+                    // Lookout: warm-amber Tall eyes. Steward: olive Slim (V2) eyes.
+                    eyes.setEyeStyle(researcher||aec?net.ltxprogrammer.changed.entity.EyeStyle.V1:moth||desert||cavern||lookout?net.ltxprogrammer.changed.entity.EyeStyle.TALL:net.ltxprogrammer.changed.entity.EyeStyle.V2);
+                    int iris=researcher?0x65C98C:moth?0x90B8C2:desert?0x70B7A5:cavern?0x9B6FD6:aec?0xD98A32:lookout?0xD4923A:steward?0x6B8E23:0xB8744C;
+                    if(desert||aec)eyes.setScleraColor(net.ltxprogrammer.changed.util.Color3.WHITE);
                     eyes.setLeftIrisColor(net.ltxprogrammer.changed.util.Color3.fromInt(iris));eyes.setRightIrisColor(net.ltxprogrammer.changed.util.Color3.fromInt(iris));
                     mob.getEntityData().set(net.parkabird.changedsynergy.mixin.ChangedEntityAppearanceAccessor.changedSynergy$appearanceData(),eyes);
                 }
+                equipMissingProfileGear(mob,profile.equipment());
                 bindEquipment(mob,key,profile.equipment());
                 tag.putInt("PresetVersion",presetVersion);
             }
             installConversationGoal(mob);
         } else if(tag.getInt("BoundOutfitVersion")<1) {
             var outfits=new HashSet<String>();
-            for(String f:List.of("Outfit","NeckOutfit")){String item=resident.getString(f);if(!item.isEmpty())outfits.add(item);}
+            for(String f:List.of("Outfit","NeckOutfit","LegsOutfit")){String item=resident.getString(f);if(!item.isEmpty())outfits.add(item);}
             bindEquipment(mob,key,outfits);
-            if(outfits.isEmpty()||resident.getBoolean("OutfitApplied")||resident.getBoolean("NeckOutfitApplied"))tag.putInt("BoundOutfitVersion",1);
+            if(outfits.isEmpty()||resident.getBoolean("OutfitApplied")||resident.getBoolean("NeckOutfitApplied")||resident.getBoolean("LegsOutfitApplied"))tag.putInt("BoundOutfitVersion",1);
         }
         if(record==null){record=new CompoundTag();record.putString("Key",key);record.putString("Dimension",level.dimension().location().toString());record.putString("HomeKey",homeKey(mob));
             if(profile!=null)record.putString("Profile",profile.id());
-            else{record.putBoolean("Resident",true);record.putBoolean("SmallCamp",NaturalCampService.smallCamp(mob)||resident.getBoolean("ReserveOnly"));}
+            else{record.putBoolean("Resident",true);record.putBoolean("SmallCamp",NaturalCampService.smallCamp(mob)||!CampLifeService.mainCamp(mob)&&resident.getBoolean("ReserveOnly"));}
             for(String axis:List.of("X","Y","Z")){record.putDouble("Home"+axis,resident.getDouble("Home"+axis));record.putDouble("Min"+axis,resident.getDouble("Min"+axis));record.putDouble("Max"+axis,resident.getDouble("Max"+axis));}
             store.records.put(key,record);
         }

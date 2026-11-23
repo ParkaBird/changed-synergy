@@ -35,16 +35,38 @@ public final class CampLifeService {
     public record Taken(String home,String item) {}
     private CampLifeService(){}
     public static String template(ChangedEntity npc){return npc.getPersistentData().getCompound(StructureResidentGoal.DATA).getString("Template");}
-    public static boolean mainCamp(ChangedEntity npc){return NaturalCampService.member(npc)&&npc.getPersistentData().getCompound(StructureResidentGoal.DATA).getBoolean("Resolved")&&Set.of("forest_treehouse","hyena_hideout","observatory","desert_refuge","lush_cabin").contains(template(npc));}
-    public static String voice(ChangedEntity npc){return switch(template(npc)){case "forest_treehouse"->"weaver";case "hyena_hideout"->"matriarch";case "observatory"->"archivist";case "desert_refuge"->"pathfinder";case "lush_cabin"->"cavern";default->"resident";};}
-    public static NpcDefinitions.Profile profile(ChangedEntity npc){return mainCamp(npc)?NpcDefinitions.all().stream().filter(p->p.chief()&&p.dialogue()&&p.template().equals(template(npc))).findFirst().orElse(null):null;}
+    public static boolean mainCamp(ChangedEntity npc){return NaturalCampService.member(npc)&&npc.getPersistentData().getCompound(StructureResidentGoal.DATA).getBoolean("Resolved")&&Set.of("forest_treehouse","hyena_hideout","observatory","desert_refuge","lush_cabin","point_prometheus","burrow").contains(template(npc));}
+    public static String voice(ChangedEntity npc){
+        return switch(template(npc)){
+            case "forest_treehouse"->"weaver";
+            case "hyena_hideout"->"matriarch";
+            case "observatory"->"archivist";
+            case "desert_refuge"->"pathfinder";
+            case "lush_cabin"->"cavern";
+            case "point_prometheus"->"supervisor";
+            case "burrow"->{
+                var p=StoryNpcService.profile(npc);
+                yield p!=null&&p.id().equals("changed_synergy:gray_fox_chief")?"lookout":"steward";
+            }
+            default->"resident";
+        };
+    }
+    public static NpcDefinitions.Profile profile(ChangedEntity npc){
+        if(!mainCamp(npc))return null;
+        String home=template(npc);
+        // Dual-chief households: prefer the chief graph that carries resident_* nodes.
+        return NpcDefinitions.all().stream()
+                .filter(p->p.chief()&&p.dialogue()&&p.template().equals(home))
+                .max(java.util.Comparator.comparingInt(p->(int)p.nodes().keySet().stream().filter(k->k.startsWith("resident_")).count()))
+                .orElse(null);
+    }
     public static CompoundTag register(ChangedEntity npc){
         if(!NaturalCampService.publicReserveOnly(npc)||!(npc.level() instanceof ServerLevel level))return new CompoundTag();
         var store=CampLifeData.get(level.getServer());String key=StoryNpcService.homeKey(npc);var tag=store.camps.get(key);
         if(tag==null){tag=new CompoundTag();var resident=npc.getPersistentData().getCompound(StructureResidentGoal.DATA);for(String field:List.of("MinX","MinY","MinZ","MaxX","MaxY","MaxZ"))tag.putDouble(field,resident.getDouble(field));tag.putString("Template",template(npc));tag.putString("Key",key);var fixed=StoryNpcData.get(level.getServer()).records.get(StoryNpcService.key(npc));tag.putString("Dimension",fixed==null?level.dimension().location().toString():fixed.getString("Dimension"));tag.put("Requests",new ListTag());store.camps.put(key,tag);store.setDirty();}
         var resident=npc.getPersistentData().getCompound(StructureResidentGoal.DATA);String dimension=resident.getString("Dimension");
         tag.putBoolean("RoutinesOnly",!mainCamp(npc));
-        if(Set.of("desert_refuge","lush_cabin","oasis","muddy_campsite","hyena_camp_tropical","hyena_camp_open","hyena_camp_snowy").contains(template(npc))&&tag.getInt("StorageLayout")<2){
+        if(Set.of("desert_refuge","lush_cabin","point_prometheus","burrow","oasis","muddy_campsite","hyena_camp_tropical","hyena_camp_open","hyena_camp_snowy").contains(template(npc))&&tag.getInt("StorageLayout")<2){
             var positions=NaturalCampService.authoredPublicStores(npc);
             if(!positions.isEmpty()){tag.putLongArray("PublicStores",positions.stream().mapToLong(BlockPos::asLong).toArray());tag.remove("Stores");tag.putInt("StorageLayout",2);store.setDirty();}
         }
@@ -52,7 +74,17 @@ public final class CampLifeService {
         return tag;
     }
     public static boolean atHome(ChangedEntity npc){if(!mainCamp(npc))return false;var camp=register(npc);return camp.getString("Dimension").equals(npc.level().dimension().location().toString())&&NaturalCampService.bounds(npc).contains(npc.position());}
-    public static List<ChangedEntity> residents(ChangedEntity npc){return npc.level().getEntitiesOfClass(ChangedEntity.class,NaturalCampService.bounds(npc),m->m.isAlive()&&mainCamp(m)&&StoryNpcService.homeKey(m).equals(StoryNpcService.homeKey(npc)));}
+    public static List<ChangedEntity> residents(ChangedEntity npc){return npc.level().getEntitiesOfClass(ChangedEntity.class,NaturalCampService.activityBounds(npc),m->m.isAlive()&&mainCamp(m)&&StoryNpcService.homeKey(m).equals(StoryNpcService.homeKey(npc)));}
+    public static List<ChangedEntity> allResidents(ChangedEntity npc){
+        if(!(npc.level() instanceof ServerLevel level))return List.of();
+        String home=StoryNpcService.homeKey(npc);
+        if(home.isEmpty())return residents(npc);
+        var list=new ArrayList<ChangedEntity>();
+        for(var entity:level.getAllEntities()){
+            if(entity instanceof ChangedEntity m&&m.isAlive()&&mainCamp(m)&&home.equals(StoryNpcService.homeKey(m)))list.add(m);
+        }
+        return List.copyOf(list);
+    }
     public static List<Stock> stores(ChangedEntity npc){
         if(!(npc.level() instanceof ServerLevel level)||!atHome(npc))return List.of();
         var result=new ArrayList<Stock>();var seen=Collections.newSetFromMap(new IdentityHashMap<Container,Boolean>());var positions=new HashSet<Long>();
@@ -81,7 +113,7 @@ public final class CampLifeService {
         if(!camp.contains("RequestDay")||camp.getLong("RequestDay")!=day(npc)){
             requests.removeIf(t->((CompoundTag)t).getBoolean("Done"));camp.putLong("RequestDay",day(npc));
             var wanted=new ArrayList<String>();if(foodState(npc).equals("low"))wanted.add("FOOD");
-            wanted.add(switch(template(npc)){case "forest_treehouse"->"WOOL";case "hyena_hideout"->"LEATHER";case "desert_refuge","lush_cabin"->"LIGHT";default->"PAPER";});
+            wanted.add(switch(template(npc)){case "forest_treehouse"->"WOOL";case "hyena_hideout"->"LEATHER";case "desert_refuge","lush_cabin"->"LIGHT";case "burrow"->"FOOD";default->"PAPER";});
             wanted.add("WATCH");
             for(String kind:wanted){if(requests.stream().map(CompoundTag.class::cast).filter(r->!personal(r)).count()>=3)break;if(requests.stream().map(CompoundTag.class::cast).anyMatch(r->!personal(r)&&r.getString("Kind").equals(kind)))continue;
                 if(!kind.equals("WATCH")&&count(npc,Supply.valueOf(kind))>=Supply.valueOf(kind).amount*2)continue;

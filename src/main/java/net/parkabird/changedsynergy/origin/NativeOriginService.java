@@ -122,45 +122,83 @@ public final class NativeOriginService {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void login(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player) || player instanceof FakePlayer) return;
-        net.parkabird.changedsynergy.npc.NpcRites.migratePermanent(player);
-        ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), policy(player.server));
-        NativeOriginData data = NativeOriginData.get(player.server);
-        Identity identity = data.players.get(player.getUUID());
-        // Repair legacy birth-affiliation guesses using the original species,
-        // never a later permanent or temporary body.
-        if (identity != null && identity.state.equals("native") && !identity.faction.equals("dark")) {
-            ResourceLocation birthId = ResourceLocation.tryParse(identity.form);
-            var birthForm = birthId == null ? null : ChangedRegistry.TRANSFUR_VARIANT.get().getValue(birthId);
-            var typeId = birthForm == null ? null
-                    : net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.getKey(birthForm.getEntityType());
-            if (typeId != null && typeId.getNamespace().equals("changed")
-                    && java.util.Set.of("phage_latex_wolf_male", "phage_latex_wolf_female").contains(typeId.getPath())) {
-                identity.faction = "dark";
-                identity.region = "";
-                data.setDirty();
-            } else if (birthForm != null && identity.faction.equals("light") && identity.region.equals("plains")) {
-                // Older archives assigned every untagged species to Plains.
-                // Correct birth allegiance without changing its current body or home.
-                var birth = NativeOriginCatalog.describe(player.level().registryAccess(), birthForm);
-                if (birth.faction().equals("light") && !birth.region().equals(identity.region)) {
-                    identity.region = birth.region();
+        try {
+            net.parkabird.changedsynergy.npc.NpcRites.migratePermanent(player);
+            ChangedSynergyNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), policy(player.server));
+            NativeOriginData data = NativeOriginData.get(player.server);
+            Identity identity = data.players.get(player.getUUID());
+            // Repair legacy birth-affiliation guesses using the original species,
+            // never a later permanent or temporary body.
+            if (identity != null && identity.state.equals("native") && !identity.faction.equals("dark")) {
+                ResourceLocation birthId = ResourceLocation.tryParse(identity.form);
+                var birthForm = birthId == null ? null : ChangedRegistry.TRANSFUR_VARIANT.get().getValue(birthId);
+                var typeId = birthForm == null ? null
+                        : net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.getKey(birthForm.getEntityType());
+                if (typeId != null && typeId.getNamespace().equals("changed")
+                        && java.util.Set.of("phage_latex_wolf_male", "phage_latex_wolf_female").contains(typeId.getPath())) {
+                    identity.faction = "dark";
+                    identity.region = "";
                     data.setDirty();
+                } else if (birthForm != null && identity.faction.equals("light") && identity.region.equals("plains")) {
+                    // Older archives assigned every untagged species to Plains.
+                    // Correct birth allegiance without changing its current body or home.
+                    var birth = NativeOriginCatalog.describe(player.level().registryAccess(), birthForm);
+                    if (birth.faction().equals("light") && !birth.region().equals(identity.region)) {
+                        identity.region = birth.region();
+                        data.setDirty();
+                    }
                 }
             }
+            if (identity == null) {
+                identity = new Identity();
+                boolean existing = Files.exists(player.server.getWorldPath(LevelResource.PLAYER_DATA_DIR)
+                        .resolve(player.getStringUUID() + ".dat"))
+                        || player.getStats().getValue(Stats.CUSTOM.get(Stats.PLAY_TIME)) > 0
+                        || ProcessTransfur.isPlayerTransfurred(player);
+                if (existing || !enabled(player) || !TrueTransfurCompat.supportsNativeOrigin()) identity.state = "human";
+                data.players.put(player.getUUID(), identity); data.setDirty();
+            }
+            // Body restore / selection UI can touch Changed/TT/CSP; defer so a
+            // wiped playerdata + leftover origin archive cannot kick the join.
+            Identity resolved = identity;
+            player.server.execute(() -> continueLogin(player, resolved));
+        } catch (RuntimeException exception) {
+            ChangedSynergyMod.LOGGER.error(
+                    "Native origin login failed for {}; falling back to human",
+                    player.getUUID(), exception);
+            fallbackHuman(player);
         }
+    }
+
+    private static void continueLogin(ServerPlayer player, Identity identity) {
+        if (player.connection == null || identity == null) return;
+        try {
+            if (identity.state.equals("pending")) {
+                if (enabled(player)) open(player);
+                else finishHuman(player);
+            } else if (enabled(player) && identity.state.equals("native")
+                    && ProcessTransfur.getPlayerTransfurVariant(player) == null) {
+                restore(player);
+            }
+        } catch (RuntimeException exception) {
+            ChangedSynergyMod.LOGGER.error(
+                    "Native origin post-login restore failed for {}; falling back to human",
+                    player.getUUID(), exception);
+            fallbackHuman(player);
+        }
+    }
+
+    private static void fallbackHuman(ServerPlayer player) {
+        SELECTING.remove(player.getUUID());
+        NativeOriginData data = NativeOriginData.get(player.server);
+        Identity identity = data.players.get(player.getUUID());
         if (identity == null) {
             identity = new Identity();
-            boolean existing = Files.exists(player.server.getWorldPath(LevelResource.PLAYER_DATA_DIR)
-                    .resolve(player.getStringUUID() + ".dat"))
-                    || player.getStats().getValue(Stats.CUSTOM.get(Stats.PLAY_TIME)) > 0
-                    || ProcessTransfur.isPlayerTransfurred(player);
-            if (existing || !enabled(player) || !TrueTransfurCompat.supportsNativeOrigin()) identity.state = "human";
-            data.players.put(player.getUUID(), identity); data.setDirty();
+            data.players.put(player.getUUID(), identity);
         }
-        if (identity.state.equals("pending")) {
-            if (enabled(player)) open(player);
-            else finishHuman(player);
-        } else if (enabled(player) && identity.state.equals("native") && ProcessTransfur.getPlayerTransfurVariant(player) == null) restore(player);
+        identity.state = "human";
+        identity.current = "";
+        data.setDirty();
     }
 
     public static boolean enabled(ServerPlayer player) {
@@ -374,8 +412,20 @@ public final class NativeOriginService {
             id = ResourceLocation.tryParse(identity.form);
             form = id == null ? null : ChangedRegistry.TRANSFUR_VARIANT.get().getValue(id);
         }
-        if (form != null) { apply(player, form); MISSING_FORMS.remove(player.getUUID()); }
-        else if (MISSING_FORMS.add(player.getUUID())) player.sendSystemMessage(Component.translatable("origin.changed_synergy.form_missing"));
+        if (form == null) {
+            if (MISSING_FORMS.add(player.getUUID())) {
+                player.sendSystemMessage(Component.translatable("origin.changed_synergy.form_missing"));
+            }
+            return;
+        }
+        try {
+            if (apply(player, form)) MISSING_FORMS.remove(player.getUUID());
+            else fallbackHuman(player);
+        } catch (RuntimeException exception) {
+            ChangedSynergyMod.LOGGER.error(
+                    "Native origin form restore failed for {}", player.getUUID(), exception);
+            fallbackHuman(player);
+        }
     }
 
     private static void remember(ServerPlayer player) {

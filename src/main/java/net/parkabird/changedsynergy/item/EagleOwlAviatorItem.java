@@ -22,7 +22,14 @@ public final class EagleOwlAviatorItem extends ShirtItem {
     public static boolean juvenile(LivingEntity wearer){var body=HyenaTrailclothItem.body(wearer);return wearer.isBaby()||body!=null&&(body.isBaby()||CreatureSocialProfile.isJuvenile(body));}
     public static boolean lowered(ItemStack stack){return stack.getItem() instanceof EagleOwlAviatorItem outfit&&outfit.getClothingState(stack).getValue(CLOSED);}
     public static boolean wearingLowered(LivingEntity wearer){return AccessorySlots.isWearing(wearer,s->s.getItem() instanceof EagleOwlAviatorItem&&lowered(s));}
-    public static boolean fits(LivingEntity wearer){return wearer instanceof Player||HyenaTrailclothItem.body(wearer)!=null;}
+        public static boolean fits(LivingEntity wearer){
+        if (wearer.isBaby()) return false;
+        var standShape = HyenaTrailclothItem.standShape(wearer);
+        if (standShape != null) {
+            return standShape.torsoShape == net.ltxprogrammer.changed.entity.variant.ClothingShape.Torso.ANTHRO;
+        }
+        return wearer instanceof Player || HyenaTrailclothItem.body(wearer) != null;
+    }
     @Override public boolean allowedInSlot(ItemStack stack,LivingEntity wearer,AccessorySlotType slot){
         if(!fits(wearer))return false;
         if(juvenile(wearer))return (slot==ChangedAccessorySlots.FACE.get()||slot==ChangedAccessorySlots.HEAD.get())&&AccessorySlots.getForEntity(wearer)

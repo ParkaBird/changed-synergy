@@ -33,6 +33,7 @@ public final class StoryNpcScreen extends Screen {
     private long actionsShownAt=-1;private float actionsAlpha;
     private int accent,background,textColor,headerColor,bodySurface;
     private boolean organic;
+    private Component cachedName=Component.empty();
     private final Map<NpcTextStyle.Style,Integer> textColors=new HashMap<>();
     private final Map<NpcTextStyle.Style,Integer> thoughtColors=new HashMap<>();
     public StoryNpcScreen(CompoundTag state){super(Component.translatable("npc.changed_synergy.dialogue"));update(state);}
@@ -62,6 +63,8 @@ public final class StoryNpcScreen extends Screen {
         }
         full=textBuilder.toString();totalDuration=time;
         organic=state.getBoolean("Organic");
+        Component parsedName=Component.Serializer.fromJson(state.getString("Name"));
+        cachedName=parsedName==null?Component.empty():parsedName;
 
         background=state.contains("Background")?state.getInt("Background"):0xBFCB8B;
         accent=state.contains("Foreground")?state.getInt("Foreground"):0xFFFFFF;
@@ -93,7 +96,7 @@ public final class StoryNpcScreen extends Screen {
         w=Math.min(680,width-24);x=(width-w)/2;
         textScale=width<380?1:1.25F;textRowHeight=width<380?14:18;choiceTextRow=width<380?12:15;
         rowHeight=26;
-        for(var value:state.getList("Choices",10))rowHeight=Math.max(rowHeight,font.split(translated((CompoundTag)value),(int)((w-44)/textScale)).size()*choiceTextRow+8);
+        for(var value:state.getList("Choices",10))rowHeight=Math.max(rowHeight,wrapText(translated((CompoundTag)value).getString(),(int)((w-44)/textScale)).size()*choiceTextRow+8);
         int choiceRoom=height-24-CONTROLS_HEIGHT-CHOICE_GAP-BODY_TOP-BODY_BOTTOM-(height<220?2:3)*textRowHeight;
         choiceRoom=Math.min(choiceRoom,height/4);
         visibleChoices=state.getBoolean("Last")?Math.min(state.getList("Choices",10).size(),Math.max(1,Math.min(3,choiceRoom/(rowHeight+3)))):0;
@@ -106,8 +109,8 @@ public final class StoryNpcScreen extends Screen {
             while(range[0]<range[1]&&Character.isWhitespace(full.charAt(range[0])))range[0]++;
             while(range[1]>range[0]&&Character.isWhitespace(full.charAt(range[1]-1)))range[1]--;
             int search=range[0],firstRow=row;
-            for(var sequence:font.split(Component.literal(full.substring(range[0],range[1])),wrapWidth)) {
-                String line=plain(sequence);int start=full.indexOf(line,search);if(start<0)start=search;int charIndex=start,pos=0;
+            for(String line:wrapText(full.substring(range[0],range[1]),wrapWidth)) {
+                int start=full.indexOf(line,search);if(start<0)start=search;int charIndex=start,pos=0;
                 for(int cp:line.codePoints().toArray()) {
                     String text=new String(Character.toChars(cp));var style=NORMAL;boolean mental=false;
                     for(var span:spans)if(charIndex>=span.start()&&charIndex<span.end()){style=span.style();mental=span.mental();break;}
@@ -129,7 +132,46 @@ public final class StoryNpcScreen extends Screen {
         positionChoices();
     }
     private long timeAt(int offset){int index=full.codePointCount(0,offset);return index<timeline.size()?timeline.get(index):totalDuration;}
-    private int rows(int start,int end,int width){return font.split(Component.literal(full.substring(start,end).strip()),width).size();}
+    private int rows(int start,int end,int width){return wrapText(full.substring(start,end).strip(),width).size();}
+    private List<String> wrapText(String text,int maxWidth) {
+        boolean hasCjk=false;
+        for(int i=0;i<text.length();) {int cp=text.codePointAt(i);if(Character.isIdeographic(cp)||cp>=0x3000&&cp<=0x30FF||cp>=0xFF00&&cp<=0xFFEF){hasCjk=true;break;}i+=Character.charCount(cp);}
+        if(!hasCjk) {
+            var out=new ArrayList<String>();
+            for(var seq:font.split(Component.literal(text),maxWidth))out.add(plain(seq));
+            return out.isEmpty()?List.of(""):out;
+        }
+        var lines=new ArrayList<String>();
+        for(String para:text.split("\n",-1)) {
+            if(para.isEmpty()){lines.add("");continue;}
+            var cur=new StringBuilder();int curW=0,i=0;
+            while(i<para.length()) {
+                int cp=para.codePointAt(i);
+                if(cp==' ') {
+                    int spaceW=font.width(" ");
+                    if(cur.length()>0&&curW+spaceW<=maxWidth){cur.append(' ');curW+=spaceW;}
+                    i++;continue;
+                }
+                int start=i;
+                if(cp<128&&(Character.isLetterOrDigit(cp)||cp=='_'||cp=='-'||cp=='\''||cp=='.')) {
+                    while(i<para.length()){int n=para.codePointAt(i);if(n<128&&(Character.isLetterOrDigit(n)||n=='_'||n=='-'||n=='\''||n=='.'))i+=Character.charCount(n);else break;}
+                } else i+=Character.charCount(cp);
+                String tok=para.substring(start,i);int tokW=font.width(tok);
+                if(cur.length()>0&&curW+tokW>maxWidth&&"，。！？；：、）》」”’,.!?;:".indexOf(cp)<0) {
+                    lines.add(cur.toString().stripTrailing());cur.setLength(0);curW=0;
+                }
+                if(tokW>maxWidth&&tok.length()>1) {
+                    for(int j=0;j<tok.length();) {
+                        int tcp=tok.codePointAt(j),next=j+Character.charCount(tcp);String ch=tok.substring(j,next);int chW=font.width(ch);
+                        if(cur.length()>0&&curW+chW>maxWidth){lines.add(cur.toString().stripTrailing());cur.setLength(0);curW=0;}
+                        cur.append(ch);curW+=chW;j=next;
+                    }
+                } else {cur.append(tok);curW+=tokW;}
+            }
+            if(cur.length()>0||lines.isEmpty())lines.add(cur.toString().stripTrailing());
+        }
+        return lines;
+    }
     private void paginate(int start,int end,int width,List<int[]> ranges) {
         while(start<end&&Character.isWhitespace(full.charAt(start)))start++;
         while(end>start&&Character.isWhitespace(full.charAt(end-1)))end--;
@@ -191,7 +233,7 @@ public final class StoryNpcScreen extends Screen {
     @Override public void render(GuiGraphics graphics,int mouseX,int mouseY,float partial) {
         long now=Util.getMillis(),elapsed=now-started;actionsAlpha=actionsOpacity(now);positionChoices();
         RelationshipPanel.drawDialogue(graphics,x,y,w,h,background,organic);
-        Component name=Component.Serializer.fromJson(state.getString("Name"));if(name==null)name=Component.empty();
+        Component name=cachedName;
         String role=Component.translatable(state.getString("Title")).getString();
         var standing=state.getBoolean("Chief")?Component.translatable("npc.changed_synergy.standing",state.getInt("Trust")):Component.empty();
         String heading=name.getString().equals(role)?name.getString():name.getString()+" · "+role;
@@ -258,14 +300,15 @@ public final class StoryNpcScreen extends Screen {
     @Override public void removed(){cancel();}
     @Override public boolean isPauseScreen(){return false;}
     private final class ChoiceButton extends Button {
-        ChoiceButton(int x,int y,int width,int height,Component message,OnPress action){super(x,y,width,height,message,action,DEFAULT_NARRATION);}
+        private final List<String> lines;
+        ChoiceButton(int x,int y,int width,int height,Component message,OnPress action){super(x,y,width,height,message,action,DEFAULT_NARRATION);this.lines=List.copyOf(wrapText(message.getString(),(int)((width-20)/textScale)));}
         @Override protected void renderWidget(GuiGraphics g,int mx,int my,float partial) {
             if(actionsAlpha<.02F)return;
             boolean focus=isHoveredOrFocused();
             g.fill(getX(),getY(),getX()+width,getY()+height,faded(focus?0xEE303A33:0xC018201D,actionsAlpha));
             if(focus)label(g,Component.literal("›"),getX()-4,getY()+(height-12)/2F,faded(CHOICE_TEXT,actionsAlpha),textScale);
-            var lines=font.split(getMessage(),(int)((width-20)/textScale));float yy=getY()+(height-lines.size()*choiceTextRow)/2F+2;
-            for(int i=0;i<lines.size();i++)label(g,lines.get(i),getX()+10,yy+i*choiceTextRow,faded(CHOICE_TEXT,actionsAlpha),textScale);
+            float yy=getY()+(height-lines.size()*choiceTextRow)/2F+2;
+            for(int i=0;i<lines.size();i++)label(g,Component.literal(lines.get(i)),getX()+10,yy+i*choiceTextRow,faded(CHOICE_TEXT,actionsAlpha),textScale);
         }
     }
 }

@@ -85,7 +85,7 @@ public enum HunterArchetype {
         if (containsAny(path, "bee", "moth", "insect", "stiger", "spider", "wasp")) {
             return INSECT;
         }
-        if (containsAny(path, "cat", "tiger", "leopard", "lion", "lynx", "panther")) {
+        if (containsAny(path, "cat", "tiger", "leopard", "lion", "lynx", "panther", "manul")) {
             return FELINE;
         }
         if (containsAny(path, "rabbit", "squirrel", "raccoon", "panda", "deer", "skunk", "pudding")) {

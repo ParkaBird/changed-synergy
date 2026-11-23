@@ -63,11 +63,10 @@ public final class SpeciesLootRegression {
                     case "latex_silk_moth" -> check(observed.contains(Items.FEATHER)&&observed.contains(Items.PAPER),"Moth's original drops remain");
                     case "latex_swordfish" -> check(observed.contains(Items.COD)&&observed.contains(Items.COOKED_COD),"Swordfish retains raw/cooked fish");
                     case "latex_muntjac","latex_muntjac_female" -> check(observed.contains(Items.GRASS)&&observed.contains(Items.LEATHER),"both Muntjacs retain deer loot");
-                    case "latex_jerboa" -> check(!observed.isEmpty(),"Jerboa retains its native desert-relative drops and latex materials");
                     default -> check(observed.contains(Items.ROTTEN_FLESH)&&observed.contains(Items.LEATHER),"both Hyenas retain Gnoll loot");
                 }
             }
-            check(species==8,"all eight registered Synergy creatures were checked");
+            check(species==7,"all seven registered Synergy creatures were checked");
             System.out.println("SPECIES_LOOT_REGRESSION_PASS: "+checks+" native entity-context drops, nested tables, materials, environmental/player kills, fire and looting checks");
         }catch(Throwable failure){System.err.println("SPECIES_LOOT_REGRESSION_FAIL");failure.printStackTrace();}
         finally{server.halt(false);}

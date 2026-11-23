@@ -1,0 +1,11 @@
+{
+  "type": "changed_synergy:research_lab",
+  "biomes": "#changed_synergy:has_structure/burrows",
+  "step": "surface_structures",
+  "terrain_adaptation": "none",
+  "spawn_overrides": {},
+  "template": "changed_synergy:burrow",
+  "ground_level": 20,
+  "max_terrain_slope": 5,
+  "clearing_radius": 5
+}

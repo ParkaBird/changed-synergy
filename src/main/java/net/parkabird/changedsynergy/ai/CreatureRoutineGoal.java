@@ -72,6 +72,7 @@ public final class CreatureRoutineGoal extends Goal {
     private boolean fishFromWaterFallback;
     private boolean offshoreFishing;
     private boolean routeFailed;
+    private boolean deliveryBlocked;
 
     public CreatureRoutineGoal(ChangedEntity mob) {
         this.mob = mob;
@@ -149,6 +150,7 @@ public final class CreatureRoutineGoal extends Goal {
     @Override
     public void start() {
         routeFailed = false;
+        deliveryBlocked = false;
         repathTicks = 0;
         dwellTicks = 0;
         actionTicks = 0;
@@ -226,7 +228,7 @@ public final class CreatureRoutineGoal extends Goal {
         long now = mob.level().getGameTime();
         CreatureLifeMemory.finishRoutine(mob,
                 resumeCargo
-                        ? now + (routeFailed ? 200L : 10L)
+                        ? now + (routeFailed || deliveryBlocked ? 200L : 10L)
                         : now + 80L + mob.getRandom().nextInt(161));
         state = RoutineState.IDLE;
         clearTargets();
@@ -542,6 +544,8 @@ public final class CreatureRoutineGoal extends Goal {
         delivered |= CreatureSettlementService.depositTradeReturns(mob);
         if (delivered) {
             presentRoleAction(Cue.ROLE_FORAGER_STORE);
+        } else if (hasDelivery()) {
+            deliveryBlocked = true;
         }
         remainingTicks = 0;
     }

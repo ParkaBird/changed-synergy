@@ -26,6 +26,9 @@ public final class LandmarkMapLoot {
             "chests/village/village_snowy_house","chests/village/village_taiga_house");
     private static final Set<String> DESERT_CHESTS=Set.of("chests/desert_pyramid","chests/village/village_desert_house","chests/abandoned_mineshaft","chests/ruined_portal","chests/simple_dungeon","chests/pillager_outpost");
     private static final Set<String> CAVE_CHESTS=Set.of("chests/simple_dungeon","chests/abandoned_mineshaft","chests/ruined_portal");
+    private static final Set<String> TUNDRA_CHESTS=Set.of("chests/igloo_chest","chests/village/village_snowy_house",
+            "chests/village/village_taiga_house","chests/village/village_plains_house","chests/simple_dungeon",
+            "chests/abandoned_mineshaft","chests/ruined_portal","chests/pillager_outpost");
 
     @SubscribeEvent public static void load(LootTableLoadEvent event) {
         var name=event.getName();
@@ -81,6 +84,26 @@ public final class LandmarkMapLoot {
             var pool=pool("lush_cabin", tower ? .15F : .05F);
             // Watchtowers keep a traveler's copy; dungeon/mineshaft maps only when opened in lush caves.
             if(!tower)pool.when(LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.LUSH_CAVES)));
+            event.getTable().addPool(pool.build());
+        }
+        if(tower || name.getNamespace().equals("minecraft")&&TUNDRA_CHESTS.contains(name.getPath())) {
+            var pool=pool("point_prometheus", tower ? .15F : .08F);
+            if(!tower)pool.when(AnyOfCondition.anyOf(
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.SNOWY_PLAINS)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.ICE_SPIKES)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.SNOWY_TAIGA)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.FROZEN_RIVER)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.SNOWY_BEACH)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.SNOWY_SLOPES)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.GROVE))));
+            event.getTable().addPool(pool.build());
+        }
+        if(tower || name.getNamespace().equals("minecraft")&&TUNDRA_CHESTS.contains(name.getPath())) {
+            var pool=pool("burrow", tower ? .15F : .08F);
+            if(!tower)pool.when(AnyOfCondition.anyOf(
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.SNOWY_PLAINS)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.SNOWY_TAIGA)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.GROVE))));
             event.getTable().addPool(pool.build());
         }
     }

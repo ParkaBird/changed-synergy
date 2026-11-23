@@ -16,8 +16,10 @@
     "CuriosClothingStackLimitMixin",
     "CuriosClothingOpenMixin",
     "AddonPlayerHugToggleMixin",
+    "AddonNonCanineCryMixin",
     "PlayerFriendlyGrabMixin",
     "SwordfishRushArmourMixin",
+    "SpidtaurCobwebImmunityMixin",
     "MuntjacPlayerJumpMixin",
     "MuntjacJumpPowerMixin",
     "ChangedEntityAppearanceAccessor",
@@ -82,7 +84,9 @@
     "HypnosisEffectGuardMixin",
     "HypnosisMobAttackGuardMixin",
     "LabTablePathfindingMixin",
+    "PathNavigationExtensionMixin",
     "TrapdoorNavigationMixin",
+    "ChangedEntityCrouchMixin",
     "FenceGateSoundAccessor",
     "MonsterDaylightSpawnMixin",
     "NonEntityMerchantSoundMixin",
@@ -117,7 +121,8 @@
     "VanillaOakFoliageMixin",
     "VariantAbilityActivateMixin",
     "PerchSleepingPositionMixin",
-    "EagleOwlWingFlapMixin"
+    "EagleOwlWingFlapMixin",
+    "InstinctSkinOwnerMixin"
   ],
   "client": [
     "HypnosisIconBrightnessMixin",
@@ -180,7 +185,13 @@
     "PerchSleepNameTagMixin",
     "PerchSleepModelMixin",
     "TaurSleepRenderMixin",
-    "PartialSkinLayersHandMixin"
+    "PartialSkinLayersHandMixin",
+    "InstinctPartialSkinMixin",
+    "InstinctPartialRendererMixin",
+    "BipedArmorStandModelAccessor",
+    "CentaurArmorStandModelAccessor",
+    "LeglessArmorStandModelAccessor",
+    "SplashManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

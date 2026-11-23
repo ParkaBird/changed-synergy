@@ -17,9 +17,9 @@
               "text": "npc.changed_synergy.desert_chief.root.0.0",
               "effect": "impact",
               "emotion": "surprised",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.9,
+              "pause": 170,
+              "speed": 1.05,
+              "intensity": 0.92,
               "beat": false
             },
             {
@@ -27,8 +27,8 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 1.0,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -39,21 +39,27 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.root.1.0",
-              "effect": "none",
               "emotion": "surprised",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "effect": "emphasis",
+              "pause": 150,
+              "speed": 1.08,
+              "intensity": 0.8
             },
             {
               "text": "npc.changed_synergy.desert_chief.root.1.1",
-              "effect": "wobble",
-              "emotion": "surprised",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
-              "beat": false
+              "emotion": "curious",
+              "effect": "none",
+              "pause": 0,
+              "speed": 1.0,
+              "intensity": 0.0
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.root.1.2",
+              "emotion": "fearful",
+              "effect": "tremble",
+              "pause": 160,
+              "speed": 1.08,
+              "intensity": 0.85
             }
           ]
         },
@@ -64,10 +70,10 @@
             {
               "text": "npc.changed_synergy.desert_chief.root.2.0",
               "effect": "wave",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "happy",
+              "pause": 150,
+              "speed": 1.0,
+              "intensity": 0.72,
               "beat": false
             },
             {
@@ -75,8 +81,8 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 1.0,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -88,9 +94,9 @@
             {
               "text": "npc.changed_synergy.desert_chief.root.3.0",
               "effect": "whisper",
-              "emotion": "whisper",
+              "emotion": "curious",
               "pause": 140,
-              "speed": 1,
+              "speed": 0.95,
               "intensity": 0.65,
               "beat": false
             },
@@ -99,8 +105,8 @@
               "effect": "none",
               "emotion": "whisper",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.96,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -172,16 +178,16 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.about.0.1",
               "effect": "wobble",
               "emotion": "shy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 0.95,
+              "intensity": 0.78,
               "beat": false
             },
             {
@@ -190,7 +196,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -202,19 +208,19 @@
             {
               "text": "npc.changed_synergy.desert_chief.about.1.0",
               "effect": "none",
-              "emotion": "whisper",
+              "emotion": "curious",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.96,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.about.1.1",
-              "effect": "wobble",
+              "effect": "wave",
               "emotion": "whisper",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 0.94,
+              "intensity": 0.75,
               "beat": false
             }
           ]
@@ -251,16 +257,16 @@
               "emotion": "happy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.home.0.1",
               "effect": "bounce",
-              "emotion": "happy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "excited",
+              "pause": 150,
+              "speed": 1.05,
+              "intensity": 0.85,
               "beat": false
             },
             {
@@ -269,7 +275,7 @@
               "emotion": "happy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -280,20 +286,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.home.1.0",
-              "effect": "none",
-              "emotion": "whisper",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "effect": "emphasis",
+              "emotion": "surprised",
+              "pause": 150,
+              "speed": 1.02,
+              "intensity": 0.75,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.home.1.1",
               "effect": "wobble",
-              "emotion": "whisper",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "shy",
+              "pause": 150,
+              "speed": 0.96,
+              "intensity": 0.8,
               "beat": false
             }
           ]
@@ -338,7 +344,7 @@
               "emotion": "calm",
               "pause": 140,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.6,
               "beat": false
             },
             {
@@ -347,8 +353,8 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "intensity": 0.0,
+              "beat": true
             }
           ]
         },
@@ -358,20 +364,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.quarters.1.0",
-              "effect": "none",
+              "effect": "whisper",
               "emotion": "shy",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "pause": 160,
+              "speed": 0.92,
+              "intensity": 0.68,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.quarters.1.1",
               "effect": "wobble",
               "emotion": "shy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 160,
+              "speed": 1.08,
+              "intensity": 0.85,
               "beat": false
             }
           ]
@@ -405,10 +411,10 @@
             {
               "text": "npc.changed_synergy.desert_chief.records.0.0",
               "effect": "droop",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "sad",
+              "pause": 160,
+              "speed": 0.92,
+              "intensity": 0.7,
               "beat": false
             },
             {
@@ -416,8 +422,8 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.96,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -430,18 +436,18 @@
               "text": "npc.changed_synergy.desert_chief.records.1.0",
               "effect": "tremble",
               "emotion": "fearful",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 190,
+              "speed": 0.94,
+              "intensity": 0.88,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.records.1.1",
-              "effect": "none",
-              "emotion": "fearful",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "effect": "bounce",
+              "emotion": "happy",
+              "pause": 140,
+              "speed": 1.04,
+              "intensity": 0.78,
               "beat": false
             }
           ]
@@ -482,11 +488,11 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.clipboards.0.0",
-              "effect": "emphasis",
+              "effect": "droop",
               "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 0.94,
+              "intensity": 0.62,
               "beat": false
             },
             {
@@ -495,7 +501,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -532,16 +538,16 @@
               "emotion": "happy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.enrol.0.1",
               "effect": "bounce",
               "emotion": "happy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 1.03,
+              "intensity": 0.8,
               "beat": false
             }
           ]
@@ -556,16 +562,16 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "intensity": 0.0,
+              "beat": true
             },
             {
               "text": "npc.changed_synergy.desert_chief.enrol.1.1",
               "effect": "emphasis",
               "emotion": "determined",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 160,
+              "speed": 0.95,
+              "intensity": 0.85,
               "beat": false
             },
             {
@@ -574,7 +580,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -586,19 +592,19 @@
             {
               "text": "npc.changed_synergy.desert_chief.enrol.2.0",
               "effect": "tremble",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "sad",
+              "pause": 160,
+              "speed": 0.94,
+              "intensity": 0.75,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.enrol.2.1",
-              "effect": "none",
+              "effect": "pulse",
               "emotion": "calm",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "pause": 120,
+              "speed": 0.96,
+              "intensity": 0.55,
               "beat": false
             }
           ]
@@ -647,48 +653,53 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.explain_form.0.0",
-              "effect": "none",
               "emotion": "calm",
+              "effect": "none",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "speed": 0.98,
+              "intensity": 0.0
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.explain_form.0.5",
+              "emotion": "excited",
+              "effect": "bounce",
+              "pause": 170,
+              "speed": 1.08,
+              "intensity": 0.82
             },
             {
               "text": "npc.changed_synergy.desert_chief.explain_form.0.1",
+              "emotion": "curious",
               "effect": "emphasis",
-              "emotion": "calm",
               "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "speed": 1.0,
+              "intensity": 0.75,
               "beat": true
             },
             {
               "text": "npc.changed_synergy.desert_chief.explain_form.0.2",
-              "effect": "none",
               "emotion": "calm",
+              "effect": "none",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "speed": 1.0,
+              "intensity": 0.0
             },
             {
               "text": "npc.changed_synergy.desert_chief.explain_form.0.3",
-              "effect": "emphasis",
               "emotion": "determined",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "effect": "emphasis",
+              "pause": 150,
+              "speed": 0.96,
+              "intensity": 0.82,
               "beat": true
             },
             {
               "text": "npc.changed_synergy.desert_chief.explain_form.0.4",
-              "effect": "none",
-              "emotion": "calm",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "emotion": "happy",
+              "effect": "pulse",
+              "pause": 130,
+              "speed": 1.0,
+              "intensity": 0.65
             }
           ]
         }
@@ -739,17 +750,17 @@
               "effect": "none",
               "emotion": "determined",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.95,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.confirm_permanent.0.1",
               "effect": "pulse",
               "emotion": "determined",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 180,
+              "speed": 0.9,
+              "intensity": 0.85,
               "beat": false
             },
             {
@@ -757,17 +768,17 @@
               "effect": "none",
               "emotion": "determined",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.95,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.confirm_permanent.0.3",
-              "effect": "none",
+              "effect": "emphasis",
               "emotion": "calm",
-              "pause": 0,
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.65,
               "beat": true
             },
             {
@@ -775,17 +786,17 @@
               "effect": "none",
               "emotion": "determined",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.95,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.confirm_permanent.0.5",
-              "effect": "none",
+              "effect": "pulse",
               "emotion": "calm",
-              "pause": 0,
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.6,
               "beat": true
             },
             {
@@ -794,7 +805,7 @@
               "emotion": "determined",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -831,16 +842,16 @@
               "emotion": "happy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.welcome_human.0.1",
               "effect": "bounce",
-              "emotion": "happy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "excited",
+              "pause": 160,
+              "speed": 1.05,
+              "intensity": 0.85,
               "beat": false
             },
             {
@@ -849,7 +860,7 @@
               "emotion": "happy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -864,16 +875,16 @@
               "emotion": "shy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.welcome_human.1.1",
               "effect": "wobble",
               "emotion": "shy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 0.93,
+              "intensity": 0.8,
               "beat": false
             }
           ]
@@ -910,16 +921,16 @@
               "emotion": "happy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.welcome_latex.0.1",
               "effect": "bounce",
-              "emotion": "happy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "excited",
+              "pause": 160,
+              "speed": 1.05,
+              "intensity": 0.85,
               "beat": false
             },
             {
@@ -928,7 +939,7 @@
               "emotion": "happy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -964,17 +975,17 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.94,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.welcome_copy.0.1",
               "effect": "float",
               "emotion": "dreamy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 170,
+              "speed": 0.94,
+              "intensity": 0.82,
               "beat": false
             },
             {
@@ -983,7 +994,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -994,21 +1005,27 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.welcome_copy.1.0",
+              "emotion": "excited",
               "effect": "impact",
-              "emotion": "surprised",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.9,
-              "beat": false
+              "pause": 170,
+              "speed": 1.1,
+              "intensity": 0.92
             },
             {
               "text": "npc.changed_synergy.desert_chief.welcome_copy.1.1",
-              "effect": "none",
-              "emotion": "surprised",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "emotion": "happy",
+              "effect": "bounce",
+              "pause": 140,
+              "speed": 1.06,
+              "intensity": 0.8
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_copy.1.2",
+              "emotion": "fearful",
+              "effect": "shake",
+              "pause": 160,
+              "speed": 1.08,
+              "intensity": 0.8
             }
           ]
         }
@@ -1043,17 +1060,17 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.94,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.welcome_permanent.0.1",
               "effect": "float",
               "emotion": "dreamy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 170,
+              "speed": 0.94,
+              "intensity": 0.82,
               "beat": false
             },
             {
@@ -1062,7 +1079,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1073,21 +1090,27 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.welcome_permanent.1.0",
+              "emotion": "excited",
               "effect": "impact",
-              "emotion": "surprised",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.9,
-              "beat": false
+              "pause": 170,
+              "speed": 1.1,
+              "intensity": 0.92
             },
             {
               "text": "npc.changed_synergy.desert_chief.welcome_permanent.1.1",
-              "effect": "none",
-              "emotion": "surprised",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "emotion": "happy",
+              "effect": "bounce",
+              "pause": 140,
+              "speed": 1.06,
+              "intensity": 0.8
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.welcome_permanent.1.2",
+              "emotion": "fearful",
+              "effect": "shake",
+              "pause": 160,
+              "speed": 1.08,
+              "intensity": 0.8
             }
           ]
         }
@@ -1123,16 +1146,16 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.membership.0.1",
               "effect": "pulse",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "happy",
+              "pause": 150,
+              "speed": 0.96,
+              "intensity": 0.75,
               "beat": false
             }
           ]
@@ -1167,8 +1190,8 @@
               "text": "npc.changed_synergy.desert_chief.confirm_leave.0.0",
               "effect": "emphasis",
               "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
+              "pause": 160,
+              "speed": 0.95,
               "intensity": 0.65,
               "beat": false
             },
@@ -1177,8 +1200,8 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.96,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1214,17 +1237,17 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.96,
+              "intensity": 0.0,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.left.0.1",
               "effect": "droop",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "sad",
+              "pause": 180,
+              "speed": 0.9,
+              "intensity": 0.78,
               "beat": false
             }
           ]
@@ -1257,21 +1280,19 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.goodbye.0.0",
-              "effect": "emphasis",
               "emotion": "calm",
+              "effect": "emphasis",
               "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
-              "beat": false
+              "speed": 1.0,
+              "intensity": 0.6
             },
             {
               "text": "npc.changed_synergy.desert_chief.goodbye.0.1",
-              "effect": "none",
-              "emotion": "calm",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "emotion": "happy",
+              "effect": "wave",
+              "pause": 130,
+              "speed": 1.02,
+              "intensity": 0.65
             }
           ]
         }
@@ -1297,9 +1318,9 @@
               "text": "npc.changed_synergy.desert_chief.return.0.0",
               "effect": "impact",
               "emotion": "surprised",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.9,
+              "pause": 170,
+              "speed": 1.05,
+              "intensity": 0.92,
               "beat": false
             },
             {
@@ -1307,8 +1328,8 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 1.0,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1319,21 +1340,27 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.return.1.0",
-              "effect": "none",
               "emotion": "surprised",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
-              "beat": false
+              "effect": "emphasis",
+              "pause": 150,
+              "speed": 1.08,
+              "intensity": 0.8
             },
             {
               "text": "npc.changed_synergy.desert_chief.return.1.1",
-              "effect": "wobble",
-              "emotion": "surprised",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
-              "beat": false
+              "emotion": "curious",
+              "effect": "none",
+              "pause": 0,
+              "speed": 1.0,
+              "intensity": 0.0
+            },
+            {
+              "text": "npc.changed_synergy.desert_chief.return.1.2",
+              "emotion": "fearful",
+              "effect": "tremble",
+              "pause": 160,
+              "speed": 1.08,
+              "intensity": 0.85
             }
           ]
         },
@@ -1344,10 +1371,10 @@
             {
               "text": "npc.changed_synergy.desert_chief.return.2.0",
               "effect": "wave",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "happy",
+              "pause": 150,
+              "speed": 1.0,
+              "intensity": 0.72,
               "beat": false
             },
             {
@@ -1355,8 +1382,8 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 1.0,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1368,9 +1395,9 @@
             {
               "text": "npc.changed_synergy.desert_chief.return.3.0",
               "effect": "whisper",
-              "emotion": "whisper",
+              "emotion": "curious",
               "pause": 140,
-              "speed": 1,
+              "speed": 0.95,
               "intensity": 0.65,
               "beat": false
             },
@@ -1379,8 +1406,8 @@
               "effect": "none",
               "emotion": "whisper",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.96,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1448,8 +1475,8 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.resident_dorm_0.0.0",
-              "effect": "emphasis",
-              "emotion": "calm",
+              "effect": "pulse",
+              "emotion": "happy",
               "pause": 140,
               "speed": 1,
               "intensity": 0.65,
@@ -1461,7 +1488,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1495,10 +1522,10 @@
             {
               "text": "npc.changed_synergy.desert_chief.resident_dorm_1.0.0",
               "effect": "emphasis",
-              "emotion": "calm",
+              "emotion": "determined",
               "pause": 140,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.7,
               "beat": false
             },
             {
@@ -1507,7 +1534,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1542,9 +1569,9 @@
               "text": "npc.changed_synergy.desert_chief.resident_dorm.0.0",
               "effect": "whisper",
               "emotion": "whisper",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 180,
+              "speed": 0.88,
+              "intensity": 0.78,
               "beat": false
             },
             {
@@ -1552,8 +1579,8 @@
               "effect": "none",
               "emotion": "whisper",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.95,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1565,10 +1592,10 @@
             {
               "text": "npc.changed_synergy.desert_chief.resident_dorm.1.0",
               "effect": "wobble",
-              "emotion": "whisper",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "angry",
+              "pause": 160,
+              "speed": 1.08,
+              "intensity": 0.82,
               "beat": false
             }
           ]
@@ -1609,8 +1636,8 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.resident_study_2.0.0",
-              "effect": "emphasis",
-              "emotion": "determined",
+              "effect": "pulse",
+              "emotion": "happy",
               "pause": 140,
               "speed": 1,
               "intensity": 0.65,
@@ -1618,11 +1645,11 @@
             },
             {
               "text": "npc.changed_synergy.desert_chief.resident_study_2.0.1",
-              "effect": "none",
+              "effect": "emphasis",
               "emotion": "determined",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "pause": 120,
+              "speed": 0.96,
+              "intensity": 0.55,
               "beat": false
             }
           ]
@@ -1655,11 +1682,11 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.resident_study_3.0.0",
-              "effect": "none",
-              "emotion": "calm",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "effect": "droop",
+              "emotion": "curious",
+              "pause": 140,
+              "speed": 0.95,
+              "intensity": 0.6,
               "beat": false
             },
             {
@@ -1668,7 +1695,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1702,10 +1729,10 @@
             {
               "text": "npc.changed_synergy.desert_chief.resident_study.0.0",
               "effect": "wave",
-              "emotion": "calm",
+              "emotion": "happy",
               "pause": 140,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.72,
               "beat": false
             },
             {
@@ -1714,7 +1741,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1727,18 +1754,18 @@
               "text": "npc.changed_synergy.desert_chief.resident_study.1.0",
               "effect": "float",
               "emotion": "dreamy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 160,
+              "speed": 0.9,
+              "intensity": 0.8,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.resident_study.1.1",
-              "effect": "none",
-              "emotion": "dreamy",
-              "pause": 0,
+              "effect": "pulse",
+              "emotion": "happy",
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.55,
               "beat": false
             }
           ]
@@ -1757,7 +1784,7 @@
           "id": "topic_3",
           "next": "resident_study_3",
           "text": "npc.changed_synergy.desert_chief.resident_study.choice.topic_3",
-          "condition": "always",
+          "condition": "clue:desert_568712",
           "effect": "none",
           "requires": []
         },
@@ -1788,11 +1815,11 @@
             },
             {
               "text": "npc.changed_synergy.desert_chief.resident_garden_4.0.1",
-              "effect": "none",
-              "emotion": "curious",
-              "pause": 0,
+              "effect": "pulse",
+              "emotion": "happy",
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.6,
               "beat": false
             }
           ]
@@ -1828,17 +1855,17 @@
               "effect": "bounce",
               "emotion": "happy",
               "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "speed": 1.03,
+              "intensity": 0.75,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.resident_garden_5.0.1",
-              "effect": "none",
+              "effect": "wave",
               "emotion": "happy",
-              "pause": 0,
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.6,
               "beat": false
             }
           ]
@@ -1872,10 +1899,10 @@
             {
               "text": "npc.changed_synergy.desert_chief.resident_garden.0.0",
               "effect": "emphasis",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "surprised",
+              "pause": 150,
+              "speed": 1.05,
+              "intensity": 0.75,
               "beat": false
             },
             {
@@ -1884,7 +1911,7 @@
               "emotion": "calm",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1896,19 +1923,19 @@
             {
               "text": "npc.changed_synergy.desert_chief.resident_garden.1.0",
               "effect": "bounce",
-              "emotion": "happy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "emotion": "excited",
+              "pause": 150,
+              "speed": 1.08,
+              "intensity": 0.85,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.resident_garden.1.1",
-              "effect": "none",
+              "effect": "float",
               "emotion": "happy",
-              "pause": 0,
+              "pause": 120,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.6,
               "beat": false
             }
           ]
@@ -1950,9 +1977,9 @@
             {
               "text": "npc.changed_synergy.desert_chief.resident_lab_6.0.0",
               "effect": "droop",
-              "emotion": "calm",
-              "pause": 140,
-              "speed": 1,
+              "emotion": "sad",
+              "pause": 150,
+              "speed": 0.93,
               "intensity": 0.65,
               "beat": false
             },
@@ -1961,8 +1988,8 @@
               "effect": "none",
               "emotion": "calm",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.95,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -1997,9 +2024,9 @@
               "text": "npc.changed_synergy.desert_chief.resident_lab.0.0",
               "effect": "impact",
               "emotion": "surprised",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.9,
+              "pause": 170,
+              "speed": 1.08,
+              "intensity": 0.92,
               "beat": false
             },
             {
@@ -2007,8 +2034,8 @@
               "effect": "none",
               "emotion": "fearful",
               "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "speed": 0.96,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -2019,20 +2046,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.resident_lab.1.0",
-              "effect": "none",
+              "effect": "wobble",
               "emotion": "fearful",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "pause": 160,
+              "speed": 1.04,
+              "intensity": 0.75,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.resident_lab.1.1",
               "effect": "tremble",
               "emotion": "fearful",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 180,
+              "speed": 0.92,
+              "intensity": 0.92,
               "beat": false
             }
           ]
@@ -2067,9 +2094,9 @@
               "text": "npc.changed_synergy.desert_chief.resident_corridor_7.0.0",
               "effect": "wobble",
               "emotion": "shy",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 1.02,
+              "intensity": 0.75,
               "beat": false
             },
             {
@@ -2078,7 +2105,7 @@
               "emotion": "shy",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -2113,9 +2140,9 @@
               "text": "npc.changed_synergy.desert_chief.resident_corridor.0.0",
               "effect": "emphasis",
               "emotion": "determined",
-              "pause": 140,
+              "pause": 150,
               "speed": 1,
-              "intensity": 0.65,
+              "intensity": 0.75,
               "beat": false
             },
             {
@@ -2124,7 +2151,7 @@
               "emotion": "determined",
               "pause": 0,
               "speed": 1,
-              "intensity": 0.2,
+              "intensity": 0.0,
               "beat": false
             }
           ]
@@ -2135,20 +2162,20 @@
           "parts": [
             {
               "text": "npc.changed_synergy.desert_chief.resident_corridor.1.0",
-              "effect": "none",
-              "emotion": "whisper",
-              "pause": 0,
-              "speed": 1,
-              "intensity": 0.2,
+              "effect": "shake",
+              "emotion": "angry",
+              "pause": 150,
+              "speed": 1.06,
+              "intensity": 0.72,
               "beat": false
             },
             {
               "text": "npc.changed_synergy.desert_chief.resident_corridor.1.1",
               "effect": "wobble",
               "emotion": "whisper",
-              "pause": 140,
-              "speed": 1,
-              "intensity": 0.65,
+              "pause": 150,
+              "speed": 0.95,
+              "intensity": 0.78,
               "beat": false
             }
           ]

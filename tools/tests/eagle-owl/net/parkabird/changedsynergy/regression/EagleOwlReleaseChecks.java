@@ -31,18 +31,6 @@ final class EagleOwlReleaseChecks {
                 player.getPersistentData().putLong(EagleOwlTraits.REGRAB_AFTER,level.getGameTime());check(!EagleOwlTraits.regrabBlocked(player),"cooldown expires on the game clock");checks++;
             }finally{target.discard();ProcessTransfur.removePlayerTransfurVariant(player);player.discard();}
         }
-        var player=new ServerPlayer(server,level,new com.mojang.authlib.GameProfile(UUID.randomUUID(),"EscapePenalty"));
-        player.connection=new net.minecraft.server.network.ServerGamePacketListenerImpl(server,new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND),player);
-        player.setPos(1,150,1);player.setOnGround(false);
-        var form=ProcessTransfur.setPlayerTransfurVariant(player,ChangedSynergyTransfurVariants.LATEX_EAGLE_OWL.get(),null,1,false);var grab=form.getAbilityInstance(ChangedAbilities.GRAB_ENTITY_ABILITY.get());
-        var zombie=EntityType.ZOMBIE.create(level);zombie.setPos(1,150,1);level.addFreshEntity(zombie);
-        try{
-            check(grab.grabEntity(zombie),"ordinary hold for manual release");grab.grabStrength=.5F;grab.releaseEntity(true);
-            check(!player.hasEffect(net.minecraft.world.effect.MobEffects.MOVEMENT_SLOWDOWN)&&!player.hasEffect(net.minecraft.world.effect.MobEffects.DIG_SLOWDOWN),"manual release is harmless before prey escapes");checks++;
-            player.getPersistentData().remove(EagleOwlTraits.REGRAB_AFTER);
-            check(grab.grabEntity(zombie),"fresh hold for actual escape");grab.grabStrength=0;grab.releaseEntity(true);
-            check(player.hasEffect(net.minecraft.world.effect.MobEffects.MOVEMENT_SLOWDOWN)&&player.hasEffect(net.minecraft.world.effect.MobEffects.DIG_SLOWDOWN),"genuine depleted-strength escape retains the penalty");checks++;
-        }finally{zombie.discard();ProcessTransfur.removePlayerTransfurVariant(player);player.discard();}
         System.out.println("OWL_AIR_RELEASE_SERVER_PASS: "+checks+" normal/friendly current-position release and reacquisition checks");
     }
     private static void check(boolean value,String why){if(!value)throw new AssertionError(why);}

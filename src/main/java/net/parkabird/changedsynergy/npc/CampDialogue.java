@@ -44,7 +44,7 @@ public final class CampDialogue extends SimpleJsonResourceReloadListener {
         return !role.isEmpty()&&profile!=null&&profile.nodes().containsKey("resident_"+role)&&CampLifeService.atHome(npc)&&net.parkabird.changedsynergy.dialogue.NpcDialogue.canUnderstand(npc,player)?"resident_"+role:"camp_resident";
     }
     public static NpcDefinitions.Node node(ChangedEntity npc,ServerPlayer player,String node,String requestId,ItemStack offered,boolean pending){
-        var body=new ArrayList<NpcDefinitions.Line>();var choices=new ArrayList<NpcDefinitions.Choice>();String residentVoice=switch(CampLifeService.template(npc)){case "desert_refuge"->"desert_resident";case "lush_cabin"->"cavern_resident";default->"resident";};String voice=chief(npc)?CampLifeService.voice(npc):residentVoice;
+        var body=new ArrayList<NpcDefinitions.Line>();var choices=new ArrayList<NpcDefinitions.Choice>();String residentVoice=switch(CampLifeService.template(npc)){case "desert_refuge"->"desert_resident";case "lush_cabin"->"cavern_resident";case "point_prometheus"->"supervisor_resident";case "burrow"->"burrow_resident";default->"resident";};String voice=chief(npc)?CampLifeService.voice(npc):residentVoice;
         String root=chief(npc)?"root":residentRoot(npc,player);
         if(!chief(npc)&&!net.parkabird.changedsynergy.dialogue.NpcDialogue.canUnderstand(npc,player)){
             boolean seek=node.equals("camp_seekchief");
@@ -119,7 +119,7 @@ public final class CampDialogue extends SimpleJsonResourceReloadListener {
         if(key.endsWith(".donate.0"))args=List.of(offered.getHoverName());
         if(key.equals(PREFIX+"choice.give"))args=List.of(Component.literal(choice.substring("camp_give_".length())),offered.getHoverName());
         if(key.endsWith(".transfer.0")){
-            var old=CampLifeData.get(player.server).camps.get(CampMembershipService.membership(player).getString("HomeKey"));String home=old==null?"previous":switch(old.getString("Template")){case "forest_treehouse"->"weaver";case "hyena_hideout"->"matriarch";case "observatory"->"archivist";case "desert_refuge"->"pathfinder";case "lush_cabin"->"cavern";default->"previous";};
+            var old=CampLifeData.get(player.server).camps.get(CampMembershipService.membership(player).getString("HomeKey"));String home=old==null?"previous":switch(old.getString("Template")){case "forest_treehouse"->"weaver";case "hyena_hideout"->"matriarch";case "observatory"->"archivist";case "desert_refuge"->"pathfinder";case "lush_cabin"->"cavern";case "point_prometheus"->"supervisor";case "burrow"->"burrow";default->"previous";};
             args=List.of(Component.translatable(PREFIX+"home."+home));
         }
         var result=new ListTag();for(var arg:args)result.add(StringTag.valueOf(Component.Serializer.toJson(arg)));return result;

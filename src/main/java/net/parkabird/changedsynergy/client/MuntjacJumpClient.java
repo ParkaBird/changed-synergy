@@ -32,6 +32,14 @@ public final class MuntjacJumpClient {
         var mc = Minecraft.getInstance();
         if (event.getEntity() != mc.player || !controlsAllowed() || !MuntjacJumpService.refresh(mc.player)) return;
         var state = MuntjacJumpService.state(mc.player);
+        boolean crouched = event.getInput().shiftKeyDown && mc.player.isShiftKeyDown();
+        if (!crouched) {
+            if (state.pressed() || state.holding() || state.charging()) {
+                ChangedSynergyNetwork.CHANNEL.sendToServer(new MuntjacJumpInputPacket(MuntjacJumpInputPacket.CANCEL));
+                state.cancel(false);
+            }
+            return;
+        }
         boolean down = mc.options.keyJump.isDown();
         if (down != state.pressed()) {
             ChangedSynergyNetwork.CHANNEL.sendToServer(new MuntjacJumpInputPacket(down

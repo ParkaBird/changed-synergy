@@ -20,83 +20,107 @@ public final class ReleasePlacementService {
 
     @Nullable
     public static PendingRelease capture(LivingEntity actor, @Nullable LivingEntity held) {
-        ChangedEntity creature;
-        Player player;
+        if (held == null || !(actor.level() instanceof ServerLevel level) || held.level() != level) {
+            return null;
+        }
+        LivingEntity subject;
+        LivingEntity partner;
         if (actor instanceof ChangedEntity changed && held instanceof Player other) {
-            creature = changed;
-            player = other;
+            subject = changed;
+            partner = other;
         } else if (actor instanceof Player other && held instanceof ChangedEntity changed) {
-            creature = changed;
-            player = other;
+            subject = changed;
+            partner = other;
+        } else if (actor instanceof ChangedEntity || held instanceof ChangedEntity) {
+            subject = held.noPhysics || !actor.noPhysics ? held : actor;
+            partner = subject == actor ? held : actor;
         } else {
             return null;
         }
-        if (!(creature.level() instanceof ServerLevel level)
-                || player.level() != level || creature.getUnderlyingPlayer() != null
-                || !CreatureSocialProfile.allowsSynergySystems(creature)) {
+        if (subject instanceof ChangedEntity changed
+                && (changed.getUnderlyingPlayer() != null
+                        || !CreatureSocialProfile.allowsSynergySystems(changed))) {
+            return null;
+        }
+        if (!(subject instanceof ChangedEntity)
+                && (!(partner instanceof ChangedEntity changed)
+                        || !CreatureSocialProfile.allowsSynergySystems(changed))) {
             return null;
         }
         // The no-physics body can have drifted below the floor. Anchor to the
         // body that actually controlled movement, before release clears that flag.
-        Vec3 anchor = creature.noPhysics ? player.position() : creature.position();
-        return new PendingRelease(level, creature, player, anchor);
+        Vec3 anchor = subject.noPhysics && !partner.noPhysics ? partner.position() : subject.position();
+        return new PendingRelease(level, subject, partner, anchor);
     }
 
     public record PendingRelease(
-            ServerLevel level, ChangedEntity creature, Player player, Vec3 anchor) {
+            ServerLevel level, LivingEntity subject, LivingEntity partner, Vec3 anchor) {
         public void finish() {
             repair();
             // Native/Addon code can still resize or move the body later in the
             // current entity tick. Recheck after it and once in the next tick.
-            SafeEntityMutationQueue.queue(creature, "release_collision", () -> {
+            SafeEntityMutationQueue.queue(subject, "release_collision", () -> {
                 repair();
-                SafeEntityMutationQueue.queue(creature, "release_collision", this::repair);
+                SafeEntityMutationQueue.queue(subject, "release_collision", this::repair);
             });
         }
 
         private void repair() {
-            if (!creature.isAlive() || creature.isRemoved() || creature.level() != level
-                    || creature.getUnderlyingPlayer() != null || creature.noPhysics
-                    || creature.isPassenger() || creature.isSleeping()
-                    || creature.position().distanceToSqr(anchor) > 256.0D) {
+            if (!subject.isAlive() || subject.isRemoved() || subject.level() != level
+                    || subject.noPhysics || subject.isPassenger() || subject.isSleeping()
+                    || subject.position().distanceToSqr(anchor) > 256.0D) {
                 return;
             }
-            var ability = BondedSuitService.ability(creature);
+            if (subject instanceof ChangedEntity changed && changed.getUnderlyingPlayer() != null) {
+                return;
+            }
+            var ability = subject instanceof ChangedEntity changed ? BondedSuitService.ability(changed) : null;
             if (ability != null && ability.grabbedEntity != null
-                    || creature instanceof LivingEntityDataExtension extension
+                    || subject instanceof LivingEntityDataExtension extension
                             && extension.getGrabbedBy() != null) {
                 return;
             }
-            Vec3 position = creature.position();
-            creature.refreshDimensions();
-            creature.setPos(position.x, position.y, position.z);
-            AABB body = creature.getBoundingBox();
+            Vec3 position = subject.position();
+            subject.refreshDimensions();
+            subject.setPos(position.x, position.y, position.z);
+            AABB body = subject.getBoundingBox();
             // Entity overlap alone is not a reason to teleport an otherwise
             // correctly placed creature. Only repair actual block penetration.
-            if (!level.getBlockCollisions(creature, body.deflate(1.0E-7D)).iterator().hasNext()) {
+            if (!level.getBlockCollisions(subject, body.deflate(1.0E-7D)).iterator().hasNext()) {
                 return;
             }
-            Optional<Vec3> safe = findSurfaceLanding(level, creature, player, anchor);
-            if (safe.isEmpty()) {
+            Optional<Vec3> safe = findSurfaceLanding(level, subject, partner, anchor, false);
+            if (safe.isEmpty() && subject instanceof ChangedEntity changed) {
                 safe = BondedTeleportSafety.findSafeLandingNear(
-                        level, creature, BlockPos.containing(anchor), 4, 6, 3)
+                        level, changed, BlockPos.containing(anchor), 4, 6, 3)
                         .filter(landing -> !hasHazardOrUnloadedBlock(level,
-                                creature.getBoundingBox().move(landing.subtract(creature.position()))))
-                        .filter(landing -> player.level() != level || !player.isAlive()
-                                || !creature.getBoundingBox().move(landing.subtract(creature.position()))
-                                        .intersects(player.getBoundingBox().inflate(0.05D)));
+                                subject.getBoundingBox().move(landing.subtract(subject.position()))))
+                        .filter(landing -> partner.level() != level || !partner.isAlive()
+                                || !subject.getBoundingBox().move(landing.subtract(subject.position()))
+                                        .intersects(partner.getBoundingBox().inflate(0.05D)));
+            }
+            if (safe.isEmpty()) {
+                safe = findSurfaceLanding(level, subject, partner, anchor, true);
             }
             safe.ifPresent(landing -> {
-                creature.teleportTo(landing.x, landing.y, landing.z);
-                BondedTeleportSafety.settleAfterTeleport(creature);
-                level.getChunkSource().broadcast(creature, new ClientboundTeleportEntityPacket(creature));
+                subject.setDeltaMovement(Vec3.ZERO);
+                subject.resetFallDistance();
+                subject.teleportTo(landing.x, landing.y, landing.z);
+                if (subject instanceof ChangedEntity changed) {
+                    BondedTeleportSafety.settleAfterTeleport(changed);
+                } else {
+                    subject.setDeltaMovement(Vec3.ZERO);
+                    subject.resetFallDistance();
+                    subject.setOnGround(true);
+                }
+                level.getChunkSource().broadcast(subject, new ClientboundTeleportEntityPacket(subject));
             });
         }
     }
 
     /** Uses collision-shape tops, not block Y, so slabs, stairs and paths are valid floors. */
     private static Optional<Vec3> findSurfaceLanding(
-            ServerLevel level, ChangedEntity creature, Player player, Vec3 anchor) {
+            ServerLevel level, LivingEntity subject, LivingEntity partner, Vec3 anchor, boolean allowPartnerOverlap) {
         Vec3 best = null;
         double bestScore = Double.POSITIVE_INFINITY;
         int centerY = BlockPos.containing(anchor).getY();
@@ -114,7 +138,7 @@ public final class ReleasePlacementService {
                         continue;
                     }
                     for (AABB part : state.getCollisionShape(
-                            level, floor, CollisionContext.of(creature)).toAabbs()) {
+                            level, floor, CollisionContext.of(subject)).toAabbs()) {
                         AABB surface = part.move(floor);
                         if (x < surface.minX || x > surface.maxX
                                 || z < surface.minZ || z > surface.maxZ) {
@@ -126,12 +150,12 @@ public final class ReleasePlacementService {
                         if (score >= bestScore) {
                             continue;
                         }
-                        AABB body = creature.getBoundingBox().move(candidate.subtract(creature.position()));
+                        AABB body = subject.getBoundingBox().move(candidate.subtract(subject.position()));
                         if (!level.getWorldBorder().isWithinBounds(body)
-                                || player.level() == level && player.isAlive()
-                                        && body.intersects(player.getBoundingBox().inflate(0.05D))
+                                || (!allowPartnerOverlap && partner.level() == level && partner.isAlive()
+                                        && body.intersects(partner.getBoundingBox().inflate(0.05D)))
                                 || hasHazardOrUnloadedBlock(level, body)
-                                || !level.noCollision(creature, body)
+                                || !level.noCollision(subject, body)
                                 || level.containsAnyLiquid(body)) {
                             continue;
                         }

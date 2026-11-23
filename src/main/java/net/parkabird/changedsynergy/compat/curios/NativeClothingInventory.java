@@ -1,6 +1,7 @@
 package net.parkabird.changedsynergy.compat.curios;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import net.ltxprogrammer.changed.data.AccessorySlotType;
 import net.ltxprogrammer.changed.data.AccessorySlots;
 import net.ltxprogrammer.changed.init.ChangedRegistry;
@@ -19,17 +20,22 @@ import top.theillusivec4.curios.common.inventory.CurioStacksHandler;
 public final class NativeClothingInventory extends AbstractMap<AccessorySlotType,ItemStack> {
     public static final String MIRROR="ChangedSynergyCuriosBacked";
     private static final String PENDING="ChangedSynergyPendingClothing";
+    private static final Map<AccessorySlotType,String> SLOT_IDENTIFIERS=new ConcurrentHashMap<>();
     private final LivingEntity owner;
     private final Set<AccessorySlotType> keys=new LinkedHashSet<>();
     private final Map<AccessorySlotType,ItemStack> pending=new LinkedHashMap<>();
     private boolean reconciling;
+    private boolean dirty=true;
+    private ICuriosItemHandler reconciledInventory;
 
     public NativeClothingInventory(LivingEntity owner,Map<AccessorySlotType,ItemStack> previous) {
         this.owner=owner;keys.addAll(previous.keySet());pending.putAll(previous);
     }
     public static String identifier(AccessorySlotType type) {
-        var id=ChangedRegistry.ACCESSORY_SLOTS.getKey(type);
-        return "changed_clothing_"+id.getPath();
+        return SLOT_IDENTIFIERS.computeIfAbsent(type,slot-> {
+            var id=ChangedRegistry.ACCESSORY_SLOTS.getKey(slot);
+            return "changed_clothing_"+id.getPath();
+        });
     }
     public static AccessorySlotType type(String identifier) {
         if(!identifier.startsWith("changed_clothing_"))return null;
@@ -43,20 +49,27 @@ public final class NativeClothingInventory extends AbstractMap<AccessorySlotType
     public void reconcile() {
         if(reconciling)return;
         var inventory=inventory();if(inventory==null)return;
+        if(!dirty&&pending.isEmpty()&&reconciledInventory==inventory)return;
         reconciling=true;
         try {
-            var all=new LinkedHashMap<>(inventory.getCurios());boolean added=false;
+            var curios=inventory.getCurios();
+            Map<String,ICurioStacksHandler> mutable=null;
             for(var type:ChangedRegistry.ACCESSORY_SLOTS.get().getValues()) {
-                var id=ChangedRegistry.ACCESSORY_SLOTS.getKey(type);if(!id.getNamespace().equals("changed"))continue;
-                String key=identifier(type);var handler=all.get(key);
+                var id=ChangedRegistry.ACCESSORY_SLOTS.getKey(type);if(id==null||!id.getNamespace().equals("changed"))continue;
+                String key=identifier(type);var handler=curios.get(key);
                 if(handler==null) {
+                    if(mutable==null)mutable=new LinkedHashMap<>(curios);
                     handler=new CurioStacksHandler(inventory,key,keys.contains(type)?1:0,true,false,true,ICurio.DropRule.ALWAYS_KEEP);
-                    all.put(key,handler);added=true;
+                    mutable.put(key,handler);
                 }
             }
-            if(added)inventory.setCurios(all);
+            if(mutable!=null) {
+                inventory.setCurios(mutable);
+                curios=mutable;
+            }
             for(var type:ChangedRegistry.ACCESSORY_SLOTS.get().getValues()) {
-                var handler=all.get(identifier(type));if(handler==null)continue;
+                var id=ChangedRegistry.ACCESSORY_SLOTS.getKey(type);if(id==null||!id.getNamespace().equals("changed"))continue;
+                var handler=curios.get(identifier(type));if(handler==null)continue;
                 int desired=keys.contains(type)?1:0;
                 if(handler.getSlots()<desired)handler.grow(desired-handler.getSlots());
                 if(handler.getSlots()>desired) {
@@ -71,6 +84,8 @@ public final class NativeClothingInventory extends AbstractMap<AccessorySlotType
                 if(stacks.getStackInSlot(0).isEmpty())stacks.setStackInSlot(0,old);
                 else if(!owner.level().isClientSide)AccessorySlots.defaultInvalidHandler(owner).accept(old);
             }
+            reconciledInventory=inventory;
+            dirty=false;
         } finally {reconciling=false;}
     }
     @Override public boolean containsKey(Object key){return keys.contains(key);}
@@ -81,6 +96,7 @@ public final class NativeClothingInventory extends AbstractMap<AccessorySlotType
         return pending.getOrDefault(type,ItemStack.EMPTY);
     }
     @Override public ItemStack put(AccessorySlotType type,ItemStack stack) {
+        dirty=true;
         var previous=get(type);keys.add(type);var handler=handler(type);
         if(handler!=null&&handler.getSlots()>0){pending.remove(type);handler.getStacks().setStackInSlot(0,stack);}
         else pending.put(type,stack);
@@ -88,11 +104,12 @@ public final class NativeClothingInventory extends AbstractMap<AccessorySlotType
     }
     @Override public ItemStack remove(Object key) {
         var previous=get(key);if(!(key instanceof AccessorySlotType type))return previous;
+        dirty=true;
         keys.remove(type);pending.remove(type);var handler=handler(type);
         if(handler!=null&&handler.getSlots()>0)handler.getStacks().setStackInSlot(0,ItemStack.EMPTY);
         return previous;
     }
-    @Override public void clear(){for(var key:List.copyOf(keys))remove(key);}
+    @Override public void clear(){dirty=true;for(var key:List.copyOf(keys))remove(key);}
     @Override public Set<Entry<AccessorySlotType,ItemStack>> entrySet() {
         return new AbstractSet<>() {
             @Override public int size(){return keys.size();}
@@ -108,6 +125,7 @@ public final class NativeClothingInventory extends AbstractMap<AccessorySlotType
         };
     }
     public void load(CompoundTag tag) {
+        dirty=true;
         var legacy=tag.getBoolean(MIRROR)?tag.getCompound(PENDING):tag;
         for(String key:legacy.getAllKeys()) {
             var id=ResourceLocation.tryParse(key);if(id==null)continue;

@@ -8,8 +8,6 @@ import net.ltxprogrammer.changed.client.renderer.layers.GasMaskLayer;
 import net.ltxprogrammer.changed.client.renderer.layers.LatexParticlesLayer;
 import net.ltxprogrammer.changed.client.renderer.layers.TaurChestPackLayer;
 import net.ltxprogrammer.changed.client.renderer.layers.TransfurCapeLayer;
-import net.ltxprogrammer.changed.client.renderer.model.armor.ArmorLatexCentaurLowerModel;
-import net.ltxprogrammer.changed.client.renderer.model.armor.ArmorLatexMaleTaurUpperModel;
 import net.ltxprogrammer.changed.client.renderer.model.armor.ArmorModelPicker;
 import net.ltxprogrammer.changed.util.Color3;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -17,6 +15,7 @@ import net.minecraft.client.renderer.entity.layers.SaddleLayer;
 import net.minecraft.resources.ResourceLocation;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.client.model.LatexSpidtaurModel;
+import net.parkabird.changedsynergy.client.model.SpidtaurArmor;
 import net.parkabird.changedsynergy.entity.LatexSpidtaur;
 
 public final class LatexSpidtaurRenderer
@@ -32,8 +31,8 @@ public final class LatexSpidtaurRenderer
                 new LatexSpidtaurModel(context.bakeLayer(LatexSpidtaurModel.LAYER_LOCATION)),
                 ArmorModelPicker.centaur(
                         context.getModelSet(),
-                        ArmorLatexMaleTaurUpperModel.MODEL_SET,
-                        ArmorLatexCentaurLowerModel.MODEL_SET_WITH_TORSO),
+                        SpidtaurArmor.UPPER_SET,
+                        SpidtaurArmor.LOWER_SET),
                 0.7F);
         addLayer(new DoubleItemInHandLayer<>(this, context.getItemInHandRenderer()));
         addLayer(new LatexParticlesLayer<>(this, getModel()));

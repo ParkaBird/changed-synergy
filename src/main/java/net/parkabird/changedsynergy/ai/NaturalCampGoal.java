@@ -41,12 +41,29 @@ public final class NaturalCampGoal extends Goal {
         return NaturalCampService.available(mob) && !mob.isSleeping()
                 && (!mob.isPassenger() || seated);
     }
+    private static final int MAX_MEAL_TRAVEL_TICKS = 1200;
+    private static final int MAX_STALLED_TICKS = 140;
+    private static final double MEAL_WALK_SPEED = 0.40D;
+    private static final java.util.Map<ChangedEntity, BlockPos> ACTIVE_MEALS = new java.util.WeakHashMap<>();
+    private net.minecraft.world.level.pathfinder.Path initialPath;
+    private Vec3 lastPos;
+    private int stalledTicks;
+    public void resetWait() { nextCheck = 0L; }
+    private static boolean mealSeatFree(ChangedEntity mob, BlockPos pos) {
+        ACTIVE_MEALS.entrySet().removeIf(e -> e.getKey() == null || !e.getKey().isAlive() || e.getKey().isRemoved());
+        for (var entry : ACTIVE_MEALS.entrySet()) {
+            if (entry.getKey() != mob && entry.getKey().level() == mob.level() && pos.equals(entry.getValue())) return false;
+        }
+        return true;
+    }
     @Override public boolean canUse() {
-        if (!(mob.level() instanceof ServerLevel level) || level.getGameTime()<nextCheck) return false;
+        boolean mealCall = NaturalCampService.hasActiveMealCall(mob);
+        if (!(mob.level() instanceof ServerLevel level) || (!mealCall && level.getGameTime()<nextCheck)) return false;
+        if (!mealCall && NaturalCampService.restsHere(mob) && PlayerOutpostRestGoal.sleepTime(mob)) return false;
         if(!available() || mob.getTarget()!=null || mob.isUsingItem() || !PlayerOutpostGoal.canNavigate(mob)
-                || !SynergyPerformanceTracker.allowBackground(mob,SynergyPerformanceTracker.Feature.COMMUNITY,
-                    SynergyPerformanceTracker.configuredBackgroundInterval()))return false;
-        nextCheck=level.getGameTime()+60+mob.getRandom().nextInt(61);
+                || (!mealCall && !SynergyPerformanceTracker.allowBackground(mob,SynergyPerformanceTracker.Feature.COMMUNITY,
+                    SynergyPerformanceTracker.configuredBackgroundInterval())))return false;
+        if (!mealCall) nextCheck=level.getGameTime()+60+mob.getRandom().nextInt(61);
         var cargo=PlayerOutpostCargoInventory.inventory(mob);
         pathProbes=0;
         if(!cargo.isEmpty()) {
@@ -59,7 +76,7 @@ public final class NaturalCampGoal extends Goal {
         var box=NaturalCampService.bounds(mob);
         boolean character=mob.getPersistentData().getCompound(StructureResidentGoal.DATA).getBoolean("Character");
         var area=character?box:NaturalCampService.activityBounds(mob);
-        if(level.getGameTime()>=mob.getPersistentData().getLong(NEXT_MEAL) && selectMeal(level,box)) {work=Work.MEAL;return true;}
+        if((NaturalCampService.hasActiveMealCall(mob) || level.getGameTime()>=mob.getPersistentData().getLong(NEXT_MEAL)) && selectMeal(level,box)) {work=Work.MEAL;return true;}
         for(var item:level.getEntitiesOfClass(ItemEntity.class,area,e->e.isAlive() && !e.hasPickUpDelay() && PlayerOutpostWorkGoal.unownedDrop(e))
                 .stream().sorted(Comparator.comparingDouble(mob::distanceToSqr)).limit(8).toList()) {
             if(reachable(item.blockPosition())) {drop=item;target=item.blockPosition();work=Work.PICKUP;return true;}
@@ -89,7 +106,7 @@ public final class NaturalCampGoal extends Goal {
     }
     private List<BlockPos> orderedStorage() {return NaturalCampService.sites(mob).storage().stream()
             .filter(p->net.parkabird.changedsynergy.npc.CampMembershipService.usableStorage(mob,p))
-            .sorted(Comparator.comparingDouble(p->mob.distanceToSqr(Vec3.atCenterOf(p)))).limit(16).toList();}
+            .sorted(Comparator.comparingDouble(p->mob.distanceToSqr(Vec3.atCenterOf(p)))).toList();}
     private boolean accepts(Container chest,Container cargo) {
         for(int i=0;i<cargo.getContainerSize();i++) {
             var item=cargo.getItem(i);if(item.isEmpty())continue;
@@ -123,20 +140,52 @@ public final class NaturalCampGoal extends Goal {
             var chest=PlayerOutpostData.container(level,pos);
             if(chest!=null && foodSlot(chest)>=0){food=true;break;}
         }
-        if(!food)return false;
-        for(var candidate:NaturalCampService.mealPoints(mob)) {
-            boolean hot=level.getBlockState(candidate).getBlock() instanceof CampfireBlock;
+        boolean mealCall = NaturalCampService.hasActiveMealCall(mob);
+        if(!food && !mealCall)return false;
+        var campBounds = NaturalCampService.bounds(mob);
+        var preferredToFire = new java.util.LinkedHashMap<BlockPos, BlockPos>();
+        var fallbackToFire = new java.util.LinkedHashMap<BlockPos, BlockPos>();
+        var points = new ArrayList<>(NaturalCampService.mealPoints(mob));
+        points.sort(Comparator.comparingDouble(p->mob.distanceToSqr(Vec3.atCenterOf(p))));
+        for(var candidate:points) {
+            boolean openFire=level.getBlockState(candidate).getBlock() instanceof CampfireBlock;
             var places=new ArrayList<BlockPos>();
-            for(var p:BlockPos.betweenClosed(candidate.offset(-5,-1,-5),candidate.offset(5,1,5))) {
-                if(!bounds.contains(Vec3.atCenterOf(p)) || hot&&p.distSqr(candidate)<6 || !level.hasChunkAt(p))continue;
+            for(var p:BlockPos.betweenClosed(candidate.offset(-8,-2,-8),candidate.offset(8,2,8))) {
+                if((!bounds.contains(Vec3.atCenterOf(p)) && !campBounds.contains(Vec3.atCenterOf(p)))
+                        || (openFire && p.distSqr(candidate)<4) || !level.hasChunkAt(p))continue;
+                var immutable = p.immutable();
+                if(!mealSeatFree(mob, immutable))continue;
                 if(PlayerOutpostRestGoal.isRestPoint(level.getBlockState(p))) {
-                    if(PlayerOutpostRestGoal.free(mob,level,p))places.add(p.immutable());
-                } else if(level.getBlockState(p).isAir() && level.getBlockState(p.below()).isFaceSturdy(level,p.below(),Direction.UP)
-                        && !PlayerOutpostGoal.onCampfire(level,mob.getBoundingBox().move(Vec3.atBottomCenterOf(p).subtract(mob.position())))
-                        && level.noCollision(mob,mob.getBoundingBox().move(Vec3.atBottomCenterOf(p).subtract(mob.position()))))places.add(p.immutable());
+                    if(PlayerOutpostRestGoal.free(mob,level,p))places.add(immutable);
+                } else if(NaturalCampService.walkableSurface(level,mob,immutable)) {
+                    places.add(immutable);
+                }
             }
-            places.sort(Comparator.<BlockPos>comparingInt(p->CreatureRestPlaces.rank(level,p)).thenComparingDouble(p->mob.distanceToSqr(Vec3.atCenterOf(p))));
-            for(var pos:places.stream().limit(6).toList())if(reachable(pos)){target=pos;fire=candidate;return true;}
+            places.sort(Comparator.<BlockPos>comparingInt(p->CreatureRestPlaces.rank(level,p)).thenComparingDouble(p->p.distSqr(candidate)));
+            for(var pos:places) {
+                if(CreatureRestPlaces.rank(level,pos)<=2) {
+                    if(preferredToFire.size()<24)preferredToFire.putIfAbsent(pos, candidate);
+                } else if(fallbackToFire.size()<24) {
+                    fallbackToFire.putIfAbsent(pos, candidate);
+                }
+            }
+        }
+        if(tryMealRoute(preferredToFire))return true;
+        return tryMealRoute(fallbackToFire);
+    }
+    private boolean tryMealRoute(java.util.Map<BlockPos, BlockPos> seatToFire) {
+        if(seatToFire.isEmpty())return false;
+        for(var seat:seatToFire.keySet()) {
+            if(mob.distanceToSqr(Vec3.atCenterOf(seat))<=4.0D) {
+                target=seat;fire=seatToFire.get(seat);initialPath=null;return true;
+            }
+        }
+        var path=NaturalCampService.pathAny(mob, seatToFire.keySet(), 1);
+        if(path!=null && path.canReach()) {
+            var chosen=path.getTarget();
+            var candidateFire=seatToFire.get(chosen);
+            if(candidateFire==null)candidateFire=seatToFire.values().iterator().next();
+            target=chosen;fire=candidateFire;initialPath=path;return true;
         }
         return false;
     }
@@ -149,9 +198,25 @@ public final class NaturalCampGoal extends Goal {
         }
         return -1;
     }
-    @Override public void start(){ticks=seatedTicks=0;seated=false;mob.getNavigation().stop();}
+    @Override public void start(){
+        ticks=seatedTicks=stalledTicks=0;seated=false;lastPos=mob.position();
+        CreatureComfortGoal.endSeatedActivity(mob);
+        if(mob.isPassenger()&&mob.getVehicle() instanceof net.ltxprogrammer.changed.entity.SeatEntity&&!CompanionSeatingService.commandedSeat(mob))mob.stopRiding();
+        if(work==Work.MEAL && target!=null)ACTIVE_MEALS.put(mob,target);
+        if(work==Work.MEAL && initialPath!=null && target!=null && mob.distanceToSqr(Vec3.atCenterOf(target))>4.0D)mob.getNavigation().moveTo(initialPath,MEAL_WALK_SPEED);
+        else mob.getNavigation().stop();
+        initialPath=null;
+    }
     @Override public boolean requiresUpdateEveryTick(){return true;}
-    @Override public boolean canContinueToUse(){return ticks<300 && available() && (mob.getTarget()==null || mob.getTarget()==prey);}
+    @Override public boolean canContinueToUse(){
+        if(!available() || (mob.getTarget()!=null && mob.getTarget()!=prey))return false;
+        if(work==Work.MEAL) {
+            if(seated)return seatedTicks<160;
+            return ticks<MAX_MEAL_TRAVEL_TICKS && stalledTicks<MAX_STALLED_TICKS && target!=null;
+        }
+        if(NaturalCampService.restsHere(mob) && PlayerOutpostRestGoal.sleepTime(mob) && !NaturalCampService.hasActiveMealCall(mob))return false;
+        return ticks<300;
+    }
     @Override public void tick() {
         ticks++;var level=(ServerLevel)mob.level();
         if(work==Work.HUNT) {
@@ -167,15 +232,28 @@ public final class NaturalCampGoal extends Goal {
         if(seated) {
             mob.getNavigation().stop();seatedTicks++;
             mob.getLookControl().setLookAt(fire.getX()+.5,fire.getY()+.75,fire.getZ()+.5);
-            if(seatedTicks==30) for(var pos:orderedStorage()) {
+            if(seatedTicks==20) for(var pos:orderedStorage()) {
                 var chest=PlayerOutpostData.container(level,pos);if(chest==null)continue;
                 int slot=foodSlot(chest);if(slot>=0){CompanionAutoEatGoal.beginEating(mob,chest,slot);break;}
             }
-            if(seatedTicks>=120)ticks=300;
             return;
         }
-        if(mob.distanceToSqr(Vec3.atCenterOf(target))>6) {
-            if(ticks%40==1 && !CreatureTaskNavigation.moveTo(mob,target,1,.35))ticks=300;
+        double reachSq=work==Work.MEAL?4.0D:6.0D;
+        if(mob.distanceToSqr(Vec3.atCenterOf(target))>reachSq) {
+            if(work==Work.MEAL) {
+                if(ticks%20==0) {
+                    double movedSqr=lastPos==null?1.0D:mob.position().distanceToSqr(lastPos);
+                    lastPos=mob.position();
+                    stalledTicks=movedSqr<0.09D?stalledTicks+20:0;
+                }
+                if(stalledTicks>=MAX_STALLED_TICKS)return;
+                if((mob.getNavigation().isDone() || stalledTicks>=40) && PlayerOutpostGoal.canNavigate(mob)) {
+                    int acc=mob.distanceToSqr(Vec3.atCenterOf(target))<=9.0D?0:1;
+                    var repath=NaturalCampService.path(mob,target,acc);
+                    if((repath==null||!repath.canReach())&&acc==0)repath=NaturalCampService.path(mob,target,1);
+                    if(repath!=null&&repath.canReach())mob.getNavigation().moveTo(repath,MEAL_WALK_SPEED);
+                }
+            } else if(ticks%40==1 && !CreatureTaskNavigation.moveTo(mob,target,1,.35))ticks=300;
             return;
         }
         var cargo=PlayerOutpostCargoInventory.inventory(mob);
@@ -235,9 +313,11 @@ public final class NaturalCampGoal extends Goal {
                 ticks=300;
             }
             case MEAL -> {
+                mob.getNavigation().stop();
+                if(mob.getPose()==net.minecraft.world.entity.Pose.CROUCHING)mob.setPose(net.minecraft.world.entity.Pose.STANDING);
                 if(PlayerOutpostRestGoal.isRestPoint(level.getBlockState(target)))seated=PlayerOutpostRestGoal.sit(mob,level,target);
                 else seated=CreatureRestPlaces.sitOnGround(mob,level,target);
-                if(!seated)ticks=300;
+                if(!seated){stalledTicks=MAX_STALLED_TICKS;}
                 else mob.getPersistentData().putLong(NEXT_MEAL,level.getGameTime()+6000);
             }
             case HUNT -> { }
@@ -248,9 +328,15 @@ public final class NaturalCampGoal extends Goal {
     }
     private void carry(ItemStack item){var remaining=PlayerOutpostWorkGoal.acceptCargo(mob,item);if(!remaining.isEmpty())mob.spawnAtLocation(remaining);}
     @Override public void stop() {
+        ACTIVE_MEALS.remove(mob);
         mob.getNavigation().stop();CreatureTaskNavigation.clearFailure(mob);
         if(seated){CompanionAutoEatGoal.cleanup(mob);CreatureComfortGoal.endSeatedActivity(mob);}
+        if(work==Work.MEAL && (seated || stalledTicks>=MAX_STALLED_TICKS)){
+            mob.getPersistentData().remove(NaturalCampService.MEAL_CALL_UNTIL);
+            mob.getPersistentData().remove(NaturalCampService.MEAL_CALL_LEADER);
+        }
+        if(mob.getPose()==net.minecraft.world.entity.Pose.CROUCHING&&mob.level().noCollision(mob,mob.getDimensions(net.minecraft.world.entity.Pose.STANDING).makeBoundingBox(mob.position())))mob.setPose(net.minecraft.world.entity.Pose.STANDING);
         if(prey!=null && mob.getTarget()==prey)mob.setTarget(null);
-        prey=null;drop=null;harvestBlock=null;seated=false;
+        prey=null;drop=null;harvestBlock=null;seated=false;initialPath=null;lastPos=null;stalledTicks=0;
     }
 }

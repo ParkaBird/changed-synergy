@@ -1,0 +1,19 @@
+{
+  "structures": [
+    {
+      "structure": "changed_synergy:burrow",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 36,
+    "separation": 10,
+    "salt": 194711181,
+    "spread_type": "triangular",
+    "exclusion_zone": {
+      "other_set": "changed:decayed_labs",
+      "chunk_count": 6
+    }
+  }
+}

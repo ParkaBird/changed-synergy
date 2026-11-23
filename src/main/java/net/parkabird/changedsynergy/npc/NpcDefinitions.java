@@ -20,6 +20,7 @@ public final class NpcDefinitions extends SimpleJsonResourceReloadListener {
                           List<String> equipment,Map<String,Node> nodes) {}
     private static Map<String,Profile> profiles=Map.of();
     private static final Set<String> CONDITIONS=Set.of("always","chief","can_join","cannot_join","member","can_reversible","can_permanent","understands","stranger","human","transformed","day","night_human","night_transformed","human_join","transformed_join");
+    private static boolean validCondition(String c){return CONDITIONS.contains(c)||c.startsWith("clue:")&&c.length()>5;}
     private static final Set<String> EFFECTS=Set.of("none","close","join","reversible","permanent","leave","reverse_rite");
     private NpcDefinitions(){super(new Gson(),"story_npcs");}
     @SubscribeEvent public static void reload(AddReloadListenerEvent event){event.addListener(new NpcDefinitions());}
@@ -45,13 +46,13 @@ public final class NpcDefinitions extends SimpleJsonResourceReloadListener {
                     }
                     String channel=string(line,"channel","spoken");
                     String condition=string(line,"condition","always");
-                    if(!Set.of("spoken","mental").contains(channel)||!CONDITIONS.contains(condition)||parts.isEmpty()||parts.size()>32)throw new JsonParseException("Invalid line");
+                    if(!Set.of("spoken","mental").contains(channel)||!validCondition(condition)||parts.isEmpty()||parts.size()>32)throw new JsonParseException("Invalid line");
                     lines.add(new Line(channel,condition,List.copyOf(parts)));
                 }
                 var choices=new ArrayList<Choice>();var ids=new HashSet<String>();
                 for(var value:object.getAsJsonArray("choices")) {
                     var c=value.getAsJsonObject();String condition=string(c,"condition","always"),effect=string(c,"effect","none"),id=string(c,"id","");
-                    if(!CONDITIONS.contains(condition)||!EFFECTS.contains(effect)||!ids.add(id)||id.isBlank()||id.length()>64)throw new JsonParseException("Invalid choice");
+                    if(!validCondition(condition)||!EFFECTS.contains(effect)||!ids.add(id)||id.isBlank()||id.length()>64)throw new JsonParseException("Invalid choice");
                     var requires=new ArrayList<String>();
                     if(c.has("requires"))for(var required:c.getAsJsonArray("requires"))requires.add(required.getAsString());
                     if(requires.size()>16)throw new JsonParseException("Too many prerequisites");

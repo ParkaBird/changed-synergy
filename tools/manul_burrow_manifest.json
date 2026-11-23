@@ -1,0 +1,108 @@
+{
+  "source_save": "D:\\Program Files\\.minecraft\\versions\\\u6d4b\u8bd5\u4e13\u7528\\saves\\Synergy-\u5154\u72f2\u6d1e\u7a74\u5ba1\u67e5-20261116",
+  "origin": [
+    0,
+    42,
+    0
+  ],
+  "exported_size": [
+    56,
+    35,
+    55
+  ],
+  "bottom_air_layers_removed": 1,
+  "underground_exterior_air_omitted": 51758,
+  "surface_exterior_air_omitted": 36862,
+  "final_size": [
+    56,
+    34,
+    55
+  ],
+  "ground_level": 20,
+  "entities": 28,
+  "blocks": 16100,
+  "air_kept": 3316,
+  "sha256": "38cadb85f9e1cad3e993f0cb27c5d1bcef4cf1bcf0066ce7164fd32ff7f56f02",
+  "top_blocks": [
+    [
+      "minecraft:air",
+      3316
+    ],
+    [
+      "minecraft:dirt",
+      2548
+    ],
+    [
+      "minecraft:snow",
+      1788
+    ],
+    [
+      "minecraft:spruce_leaves",
+      1686
+    ],
+    [
+      "minecraft:dark_oak_planks",
+      1104
+    ],
+    [
+      "minecraft:grass_block",
+      1080
+    ],
+    [
+      "minecraft:spruce_planks",
+      995
+    ],
+    [
+      "minecraft:oak_planks",
+      675
+    ],
+    [
+      "minecraft:stone_bricks",
+      589
+    ],
+    [
+      "minecraft:spruce_log",
+      240
+    ],
+    [
+      "minecraft:cobblestone",
+      207
+    ],
+    [
+      "minecraft:dark_oak_stairs",
+      170
+    ],
+    [
+      "minecraft:mossy_cobblestone",
+      139
+    ],
+    [
+      "minecraft:dark_oak_slab",
+      115
+    ],
+    [
+      "minecraft:redstone_block",
+      89
+    ],
+    [
+      "minecraft:grass",
+      89
+    ],
+    [
+      "changed:orange_lab_carpeting",
+      84
+    ],
+    [
+      "minecraft:oak_stairs",
+      80
+    ],
+    [
+      "minecraft:water",
+      69
+    ],
+    [
+      "changed:lab_light",
+      68
+    ]
+  ]
+}

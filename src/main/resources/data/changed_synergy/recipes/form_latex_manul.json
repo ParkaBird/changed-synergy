@@ -1,0 +1,12 @@
+{
+  "type": "changed:infuser",
+  "gendered": true,
+  "form": "changed_synergy:form_latex_manul",
+  "ingredients": [
+    {"item":"changed:latex_base"},
+    {"item":"changed:white_latex_goo"},
+    {"item":"minecraft:snowball"},
+    {"item":"minecraft:rabbit_hide"},
+    {"item":"minecraft:white_wool"}
+  ]
+}

@@ -21,7 +21,7 @@ for name,(positions,facing) in LAYOUTS.items():
         assert not tag['Items'] and 'LootTable' not in tag
         assert json.loads(str(tag['CustomName']))=={'translate':'container.changed_synergy.community_supplies'}
         assert str(template['palette'][int(blocks[(p[0],p[1]+1,p[2])]['state'])]['Name'])=='minecraft:air'
-    manifest={'forest_treehouse':'forest_treehouse_manifest.json','hyena_hideout':'hyena_structures_manifest.json','observatory':'observatory_manifest.json','desert_refuge':'desert_refuge_manifest.json'}[name]
+    manifest={'forest_treehouse':'forest_treehouse_manifest.json','hyena_hideout':'hyena_structures_manifest.json','observatory':'observatory_manifest.json'}[name]
     data=json.loads((ROOT/'tools'/manifest).read_text(encoding='utf-8'));data=data[name] if name=='hyena_hideout' else data
     assert data['output_sha256']==hashlib.sha256(path.read_bytes()).hexdigest()
-print('CAMP_PUBLIC_STORAGE_DATA_PASS: four dedicated chest pairs, matching halves, empty inventories, clear lids, idempotent imports and manifest hashes')
+print('CAMP_PUBLIC_STORAGE_DATA_PASS: three dedicated chest pairs, matching halves, empty inventories, clear lids, idempotent imports and manifest hashes')

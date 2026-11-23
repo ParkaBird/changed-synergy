@@ -498,14 +498,6 @@ public final class CreatureCommunityData extends SavedData {
         data.setDirty();
     }
 
-    public static boolean shouldMigrate(ChangedEntity creature) {
-        return false;
-    }
-
-    public static boolean migrate(ChangedEntity creature, BlockPos newCenter) {
-        return false;
-    }
-
     private Community bindInternal(ServerLevel level, ChangedEntity creature) {
         HunterFaction faction = HunterFaction.of(creature);
         String dimension = level.dimension().location().toString();

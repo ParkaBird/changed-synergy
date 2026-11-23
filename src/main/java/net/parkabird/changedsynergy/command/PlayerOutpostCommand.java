@@ -95,7 +95,6 @@ public final class PlayerOutpostCommand {
                     .stream().flatMap(home -> home.members.keySet().stream()).map(UUID::toString), builder);
         });
         for (Work task : Work.values()) {
-            if (task == Work.COMPOST) continue; // Retained only for saved-data migration.
             String name = task.name().toLowerCase(java.util.Locale.ROOT);
             jobs.then(Commands.literal(name).executes(context -> work(context.getSource(), null, task, false)));
             selected.then(Commands.literal(name).executes(context -> work(context.getSource(),
@@ -105,7 +104,6 @@ public final class PlayerOutpostCommand {
         backupMember.then(Commands.literal("none").executes(context -> work(context.getSource(),
                 UuidArgument.getUuid(context, "member"), null, true)));
         for (Work task : Work.values()) {
-            if (task == Work.COMPOST) continue;
             backupMember.then(Commands.literal(task.name().toLowerCase(java.util.Locale.ROOT))
                     .executes(context -> work(context.getSource(), UuidArgument.getUuid(context, "member"), task, true)));
         }

@@ -15,8 +15,8 @@ for name, positions in PRIVATE_STORES.items():
     assert marked == set(positions), (name, marked)
     for pos in positions:
         tag=blocks[pos]['nbt']
-        assert (name=='desert_refuge' or 'LootTable' in tag) and not tag.get('ForgeData',{}).get('ChangedSynergyPublicStorage')
+        assert 'LootTable' in tag and not tag.get('ForgeData',{}).get('ChangedSynergyPublicStorage')
     for b in template['blocks']:
         if 'lectern' in str(template['palette'][int(b['state'])]['Name']): assert not b.get('nbt',{}).get('ForgeData',{}).get('ChangedSynergyPrivate')
     original=deepcopy(template);mark_private_stores(template,name);assert template==original
-print('CAMP_PRIVATE_STORAGE_PASS: 20 explicitly marked container blocks, intact loot tables, public lecterns and idempotent imports')
+print('CAMP_PRIVATE_STORAGE_PASS: 15 explicitly marked container blocks, intact loot tables, public lecterns and idempotent imports')

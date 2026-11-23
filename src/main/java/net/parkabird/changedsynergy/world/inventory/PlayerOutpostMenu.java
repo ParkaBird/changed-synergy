@@ -309,13 +309,16 @@ public final class PlayerOutpostMenu extends AbstractContainerMenu {
     @Override
     public void broadcastChanges() {
         if (player instanceof ServerPlayer server) {
-            PlayerOutpostData.get(server.server).byOwner(server.getUUID())
-                    .ifPresent(outpost -> {
-                        if (!refreshRosterIfChanged(server, outpost) && server.level().getGameTime() - lastSync >= 20) {
-                            lastSync = server.level().getGameTime();
-                            updateLive(server, outpost);
-                        }
-                    });
+            long now = server.level().getGameTime();
+            if (now - lastSync >= 20) {
+                lastSync = now;
+                PlayerOutpostData.get(server.server).byOwner(server.getUUID())
+                        .ifPresent(outpost -> {
+                            if (!refreshRosterIfChanged(server, outpost)) {
+                                updateLive(server, outpost);
+                            }
+                        });
+            }
         }
         super.broadcastChanges();
     }

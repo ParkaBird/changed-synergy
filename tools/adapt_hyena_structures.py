@@ -15,7 +15,6 @@ from pathlib import Path
 import nbtlib as nbt
 from adapt_research_structures import clean_occupant, validate_dependencies
 from structure_residents import bind_residents
-from small_camp_storage import mark_camp_store
 
 SOURCES = {
     'hyena_hideout': 'hyena_hideout.nbt',
@@ -128,7 +127,6 @@ def adapt(source, destination):
     template['latexCovers'] = nbt.List[nbt.Compound](covers)
     changes['added persistent hyena residents'] = add_residents(template, destination.stem)
     bind_residents(template, destination.stem)
-    mark_camp_store(template, destination.stem)
     validate_dependencies(template)
     assert len({tuple(map(int, block['pos'])) for block in template['blocks']}) == len(template['blocks'])
     assert all(all(0 <= int(block['pos'][axis]) < int(template['size'][axis]) for axis in range(3))

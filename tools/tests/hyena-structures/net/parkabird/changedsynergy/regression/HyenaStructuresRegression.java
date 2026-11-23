@@ -45,7 +45,7 @@ public final class HyenaStructuresRegression {
                     boolean expected = switch (name) {
                         case "hyena_hideout" -> biome.is(BiomeTags.IS_SAVANNA);
                         case "hyena_camp_tropical" -> biome.is(BiomeTags.IS_JUNGLE) || biome.is(BiomeTags.IS_SAVANNA);
-                        case "hyena_camp_open" -> Set.of("minecraft:plains", "minecraft:sunflower_plains").contains(key);
+                        case "hyena_camp_open" -> biome.is(BiomeTags.IS_BADLANDS) || Set.of("minecraft:desert", "minecraft:plains", "minecraft:sunflower_plains").contains(key);
                         default -> key.equals("minecraft:snowy_plains");
                     };
                     check(structure.biomes().contains(biome) == expected, "exact biome eligibility: " + name + " " + key);

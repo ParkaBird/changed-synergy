@@ -48,9 +48,7 @@ public abstract class PartialSkinLayersHandMixin {
         if (!PartialSkinLayersCompat.isSupportedModel(model)) {
             return;
         }
-        AbstractClientPlayer player = entity.getUnderlyingPlayer() instanceof AbstractClientPlayer clientPlayer
-                ? clientPlayer
-                : null;
+        AbstractClientPlayer player = net.parkabird.changedsynergy.client.InstinctPlayerSkinClient.resolveClientPlayer(entity);
         PartialSkinLayersCompat.prepareFirstPersonArm(model, player, arm);
     }
 

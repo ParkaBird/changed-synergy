@@ -54,9 +54,16 @@ public final class AddonAnimalCalls {
                         case "sad" -> TransfurSoundAction.PURREOW;
                         default -> TransfurSoundAction.MEOW;
                     };
+            case "ursine" -> switch (mood) {
+                        case "hostile" -> TransfurSoundAction.ROAR;
+                        case "sad", "fond" -> TransfurSoundAction.WHINE;
+                        default -> TransfurSoundAction.GROWL;
+                    };
+            case "aquatic" -> "happy".equals(mood)
+                    ? TransfurSoundAction.FLOP : TransfurSoundAction.SWIM;
             case "draconic" -> "hostile".equals(mood)
                     ? TransfurSoundAction.DRAGON_ROAR : TransfurSoundAction.DRAGON_GROWL;
-            case "insect" -> species.contains("spider")
+            case "insect" -> species.contains("spider") || species.contains("spidtaur")
                     ? TransfurSoundAction.SPIDER_AMBIENT : null;
             default -> null;
         };

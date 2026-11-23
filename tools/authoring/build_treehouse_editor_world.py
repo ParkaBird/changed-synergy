@@ -13,7 +13,7 @@ import nbtlib as nbt
 ROOT = Path(__file__).resolve().parents[2]
 PROFILE = Path('D:/Program Files/.minecraft/versions/测试专用')
 BASE = ROOT/'.codex-tmp/crew-production-server-no-addon'
-JAVA = Path('C:/Users/ZhuanZ（无密码）/AppData/Roaming/.minecraft/runtime/java-runtime-beta/bin/java.exe')
+JAVA = Path(os.environ['APPDATA']) / '.minecraft/runtime/java-runtime-beta/bin/java.exe'
 
 
 def main():

@@ -22,13 +22,13 @@ public final class CampApproachGoal extends Goal {
         if(NaturalCampService.mealPoints(npc).isEmpty())return false;var camp=CampLifeService.register(npc);long now=npc.level().getGameTime();
         if(camp.contains("MealAt")&&now-camp.getLong("MealAt")<6000)return false;
         camp.putLong("MealAt",now);CampLifeData.get(player.server).setDirty();
-        for(var resident:CampLifeService.residents(npc))resident.getPersistentData().remove("ChangedSynergyNaturalCampNextMeal");return true;
+        for(var resident:CampLifeService.residents(npc))NaturalCampService.triggerMealCall(resident,npc,now+900L);return true;
     }
     private boolean idle(){return CampLifeService.mainCamp(mob)&&net.parkabird.changedsynergy.ChangedSynergyConfig.COMMON.naturalCampRoutines.get()&&mob.isAlive()&&!mob.isNoAi()&&!mob.isSleeping()&&!PlayerOutpostRestGoal.sleepTime(mob)&&mob.getTarget()==null&&!mob.isPassenger()&&!mob.isLeashed()&&!NpcConversations.holds(mob)&&!CreaturePeerInteractionService.active(mob)&&!SocialAudienceGoal.isActive(mob)&&!ProvisionerTradeService.isTrading(mob)&&!CreatureGrabService.isGrabberBusy(mob)&&!CreatureCommunityData.isPlayerCompanion(mob)&&!PlayerOutpostService.hasAssignment(mob);}
     private boolean available(ServerPlayer candidate){
         var body=TrueTransfurCompat.interactionBody(candidate);
         return candidate.isAlive()&&!candidate.isSpectator()&&!candidate.isSleeping()&&candidate.containerMenu==candidate.inventoryMenu&&!NpcConversations.talking(candidate)&&!TakeoverService.active(candidate)
-            &&body.level()==mob.level()&&mob.distanceToSqr(body)<=144&&NaturalCampService.bounds(mob).contains(body.position())&&mob.hasLineOfSight(body)
+            &&body.level()==mob.level()&&mob.distanceToSqr(body)<=256&&NaturalCampService.activityBounds(mob).contains(body.position())&&mob.hasLineOfSight(body)
             &&CampMembershipService.protectedMember(mob,candidate)&&net.ltxprogrammer.changed.ability.GrabEntityAbility.getGrabber(candidate)==null
             &&(candidate.getLastHurtByMob()==null||candidate.tickCount-candidate.getLastHurtByMobTimestamp()>=100)
             &&(candidate.getLastHurtMob()==null||candidate.tickCount-candidate.getLastHurtMobTimestamp()>=100);

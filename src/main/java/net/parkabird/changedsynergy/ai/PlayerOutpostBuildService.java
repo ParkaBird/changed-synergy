@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.ltxprogrammer.changed.block.CardboardBoxTall;
+import net.ltxprogrammer.changed.block.BarStool;
 import net.ltxprogrammer.changed.block.OfficeChair;
 import net.ltxprogrammer.changed.block.Pillow;
 import net.minecraft.core.BlockPos;
@@ -27,6 +28,7 @@ import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.entity.CampfireBlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -80,7 +82,14 @@ public final class PlayerOutpostBuildService {
     }
 
     public static boolean enter(ServerPlayer player) {
-        if (!PlayerOutpostService.enabled(player.level())) return false;
+        if (!PlayerOutpostService.enabled(player.level())
+                || !player.isAlive()
+                || player.isSpectator()
+                || TakeoverService.active(player)
+                || HypnosisQteService.isPlayerControlLocked(player)
+                || net.parkabird.changedsynergy.origin.NativeOriginService.pending(player)) {
+            return false;
+        }
         Outpost outpost = PlayerOutpostData.get(player.server).byOwner(player.getUUID()).orElse(null);
         if (outpost == null || !outpost.active(player.serverLevel())) {
             player.sendSystemMessage(Component.translatable("command.changed_synergy.outpost.error.inactive"));
@@ -113,9 +122,19 @@ public final class PlayerOutpostBuildService {
         sync(player);
     }
 
+    private record TakenItem(ItemStack stack, BlockPos chestPos) {
+    }
+
     public static boolean tryPlace(ServerPlayer player, BlockHitResult hit) {
         Session session = SESSIONS.get(player.getUUID());
         if (session == null || hit == null) return false;
+        if (!player.isAlive()
+                || player.isSpectator()
+                || TakeoverService.active(player)
+                || HypnosisQteService.isPlayerControlLocked(player)
+                || net.parkabird.changedsynergy.origin.NativeOriginService.pending(player)) {
+            return false;
+        }
         Outpost outpost = PlayerOutpostData.get(player.server).byOwner(player.getUUID()).orElse(null);
         if (outpost == null || !outpost.active(player.serverLevel())) {
             exit(player);
@@ -127,21 +146,33 @@ public final class PlayerOutpostBuildService {
             return false;
         }
 
+        BlockPos clicked = hit.getBlockPos();
+        BlockPos candidate = clicked.relative(hit.getDirection());
+        double maxReach = player.getBlockReach() + 2.0D;
+        Vec3 loc = hit.getLocation();
+        if (!Double.isFinite(loc.x) || !Double.isFinite(loc.y) || !Double.isFinite(loc.z)
+                || player.distanceToSqr(Vec3.atCenterOf(clicked)) > maxReach * maxReach
+                || !level.hasChunkAt(clicked)
+                || (!outpost.contains(clicked) && !outpost.contains(candidate))) {
+            fail(player, "range");
+            return false;
+        }
+
         boolean creative = player.getAbilities().instabuild;
-        ItemStack taken = creative
-                ? creativeStack(player, outpost, session.palette())
+        TakenItem taken = creative
+                ? new TakenItem(creativeStack(player, outpost, session.palette()), null)
                 : takeMatching(player, outpost, session.palette());
-        if (taken.isEmpty()) {
+        if (taken.stack().isEmpty()) {
             fail(player, "no_item");
             return false;
         }
-        if (!(taken.getItem() instanceof BlockItem blockItem)) {
+        if (!(taken.stack().getItem() instanceof BlockItem blockItem)) {
             if (!creative) refund(player, taken);
             fail(player, "facility");
             return false;
         }
 
-        BlockPlaceContext context = new BlockPlaceContext(player, InteractionHand.MAIN_HAND, taken, hit);
+        BlockPlaceContext context = new BlockPlaceContext(player, InteractionHand.MAIN_HAND, taken.stack(), hit);
         BlockPos placePos = context.getClickedPos();
         if (!level.hasChunkAt(placePos) || !outpost.contains(placePos) || placePos.equals(outpost.marker)) {
             if (!creative) refund(player, taken);
@@ -232,6 +263,7 @@ public final class PlayerOutpostBuildService {
             case REST -> block.defaultBlockState().is(BlockTags.WOOL_CARPETS)
                     || block instanceof Pillow
                     || block instanceof OfficeChair
+                    || block instanceof BarStool
                     || block instanceof CardboardBoxTall;
             case CAMPFIRE -> block instanceof CampfireBlock;
             case COMPOSTER -> block instanceof ComposterBlock;
@@ -289,14 +321,14 @@ public final class PlayerOutpostBuildService {
         return ItemStack.EMPTY;
     }
 
-    private static ItemStack takeMatching(ServerPlayer player, Outpost outpost, Palette palette) {
+    private static TakenItem takeMatching(ServerPlayer player, Outpost outpost, Palette palette) {
         var inventory = player.getInventory();
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
             ItemStack stack = inventory.getItem(slot);
             if (!matchesPalette(stack, palette)) continue;
             ItemStack taken = stack.split(1);
             inventory.setChanged();
-            return taken;
+            return new TakenItem(taken, null);
         }
         ServerLevel level = player.serverLevel();
         for (BlockPos pos : outpost.storages) {
@@ -308,14 +340,25 @@ public final class PlayerOutpostBuildService {
                 if (!matchesPalette(stack, palette)) continue;
                 ItemStack taken = container.removeItem(slot, 1);
                 container.setChanged();
-                if (!taken.isEmpty()) return taken;
+                if (!taken.isEmpty()) return new TakenItem(taken, pos);
             }
         }
-        return ItemStack.EMPTY;
+        return new TakenItem(ItemStack.EMPTY, null);
     }
 
-    private static void refund(ServerPlayer player, ItemStack stack) {
+    private static void refund(ServerPlayer player, TakenItem taken) {
+        ItemStack stack = taken.stack();
         if (stack.isEmpty()) return;
+        if (taken.chestPos() != null) {
+            ServerLevel level = player.serverLevel();
+            if (level.hasChunkAt(taken.chestPos())) {
+                Container container = PlayerOutpostData.container(level, taken.chestPos());
+                if (container != null) {
+                    stack = PlayerOutpostGoal.insert(container, stack);
+                    if (stack.isEmpty()) return;
+                }
+            }
+        }
         if (!player.getInventory().add(stack)) {
             player.drop(stack, false);
         }

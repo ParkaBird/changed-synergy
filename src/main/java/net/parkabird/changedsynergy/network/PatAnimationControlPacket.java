@@ -6,8 +6,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.network.NetworkEvent;
+import net.parkabird.changedsynergy.ai.HypnosisQteService;
 import net.parkabird.changedsynergy.ai.PatAnimationService;
 import net.parkabird.changedsynergy.ai.SynergyPatService;
+import net.parkabird.changedsynergy.ai.TakeoverService;
+import net.parkabird.changedsynergy.origin.NativeOriginService;
 
 public record PatAnimationControlPacket(
         int targetId,
@@ -35,12 +38,20 @@ public record PatAnimationControlPacket(
         ServerPlayer sender = context.getSender();
         if (sender != null) {
             context.enqueueWork(() -> {
-                if (!packet.active) {
+                if (!packet.active
+                        || !sender.isAlive()
+                        || sender.isSpectator()
+                        || TakeoverService.active(sender)
+                        || HypnosisQteService.isPlayerControlLocked(sender)
+                        || NativeOriginService.pending(sender)) {
                     PatAnimationService.stop(sender);
                     return;
                 }
                 Entity entity = sender.level().getEntity(packet.targetId);
-                if (entity instanceof LivingEntity target) {
+                if (entity instanceof LivingEntity target
+                        && target.isAlive()
+                        && target.level() == sender.level()
+                        && sender.distanceToSqr(target) <= 36.0D) {
                     boolean playing = net.parkabird.changedsynergy.ai.CreaturePeerInteractionService.isPlaymate(sender, target);
                     if (!playing && packet.triggerReaction && !PatAnimationService.isContinuous(sender, target)) {
                         SynergyPatService.perform(sender, target, false);

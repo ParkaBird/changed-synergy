@@ -11,6 +11,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
 import net.parkabird.changedsynergy.entity.LatexSilkMoth;
 import net.parkabird.changedsynergy.entity.LatexSwordfish;
+import net.parkabird.changedsynergy.entity.LatexGrayFox;
+import net.parkabird.changedsynergy.entity.LatexGrayFoxFemale;
+import net.parkabird.changedsynergy.entity.LatexManul;
+import net.parkabird.changedsynergy.entity.LatexManulFemale;
 import net.parkabird.changedsynergy.entity.LatexMuntjac;
 import net.parkabird.changedsynergy.entity.LatexMuntjacFemale;
 import net.parkabird.changedsynergy.entity.LatexSpottedHyena;
@@ -19,6 +23,7 @@ import net.parkabird.changedsynergy.entity.WhiteLatexWolfPartial;
 import net.ltxprogrammer.changed.entity.TransfurMode;
 import net.ltxprogrammer.changed.init.ChangedAbilities;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
+import net.minecraft.world.entity.monster.Creeper;
 
 public final class ChangedSynergyTransfurVariants {
     public static final DeferredRegister<TransfurVariant<?>> REGISTRY =
@@ -80,6 +85,44 @@ public final class ChangedSynergyTransfurVariants {
                     .<WhiteLatexWolfPartial>of(ChangedSynergyEntities.PURE_WHITE_LATEX_WOLF_PARTIAL)
                     .scares(AbstractSkeleton.class)
                     .transfurMode(TransfurMode.NONE)
+                    .build());
+
+    public static final RegistryObject<TransfurVariant<net.parkabird.changedsynergy.entity.LatexGrizzly>> LATEX_GRIZZLY =
+            REGISTRY.register("form_latex_grizzly", () -> TransfurVariant.Builder
+                    .<net.parkabird.changedsynergy.entity.LatexGrizzly>of(ChangedSynergyEntities.LATEX_GRIZZLY)
+                    .addAbility(ChangedSynergyAbilities.GRIZZLY_CLAWS)
+                    .build());
+
+    public static final RegistryObject<TransfurVariant<LatexManul>> LATEX_MANUL =
+            REGISTRY.register("form_latex_manul/male", () -> TransfurVariant.Builder
+                    .<LatexManul>of(ChangedSynergyEntities.LATEX_MANUL)
+                    .scares(Creeper.class)
+                    .nightVision()
+                    .addAbility(ChangedAbilities.TOGGLE_NIGHT_VISION)
+                    .addAbility(ChangedSynergyAbilities.MANUL_CROUCH_REST)
+                    .build());
+
+    public static final RegistryObject<TransfurVariant<LatexManulFemale>> LATEX_MANUL_FEMALE =
+            REGISTRY.register("form_latex_manul/female", () -> TransfurVariant.Builder
+                    .<LatexManulFemale>of(ChangedSynergyEntities.LATEX_MANUL_FEMALE)
+                    .scares(Creeper.class)
+                    .nightVision()
+                    .addAbility(ChangedAbilities.TOGGLE_NIGHT_VISION)
+                    .addAbility(ChangedSynergyAbilities.MANUL_CROUCH_REST)
+                    .absorbing()
+                    .build());
+
+    public static final RegistryObject<TransfurVariant<LatexGrayFox>> LATEX_GRAY_FOX =
+            REGISTRY.register("form_latex_gray_fox/male", () -> TransfurVariant.Builder
+                    .<LatexGrayFox>of(ChangedSynergyEntities.LATEX_GRAY_FOX)
+                    .canClimb()
+                    .build());
+
+    public static final RegistryObject<TransfurVariant<LatexGrayFoxFemale>> LATEX_GRAY_FOX_FEMALE =
+            REGISTRY.register("form_latex_gray_fox/female", () -> TransfurVariant.Builder
+                    .<LatexGrayFoxFemale>of(ChangedSynergyEntities.LATEX_GRAY_FOX_FEMALE)
+                    .canClimb()
+                    .absorbing()
                     .build());
 
     public static void registerAliases(RegisterEvent event) {

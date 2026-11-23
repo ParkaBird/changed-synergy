@@ -52,16 +52,18 @@ public class WhiteLatexWolfPartial extends ChangedEntity implements ComplexRende
 
     @OnlyIn(Dist.CLIENT)
     public ResourceLocation getSkinTextureLocation() {
-        if (getUnderlyingPlayer() instanceof AbstractClientPlayer clientPlayer) {
-            return clientPlayer.getSkinTextureLocation();
+        ResourceLocation skin = net.parkabird.changedsynergy.client.InstinctPlayerSkinClient.resolveSkinTexture(this);
+        if (skin != null) {
+            return skin;
         }
         return DefaultPlayerSkin.getDefaultSkin(this.getUUID());
     }
 
     @OnlyIn(Dist.CLIENT)
     public String getModelName() {
-        if (getUnderlyingPlayer() instanceof AbstractClientPlayer clientPlayer) {
-            return clientPlayer.getModelName();
+        String modelName = net.parkabird.changedsynergy.client.InstinctPlayerSkinClient.resolveModelName(this);
+        if (modelName != null) {
+            return modelName;
         }
         return DefaultPlayerSkin.getSkinModelName(this.getUUID());
     }

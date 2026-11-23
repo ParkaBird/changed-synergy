@@ -1,0 +1,21 @@
+{
+  "type": "changed:infuser",
+  "form": "changed_synergy:form_latex_silk_moth",
+  "ingredients": [
+    {
+      "item": "changed:latex_base"
+    },
+    {
+      "item": "changed:white_latex_goo"
+    },
+    {
+      "item": "minecraft:string"
+    },
+    {
+      "item": "minecraft:phantom_membrane"
+    },
+    {
+      "item": "minecraft:glowstone_dust"
+    }
+  ]
+}

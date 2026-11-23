@@ -10,6 +10,7 @@ import java.util.WeakHashMap;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.block.DroppedOrange;
+import net.ltxprogrammer.changed.block.BarStool;
 import net.ltxprogrammer.changed.block.CardboardBoxTall;
 import net.ltxprogrammer.changed.block.OfficeChair;
 import net.ltxprogrammer.changed.block.Pillow;
@@ -250,11 +251,14 @@ public final class CreatureComfortGoal extends Goal {
         }
         BlockPos origin = mob.blockPosition();
         List<BlockPos> candidates = new ArrayList<>();
+        boolean emergencyHeal = selectedMode == Mode.EAT_ORANGE && mob.getHealth() <= mob.getMaxHealth() - 1.0F;
         for (BlockPos cursor : BlockPos.betweenClosed(
                 origin.offset(-SEARCH_RADIUS, -VERTICAL_RADIUS, -SEARCH_RADIUS),
                 origin.offset(SEARCH_RADIUS, VERTICAL_RADIUS, SEARCH_RADIUS))) {
             if (level.hasChunkAt(cursor) && (!mob.getPersistentData().getCompound(StructureResidentGoal.DATA).getBoolean("Resolved")
-                    || NaturalCampService.restBounds(mob).contains(net.minecraft.world.phys.Vec3.atCenterOf(cursor))) && predicate.test(level.getBlockState(cursor))) {
+                    || NaturalCampService.restBounds(mob).contains(net.minecraft.world.phys.Vec3.atCenterOf(cursor)))
+                    && NaturalCampService.allowsComfortSite(mob, cursor, emergencyHeal)
+                    && predicate.test(level.getBlockState(cursor))) {
                 candidates.add(cursor.immutable());
             }
         }
@@ -310,9 +314,7 @@ public final class CreatureComfortGoal extends Goal {
                     && !state.getValue(Pillow.OCCUPIED)
                     && pillow.sitEntity(mob);
         } else if (mob.level().getBlockEntity(target) instanceof ChairBlockEntity chair) {
-            seated = state.getBlock() instanceof OfficeChair
-                    && state.hasProperty(OfficeChair.HALF)
-                    && state.getValue(OfficeChair.HALF) == DoubleBlockHalf.LOWER
+            seated = PlayerOutpostRestGoal.isChairSeat(state)
                     && chair.getSeatedEntity() == null
                     && chair.sitEntity(mob);
         }
@@ -496,16 +498,14 @@ public final class CreatureComfortGoal extends Goal {
             return state.hasProperty(Pillow.OCCUPIED)
                     && !state.getValue(Pillow.OCCUPIED);
         }
-        return state.getBlock() instanceof OfficeChair
-                && state.hasProperty(OfficeChair.HALF)
-                && state.getValue(OfficeChair.HALF) == DoubleBlockHalf.LOWER;
+        return PlayerOutpostRestGoal.isChairSeat(state);
     }
 
     private boolean isAvailableRestSeat(BlockState state, BlockPos position) {
         if (!isAvailableRestSeatState(state)) {
             return false;
         }
-        if (state.getBlock() instanceof OfficeChair) {
+        if (state.getBlock() instanceof OfficeChair || state.getBlock() instanceof BarStool) {
             return mob.level().getBlockEntity(position) instanceof ChairBlockEntity chair
                     && chair.getSeatedEntity() == null;
         }

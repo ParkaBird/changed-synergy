@@ -50,7 +50,7 @@ def main():
                 and key not in {'npc.changed_synergy.spoken', 'npc.changed_synergy.mental'}}
         data.update(entries)
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'Generated {len(authored)} NPC graphs and English/Chinese/Russian dialogue.')
+    print('Generated four replacement NPC graphs and English/Chinese/Russian dialogue.')
 
 
 if __name__ == '__main__':
