@@ -235,7 +235,11 @@ public final class BondCommand {
     static int openRelationshipManager(CommandSourceStack source)
             throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
-        if (!player.isAlive() || player.isSpectator()) {
+        if (!player.isAlive()
+                || player.isSpectator()
+                || net.parkabird.changedsynergy.ai.TakeoverService.active(player)
+                || net.parkabird.changedsynergy.ai.HypnosisQteService.isPlayerControlLocked(player)
+                || net.parkabird.changedsynergy.origin.NativeOriginService.pending(player)) {
             source.sendFailure(Component.translatable(
                     "command.changed_synergy.relationship.unavailable"));
             return 0;

@@ -26,6 +26,9 @@ public record PlayerRelationshipOpenPacket() {
             context.enqueueWork(() -> {
                 if (sender.isAlive()
                         && !sender.isSpectator()
+                        && !net.parkabird.changedsynergy.ai.TakeoverService.active(sender)
+                        && !net.parkabird.changedsynergy.ai.HypnosisQteService.isPlayerControlLocked(sender)
+                        && !net.parkabird.changedsynergy.origin.NativeOriginService.pending(sender)
                         && !(sender.containerMenu instanceof PlayerRelationshipMenu)) {
                     PlayerRelationshipMenu.open(sender);
                 }

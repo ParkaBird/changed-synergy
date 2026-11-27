@@ -56,7 +56,9 @@ public final class SpottedHyenaDiet {
     }
     @net.minecraftforge.eventbus.api.SubscribeEvent(priority=net.minecraftforge.eventbus.api.EventPriority.LOWEST)
     public static void finishedFood(net.minecraftforge.event.entity.living.LivingEntityUseItemEvent.Finish event) {
-        var user=event.getEntity();var before=BEFORE_MEAL.remove(user);
+        var user=event.getEntity();
+        if(user.level().isClientSide)return;
+        var before=BEFORE_MEAL.remove(user);
         if(before==null || before.item()!=event.getItem().getItem() || !canEatBone(user))return;
         // Undo only food's newly applied penalties; an existing poison or enemy debuff is preserved.
         for(var effect:List.copyOf(user.getActiveEffects()))if(effect.getEffect().getCategory()==net.minecraft.world.effect.MobEffectCategory.HARMFUL) {

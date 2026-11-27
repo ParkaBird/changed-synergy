@@ -1,0 +1,1579 @@
+{
+  "template": "the_shoal",
+  "species": "changed_synergy:latex_swordfish",
+  "trait": "PLAYFUL",
+  "chief": true,
+  "equipment": [
+    "changed:wetsuit"
+  ],
+  "nodes": {
+    "root": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.root.0.0",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.root.0.1",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "human",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.root.1.0",
+              "emotion": "curious",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.root.2.0",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.root.2.1",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "transformed",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.root.3.0",
+              "emotion": "curious",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "about",
+          "text": "npc.changed_synergy.shoal_chief.root.choice.about",
+          "next": "about",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "home",
+          "text": "npc.changed_synergy.shoal_chief.root.choice.home",
+          "next": "home",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "past",
+          "text": "npc.changed_synergy.shoal_chief.root.choice.past",
+          "next": "past",
+          "condition": "always",
+          "effect": "none",
+          "requires": [
+            "about",
+            "home"
+          ]
+        },
+        {
+          "id": "clue_disc",
+          "text": "npc.changed_synergy.shoal_chief.root.choice.clue_disc",
+          "next": "clue_disc",
+          "condition": "clue:shoal_disc",
+          "effect": "none"
+        },
+        {
+          "id": "clue_manifest",
+          "text": "npc.changed_synergy.shoal_chief.root.choice.clue_manifest",
+          "next": "clue_manifest",
+          "condition": "clue:shoal_manifest",
+          "effect": "none"
+        },
+        {
+          "id": "enrol",
+          "text": "npc.changed_synergy.shoal_chief.root.choice.enrol",
+          "next": "enrol",
+          "condition": "stranger",
+          "effect": "none"
+        },
+        {
+          "id": "membership",
+          "text": "npc.changed_synergy.shoal_chief.root.choice.membership",
+          "next": "membership",
+          "condition": "member",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.root.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "return": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.return.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.return.1.0",
+              "emotion": "whisper",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.6,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "about",
+          "text": "npc.changed_synergy.shoal_chief.return.choice.about",
+          "next": "about",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "home",
+          "text": "npc.changed_synergy.shoal_chief.return.choice.home",
+          "next": "home",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "past",
+          "text": "npc.changed_synergy.shoal_chief.return.choice.past",
+          "next": "past",
+          "condition": "always",
+          "effect": "none",
+          "requires": [
+            "about",
+            "home"
+          ]
+        },
+        {
+          "id": "clue_disc",
+          "text": "npc.changed_synergy.shoal_chief.return.choice.clue_disc",
+          "next": "clue_disc",
+          "condition": "clue:shoal_disc",
+          "effect": "none"
+        },
+        {
+          "id": "clue_manifest",
+          "text": "npc.changed_synergy.shoal_chief.return.choice.clue_manifest",
+          "next": "clue_manifest",
+          "condition": "clue:shoal_manifest",
+          "effect": "none"
+        },
+        {
+          "id": "enrol",
+          "text": "npc.changed_synergy.shoal_chief.return.choice.enrol",
+          "next": "enrol",
+          "condition": "stranger",
+          "effect": "none"
+        },
+        {
+          "id": "membership",
+          "text": "npc.changed_synergy.shoal_chief.return.choice.membership",
+          "next": "membership",
+          "condition": "member",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.return.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "about": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.about.0.0",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.about.0.1",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.about.1.0",
+              "emotion": "happy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "containers",
+          "text": "npc.changed_synergy.shoal_chief.about.choice.containers",
+          "next": "containers",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "swordfish",
+          "text": "npc.changed_synergy.shoal_chief.about.choice.swordfish",
+          "next": "swordfish",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.about.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.about.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "containers": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.containers.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.containers.0.1",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.containers.1.0",
+              "emotion": "sad",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.containers.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.containers.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "swordfish": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.swordfish.0.0",
+              "emotion": "happy",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.swordfish.0.1",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.swordfish.1.0",
+              "emotion": "curious",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "explain_form",
+          "text": "npc.changed_synergy.shoal_chief.swordfish.choice.explain_form",
+          "next": "explain_form",
+          "condition": "can_reversible",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.swordfish.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.swordfish.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "home": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.home.0.0",
+              "emotion": "happy",
+              "effect": "float",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.home.0.1",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.home.1.0",
+              "emotion": "curious",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.home.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.home.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "past": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.past.0.0",
+              "emotion": "calm",
+              "effect": "droop",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.past.0.1",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.past.1.0",
+              "emotion": "curious",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "diving_suit",
+          "text": "npc.changed_synergy.shoal_chief.past.choice.diving_suit",
+          "next": "diving_suit",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.past.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.past.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "diving_suit": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.diving_suit.0.0",
+              "emotion": "calm",
+              "effect": "droop",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.diving_suit.0.1",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 150,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.diving_suit.1.0",
+              "emotion": "happy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.diving_suit.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.diving_suit.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "clue_disc": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.clue_disc.0.0",
+              "emotion": "surprised",
+              "effect": "impact",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.clue_disc.0.1",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 150,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.clue_disc.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.clue_disc.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "clue_manifest": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.clue_manifest.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.clue_manifest.0.1",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.clue_manifest.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.clue_manifest.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "enrol": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "transformed_join",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.enrol.0.0",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.enrol.0.1",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "human_join",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.enrol.1.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.enrol.1.1",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "cannot_join",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.enrol.2.0",
+              "emotion": "determined",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 150
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "join_latex",
+          "text": "npc.changed_synergy.shoal_chief.enrol.choice.join_latex",
+          "next": "welcome_latex",
+          "condition": "transformed_join",
+          "effect": "join"
+        },
+        {
+          "id": "join_human",
+          "text": "npc.changed_synergy.shoal_chief.enrol.choice.join_human",
+          "next": "welcome_human",
+          "condition": "human_join",
+          "effect": "join"
+        },
+        {
+          "id": "explain_form",
+          "text": "npc.changed_synergy.shoal_chief.enrol.choice.explain_form",
+          "next": "explain_form",
+          "condition": "can_reversible",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.enrol.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "explain_form": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.explain_form.0.0",
+              "emotion": "happy",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.explain_form.0.1",
+              "emotion": "curious",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 120
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.explain_form.0.2",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 150,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "reversible",
+          "text": "npc.changed_synergy.shoal_chief.explain_form.choice.reversible",
+          "next": "welcome_copy",
+          "condition": "can_reversible",
+          "effect": "reversible"
+        },
+        {
+          "id": "permanent_menu",
+          "text": "npc.changed_synergy.shoal_chief.explain_form.choice.permanent_menu",
+          "next": "confirm_permanent",
+          "condition": "can_permanent",
+          "effect": "none"
+        },
+        {
+          "id": "join_human",
+          "text": "npc.changed_synergy.shoal_chief.explain_form.choice.join_human",
+          "next": "welcome_human",
+          "condition": "human_join",
+          "effect": "join"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.explain_form.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "confirm_permanent": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.confirm_permanent.0.0",
+              "emotion": "determined",
+              "effect": "pulse",
+              "speed": 1,
+              "intensity": 0.85,
+              "pause": 160
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.confirm_permanent.0.1",
+              "emotion": "determined",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.8,
+              "pause": 150,
+              "beat": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "confirm",
+          "text": "npc.changed_synergy.shoal_chief.confirm_permanent.choice.confirm",
+          "next": "welcome_permanent",
+          "condition": "can_permanent",
+          "effect": "permanent"
+        },
+        {
+          "id": "rethink",
+          "text": "npc.changed_synergy.shoal_chief.confirm_permanent.choice.rethink",
+          "next": "explain_form",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "welcome_human": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.welcome_human.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.welcome_human.0.1",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 150,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.welcome_human.1.0",
+              "emotion": "happy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.welcome_human.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.welcome_human.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "welcome_latex": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.welcome_latex.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 150
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.welcome_latex.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.welcome_latex.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "welcome_copy": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.welcome_copy.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.welcome_copy.0.1",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 150,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.welcome_copy.1.0",
+              "emotion": "happy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.welcome_copy.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.welcome_copy.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "welcome_permanent": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.welcome_permanent.0.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 130
+            },
+            {
+              "text": "npc.changed_synergy.shoal_chief.welcome_permanent.0.1",
+              "emotion": "happy",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.75,
+              "pause": 150,
+              "beat": true
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.welcome_permanent.1.0",
+              "emotion": "happy",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.welcome_permanent.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.welcome_permanent.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "membership": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.membership.0.0",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 130
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "leave_menu",
+          "text": "npc.changed_synergy.shoal_chief.membership.choice.leave_menu",
+          "next": "confirm_leave",
+          "condition": "member",
+          "effect": "none"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.membership.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "confirm_leave": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.confirm_leave.0.0",
+              "emotion": "sad",
+              "effect": "droop",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 150
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "confirm_leave",
+          "text": "npc.changed_synergy.shoal_chief.confirm_leave.choice.confirm_leave",
+          "next": "left",
+          "condition": "member",
+          "effect": "leave"
+        },
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.confirm_leave.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "left": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.left.0.0",
+              "emotion": "calm",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 140
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.left.choice.back",
+          "next": "return",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "goodbye",
+          "text": "npc.changed_synergy.shoal_chief.left.choice.goodbye",
+          "next": "goodbye",
+          "condition": "always",
+          "effect": "none"
+        }
+      ]
+    },
+    "goodbye": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "stranger",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.goodbye.0.0",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.6,
+              "pause": 120
+            }
+          ]
+        },
+        {
+          "channel": "spoken",
+          "condition": "member",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.goodbye.1.0",
+              "emotion": "happy",
+              "effect": "bounce",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 120
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.shoal_chief.goodbye.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_fishing": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.resident_fishing.0.0",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 130
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.resident_fishing.1.0",
+              "emotion": "curious",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_0",
+          "text": "npc.changed_synergy.shoal_chief.resident_fishing.choice.topic_0",
+          "next": "resident_fishing_0",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.shoal_chief.resident_fishing.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_fishing_0": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.resident_fishing_0.0.0",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.resident_fishing_0.choice.back",
+          "next": "resident_fishing",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.shoal_chief.resident_fishing_0.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_dorm": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.resident_dorm.0.0",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 130
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.resident_dorm.1.0",
+              "emotion": "curious",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_0",
+          "text": "npc.changed_synergy.shoal_chief.resident_dorm.choice.topic_0",
+          "next": "resident_dorm_0",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.shoal_chief.resident_dorm.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_dorm_0": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.resident_dorm_0.0.0",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.resident_dorm_0.choice.back",
+          "next": "resident_dorm",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.shoal_chief.resident_dorm_0.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_storage": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.resident_storage.0.0",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 130
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.resident_storage.1.0",
+              "emotion": "curious",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_0",
+          "text": "npc.changed_synergy.shoal_chief.resident_storage.choice.topic_0",
+          "next": "resident_storage_0",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.shoal_chief.resident_storage.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_storage_0": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.resident_storage_0.0.0",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.resident_storage_0.choice.back",
+          "next": "resident_storage",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.shoal_chief.resident_storage_0.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_workshop": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.resident_workshop.0.0",
+              "emotion": "calm",
+              "effect": "wave",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 130
+            }
+          ]
+        },
+        {
+          "channel": "mental",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.resident_workshop.1.0",
+              "emotion": "curious",
+              "effect": "whisper",
+              "speed": 1,
+              "intensity": 0.65,
+              "pause": 0
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "topic_0",
+          "text": "npc.changed_synergy.shoal_chief.resident_workshop.choice.topic_0",
+          "next": "resident_workshop_0",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.shoal_chief.resident_workshop.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    },
+    "resident_workshop_0": {
+      "lines": [
+        {
+          "channel": "spoken",
+          "condition": "always",
+          "parts": [
+            {
+              "text": "npc.changed_synergy.shoal_chief.resident_workshop_0.0.0",
+              "emotion": "calm",
+              "effect": "emphasis",
+              "speed": 1,
+              "intensity": 0.7,
+              "pause": 140
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "back",
+          "text": "npc.changed_synergy.shoal_chief.resident_workshop_0.choice.back",
+          "next": "resident_workshop",
+          "condition": "always",
+          "effect": "none"
+        },
+        {
+          "id": "close",
+          "text": "npc.changed_synergy.shoal_chief.resident_workshop_0.choice.close",
+          "next": "root",
+          "condition": "always",
+          "effect": "close"
+        }
+      ]
+    }
+  }
+}

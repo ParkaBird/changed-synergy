@@ -117,7 +117,7 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
                 DamageFilter.FRIENDS);
         this.outpostAction = data.readUtf(32);
         this.rallyBoarding = data.readBoolean();
-        int count = Math.min(64, data.readVarInt());
+        int count = clampSyncedCount(data.readVarInt());
         this.contacts = new ArrayList<>(count);
         for (int index = 0; index < count; index++) {
             contacts.add(readContact(data));
@@ -181,7 +181,11 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
 
     @Override
     public boolean stillValid(Player viewer) {
-        return viewer.isAlive() && !viewer.isRemoved();
+        return viewer.isAlive() && !viewer.isRemoved() && !viewer.isSpectator()
+                && !(viewer instanceof ServerPlayer sp
+                        && (net.parkabird.changedsynergy.ai.TakeoverService.active(sp)
+                                || net.parkabird.changedsynergy.ai.HypnosisQteService.isPlayerControlLocked(sp)
+                                || net.parkabird.changedsynergy.origin.NativeOriginService.pending(sp)));
     }
 
     @Override
@@ -447,6 +451,10 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
     }
 
     private void socialSignal(ServerPlayer origin) {
+        long now = origin.level().getGameTime();
+        long next = origin.getPersistentData().getLong("ChangedSynergyNextRelationshipSocialSignal");
+        if (now < next) return;
+        origin.getPersistentData().putLong("ChangedSynergyNextRelationshipSocialSignal", now + 20L);
         var body = net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(origin);
         Emote[] signals = {Emote.CASUAL, Emote.HEART, Emote.IDEA, Emote.PAUSE};
         Emote emote = signals[PlayerRelationshipSettings.nextSocialSignal(
@@ -498,8 +506,15 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
             }
             boolean bonded = LatexSocialMemory.isBonded(creature, origin)
                     || LatexSocialMemory.isPetOwner(creature, origin);
-            if (bonded && !BondedOwnerDefenseGoal.allowsConfiguredDefense(
-                    creature, origin, threat)) {
+            if (bonded) {
+                if (!BondedOwnerDefenseGoal.allowsConfiguredDefense(
+                        creature, origin, threat)) {
+                    continue;
+                }
+            } else if (!net.parkabird.changedsynergy.ai.PlayerOutpostService.mayAttackTarget(creature, threat)
+                    || LatexSocialMemory.rejectsFollowingCombatTarget(creature, threat)
+                    || (threat instanceof ChangedEntity otherThreat
+                            && LatexCreatureCombatRules.sharePlayerAlliance(creature, otherThreat))) {
                 continue;
             }
             LatexSocialMemory.authorizePetDefense(creature, threat, 240L);
@@ -673,8 +688,15 @@ public final class PlayerRelationshipMenu extends AbstractContainerMenu
         buffer.writeVarInt(PlayerRelationshipSettings.damageFilter(player).ordinal());
         buffer.writeUtf(PlayerOutpostCommand.wheelAction(player), 32);
         buffer.writeBoolean(net.parkabird.changedsynergy.ai.CompanionSeatingService.rallyAvailable(player));
-        buffer.writeVarInt(contacts.size());
-        contacts.forEach(contact -> writeContact(buffer, contact));
+        int contactCount = Math.min(64, contacts.size());
+        buffer.writeVarInt(contactCount);
+        for (int index = 0; index < contactCount; index++) {
+            writeContact(buffer, contacts.get(index));
+        }
+    }
+
+    public static int clampSyncedCount(int count) {
+        return Math.max(0, Math.min(64, count));
     }
 
     public static boolean hasFreeAbilitySlot(@Nullable ServerPlayer player) {

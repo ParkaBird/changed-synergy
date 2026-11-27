@@ -3,6 +3,7 @@ package net.parkabird.changedsynergy.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -72,6 +73,12 @@ public final class PlayerOutpostBuildClient {
         if (delta == 0.0D) return;
         ChangedSynergyNetwork.CHANNEL.sendToServer(PlayerOutpostBuildActionPacket.cycle(delta < 0 ? -1 : 1));
         event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        active = false;
+        palette = 0;
     }
 
 }

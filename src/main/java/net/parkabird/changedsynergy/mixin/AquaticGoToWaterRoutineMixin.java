@@ -4,6 +4,7 @@ import net.ltxprogrammer.changed.entity.beast.AbstractAquaticEntity;
 import net.parkabird.changedsynergy.ai.CreatureLifeMemory;
 import net.parkabird.changedsynergy.ai.CreatureLifeMemory.RoutineState;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
+import net.parkabird.changedsynergy.ai.NaturalCampService;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -33,7 +34,8 @@ public abstract class AquaticGoToWaterRoutineMixin {
     private void changedSynergy$finishShoreFishing(
             CallbackInfoReturnable<Boolean> callback) {
         if (CreatureLifeMemory.routine(mob) == RoutineState.FISHING
-                || LatexSocialMemory.isWaitingOnShore(mob)) {
+                || LatexSocialMemory.isWaitingOnShore(mob)
+                || NaturalCampService.member(mob)) {
             callback.setReturnValue(false);
         }
     }

@@ -4,6 +4,7 @@ import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.world.entity.Mob;
 import net.parkabird.changedsynergy.ai.BondedSuitService;
 import net.parkabird.changedsynergy.ai.CompanionOpenDoorGoal;
+import net.parkabird.changedsynergy.ai.NavigationObstacleSteering;
 import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Group;
@@ -19,8 +20,17 @@ public abstract class TrapdoorNavigationMixin {
     private void changedSynergy$trapdoorSteering(CallbackInfo callback) {
         if ((Object)this instanceof ChangedEntity creature && creature.getUnderlyingPlayer() == null
                 && !TrueTransfurCompat.isInstinctBody(creature)
-                && BondedSuitService.getSuitController(creature) == null)
+                && BondedSuitService.getSuitController(creature) == null) {
+            if (CompanionOpenDoorGoal.tickAutoCrouch(creature)) {
+                NavigationObstacleSteering.clearStuck(creature);
+            }
+            var move = creature.getMoveControl();
+            double wx = move.getWantedX(), wz = move.getWantedZ();
             CompanionOpenDoorGoal.slidePastOpenTrapdoor(creature);
+            if (move.getWantedX() == wx && move.getWantedZ() == wz) {
+                NavigationObstacleSteering.tickSteering(creature);
+            }
+        }
     }
 
     @Group(name = "trapdoorSteering", min = 1, max = 1)

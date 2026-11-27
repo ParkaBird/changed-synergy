@@ -99,7 +99,7 @@ public final class CentaurMountConfigMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int buttonId) {
-        if (buttonId != CARGO_BUTTON_ID && buttonId != RIDE_BUTTON_ID) {
+        if (!stillValid(player) || (buttonId != CARGO_BUTTON_ID && buttonId != RIDE_BUTTON_ID)) {
             return false;
         }
         if (player.level().isClientSide) {
@@ -129,7 +129,7 @@ public final class CentaurMountConfigMenu extends AbstractContainerMenu {
             return ItemStack.EMPTY;
         }
         Slot source = slots.get(slotIndex);
-        if (!source.hasItem() || slotIndex == 1 && !cargoEmpty) {
+        if (!source.hasItem() || slotIndex == 1 && !canRemoveChest()) {
             return ItemStack.EMPTY;
         }
 
@@ -170,12 +170,20 @@ public final class CentaurMountConfigMenu extends AbstractContainerMenu {
         return original;
     }
 
+    private boolean canRemoveChest() {
+        return viewer.level().isClientSide
+                ? cargoEmpty
+                : centaur != null
+                        && new CentaurMountCargo(centaur).isEmpty()
+                        && !CentaurMountService.isCargoOpen(centaur);
+    }
+
     private void createSlots(Inventory inventory) {
         addSlot(new GearSlot(gear, 0, 74, 13, Items.SADDLE));
         addSlot(new GearSlot(gear, 1, 92, 13, Items.CHEST) {
             @Override
             public boolean mayPickup(Player player) {
-                return cargoEmpty && super.mayPickup(player);
+                return canRemoveChest() && super.mayPickup(player);
             }
         });
         for (int row = 0; row < 3; row++) {

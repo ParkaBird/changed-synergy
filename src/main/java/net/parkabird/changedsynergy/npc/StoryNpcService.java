@@ -131,11 +131,11 @@ public final class StoryNpcService {
                 mob.setCustomName(net.minecraft.network.chat.Component.translatable("npc."+profile.id().replace(':','.')+".title"));
                 tag.putInt("NameVersion",1);
             }
-            int presetVersion=switch(profile.id()){case "changed_synergy:hyena_chief"->4;case "changed_synergy:canopy_chief"->3;case "changed_synergy:lab_researcher"->3;case "changed_synergy:desert_chief"->2;case "changed_synergy:cavern_chief"->3;case "changed_synergy:aec_chief"->1;case "changed_synergy:gray_fox_chief", "changed_synergy:manul_chief"->2;default->1;};
+            int presetVersion=switch(profile.id()){case "changed_synergy:hyena_chief"->4;case "changed_synergy:canopy_chief"->3;case "changed_synergy:lab_researcher"->3;case "changed_synergy:desert_chief"->2;case "changed_synergy:cavern_chief"->3;case "changed_synergy:aec_chief"->1;case "changed_synergy:gray_fox_chief", "changed_synergy:manul_chief"->2;case "changed_synergy:shoal_chief"->3;default->1;};
             if(tag.getInt("PresetVersion")<presetVersion) {
                 CreaturePersonality.setNpcPreset(mob,CreaturePersonality.Trait.valueOf(profile.trait()));
                 CreatureLifeMemory.setRole(mob,profile.chief()?CreatureLifeMemory.GroupRole.CHIEF:CreatureLifeMemory.GroupRole.WANDERER);
-                if(profile.id().equals("changed_synergy:hyena_chief")||profile.id().equals("changed_synergy:lab_researcher")||profile.id().equals("changed_synergy:canopy_chief")||profile.id().equals("changed_synergy:desert_chief")||profile.id().equals("changed_synergy:cavern_chief")||profile.id().equals("changed_synergy:aec_chief")||profile.id().equals("changed_synergy:gray_fox_chief")||profile.id().equals("changed_synergy:manul_chief")){
+                if(profile.id().equals("changed_synergy:hyena_chief")||profile.id().equals("changed_synergy:lab_researcher")||profile.id().equals("changed_synergy:canopy_chief")||profile.id().equals("changed_synergy:desert_chief")||profile.id().equals("changed_synergy:cavern_chief")||profile.id().equals("changed_synergy:aec_chief")||profile.id().equals("changed_synergy:gray_fox_chief")||profile.id().equals("changed_synergy:manul_chief")||profile.id().equals("changed_synergy:shoal_chief")){
                     var eyes=new net.ltxprogrammer.changed.entity.BasicPlayerInfo();eyes.copyFrom(mob.getBasicPlayerInfo());
                     boolean researcher=profile.id().equals("changed_synergy:lab_researcher");
                     boolean moth=profile.id().equals("changed_synergy:canopy_chief");
@@ -144,9 +144,10 @@ public final class StoryNpcService {
                     boolean aec=profile.id().equals("changed_synergy:aec_chief");
                     boolean lookout=profile.id().equals("changed_synergy:gray_fox_chief");
                     boolean steward=profile.id().equals("changed_synergy:manul_chief");
-                    // Lookout: warm-amber Tall eyes. Steward: olive Slim (V2) eyes.
-                    eyes.setEyeStyle(researcher||aec?net.ltxprogrammer.changed.entity.EyeStyle.V1:moth||desert||cavern||lookout?net.ltxprogrammer.changed.entity.EyeStyle.TALL:net.ltxprogrammer.changed.entity.EyeStyle.V2);
-                    int iris=researcher?0x65C98C:moth?0x90B8C2:desert?0x70B7A5:cavern?0x9B6FD6:aec?0xD98A32:lookout?0xD4923A:steward?0x6B8E23:0xB8744C;
+                    boolean shoal=profile.id().equals("changed_synergy:shoal_chief");
+                    // Lookout: warm-amber Tall eyes. Steward: olive Slim (V2) eyes. Scavenger: light-blue Tall eyes.
+                    eyes.setEyeStyle(researcher||aec?net.ltxprogrammer.changed.entity.EyeStyle.V1:moth||desert||cavern||lookout||shoal?net.ltxprogrammer.changed.entity.EyeStyle.TALL:net.ltxprogrammer.changed.entity.EyeStyle.V2);
+                    int iris=researcher?0x65C98C:moth?0x90B8C2:desert?0x70B7A5:cavern?0x9B6FD6:aec?0xD98A32:lookout?0xD4923A:steward?0x6B8E23:shoal?0x63C5E8:0xB8744C;
                     if(desert||aec)eyes.setScleraColor(net.ltxprogrammer.changed.util.Color3.WHITE);
                     eyes.setLeftIrisColor(net.ltxprogrammer.changed.util.Color3.fromInt(iris));eyes.setRightIrisColor(net.ltxprogrammer.changed.util.Color3.fromInt(iris));
                     mob.getEntityData().set(net.parkabird.changedsynergy.mixin.ChangedEntityAppearanceAccessor.changedSynergy$appearanceData(),eyes);

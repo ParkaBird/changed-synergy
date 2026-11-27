@@ -79,7 +79,6 @@ public final class TakeoverService {
     private static final String CLIENT = "SynergyTakeoverClient";
     private static final String RELEASE = "SynergyTakeoverReleasePermit";
     private static final String ORANGE_AT = "SynergyTakeoverOrangeAt";
-    private static final String ORANGE_PENDING = "SynergyTakeoverOrangePending";
     private static final String INTENT = "SynergyTakeoverIntent";
     // The decision is made before Changed's absorption threshold is crossed.
     // Keep authorization for the whole realistic grab, not just two seconds.
@@ -152,6 +151,7 @@ public final class TakeoverService {
             this.inheritedEyes = saved.getCompound("InheritedEyes").copy();
             this.carrierName = saved.getString("CarrierName");
             this.transfurApplied = saved.getBoolean("TransfurApplied");
+        this.confinement = saved.getBoolean("Confinement");
             this.directOutcome = saved.contains("DirectOutcome")
                     ? saved.getBoolean("DirectOutcome")
                     : saved.getBoolean("HostilePermanentOutcome");
@@ -664,6 +664,10 @@ public final class TakeoverService {
                 e.hostileFatalOutcome = true;
                 e.directOutcome = false;
                 e.failedNegotiationAt = -1;
+                if (!e.surrenderedPunitive && carrier != null) {
+                    CreaturePersonality.establishRelationship(carrier, player);
+                    CreaturePersonality.adjustFamiliarity(carrier, player, 12);
+                }
                 NpcDialogue.trigger(carrier, player, e.surrenderedPunitive
                         ? Cue.TAKEOVER_SURRENDER_PUNITIVE : Cue.TAKEOVER_SURRENDER);
             }
@@ -794,7 +798,6 @@ public final class TakeoverService {
         MinecraftServer server = event.getServer();
         long tick = now(server);
         tickReleasePoses(server, tick);
-        deliverPendingOranges(server);
         prunePendingIntents(server, tick);
         if (ACTIVE.isEmpty()) return;
         for (Entry e : ACTIVE.values().toArray(Entry[]::new)) {
@@ -1373,18 +1376,6 @@ public final class TakeoverService {
         return stack.getCount();
     }
 
-    private static void deliverPendingOranges(MinecraftServer server) {
-        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            CompoundTag rewards = persisted(player);
-            int pending = Math.max(0, rewards.getInt(ORANGE_PENDING));
-            if (pending == 0) continue;
-            int remainder = addOrangesToInventory(player, pending);
-            if (remainder > 0) player.drop(
-                    new net.minecraft.world.item.ItemStack(ChangedItems.ORANGE.get(), remainder), false);
-            rewards.remove(ORANGE_PENDING);
-        }
-    }
-
     private static Optional<Vec3> preferredOrdinaryRelease(Entry e, ServerPlayer player,
             @Nullable ChangedEntity carrier, boolean avoidThreats) {
         if (e.session.getKind() != TakeoverSession.Kind.ORDINARY) return Optional.empty();
@@ -1553,6 +1544,7 @@ public final class TakeoverService {
         if (!e.inheritedEyes.isEmpty()) tag.put("InheritedEyes", e.inheritedEyes.copy());
         if (!e.carrierName.isEmpty()) tag.putString("CarrierName", e.carrierName);
         tag.putBoolean("TransfurApplied", e.transfurApplied);
+        tag.putBoolean("Confinement", e.confinement);
         tag.putBoolean("DirectOutcome", e.directOutcome);
         tag.putBoolean("HostileFatalOutcome", e.hostileFatalOutcome);
         tag.putBoolean("Surrendered", e.surrendered);
@@ -1659,7 +1651,8 @@ public final class TakeoverService {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onCarrierHurt(LivingHurtEvent event) {
-        if (!(event.getEntity() instanceof ChangedEntity carrier)) return;
+        if (event.getEntity().level().isClientSide()
+                || !(event.getEntity() instanceof ChangedEntity carrier)) return;
         Entry e = find(carrier);
         if (e != null && carrier.getHealth() - event.getAmount() <= carrier.getMaxHealth() * 0.25F)
             e.session.emergencyRelease(now(carrier.getServer()));
@@ -1667,6 +1660,7 @@ public final class TakeoverService {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onDeath(LivingDeathEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
         if (event.getEntity() instanceof ServerPlayer player) {
             Entry e = ACTIVE.get(player.getUUID());
             if (e != null) e.session.interrupt(now(player.server));
@@ -1886,6 +1880,7 @@ public final class TakeoverService {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onInteract(PlayerInteractEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
         boolean bedUse = event instanceof PlayerInteractEvent.RightClickBlock block
                 && allowsBedUse(event.getEntity())
                 && event.getEntity().level().getBlockState(block.getPos()).getBlock() instanceof BedBlock;

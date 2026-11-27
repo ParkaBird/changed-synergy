@@ -14,6 +14,10 @@ public final class BurrowShawlLayers {
     public static LayerDefinition manulMale() {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
+        PartDefinition Head = root.addOrReplaceChild("Head", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, -0.5F, 0.0F, 0.0F, 0.0F, 0.0F));
+        PartDefinition Head_Closed = Head.addOrReplaceChild("State_Closed", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        Head_Closed.addOrReplaceChild("Closed_GaiterWrap_r12", CubeListBuilder.create().texOffs(80, 6).addBox(-3.5F, -1.0F, -4.0F, 7.0F, 2.0F, 6.0F, new CubeDeformation(0.34F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        Head_Closed.addOrReplaceChild("Closed_GaiterJawCup_r13", CubeListBuilder.create().texOffs(107, 4).addBox(-2.0F, -1.1F, -5.0F, 4.0F, 2.0F, 1.0F, new CubeDeformation(0.22F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         PartDefinition Torso = root.addOrReplaceChild("Torso", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 1.5F, 0.0F, 0.0F, 0.0F, 0.0F));
         PartDefinition Outfit_Shawl = Torso.addOrReplaceChild("Outfit_Shawl", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         Outfit_Shawl.addOrReplaceChild("Shawl_ScarfWrap_r1", CubeListBuilder.create().texOffs(0, 0).addBox(-3.5F, 0.5F, -2.0F, 7.0F, 2.0F, 4.0F, new CubeDeformation(0.56F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
@@ -30,15 +34,16 @@ public final class BurrowShawlLayers {
         Outfit_Props.addOrReplaceChild("Prop_LogisticsPouch_r10", CubeListBuilder.create().texOffs(110, 0).addBox(-1.0F, -1.0F, -0.5F, 2.0F, 2.0F, 1.0F, new CubeDeformation(0.04F)), PartPose.offsetAndRotation(2.4F, 10.9F, -3.15F, 0.0F, 0.0F, 0.0F));
         PartDefinition State_Open = Torso.addOrReplaceChild("State_Open", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         State_Open.addOrReplaceChild("Open_ScarfKnot_r11", CubeListBuilder.create().texOffs(117, 0).addBox(-1.5F, 1.2F, -3.12F, 3.0F, 2.0F, 1.0F, new CubeDeformation(-0.14F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        PartDefinition State_Closed = Torso.addOrReplaceChild("State_Closed", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        State_Closed.addOrReplaceChild("Closed_GaiterWrap_r12", CubeListBuilder.create().texOffs(80, 6).addBox(-3.5F, -1.0F, -4.0F, 7.0F, 2.0F, 6.0F, new CubeDeformation(0.34F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        State_Closed.addOrReplaceChild("Closed_GaiterJawCup_r13", CubeListBuilder.create().texOffs(107, 4).addBox(-2.0F, -1.1F, -5.0F, 4.0F, 2.0F, 1.0F, new CubeDeformation(0.22F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         return LayerDefinition.create(mesh, 128, 128);
     }
 
     public static LayerDefinition manulFemale() {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
+        PartDefinition Head = root.addOrReplaceChild("Head", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, -0.5F, 0.0F, 0.0F, 0.0F, 0.0F));
+        PartDefinition Head_Closed = Head.addOrReplaceChild("State_Closed", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        Head_Closed.addOrReplaceChild("Closed_GaiterWrap_r12", CubeListBuilder.create().texOffs(80, 6).addBox(-3.5F, -1.0F, -4.0F, 7.0F, 2.0F, 6.0F, new CubeDeformation(0.34F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        Head_Closed.addOrReplaceChild("Closed_GaiterJawCup_r13", CubeListBuilder.create().texOffs(107, 4).addBox(-2.0F, -1.1F, -5.0F, 4.0F, 2.0F, 1.0F, new CubeDeformation(0.22F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         PartDefinition Torso = root.addOrReplaceChild("Torso", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 1.5F, 0.0F, 0.0F, 0.0F, 0.0F));
         PartDefinition Outfit_Shawl = Torso.addOrReplaceChild("Outfit_Shawl", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         Outfit_Shawl.addOrReplaceChild("Shawl_ScarfWrap_r1", CubeListBuilder.create().texOffs(0, 0).addBox(-3.5F, 0.5F, -2.0F, 7.0F, 2.0F, 4.0F, new CubeDeformation(0.6F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
@@ -55,15 +60,16 @@ public final class BurrowShawlLayers {
         Outfit_Props.addOrReplaceChild("Prop_LogisticsPouch_r10", CubeListBuilder.create().texOffs(110, 0).addBox(-1.0F, -1.0F, -0.5F, 2.0F, 2.0F, 1.0F, new CubeDeformation(0.04F)), PartPose.offsetAndRotation(2.4F, 10.9F, -2.68F, 0.0F, 0.0F, 0.0F));
         PartDefinition State_Open = Torso.addOrReplaceChild("State_Open", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         State_Open.addOrReplaceChild("Open_ScarfKnot_r11", CubeListBuilder.create().texOffs(117, 0).addBox(-1.5F, 0.8F, -3.22F, 3.0F, 2.0F, 1.0F, new CubeDeformation(-0.15F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        PartDefinition State_Closed = Torso.addOrReplaceChild("State_Closed", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        State_Closed.addOrReplaceChild("Closed_GaiterWrap_r12", CubeListBuilder.create().texOffs(80, 6).addBox(-3.5F, -1.0F, -4.0F, 7.0F, 2.0F, 6.0F, new CubeDeformation(0.34F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        State_Closed.addOrReplaceChild("Closed_GaiterJawCup_r13", CubeListBuilder.create().texOffs(107, 4).addBox(-2.0F, -1.1F, -5.0F, 4.0F, 2.0F, 1.0F, new CubeDeformation(0.22F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         return LayerDefinition.create(mesh, 128, 128);
     }
 
     public static LayerDefinition grayFoxMale() {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
+        PartDefinition Head = root.addOrReplaceChild("Head", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, -0.5F, 0.0F, 0.0F, 0.0F, 0.0F));
+        PartDefinition Head_Closed = Head.addOrReplaceChild("State_Closed", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        Head_Closed.addOrReplaceChild("Closed_MaskCheeks_r14", CubeListBuilder.create().texOffs(95, 47).addBox(-4.0F, -1.2F, -4.0F, 8.0F, 2.0F, 6.0F, new CubeDeformation(0.24F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        Head_Closed.addOrReplaceChild("Closed_MaskSnout_r15", CubeListBuilder.create().texOffs(70, 48).addBox(-2.0F, -1.4F, -6.0F, 4.0F, 2.0F, 2.0F, new CubeDeformation(0.18F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         PartDefinition Torso = root.addOrReplaceChild("Torso", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, -0.5F, 0.0F, 0.0F, 0.0F, 0.0F));
         PartDefinition Outfit_Shawl = Torso.addOrReplaceChild("Outfit_Shawl", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         Outfit_Shawl.addOrReplaceChild("Lookout_ScarfWrap_r1", CubeListBuilder.create().texOffs(0, 42).addBox(-4.0F, 0.0F, -2.0F, 8.0F, 2.0F, 4.0F, new CubeDeformation(0.58F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
@@ -82,15 +88,16 @@ public final class BurrowShawlLayers {
         Outfit_Props.addOrReplaceChild("Prop_ScopePitonPack_r12", CubeListBuilder.create().texOffs(100, 42).addBox(-1.0F, -1.5F, -0.5F, 2.0F, 3.0F, 1.0F, new CubeDeformation(0.04F)), PartPose.offsetAndRotation(-2.6F, 10.4F, -2.65F, 0.0F, 0.0F, 0.0F));
         PartDefinition State_Open = Torso.addOrReplaceChild("State_Open", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         State_Open.addOrReplaceChild("Open_BandanaFold_r13", CubeListBuilder.create().texOffs(107, 42).addBox(-3.0F, 0.0F, 0.0F, 6.0F, 4.0F, 0.0F, new CubeDeformation(0.0125F)), PartPose.offsetAndRotation(0.0F, 1.3F, -2.7F, -0.15708F, 0.0F, 0.0F));
-        PartDefinition State_Closed = Torso.addOrReplaceChild("State_Closed", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        State_Closed.addOrReplaceChild("Closed_MaskCheeks_r14", CubeListBuilder.create().texOffs(95, 47).addBox(-4.0F, -1.2F, -4.0F, 8.0F, 2.0F, 6.0F, new CubeDeformation(0.24F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        State_Closed.addOrReplaceChild("Closed_MaskSnout_r15", CubeListBuilder.create().texOffs(70, 48).addBox(-2.0F, -1.4F, -6.0F, 4.0F, 2.0F, 2.0F, new CubeDeformation(0.18F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         return LayerDefinition.create(mesh, 128, 128);
     }
 
     public static LayerDefinition grayFoxFemale() {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
+        PartDefinition Head = root.addOrReplaceChild("Head", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, -0.5F, 0.0F, 0.0F, 0.0F, 0.0F));
+        PartDefinition Head_Closed = Head.addOrReplaceChild("State_Closed", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        Head_Closed.addOrReplaceChild("Closed_MaskCheeks_r14", CubeListBuilder.create().texOffs(95, 47).addBox(-4.0F, -1.2F, -4.0F, 8.0F, 2.0F, 6.0F, new CubeDeformation(0.24F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        Head_Closed.addOrReplaceChild("Closed_MaskSnout_r15", CubeListBuilder.create().texOffs(70, 48).addBox(-2.0F, -1.4F, -6.0F, 4.0F, 2.0F, 2.0F, new CubeDeformation(0.18F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         PartDefinition Torso = root.addOrReplaceChild("Torso", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, -0.5F, 0.0F, 0.0F, 0.0F, 0.0F));
         PartDefinition Outfit_Shawl = Torso.addOrReplaceChild("Outfit_Shawl", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         Outfit_Shawl.addOrReplaceChild("Lookout_ScarfWrap_r1", CubeListBuilder.create().texOffs(0, 42).addBox(-4.0F, 0.0F, -2.0F, 8.0F, 2.0F, 4.0F, new CubeDeformation(0.62F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
@@ -109,15 +116,16 @@ public final class BurrowShawlLayers {
         Outfit_Props.addOrReplaceChild("Prop_ScopePitonPack_r12", CubeListBuilder.create().texOffs(100, 42).addBox(-1.0F, -1.5F, -0.5F, 2.0F, 3.0F, 1.0F, new CubeDeformation(0.04F)), PartPose.offsetAndRotation(-2.6F, 10.4F, -2.7F, 0.0F, 0.0F, 0.0F));
         PartDefinition State_Open = Torso.addOrReplaceChild("State_Open", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         State_Open.addOrReplaceChild("Open_BandanaFold_r13", CubeListBuilder.create().texOffs(107, 42).addBox(-3.0F, 0.0F, 0.0F, 6.0F, 4.0F, 0.0F, new CubeDeformation(0.0125F)), PartPose.offsetAndRotation(0.0F, 1.3F, -2.82F, -0.15708F, 0.0F, 0.0F));
-        PartDefinition State_Closed = Torso.addOrReplaceChild("State_Closed", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        State_Closed.addOrReplaceChild("Closed_MaskCheeks_r14", CubeListBuilder.create().texOffs(95, 47).addBox(-4.0F, -1.2F, -4.0F, 8.0F, 2.0F, 6.0F, new CubeDeformation(0.24F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        State_Closed.addOrReplaceChild("Closed_MaskSnout_r15", CubeListBuilder.create().texOffs(70, 48).addBox(-2.0F, -1.4F, -6.0F, 4.0F, 2.0F, 2.0F, new CubeDeformation(0.18F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         return LayerDefinition.create(mesh, 128, 128);
     }
 
     public static LayerDefinition bipedal() {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
+        PartDefinition Head = root.addOrReplaceChild("Head", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, -0.5F, 0.0F, 0.0F, 0.0F, 0.0F));
+        PartDefinition Head_Closed = Head.addOrReplaceChild("State_Closed", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        Head_Closed.addOrReplaceChild("Closed_WarmerWrap_r12", CubeListBuilder.create().texOffs(97, 89).addBox(-4.0F, -1.3F, -4.0F, 8.0F, 2.0F, 6.0F, new CubeDeformation(0.28F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        Head_Closed.addOrReplaceChild("Closed_WarmerFront_r13", CubeListBuilder.create().texOffs(106, 85).addBox(-2.0F, -1.3F, -5.2F, 4.0F, 2.0F, 1.0F, new CubeDeformation(0.22F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         PartDefinition Torso = root.addOrReplaceChild("Torso", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, -0.5F, 0.0F, 0.0F, 0.0F, 0.0F));
         PartDefinition Outfit_Shawl = Torso.addOrReplaceChild("Outfit_Shawl", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         Outfit_Shawl.addOrReplaceChild("Trail_ScarfWrap_r1", CubeListBuilder.create().texOffs(0, 85).addBox(-4.0F, 0.0F, -2.0F, 8.0F, 2.0F, 4.0F, new CubeDeformation(0.58F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
@@ -134,15 +142,16 @@ public final class BurrowShawlLayers {
         Outfit_Props.addOrReplaceChild("Prop_SideSatchel_r10", CubeListBuilder.create().texOffs(90, 85).addBox(-1.0F, -1.5F, -0.5F, 2.0F, 3.0F, 1.0F, new CubeDeformation(0.04F)), PartPose.offsetAndRotation(2.6F, 10.4F, -2.65F, 0.0F, 0.0F, 0.0F));
         PartDefinition State_Open = Torso.addOrReplaceChild("State_Open", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         State_Open.addOrReplaceChild("Open_CollarFolds_r11", CubeListBuilder.create().texOffs(97, 85).addBox(-2.0F, 0.0F, 0.0F, 4.0F, 3.0F, 0.0F, new CubeDeformation(0.0125F)), PartPose.offsetAndRotation(0.0F, 1.4F, -2.68F, -0.15708F, 0.0F, 0.0F));
-        PartDefinition State_Closed = Torso.addOrReplaceChild("State_Closed", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        State_Closed.addOrReplaceChild("Closed_WarmerWrap_r12", CubeListBuilder.create().texOffs(97, 89).addBox(-4.0F, -1.3F, -4.0F, 8.0F, 2.0F, 6.0F, new CubeDeformation(0.28F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        State_Closed.addOrReplaceChild("Closed_WarmerFront_r13", CubeListBuilder.create().texOffs(106, 85).addBox(-2.0F, -1.3F, -5.2F, 4.0F, 2.0F, 1.0F, new CubeDeformation(0.22F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         return LayerDefinition.create(mesh, 128, 128);
     }
 
     public static LayerDefinition female() {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
+        PartDefinition Head = root.addOrReplaceChild("Head", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        PartDefinition Head_Closed = Head.addOrReplaceChild("State_Closed", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        Head_Closed.addOrReplaceChild("Closed_WarmerWrap_r13", CubeListBuilder.create().texOffs(97, 89).addBox(-4.0F, -1.3F, -4.0F, 8.0F, 2.0F, 6.0F, new CubeDeformation(0.28F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
+        Head_Closed.addOrReplaceChild("Closed_WarmerFront_r14", CubeListBuilder.create().texOffs(106, 85).addBox(-2.0F, -1.3F, -5.2F, 4.0F, 2.0F, 1.0F, new CubeDeformation(0.22F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         PartDefinition Torso = root.addOrReplaceChild("Torso", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         PartDefinition Outfit_Shawl = Torso.addOrReplaceChild("Outfit_Shawl", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         Outfit_Shawl.addOrReplaceChild("Trail_ScarfWrap_r1", CubeListBuilder.create().texOffs(0, 85).addBox(-4.0F, 0.0F, -2.0F, 8.0F, 2.0F, 4.0F, new CubeDeformation(0.58F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
@@ -160,9 +169,6 @@ public final class BurrowShawlLayers {
         Outfit_Props.addOrReplaceChild("Prop_SideSatchel_r11", CubeListBuilder.create().texOffs(90, 85).addBox(-1.0F, -1.5F, -0.5F, 2.0F, 3.0F, 1.0F, new CubeDeformation(0.04F)), PartPose.offsetAndRotation(2.6F, 10.3F, -2.65F, 0.0F, 0.0F, 0.0F));
         PartDefinition State_Open = Torso.addOrReplaceChild("State_Open", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         State_Open.addOrReplaceChild("Open_CollarFolds_r12", CubeListBuilder.create().texOffs(97, 85).addBox(-2.0F, 0.0F, 0.0F, 4.0F, 3.0F, 0.0F, new CubeDeformation(0.0125F)), PartPose.offsetAndRotation(0.0F, 0.9F, -2.68F, -0.279253F, 0.0F, 0.0F));
-        PartDefinition State_Closed = Torso.addOrReplaceChild("State_Closed", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        State_Closed.addOrReplaceChild("Closed_WarmerWrap_r13", CubeListBuilder.create().texOffs(97, 89).addBox(-4.0F, -1.3F, -4.0F, 8.0F, 2.0F, 6.0F, new CubeDeformation(0.28F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
-        State_Closed.addOrReplaceChild("Closed_WarmerFront_r14", CubeListBuilder.create().texOffs(106, 85).addBox(-2.0F, -1.3F, -5.2F, 4.0F, 2.0F, 1.0F, new CubeDeformation(0.22F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F));
         return LayerDefinition.create(mesh, 128, 128);
     }
 }

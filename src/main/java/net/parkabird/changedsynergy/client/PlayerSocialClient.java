@@ -11,6 +11,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -122,5 +123,13 @@ public final class PlayerSocialClient {
             PlayerBodyPacket body = BODIES.remove(id);
             if (body != null) OWNERS.remove(body.owner(), id);
         }
+    }
+
+    @SubscribeEvent
+    public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        BODIES.clear();
+        OWNERS.clear();
+        VISIBLE_BODIES.clear();
+        level = null;
     }
 }

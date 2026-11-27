@@ -59,6 +59,13 @@ public final class BondedCreatureReleaseData extends SavedData {
         setDirty();
     }
 
+    /** True while a release tombstone is pending for this unloaded creature/owner pair. */
+    public boolean isReleased(UUID owner, UUID creature) {
+        String creatureKey = creature.toString();
+        return pending.contains(creatureKey, Tag.TAG_COMPOUND)
+                && pending.getCompound(creatureKey).contains(owner.toString());
+    }
+
     public Set<UUID> consume(UUID creature) {
         String creatureKey = creature.toString();
         if (!pending.contains(creatureKey, Tag.TAG_COMPOUND)) {

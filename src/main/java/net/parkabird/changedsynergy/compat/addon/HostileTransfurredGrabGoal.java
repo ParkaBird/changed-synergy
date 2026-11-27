@@ -1,23 +1,12 @@
 package net.parkabird.changedsynergy.compat.addon;
 
-import java.util.EnumSet;
 import java.util.List;
 import net.foxyas.changedaddon.ability.api.GrabEntityAbilityExtensor;
 import net.foxyas.changedaddon.entity.api.IGrabberEntity;
-import net.foxyas.changedaddon.mixins.entity.CombatTrackerAccessor;
-import net.ltxprogrammer.changed.Changed;
 import net.ltxprogrammer.changed.ability.GrabEntityAbility;
 import net.ltxprogrammer.changed.ability.GrabEntityAbilityInstance;
-import net.ltxprogrammer.changed.ability.IAbstractChangedEntity;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.entity.TransfurCause;
-import net.ltxprogrammer.changed.entity.TransfurContext;
-import net.ltxprogrammer.changed.entity.variant.TransfurVariant;
-import net.ltxprogrammer.changed.entity.variant.TransfurVariantInstance;
-import net.ltxprogrammer.changed.init.ChangedSounds;
-import net.ltxprogrammer.changed.network.packet.GrabEntityPacket;
-import net.ltxprogrammer.changed.network.packet.GrabEntityPacket.GrabType;
-import net.ltxprogrammer.changed.network.packet.SyncTransfurPacket;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.parkabird.changedsynergy.ai.LatexSocialMemory;
 import net.parkabird.changedsynergy.ai.LatexSocialRelation;
@@ -31,29 +20,17 @@ import net.parkabird.changedsynergy.event.HuntAIEvents;
 import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraftforge.network.PacketDistributor;
 
 /**
  * Uses Addon's normal hold/escape presentation to re-assimilate a transformed
  * player after they have become a personal enemy, or when they belong to an
  * inherently hostile latex faction.
  */
-public final class HostileTransfurredGrabGoal extends Goal {
-    private static final int ABSORB_TICKS = 106;
-    private static final double GRAB_DISTANCE_SQR = 2.5 * 2.5;
-
-    private final ChangedEntity mob;
-    private final IGrabberEntity grabber;
-    private ServerPlayer target;
-    private GrabEntityAbilityInstance ability;
-    private int holdTicks;
-    private boolean completed;
+public final class HostileTransfurredGrabGoal extends AddonSecondaryGrabGoal {
+    private static final int ABSORB_TICKS = SECONDARY_HOLD_TICKS;
 
     public HostileTransfurredGrabGoal(ChangedEntity mob, IGrabberEntity grabber) {
-        this.mob = mob;
-        this.grabber = grabber;
-        setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.TARGET));
+        super(mob, grabber);
     }
 
     @Override
@@ -94,42 +71,14 @@ public final class HostileTransfurredGrabGoal extends Goal {
     public void start() {
         holdTicks = 0;
         completed = false;
-        if (target == null || ability == null
-                || !(ability instanceof GrabEntityAbilityExtensor extensor)) {
-            return;
-        }
-
-        clearRecentCombat();
-        extensor.setAllowGrabTransfurred(true);
-        extensor.setSafeModeAuthoritative(true);
-        ability.suited = false;
-        ability.attackDown = false;
-        ability.useDown = false;
-        if (!ability.grabEntity(target)) {
-            target = null;
-            return;
-        }
-
-        LatexSocialMemory.beginSecondaryGrab(mob, target);
-        Changed.PACKET_HANDLER.send(
-                PacketDistributor.TRACKING_ENTITY.with(grabber::asMob),
-                new GrabEntityPacket(mob, target, GrabType.ARMS));
-        mob.setTarget(null);
-        mob.getNavigation().stop();
-        ChangedSounds.broadcastSound(mob, ChangedSounds.LATEX_GRAB_ENTITY, 1.0F, 1.0F);
-        grabber.applyGrabCooldown(0);
+        beginArmHold(1.0F, false);
     }
 
     @Override
     public void tick() {
-        if (target == null || ability == null || ability.grabbedEntity != target) {
+        if (!maintainHold()) {
             return;
         }
-
-        clearRecentCombat();
-        mob.setTarget(null);
-        mob.getNavigation().stop();
-        mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
         if (++holdTicks >= ABSORB_TICKS) {
             completeSecondaryTransfur();
         }
@@ -138,46 +87,12 @@ public final class HostileTransfurredGrabGoal extends Goal {
     @Override
     public void stop() {
         ServerPlayer previousTarget = target;
-        boolean wasCompleted = completed;
-        if (previousTarget != null) {
-            LatexSocialMemory.endSecondaryGrab(mob, previousTarget);
-        }
-        releaseGrab(previousTarget);
-
-        if (ability instanceof GrabEntityAbilityExtensor extensor) {
-            extensor.setSafeModeAuthoritative(false);
-        }
-        if (ability != null) {
-            ability.attackDown = false;
-            ability.useDown = false;
-        }
-        grabber.applyGrabCooldown(wasCompleted ? 80 : 0);
-
-        target = null;
-        ability = null;
-        holdTicks = 0;
-        completed = false;
-
-        if (!wasCompleted && previousTarget != null
+        boolean interrupted = endHold(80, 0);
+        if (interrupted && previousTarget != null
                 && (LatexFusionIntent.nativeFusionAvailable(mob, previousTarget)
                         || isHostileTransfurredTarget(previousTarget))) {
             mob.setTarget(previousTarget);
         }
-    }
-
-    @Override
-    public boolean requiresUpdateEveryTick() {
-        return true;
-    }
-
-    @Override
-    public boolean isInterruptable() {
-        return false;
-    }
-
-    private boolean isWithinGrabReach(ServerPlayer player) {
-        return mob.getBoundingBox().inflate(0.75).intersects(player.getBoundingBox())
-                || mob.distanceToSqr(player) <= GRAB_DISTANCE_SQR;
     }
 
     private boolean isHostileTransfurredTarget(ServerPlayer player) {
@@ -192,51 +107,19 @@ public final class HostileTransfurredGrabGoal extends Goal {
     }
 
     private void completeSecondaryTransfur() {
-        if (completed || target == null || ability == null) {
+        if (target == null) {
             return;
         }
-
-        TransfurVariant<?> sourceVariant = mob.getSelfVariant();
-        if (sourceVariant == null) {
+        ServerPlayer transfurredPlayer = target;
+        boolean bondConflict = LatexSocialMemory.hasOtherBondedCreature(transfurredPlayer, mob);
+        if (!applySecondaryTransfur(TransfurCause.GRAB_ABSORB)) {
             return;
         }
-
-        boolean bondConflict = LatexSocialMemory.hasOtherBondedCreature(target, mob);
-        TransfurContext context = TransfurContext.npcLatexHazard(mob, TransfurCause.GRAB_ABSORB);
-        // Secondary assimilation is an immediate form replacement. Replaying
-        // Changed's full first-transfur animation made the protected hold look
-        // interrupted and could race the release packet.
-        float progress = 1.0F;
-        TransfurVariantInstance<?> instance = ProcessTransfur.setPlayerTransfurVariant(
-                target, sourceVariant, context, progress);
-        if (instance == null) {
-            return;
-        }
-
-        // The Changed setter intentionally returns early for the same variant;
-        // refresh its context/progression so a true second assimilation is still visible.
-        instance.transfurContext = context;
-        instance.transfurProgressionO = progress;
-        instance.transfurProgression = progress;
-        instance.setTemporaryForSuit(false);
-        net.parkabird.changedsynergy.ai.TransfurConsciousness.applyInvoluntaryOutcome(target, instance);
-        IAbstractChangedEntity transformedPlayer =
-                IAbstractChangedEntity.forPlayerWithVariant(target, instance);
-        ProcessTransfur.onNewlyTransfurred(transformedPlayer);
-        Changed.PACKET_HANDLER.send(
-                PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> target),
-                SyncTransfurPacket.Builder.of(target));
-        ChangedSounds.broadcastSound(target, sourceVariant.sound, 1.0F, 1.0F);
-
-        completed = true;
-        releaseGrab(target);
-        InvoluntaryTransfurNegotiation.abandonForSecondaryTransfur(target);
-        net.parkabird.changedsynergy.ai.FactionHostilityGrace.beginSecondary(mob, target);
-        settleNearbyHostility(target);
+        settleNearbyHostility(transfurredPlayer);
         if (bondConflict) {
-            HuntAIEvents.celebrateBondConflictAbsorption(mob, target);
+            HuntAIEvents.celebrateBondConflictAbsorption(mob, transfurredPlayer);
         } else {
-            NpcDialogue.trigger(mob, target, Cue.SECONDARY_TRANSFUR);
+            NpcDialogue.trigger(mob, transfurredPlayer, Cue.SECONDARY_TRANSFUR);
         }
     }
 
@@ -291,27 +174,5 @@ public final class HostileTransfurredGrabGoal extends Goal {
                     companion.setAggressive(false);
                     companion.getNavigation().stop();
                 });
-    }
-
-    private void releaseGrab(ServerPlayer grabbedPlayer) {
-        if (ability == null || grabbedPlayer == null || ability.grabbedEntity != grabbedPlayer) {
-            return;
-        }
-        ability.releaseEntity(false);
-        Changed.PACKET_HANDLER.send(
-                PacketDistributor.TRACKING_ENTITY.with(grabber::asMob),
-                new GrabEntityPacket(mob, grabbedPlayer, GrabType.RELEASE));
-    }
-
-    /**
-     * Addon's drop goal reads CombatTracker's old damage entries. They describe
-     * the attacks that established hostility, not a new interruption of this hold.
-     */
-    private void clearRecentCombat() {
-        if (mob.getCombatTracker() instanceof CombatTrackerAccessor tracker) {
-            tracker.getEntries().clear();
-        }
-        mob.setLastHurtByMob(null);
-        mob.setLastHurtByPlayer(null);
     }
 }

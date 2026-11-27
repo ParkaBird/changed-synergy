@@ -52,7 +52,7 @@ public final class ScoutTargetClientState {
         return entity.level() == minecraft.level;
     }
 
-    private static void clear() {
+    public static void clear() {
         TARGET_EXPIRY.clear();
         markedLevel = null;
     }

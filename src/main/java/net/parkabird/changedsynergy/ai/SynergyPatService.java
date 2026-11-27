@@ -24,6 +24,7 @@ public final class SynergyPatService {
             boolean animate) {
         if (!actor.isAlive()
                 || !target.isAlive()
+                || target == actor
                 || TrueTransfurCompat.isInstinctShell(actor) || TrueTransfurCompat.isRebirthing(actor)
                 || target instanceof ServerPlayer recipientPlayer
                         && (TrueTransfurCompat.isInstinctShell(recipientPlayer) || TrueTransfurCompat.isRebirthing(recipientPlayer))

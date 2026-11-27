@@ -34,5 +34,6 @@ public final class NativeOriginClient {
     @SubscribeEvent public static void logout(ClientPlayerNetworkEvent.LoggingOut event) {
         state = null; NativeOriginPolicy.clientSelective = false; NativeOriginPolicy.clientNatives = java.util.Set.of();
         NativeOriginPolicy.clientInstincts = java.util.Set.of();
+        NativeOriginPolicy.clientReversibleRites = java.util.Set.of();
     }
 }

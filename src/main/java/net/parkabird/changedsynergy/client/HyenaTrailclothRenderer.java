@@ -1,18 +1,12 @@
 package net.parkabird.changedsynergy.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.WeakHashMap;
-import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.client.renderer.accessory.AccessoryRenderer;
 import net.ltxprogrammer.changed.client.renderer.layers.AccessoryLayer;
 import net.ltxprogrammer.changed.client.renderer.model.AdvancedHumanoidModel;
 import net.ltxprogrammer.changed.data.AccessorySlotContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
@@ -21,7 +15,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
@@ -35,9 +28,6 @@ import net.parkabird.changedsynergy.client.model.HyenaTrailclothLayers;
 import net.parkabird.changedsynergy.client.model.LatexSpottedHyenaModel;
 import net.parkabird.changedsynergy.init.ChangedSynergyItems;
 import net.parkabird.changedsynergy.item.HyenaTrailclothItem;
-import org.joml.Quaternionf;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
 
 /** Bind clothing directly to the wearer's final pose, including social holds and extra body scaling. */
 @Mod.EventBusSubscriber(modid = ChangedSynergyMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)

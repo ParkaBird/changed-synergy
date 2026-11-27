@@ -36,6 +36,11 @@ public final class BondedCreatureDeathData extends SavedData {
     }
 
     public void markDead(UUID owner, UUID creature) {
+        String ownerKey = owner.toString();
+        if (pending.contains(ownerKey, Tag.TAG_COMPOUND)
+                && pending.getCompound(ownerKey).contains(creature.toString())) {
+            return;
+        }
         markDead(owner, creature, new CompoundTag());
     }
 

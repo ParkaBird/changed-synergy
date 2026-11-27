@@ -30,5 +30,9 @@ public final class AbsorptionNegotiationClientState {
     @SubscribeEvent
     public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         active = false;
+        EmoteClientState.clear();
+        WhiteHiveTargetClientState.clear();
+        ScoutTargetClientState.clear();
+        GrabQteOverlayRenderer.clear();
     }
 }

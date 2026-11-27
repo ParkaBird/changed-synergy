@@ -106,10 +106,20 @@ public final class FactionReputationEvents {
         }
     }
 
+    private static boolean isExemptSelfDefense(
+            DamageSource source,
+            ChangedEntity creature,
+            ServerPlayer player) {
+        return source.is(ChangedDamageSources.GRAB_ESCAPE.key())
+                || net.parkabird.changedsynergy.ai.PlayfulFriendTransfurGoal.isDefense(creature, player)
+                || net.parkabird.changedsynergy.ai.TakeoverConflictMemory.protectsSelfDefense(creature, player);
+    }
+
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLockedHurt(LivingHurtEvent event) {
         if (event.getEntity() instanceof ChangedEntity creature
                 && event.getSource().getEntity() instanceof ServerPlayer player
+                && !isExemptSelfDefense(event.getSource(), creature, player)
                 && FactionHostilityGrace.damageLocked(creature, player)) {
             event.setCanceled(true);
         }
@@ -119,6 +129,7 @@ public final class FactionReputationEvents {
     public static void onLockedDamage(net.minecraftforge.event.entity.living.LivingDamageEvent event) {
         if (event.getEntity() instanceof ChangedEntity creature
                 && event.getSource().getEntity() instanceof ServerPlayer player
+                && !isExemptSelfDefense(event.getSource(), creature, player)
                 && FactionHostilityGrace.damageLocked(creature, player)) {
             event.setCanceled(true);
         }
@@ -211,10 +222,6 @@ public final class FactionReputationEvents {
         long now = creature.level().getGameTime();
         if (net.parkabird.changedsynergy.ai.PlayfulFriendTransfurGoal.isDefense(creature, player)) return;
         if (net.parkabird.changedsynergy.ai.TakeoverConflictMemory.protectsSelfDefense(creature, player)) return;
-        if (FactionHostilityGrace.damageLocked(creature, player)) {
-            event.setCanceled(true);
-            return;
-        }
         if (net.parkabird.changedsynergy.ai.HumanBoundaryService.isSoftBoundaryHit(
                 creature, player, event.getSource(), event.getAmount())) return;
         FactionHostilityGrace.noteAggression(creature, player);
@@ -252,6 +259,13 @@ public final class FactionReputationEvents {
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         PENDING_AUTHORITATIVE_SYNC.remove(event.getEntity().getUUID());
         NEXT_AUTHORITATIVE_SYNC.remove(event.getEntity().getUUID());
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
+        PENDING_AUTHORITATIVE_SYNC.clear();
+        NEXT_AUTHORITATIVE_SYNC.clear();
+        PENDING_LIGHT_GROUP_ASSIGNMENTS.clear();
     }
 
     /**

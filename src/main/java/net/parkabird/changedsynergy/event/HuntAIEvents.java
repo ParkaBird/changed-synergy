@@ -12,6 +12,7 @@ import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.ltxprogrammer.changed.process.TransfurEvents;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ChangedSynergyMod;
+import net.parkabird.changedsynergy.ai.BondedSuitService;
 import net.parkabird.changedsynergy.ai.CreaturePersonality;
 import net.parkabird.changedsynergy.ai.CreaturePersonality.Trait;
 import net.parkabird.changedsynergy.ai.CreatureCacheGuardService;
@@ -88,13 +89,6 @@ public final class HuntAIEvents {
     private static final TagKey<EntityType<?>> HUNT_AI_EXCLUDED = tag("changed_synergy", "hunt_ai_excluded");
 
     private HuntAIEvents() {
-    }
-
-    @SubscribeEvent
-    public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        if (event.phase == TickEvent.Phase.END && !event.level.isClientSide()) {
-            UnderwaterPursuitGoal.flushSwimmingOrientations(event.level);
-        }
     }
 
     @SubscribeEvent
@@ -195,6 +189,25 @@ public final class HuntAIEvents {
      * event. The listener appended here runs only when the player's
      * transformation actually completes, never for mere partial progress.
      */
+    @SubscribeEvent
+    public static void onEntityReplaced(TransfurEvents.ReplaceEntityEvent event) {
+        ChangedEntity spawned = event.getReplacementEntity();
+        if (spawned == null || spawned.level().isClientSide || !LatexSocialMemory.isSocialLatex(spawned)) {
+            return;
+        }
+        ServerPlayer causePlayer = event.getCauseOfReplacement() instanceof ServerPlayer direct ? direct
+                : event.getCauseOfReplacement() instanceof ChangedEntity body
+                        ? TrueTransfurCompat.bodyOwner(body) : null;
+        if (causePlayer != null) {
+            CreaturePersonality.establishRelationship(spawned, causePlayer);
+            LatexSocialEvents.calmTowards(spawned, causePlayer);
+        }
+        if (event.getEntityToReplace() instanceof ServerPlayer victim && victim != causePlayer) {
+            CreaturePersonality.establishRelationship(spawned, victim);
+            LatexSocialEvents.calmTowards(spawned, victim);
+        }
+    }
+
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onAssimilationDecision(TransfurEvents.LatexAssimilationDecisionEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer victim)
@@ -859,9 +872,10 @@ public final class HuntAIEvents {
             case FRIENDLY_OTHER -> Cue.MEET_FRIENDLY;
             case OUTSIDER -> Cue.MEET_OUTSIDER;
             case HUMAN -> Cue.SPOTTED;
-            case FORMER_BONDED, FORMER_RESPECTED,
-                    FRIEND_RESPECTED, RIVAL -> throw new IllegalStateException(
-                            "Relationship cue should have returned above");
+            case FORMER_BONDED -> Cue.FORMER_BOND_WELCOME;
+            case FORMER_RESPECTED -> Cue.FORMER_RESPECT_WELCOME;
+            case FRIEND_RESPECTED -> Cue.FRIEND_RESPECT_WELCOME;
+            case RIVAL -> Cue.MEET_OUTSIDER;
         };
     }
 
@@ -881,7 +895,9 @@ public final class HuntAIEvents {
 
     private static void socialEncounter(ServerPlayer player) {
         if (!(player.level() instanceof ServerLevel level)
-                || !player.isAlive() || player.isSpectator()) {
+                || !player.isAlive() || player.isSpectator()
+                || BondedSuitService.getWrappingPet(player) != null
+                || TakeoverService.active(player)) {
             return;
         }
 

@@ -141,9 +141,15 @@ public final class CreaturePersonality {
         return List.copyOf(traits);
     }
 
+    static Trait secondaryTraitForPreset(Trait dominant) {
+        return (dominant == Trait.PLAYFUL || dominant == Trait.POLITE)
+                ? Trait.CALM : Trait.POLITE;
+    }
+
     public static void setNpcPreset(ChangedEntity mob, Trait dominant) {
         ensure(mob);
-        var preset=data(mob);preset.putInt(TRAIT_MASK,1<<dominant.ordinal()|1<<Trait.POLITE.ordinal());
+        Trait secondary = secondaryTraitForPreset(dominant);
+        var preset=data(mob);preset.putInt(TRAIT_MASK,1<<dominant.ordinal()|1<<secondary.ordinal());
         preset.putInt(DOMINANT_TRAIT,dominant.ordinal());preset.putInt(DATA_VERSION,CURRENT_VERSION);
     }
 

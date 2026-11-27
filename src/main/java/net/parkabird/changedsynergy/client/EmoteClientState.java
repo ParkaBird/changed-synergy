@@ -61,6 +61,11 @@ public final class EmoteClientState {
         }
     }
 
+    public static void clear() {
+        ACTIVE.clear();
+        PENDING.clear();
+    }
+
     private record ActiveEmote(Particle particle, int token) {
     }
 

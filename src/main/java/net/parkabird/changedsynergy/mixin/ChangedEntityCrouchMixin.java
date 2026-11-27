@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** Caps tall NPC Changed crouching height below 2.0 blocks so they can duck under standard doorways. */
+/** Caps tall NPC Changed crouching height below low 2-block doorways (including 1.8125 top trapdoors and 1.875 lab doors). */
 @Mixin(ChangedEntity.class)
 public abstract class ChangedEntityCrouchMixin {
     @Inject(
@@ -25,8 +25,8 @@ public abstract class ChangedEntityCrouchMixin {
         ChangedEntity self = (ChangedEntity) (Object) this;
         if (self.getUnderlyingPlayer() != null || self.isVehicle()) return;
         EntityDimensions dims = callback.getReturnValue();
-        if (dims != null && !dims.fixed && dims.height >= 1.9F) {
-            callback.setReturnValue(EntityDimensions.scalable(dims.width, 1.85F));
+        if (dims != null && !dims.fixed && dims.height > 1.80F) {
+            callback.setReturnValue(EntityDimensions.scalable(dims.width, 1.80F));
         }
     }
 }

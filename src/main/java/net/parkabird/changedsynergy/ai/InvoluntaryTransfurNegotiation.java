@@ -111,6 +111,7 @@ public final class InvoluntaryTransfurNegotiation {
     private static final String RELEASE_END_AT = "EndAt";
     private static final String RELEASE_REVERSED = "Reversed";
     private static final String RELEASE_BONDED = "BondedReversal";
+    private static final String RELEASE_RITE = "ReleaseRite";
     private static final String RELEASE_PREVIOUS_PROGRESS = "PreviousProgress";
     private static final String RELEASE_PREVIOUS_USED = "PreviousUsedApproaches";
     private static final String RELEASE_PREVIOUS_ATTEMPTS = "PreviousAttempts";
@@ -971,8 +972,34 @@ public final class InvoluntaryTransfurNegotiation {
         return release.hasUUID(RELEASE_PLAYER)
                 && target.getUUID().equals(release.getUUID(RELEASE_PLAYER))
                 && (release.getBoolean(RELEASE_BONDED)
+                    || release.getBoolean(RELEASE_RITE)
                     || target instanceof ServerPlayer player
                         && releaseMatchesClaim(source, player, release));
+    }
+
+    public static boolean beginRiteReleaseHold(
+            ChangedEntity npc,
+            ServerPlayer player) {
+        long now = npc.level().getGameTime();
+        CompoundTag release = new CompoundTag();
+        release.putUUID(RELEASE_PLAYER, player.getUUID());
+        release.putLong(RELEASE_REVERSE_AT, now + 40L);
+        release.putLong(RELEASE_END_AT, now + 80L);
+        release.putBoolean(RELEASE_REVERSED, false);
+        release.putBoolean(RELEASE_RITE, true);
+        npc.getPersistentData().put(RELEASE_ROOT, release);
+        player.closeContainer();
+
+        if (CreatureGrabService.tryStartNegotiatedRelease(npc, player, 80)) {
+            NpcDialogue.trigger(npc, player, Cue.BOND_REVERSE_HOLD);
+            return true;
+        }
+
+        applyPlayerReversal(player, false);
+        release.putBoolean(RELEASE_REVERSED, true);
+        npc.getPersistentData().put(RELEASE_ROOT, release);
+        finishReleaseHold(npc, player);
+        return true;
     }
 
     private static boolean releaseMatchesClaim(ChangedEntity source, ServerPlayer player,
@@ -1144,7 +1171,7 @@ public final class InvoluntaryTransfurNegotiation {
         CompoundTag release = source.getPersistentData()
                 .getCompound(RELEASE_ROOT);
         boolean bondedReversal = release.getBoolean(RELEASE_BONDED);
-        boolean riteReversal = release.getBoolean("ReleaseRite");
+        boolean riteReversal = release.getBoolean(RELEASE_RITE);
         if (!source.isAlive()
                 || !player.isAlive()
                 || source.level() != player.level()
@@ -1181,7 +1208,7 @@ public final class InvoluntaryTransfurNegotiation {
         CompoundTag release = source.getPersistentData()
                 .getCompound(RELEASE_ROOT);
         boolean bondedReversal = release.getBoolean(RELEASE_BONDED);
-        boolean riteReversal = release.getBoolean("ReleaseRite");
+        boolean riteReversal = release.getBoolean(RELEASE_RITE);
         if (!isReleaseHoldTarget(source, player)
                 || (riteReversal
                         ? !canContinueRiteReversal(source, player, release)
@@ -1200,7 +1227,7 @@ public final class InvoluntaryTransfurNegotiation {
             CompoundTag release,
             boolean playDialogue) {
         boolean bondedReversal = release.getBoolean(RELEASE_BONDED);
-        boolean riteReversal = release.getBoolean("ReleaseRite");
+        boolean riteReversal = release.getBoolean(RELEASE_RITE);
         if (riteReversal) {
             if (!release.getBoolean(RELEASE_REVERSED)) {
                 applyPlayerReversal(player, false);
@@ -1278,12 +1305,13 @@ public final class InvoluntaryTransfurNegotiation {
         CompoundTag release = source.getPersistentData()
                 .getCompound(RELEASE_ROOT).copy();
         boolean bondedReversal = release.getBoolean(RELEASE_BONDED);
+        boolean riteReversal = release.getBoolean(RELEASE_RITE);
         source.getPersistentData().remove(RELEASE_ROOT);
         if (player != null && release.getBoolean(RELEASE_REVERSED)) {
             completeInterruptedRelease(source, player, release);
             return;
         }
-        if (player != null && !bondedReversal && releaseMatchesClaim(source, player, release)) {
+        if (player != null && !bondedReversal && !riteReversal && releaseMatchesClaim(source, player, release)) {
             CompoundTag data = existingPlayerData(player);
             if (data != null) {
                 data.putInt(PROGRESS, release.getInt(RELEASE_PREVIOUS_PROGRESS));

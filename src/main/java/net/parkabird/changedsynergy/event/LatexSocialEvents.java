@@ -216,15 +216,15 @@ public final class LatexSocialEvents {
 
     /** Reinstalls social goals after an optional AI mod rebuilds the selectors. */
     public static void ensureSocialGoals(ChangedEntity mob) {
-        if (CreatureSocialProfile.allowsPersonalRelationship(mob)
-                && mob.goalSelector.getAvailableGoals().stream().noneMatch(g -> g.getGoal() instanceof net.parkabird.changedsynergy.ai.PlayfulFriendTransfurGoal)) {
-            mob.goalSelector.addGoal(2, new net.parkabird.changedsynergy.ai.PlayfulFriendTransfurGoal(mob));
-        }
         if (mob.level().isClientSide
                 || !LatexSocialMemory.isSocialLatex(mob)
                 || !CreatureSocialProfile.allowsSynergySystems(mob)
                 || ChangedExtrasCompat.ownsWildAi(mob)) {
             return;
+        }
+        if (CreatureSocialProfile.allowsPersonalRelationship(mob)
+                && mob.goalSelector.getAvailableGoals().stream().noneMatch(g -> g.getGoal() instanceof net.parkabird.changedsynergy.ai.PlayfulFriendTransfurGoal)) {
+            mob.goalSelector.addGoal(2, new net.parkabird.changedsynergy.ai.PlayfulFriendTransfurGoal(mob));
         }
         boolean personalSocial =
                 CreatureSocialProfile.allowsPersonalRelationship(mob);
@@ -830,6 +830,12 @@ public final class LatexSocialEvents {
                     ? takeoverCarrier : BondedSuitService.getWrappingPet(player);
             if (shelter != null && shelter != attacker
                     && shelter.isAlive() && !shelter.isRemoved()) {
+                if (attacker instanceof ChangedEntity changed
+                        && LatexCreatureCombatRules.mustRejectTarget(changed, shelter)) {
+                    event.setCanceled(true);
+                    LatexCreatureCombatRules.disengage(changed, player);
+                    return;
+                }
                 // The contained player has no exposed body. External threats
                 // should fight the visible carrier instead of endlessly
                 // attacking an invulnerable hidden hitbox.
@@ -1000,16 +1006,6 @@ public final class LatexSocialEvents {
             }
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
-            return;
-        }
-
-        // This is Changed's native pet interaction, not a Synergy gift. Keep
-        // the explicit bypass in addition to the juvenile profile so a tag
-        // override from another datapack cannot steal the orange interaction.
-        if (creature instanceof DarkLatexWolfPup pup
-                && !pup.isTame()
-                && RelationshipFavorService.isOrdinaryOrange(
-                        player.getItemInHand(event.getHand()))) {
             return;
         }
 
@@ -1548,6 +1544,8 @@ public final class LatexSocialEvents {
             }
             double dialogueRange = ChangedSynergyConfig.COMMON.npcDialogueRange.get();
             if (owner != null
+                    && BondedSuitService.getWrappingPet(owner) == null
+                    && !TakeoverService.active(owner)
                     && mob.distanceToSqr(owner) <= dialogueRange * dialogueRange
                     && LatexSocialMemory.claimJealousFormGreeting(mob, owner)) {
                 NpcDialogue.trigger(mob, owner, Cue.BOND_JEALOUS_NEW_FORM);
@@ -1629,7 +1627,12 @@ public final class LatexSocialEvents {
                             Mob.class, player.getBoundingBox().inflate(24.0D),
                             candidate -> candidate != shelter
                                     && candidate.getTarget() == player)) {
-                        attacker.setTarget(shelter);
+                        if (attacker instanceof ChangedEntity changed
+                                && LatexCreatureCombatRules.mustRejectTarget(changed, shelter)) {
+                            LatexCreatureCombatRules.disengage(changed, player);
+                        } else {
+                            attacker.setTarget(shelter);
+                        }
                     }
                 }
             }
@@ -2182,8 +2185,6 @@ public final class LatexSocialEvents {
         }
         // GoalSelector is no longer iterating at this point, so queued companion
         // movement-goal changes cannot invalidate its LinkedHashMap iterator.
-        LatexCreatureCombatRules.flushPendingDisengagements(event.getServer());
-        LatexSocialMemory.flushPendingGoalMutations(event.getServer());
         flushDamageReactions();
         flushFriendlyWarnings();
         if (!PENDING_BOND_DEATHS.isEmpty()) {
@@ -2300,6 +2301,16 @@ public final class LatexSocialEvents {
                     pending.cue(),
                     pending.lineArguments());
         }
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
+        PENDING_FRIENDLY_WARNINGS.clear();
+        PENDING_DAMAGE_REACTIONS.clear();
+        PENDING_BOND_DEATHS.clear();
+        RECENT_WRAPPED_OWNER_DEATHS.clear();
+        ProvisionerTradeService.clearActiveTraders();
+        LatexSocialMemory.clearServerCaches();
     }
 
     private static boolean hasPersonalFactionProtection(

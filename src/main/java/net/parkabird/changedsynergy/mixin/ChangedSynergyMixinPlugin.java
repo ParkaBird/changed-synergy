@@ -18,12 +18,35 @@ import org.objectweb.asm.tree.VarInsnNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
+import net.minecraftforge.fml.loading.FMLLoader;
+
 /** Optional compatibility repairs that need the final, merged method names. */
 public final class ChangedSynergyMixinPlugin implements IMixinConfigPlugin {
+    private static volatile Boolean cachedJeiCanonicalMouseSam;
+
     @Override public void onLoad(String mixinPackage) {}
     @Override public String getRefMapperConfig() { return null; }
     @Override public boolean shouldApplyMixin(String target, String mixin) {
+        if (target == null) return true;
+        if (target.startsWith("net.foxyas.changedaddon.")) return isModLoaded("changed_addon");
+        if (target.startsWith("top.theillusivec4.curios.")) return isModLoaded("curios");
+        if (target.startsWith("com.github.alexthe668.domesticationinnovation.")) return isModLoaded("domesticationinnovation");
+        if (target.startsWith("com.katt.changedextras.")) return isModLoaded("changedextras");
+        if (target.startsWith("com.lugert.true_transfur.")) return isModLoaded("true_transfur");
+        if (target.startsWith("net.stonenibbler.changed_survive_protocol.")) return isModLoaded("changed_survive_protocol");
+        if (target.startsWith("mezz.jei.")) return isModLoaded("jei");
+        if (target.startsWith("net.bettercombat.")) return isModLoaded("bettercombat");
+        if (target.startsWith("com.raiiiden.taczadditions.")) {
+            return isModLoaded("taczadditions")
+                    || ChangedSynergyMixinPlugin.class.getClassLoader()
+                            .getResource(target.replace('.', '/') + ".class") != null;
+        }
         return true;
+    }
+
+    private static boolean isModLoaded(String modId) {
+        var loading = FMLLoader.getLoadingModList();
+        return loading != null && loading.getModFileById(modId) != null;
     }
     @Override public void acceptTargets(Set<String> mine, Set<String> others) {}
     @Override public List<String> getMixins() { return null; }
@@ -114,16 +137,22 @@ public final class ChangedSynergyMixinPlugin implements IMixinConfigPlugin {
     }
 
     private static boolean jeiHasCanonicalMouseSam() {
+        Boolean cached = cachedJeiCanonicalMouseSam;
+        if (cached != null) return cached;
+        boolean resolved = false;
         try (var bytes = ChangedSynergyMixinPlugin.class.getClassLoader()
                 .getResourceAsStream("mezz/jei/common/input/IMouseOverable.class")) {
-            if (bytes == null) return false;
-            ClassNode contract = new ClassNode();
-            new ClassReader(bytes).accept(contract, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-            return contract.methods.stream()
-                    .anyMatch(method -> method.name.equals("isMouseOver") && method.desc.equals("(DD)Z")
-                            && (method.access & Opcodes.ACC_ABSTRACT) != 0);
+            if (bytes != null) {
+                ClassNode contract = new ClassNode();
+                new ClassReader(bytes).accept(contract, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+                resolved = contract.methods.stream()
+                        .anyMatch(method -> method.name.equals("isMouseOver") && method.desc.equals("(DD)Z")
+                                && (method.access & Opcodes.ACC_ABSTRACT) != 0);
+            }
         } catch (java.io.IOException unavailable) {
-            return false;
+            resolved = false;
         }
+        cachedJeiCanonicalMouseSam = resolved;
+        return resolved;
     }
 }

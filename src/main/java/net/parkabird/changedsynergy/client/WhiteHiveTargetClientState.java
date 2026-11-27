@@ -32,4 +32,9 @@ public final class WhiteHiveTargetClientState {
         return entity.level() == minecraft.level
                 && TARGETS.contains(entity.getId());
     }
+
+    public static void clear() {
+        TARGETS.clear();
+        expiresAtTick = 0;
+    }
 }

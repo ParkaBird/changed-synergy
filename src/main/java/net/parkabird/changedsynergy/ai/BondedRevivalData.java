@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -63,6 +65,36 @@ public final class BondedRevivalData extends SavedData {
         Collection<CompoundTag> copies = new ArrayList<>();
         records.values().forEach(record -> copies.add(record.copy()));
         return copies;
+    }
+
+    public Map<UUID, CompoundTag> recordsWithTokens() {
+        Map<UUID, CompoundTag> copies = new LinkedHashMap<>();
+        records.forEach((token, record) -> copies.put(token, record.copy()));
+        return copies;
+    }
+
+    public static boolean isPlayerApplied(CompoundTag record, UUID player) {
+        if (!record.contains("AppliedPlayers", Tag.TAG_LIST)) return false;
+        String wanted = player.toString();
+        for (Tag tag : record.getList("AppliedPlayers", Tag.TAG_STRING)) {
+            if (wanted.equals(tag.getAsString())) return true;
+        }
+        return false;
+    }
+
+    public void markPlayerApplied(UUID token, UUID player) {
+        CompoundTag record = records.get(token);
+        if (record == null) return;
+        ListTag applied = record.contains("AppliedPlayers", Tag.TAG_LIST)
+                ? record.getList("AppliedPlayers", Tag.TAG_STRING)
+                : new ListTag();
+        String wanted = player.toString();
+        for (Tag tag : applied) {
+            if (wanted.equals(tag.getAsString())) return;
+        }
+        applied.add(StringTag.valueOf(wanted));
+        record.put("AppliedPlayers", applied);
+        setDirty();
     }
 
     /** Only unused death records belonging to this player can be recalled. */

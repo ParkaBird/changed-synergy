@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 public abstract class CompanionFishingSpeedMixin extends MoveToBlockGoal {
     protected CompanionFishingSpeedMixin(PathfinderMob mob, double speed, int range) { super(mob, speed, range); }
 
-    @ModifyConstant(method = {"tick", "m_8037_"}, constant = @Constant(intValue = 160), remap = false)
+    @ModifyConstant(method = {"tick", "m_8037_"}, constant = @Constant(intValue = 160), require = 0, remap = false)
     private int changedSynergy$enchantedCastDuration(int original) {
         return CompanionToolEffects.fishingWaitTicks(mob.getMainHandItem());
     }

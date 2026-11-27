@@ -14,7 +14,7 @@ public record ClothingStylePacket(int menu,int entity,String identifier) {
     public static ClothingStylePacket decode(FriendlyByteBuf b){return new ClothingStylePacket(b.readVarInt(),b.readVarInt(),b.readUtf(64));}
     public static void handle(ClothingStylePacket p,Supplier<NetworkEvent.Context> supplier) {
         var context=supplier.get();context.enqueueWork(()->{
-            var player=context.getSender();if(player==null||player.containerMenu.containerId!=p.menu||!CuriosCompat.isLoaded())return;
+            var player=context.getSender();if(player==null||!player.isAlive()||player.isSpectator()||player.containerMenu.containerId!=p.menu||!CuriosCompat.isLoaded())return;
             LivingEntity wearer;
             if(p.entity==player.getId() && CuriosCompat.isEquipmentMenu(player.containerMenu))wearer=player;
             else if(player.containerMenu instanceof BondedCreatureInventoryMenu m && m.getPet()!=null

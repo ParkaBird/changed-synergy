@@ -547,6 +547,11 @@ public final class GrabQteOverlayRenderer {
                 : selected;
     }
 
+    public static void clear() {
+        clearImmediately();
+        endTakeover();
+    }
+
     private static void clearImmediately() {
         activeAbility = null;
         activeGrabberId = -1;

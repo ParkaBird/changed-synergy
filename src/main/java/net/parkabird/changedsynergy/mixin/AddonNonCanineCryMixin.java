@@ -1,6 +1,5 @@
 package net.parkabird.changedsynergy.mixin;
 
-import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.ltxprogrammer.changed.process.ProcessTransfur;
 import net.minecraft.world.entity.player.Player;
 import net.parkabird.changedsynergy.entity.LatexJerboa;
@@ -20,13 +19,6 @@ public abstract class AddonNonCanineCryMixin {
         if (player == null) return;
         var variant = ProcessTransfur.getPlayerTransfurVariant(player);
         if (variant != null && (variant.getChangedEntity() instanceof LatexJerboa || variant.getChangedEntity() instanceof LatexSpidtaur)) {
-            cir.setReturnValue(false);
-        }
-    }
-
-    @Inject(method = "isWolfTransfur(Lnet/ltxprogrammer/changed/entity/ChangedEntity;)Z", at = @At("HEAD"), cancellable = true, require = 0)
-    private static void changedSynergy$excludeNonCanineEntity(ChangedEntity entity, CallbackInfoReturnable<Boolean> cir) {
-        if (entity instanceof LatexJerboa || entity instanceof LatexSpidtaur) {
             cir.setReturnValue(false);
         }
     }

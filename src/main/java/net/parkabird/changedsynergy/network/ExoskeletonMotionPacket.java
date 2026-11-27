@@ -29,7 +29,9 @@ public record ExoskeletonMotionPacket(UUID sessionId, double x, double y, double
     public static void handle(ExoskeletonMotionPacket packet,
             Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
-        context.enqueueWork(() -> TakeoverClientState.receiveExoskeletonMotion(packet));
+        context.enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
+                net.minecraftforge.api.distmarker.Dist.CLIENT,
+                () -> () -> TakeoverClientState.receiveExoskeletonMotion(packet)));
         context.setPacketHandled(true);
     }
 }

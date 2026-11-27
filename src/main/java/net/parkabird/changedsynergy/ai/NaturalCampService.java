@@ -24,8 +24,7 @@ import net.parkabird.changedsynergy.ChangedSynergyMod;
 public final class NaturalCampService {
     /** Shared by residents; player access is independently controlled by private storage. */
     public static final String PUBLIC_STORAGE = "ChangedSynergyPublicStorage";
-    private static final Set<String> SMALL_CAMPS=Set.of("oasis","muddy_campsite","hyena_camp_tropical","hyena_camp_open","hyena_camp_snowy");
-    public static boolean smallCamp(String template){return SMALL_CAMPS.contains(template);}
+    public static boolean smallCamp(String template){return CampTemplateCatalog.isSmallCamp(template);}
     public static boolean smallCamp(ChangedEntity mob){return smallCamp(mob.getPersistentData().getCompound(StructureResidentGoal.DATA).getString("Template"));}
     public record Sites(List<BlockPos> storage, List<BlockPos> fires,List<BlockPos> beds, long expires) {}
     private static final Map<ServerLevel, Map<BlockPos, Sites>> SITES = new WeakHashMap<>();
@@ -203,16 +202,15 @@ public final class NaturalCampService {
             if(wrapped.getGoal() instanceof NaturalCampGoal campGoal)campGoal.resetWait();
         }
     }
-    /** @deprecated use {@link #prepareIdleMeal}; kept for call sites that still expect the old name. */
-    @Deprecated
-    public static void wakeForMeal(ChangedEntity mob){prepareIdleMeal(mob);}
     public static List<BlockPos> mealPoints(ChangedEntity mob){
         var result=new ArrayList<BlockPos>();
         for(var p:sites(mob).fires()){
+            if(!mob.level().hasChunkAt(p))continue;
             var state=mob.level().getBlockState(p);
             if(state.getBlock() instanceof net.minecraft.world.level.block.CampfireBlock){
                 if(state.getValue(net.minecraft.world.level.block.CampfireBlock.LIT)&&!state.getValue(net.minecraft.world.level.block.CampfireBlock.WATERLOGGED))result.add(p);
-            }else if(STOVE_ID.equals(net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(state.getBlock()))
+            }else if((state.getBlock() instanceof net.minecraft.world.level.block.SmokerBlock
+                    ||STOVE_ID.equals(net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(state.getBlock())))
                     &&state.getOptionalValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT).orElse(false)
                     &&!state.getOptionalValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED).orElse(false))result.add(p);
         }
@@ -237,12 +235,18 @@ public final class NaturalCampService {
             mob.goalSelector.addGoal(1,new NaturalCampGoal(mob));
         if(restsHere(mob)&&mob.goalSelector.getAvailableGoals().stream().noneMatch(g->g.getGoal() instanceof NaturalCampSleepGoal))
             mob.goalSelector.addGoal(0,new NaturalCampSleepGoal(mob));
-        if(member(mob)&&!(mob instanceof net.ltxprogrammer.changed.entity.beast.AquaticEntity)
-                &&mob.getNavigation() instanceof net.minecraft.world.entity.ai.navigation.GroundPathNavigation ground){
-            ground.setCanFloat(true);
-            // Camp interiors use wooden/mangrove doors; without these flags A* treats closed doors as walls.
-            ground.setCanOpenDoors(true);
-            ground.setCanPassDoors(true);
+        if(member(mob)){
+            if(!(mob instanceof net.ltxprogrammer.changed.entity.beast.AquaticEntity)
+                    &&mob.getNavigation() instanceof net.minecraft.world.entity.ai.navigation.GroundPathNavigation ground){
+                ground.setCanFloat(true);
+                // Camp interiors use wooden/mangrove doors; without these flags A* treats closed doors as walls.
+                ground.setCanOpenDoors(true);
+                ground.setCanPassDoors(true);
+            }else if(mob instanceof net.ltxprogrammer.changed.entity.beast.AbstractAquaticEntity aquatic){
+                var ground=((net.parkabird.changedsynergy.mixin.AbstractAquaticEntityGroundNavAccessor)aquatic).changedSynergy$groundNavigation();
+                ground.setCanOpenDoors(true);
+                ground.setCanPassDoors(true);
+            }
         }
         if(member(mob)&&mob.goalSelector.getAvailableGoals().stream()
                 .noneMatch(g->g.getGoal() instanceof CompanionOpenDoorGoal))
@@ -275,6 +279,7 @@ public final class NaturalCampService {
             for(var entity:chunk.getBlockEntities().values()) {
                 var pos=entity.getBlockPos();if(!box.contains(Vec3.atCenterOf(pos)))continue;
                 if(entity instanceof CampfireBlockEntity
+                        ||entity instanceof net.minecraft.world.level.block.entity.SmokerBlockEntity
                         ||STOVE_ID.equals(net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(entity.getBlockState().getBlock())))fires.add(pos);
                 else if(entity instanceof net.minecraft.world.level.block.entity.BedBlockEntity
                         && level.getBlockState(pos).getValue(net.minecraft.world.level.block.BedBlock.PART)==net.minecraft.world.level.block.state.properties.BedPart.HEAD)beds.add(pos);
@@ -356,4 +361,5 @@ public final class NaturalCampService {
         if(event.getSource().getEntity() instanceof ChangedEntity mob && livestock(mob,event.getEntity()))event.setCanceled(true);
     }
     @SubscribeEvent public static void unload(net.minecraftforge.event.level.LevelEvent.Unload event) { SITES.remove(event.getLevel()); }
+    @SubscribeEvent public static void onServerStopped(net.minecraftforge.event.server.ServerStoppedEvent event) { SITES.clear(); }
 }

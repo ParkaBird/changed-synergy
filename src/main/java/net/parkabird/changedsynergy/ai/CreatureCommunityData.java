@@ -62,7 +62,6 @@ public final class CreatureCommunityData extends SavedData {
             int foodDelivered,
             int materialsDelivered,
             int forageFailures,
-            int migrations,
             long createdTick,
             long lastSeenTick,
             long lastMigrationTick,
@@ -757,7 +756,6 @@ public final class CreatureCommunityData extends SavedData {
         owner.tradeRevision = Math.max(owner.tradeRevision, duplicate.tradeRevision) + 1L;
         owner.forageFailures = Math.max(
                 owner.forageFailures, duplicate.forageFailures);
-        owner.migrations = saturatedAdd(owner.migrations, duplicate.migrations);
         owner.lastSeenTick = Math.max(owner.lastSeenTick, duplicate.lastSeenTick);
         owner.lastFailureTick = Math.max(
                 owner.lastFailureTick, duplicate.lastFailureTick);
@@ -856,7 +854,6 @@ public final class CreatureCommunityData extends SavedData {
         private final Set<UUID> members = new HashSet<>();
         private long tradeRevision;
         private int forageFailures;
-        private int migrations;
         private final long createdTick;
         private long lastSeenTick;
         private long lastFailureTick;
@@ -891,7 +888,6 @@ public final class CreatureCommunityData extends SavedData {
                     foodDelivered,
                     materialsDelivered,
                     forageFailures,
-                    migrations,
                     createdTick,
                     lastSeenTick,
                     lastMigrationTick,
@@ -913,7 +909,6 @@ public final class CreatureCommunityData extends SavedData {
             tag.putInt("OrangeStock", orangeStock);
             tag.putInt("MaterialsDelivered", materialsDelivered);
             tag.putInt("ForageFailures", forageFailures);
-            tag.putInt("Migrations", migrations);
             tag.putLong("Created", createdTick);
             tag.putLong("LastSeen", lastSeenTick);
             tag.putLong("LastFailure", lastFailureTick);
@@ -967,7 +962,6 @@ public final class CreatureCommunityData extends SavedData {
             community.orangeStock = tag.getInt("OrangeStock");
             community.materialsDelivered = tag.getInt("MaterialsDelivered");
             community.forageFailures = tag.getInt("ForageFailures");
-            community.migrations = tag.getInt("Migrations");
             community.lastFailureTick = tag.getLong("LastFailure");
             community.lastMigrationTick = tag.getLong("LastMigration");
             community.tradeRevision = tag.getLong("TradeRevision");

@@ -73,6 +73,7 @@ public final class NpcConversations {
             if(s.line<visiblePassages(s,node).size()-1)return;
             var selected=node.choices().stream().filter(c->c.id().equals(choice)&&available(c,s)).findFirst().orElse(null);if(selected==null)return;
             if(selected.effect().equals("close")){complete(s);close(player);return;}
+            if(selected.effect().equals("reverse_rite")){complete(s);close(player);player.closeContainer();NpcRites.beginRiteReversal(s.npc,player);return;}
             if(Set.of("join","reversible","permanent").contains(selected.effect())){
                 String home=CampMembershipService.membership(player).getString("HomeKey");
                 if(!home.isEmpty()&&!home.equals(StoryNpcService.homeKey(s.npc))){
@@ -83,7 +84,6 @@ public final class NpcConversations {
             boolean success=switch(selected.effect()) {
                 case "join","reversible","permanent" -> CampMembershipService.join(s.npc,player,selected.effect());
                 case "leave" -> {CampMembershipService.leave(player);yield true;}
-                case "reverse_rite" -> {close(player);player.closeContainer();yield NpcRites.beginRiteReversal(s.npc,player);}
                 case "camp_donate" -> CampLifeService.deliver(s.npc,player,s.offered,Integer.parseInt(selected.id().substring("camp_give_".length())),"");
                 case "camp_deliver" -> {var r=CampLifeService.request(s.npc,s.request);yield r!=null&&CampLifeService.deliver(s.npc,player,s.offered,r.getInt("Count"),s.request);}
                 case "camp_watch" -> CampLifeService.finishWatch(s.npc,player,s.request);

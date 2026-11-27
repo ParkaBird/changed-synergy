@@ -121,6 +121,7 @@ public final class ManulCrouchRestAbility extends AbstractAbility<ManulCrouchRes
                     && !living.isSpectator()
                     && living.onGround()
                     && crouching
+                    && !net.parkabird.changedsynergy.ai.CompanionOpenDoorGoal.isAutoCrouching(living)
                     && !living.isInWaterOrBubble()
                     && !living.isPassenger()
                     && !living.isSleeping()

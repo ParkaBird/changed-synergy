@@ -179,6 +179,13 @@ public final class TransfurVisualEvents {
         LAST_PROGRESS.remove(id);
     }
 
+    @SubscribeEvent
+    public static void onServerStopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
+        CANDIDATES.clear();
+        ACTIVE_STYLES.clear();
+        LAST_PROGRESS.clear();
+    }
+
     private static void activate(ServerPlayer player, int color, boolean organic) {
         UUID id = player.getUUID();
         VisualStyle style = new VisualStyle(color, organic);

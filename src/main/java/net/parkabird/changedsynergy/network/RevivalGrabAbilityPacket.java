@@ -17,7 +17,9 @@ public record RevivalGrabAbilityPacket(int entityId) {
     public static void handle(RevivalGrabAbilityPacket packet,
             Supplier<NetworkEvent.Context> supplier) {
         var context = supplier.get();
-        context.enqueueWork(() -> RevivalGrabAbilityClient.register(packet.entityId));
+        context.enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
+                net.minecraftforge.api.distmarker.Dist.CLIENT,
+                () -> () -> RevivalGrabAbilityClient.register(packet.entityId)));
         context.setPacketHandled(true);
     }
 }

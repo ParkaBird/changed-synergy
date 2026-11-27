@@ -136,20 +136,23 @@ public final class InstinctConfinementService {
         if(ownsTemporaryForm(human,form))ProcessTransfur.removePlayerTransfurVariant(human);
     }
     public static void action(ServerPlayer human,UUID id,int action,int key,int sequence) {
+        if(!human.isAlive()||human.isSpectator())return;
         Session session=ACTIVE.get(human.getUUID());if(session==null||!session.id.equals(id))return;
         long now=human.server.overworld().getGameTime();
+        boolean changed=false;
         if(action==TakeoverActionPacket.NEGOTIATE&&session.phase==TakeoverStatePacket.CONTROLLED&&!session.negotiationUsed&&ChangedSynergyConfig.COMMON.takeoverNegotiation.get()) {
             session.negotiationUsed=true;var pair=PlayerFriendshipData.get(human.server).find(human.getUUID(),session.owner.getUUID());
             if(human.getRandom().nextFloat()<0.35F+(pair==null?0:pair.familiarity)/120.0F){tell(session,"agreed");release(human);return;}
-            session.until=Math.min(session.started+session.total*3/2,session.until+200);tell(session,"refused");
-        } else if(action==TakeoverActionPacket.CONFIRM_STRUGGLE&&!session.escapeUsed&&session.phase==TakeoverStatePacket.CONTROLLED)session.confirmed=true;
+            session.until=Math.min(session.started+session.total*3/2,session.until+200);tell(session,"refused");changed=true;
+        } else if(action==TakeoverActionPacket.CONFIRM_STRUGGLE&&!session.escapeUsed&&session.phase==TakeoverStatePacket.CONTROLLED){session.confirmed=true;changed=true;}
         else if(action==TakeoverActionPacket.START_STRUGGLE&&session.confirmed&&!session.escapeUsed&&session.phase==TakeoverStatePacket.CONTROLLED&&ChangedSynergyConfig.COMMON.takeoverEscape.get()) {
-            session.escapeUsed=true;session.phase=TakeoverStatePacket.STRUGGLE;session.qteUntil=now+200;session.key=human.getRandom().nextInt(4);
+            session.escapeUsed=true;session.phase=TakeoverStatePacket.STRUGGLE;session.qteUntil=now+200;session.key=human.getRandom().nextInt(4);changed=true;
         } else if(action==TakeoverActionPacket.QTE_INPUT&&session.phase==TakeoverStatePacket.STRUGGLE&&sequence==session.sequence&&key>=0&&key<4&&now>session.lastInput) {
             session.lastInput=now;if(key==session.key)session.progress++;else session.progress=Math.max(0,session.progress-1);
             session.sequence++;session.key=human.getRandom().nextInt(4);
             if(session.progress>=12){release(human);return;}
-        } sync(session,false);
+            changed=true;
+        } if(changed)sync(session,false);
     }
     @SubscribeEvent(priority=EventPriority.HIGHEST)public static void target(LivingChangeTargetEvent event) {
         if(event.getEntity() instanceof ChangedEntity body&&TrueTransfurCompat.isInstinctBody(body)&&event.getNewTarget() instanceof ServerPlayer human) {

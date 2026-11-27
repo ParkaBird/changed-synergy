@@ -1,11 +1,11 @@
 package net.parkabird.changedsynergy.ai;
 
-import net.ltxprogrammer.changed.block.AbstractLabDoor;
-import net.ltxprogrammer.changed.block.entity.OpenableDoor;
+import java.util.WeakHashMap;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -19,13 +19,24 @@ import net.minecraft.world.level.block.TrapDoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.parkabird.changedsynergy.mixin.FenceGateSoundAccessor;
 
-/** Lets slow walkers finish crossing doors and ducks tall Changed walkers under 2-block clearances. */
+/**
+ * Lets slow walkers finish crossing doors/passages and ducks Changed walkers
+ * through any 2-block clearance that blocks standing while fitting crouching.
+ */
 public final class CompanionOpenDoorGoal extends OpenDoorGoal {
     private static final ThreadLocal<Integer> CROUCH_PLAN_DEPTH = ThreadLocal.withInitial(() -> 0);
+    private static final int AUTO_CROUCH_HOLD_TICKS = 8;
+    private static final WeakHashMap<ChangedEntity, AutoCrouchState> AUTO_CROUCH_STATES = new WeakHashMap<>();
+
+    private static final class AutoCrouchState {
+        boolean active;
+        int holdTicks;
+    }
 
     public static void beginCrouchPlan() {
         CROUCH_PLAN_DEPTH.set(CROUCH_PLAN_DEPTH.get() + 1);
@@ -42,8 +53,6 @@ public final class CompanionOpenDoorGoal extends OpenDoorGoal {
     }
 
     private int elapsed;
-    private int crouchElapsed;
-    private boolean crouchActive;
     private Block passage;
     private boolean openedPassage;
     private double approachX, approachZ;
@@ -51,75 +60,227 @@ public final class CompanionOpenDoorGoal extends OpenDoorGoal {
     public CompanionOpenDoorGoal(Mob mob) { super(mob, true); }
 
     public static boolean canAutoCrouch(ChangedEntity creature) {
-        return creature.getUnderlyingPlayer() == null
-                && !creature.isVehicle()
-                && creature.isAlive()
-                && creature.getDimensions(Pose.STANDING).height >= 1.98F
-                && creature.getDimensions(Pose.CROUCHING).height < 1.95F;
+        if (creature == null || !creature.isAlive() || creature.isRemoved()
+                || creature.getUnderlyingPlayer() != null || creature.isVehicle()
+                || CreatureSocialProfile.isPermanentlyExcluded(creature)) {
+            return false;
+        }
+        EntityDimensions standing = creature.getDimensions(Pose.STANDING);
+        EntityDimensions crouched = creature.getDimensions(Pose.CROUCHING);
+        return !standing.fixed && !crouched.fixed && crouched.height < standing.height - 0.05F;
+    }
+
+    public static boolean isAutoCrouching(LivingEntity entity) {
+        if (!(entity instanceof ChangedEntity creature)) return false;
+        AutoCrouchState state = AUTO_CROUCH_STATES.get(creature);
+        return state != null && state.active && creature.getPose() == Pose.CROUCHING;
+    }
+
+    /** Returns true only on the tick a creature transitions into Pose.CROUCHING. */
+    public static boolean tickAutoCrouch(ChangedEntity creature) {
+        if (creature == null || creature.level().isClientSide) return false;
+        AutoCrouchState state = AUTO_CROUCH_STATES.get(creature);
+        if (!canAutoCrouch(creature)
+                || creature.isSleeping() || creature.isPassenger() || creature.isNoAi()
+                || creature.isInWaterOrBubble() || creature.isInLava() || creature.isSwimming()
+                || creature.onClimbable()) {
+            if (state != null && state.active) {
+                if (creature.getPose() == Pose.CROUCHING
+                        && !creature.isSleeping() && !creature.isPassenger() && !creature.isInWaterOrBubble()
+                        && !standingBlocked(creature, creature.getDimensions(Pose.STANDING),
+                                creature.getX(), creature.getY(), creature.getZ())) {
+                    creature.setPose(Pose.STANDING);
+                }
+                state.active = false;
+                state.holdTicks = 0;
+            }
+            return false;
+        }
+
+        boolean needCrouch = needsCrouchPass(creature);
+        Pose pose = creature.getPose();
+        if (needCrouch) {
+            if (state == null) {
+                state = new AutoCrouchState();
+                AUTO_CROUCH_STATES.put(creature, state);
+            }
+            boolean transitioned = false;
+            if (pose == Pose.STANDING
+                    && fitsClearance(creature, creature.getDimensions(Pose.CROUCHING),
+                            creature.getX(), creature.getY(), creature.getZ(), -1.0E-4D)) {
+                creature.setPose(Pose.CROUCHING);
+                transitioned = true;
+            }
+            if (creature.getPose() == Pose.CROUCHING) {
+                state.active = true;
+                state.holdTicks = AUTO_CROUCH_HOLD_TICKS;
+            }
+            return transitioned;
+        }
+
+        if (state != null && state.active) {
+            if (pose != Pose.CROUCHING) {
+                state.active = false;
+                state.holdTicks = 0;
+                return false;
+            }
+            if (state.holdTicks > 0) {
+                state.holdTicks--;
+                return false;
+            }
+            if (!standingBlocked(creature, creature.getDimensions(Pose.STANDING),
+                    creature.getX(), creature.getY(), creature.getZ())) {
+                creature.setPose(Pose.STANDING);
+                state.active = false;
+            }
+        }
+        return false;
+    }
+
+    public static double surfaceYAt(BlockGetter level, BlockPos pos) {
+        double floorY = WalkNodeEvaluator.getFloorLevel(level, pos);
+        var inside = level.getBlockState(pos).getCollisionShape(level, pos);
+        if (!inside.isEmpty()) {
+            double topInside = pos.getY() + inside.max(Direction.Axis.Y);
+            if (topInside > floorY && topInside <= pos.getY() + 0.6D) {
+                floorY = topInside;
+            }
+        }
+        return floorY;
+    }
+
+    private static AABB headroomBox(EntityDimensions dims, double x, double footY, double z, double topPad) {
+        double hw = Math.max(0.05D, dims.width * 0.5D - 1.0E-4D);
+        return new AABB(x - hw, footY + 0.005D, z - hw, x + hw, footY + dims.height + topPad, z + hw);
+    }
+
+    private static boolean fitsClearance(
+            ChangedEntity creature, EntityDimensions dims, double x, double footY, double z, double topPad) {
+        return creature.level().noCollision(creature, headroomBox(dims, x, footY, z, topPad));
+    }
+
+    private static boolean standingBlocked(
+            ChangedEntity creature, EntityDimensions standing, double x, double footY, double z) {
+        // 2.0F bodies graze exact 2.0 ceilings on integer floors; apply a tiny margin >= 1.995F.
+        double topPad = standing.height >= 1.995F ? 0.01D : -1.0E-4D;
+        return !fitsClearance(creature, standing, x, footY, z, topPad);
+    }
+
+    static boolean isCrouchClearanceNeeded(ChangedEntity creature, double x, double footY, double z) {
+        EntityDimensions standing = creature.getDimensions(Pose.STANDING);
+        EntityDimensions crouched = creature.getDimensions(Pose.CROUCHING);
+        if (standing.fixed || crouched.fixed || crouched.height >= standing.height - 0.05F) return false;
+        return standingBlocked(creature, standing, x, footY, z)
+                && fitsClearance(creature, crouched, x, footY, z, -1.0E-4D);
+    }
+
+    private static boolean probePositionNeedsCrouch(ChangedEntity creature, double px, double baseY, double pz) {
+        if (isCrouchClearanceNeeded(creature, px, baseY, pz)) return true;
+        BlockPos aheadPos = BlockPos.containing(px, baseY + 0.55D, pz);
+        if (creature.level().hasChunkAt(aheadPos)) {
+            double stepY = surfaceYAt(creature.level(), aheadPos);
+            if (stepY > baseY + 0.01D && stepY <= baseY + 0.65D
+                    && isCrouchClearanceNeeded(creature, px, stepY, pz)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean needsCrouchPass(ChangedEntity creature) {
+        EntityDimensions standing = creature.getDimensions(Pose.STANDING);
+        if (creature.getPose() == Pose.CROUCHING
+                && standingBlocked(creature, standing, creature.getX(), creature.getY(), creature.getZ())) {
+            return true;
+        }
+        if (isCrouchClearanceNeeded(creature, creature.getX(), creature.getY(), creature.getZ())) {
+            return true;
+        }
+
+        var path = creature.getNavigation().getPath();
+        double dx = 0.0D, dz = 0.0D;
+        if (path != null && !path.isDone()) {
+            Vec3 next = path.getNextEntityPos(creature);
+            dx = next.x - creature.getX();
+            dz = next.z - creature.getZ();
+        } else if (creature.getMoveControl().hasWanted()) {
+            dx = creature.getMoveControl().getWantedX() - creature.getX();
+            dz = creature.getMoveControl().getWantedZ() - creature.getZ();
+        } else if (creature.horizontalCollision) {
+            Vec3 vel = creature.getDeltaMovement();
+            if (Math.hypot(vel.x, vel.z) > 0.01D) {
+                dx = vel.x;
+                dz = vel.z;
+            } else {
+                Vec3 look = creature.getLookAngle();
+                dx = look.x;
+                dz = look.z;
+            }
+        }
+
+        double dist = Math.hypot(dx, dz);
+        if (dist > 0.02D) {
+            double dirX = dx / dist;
+            double dirZ = dz / dist;
+            double[] steps = creature.horizontalCollision
+                    ? new double[]{0.12D, 0.25D, 0.55D, 0.90D}
+                    : new double[]{0.25D, 0.55D, 0.90D};
+            for (double step : steps) {
+                double px = creature.getX() + dirX * step;
+                double pz = creature.getZ() + dirZ * step;
+                if (probePositionNeedsCrouch(creature, px, creature.getY(), pz)) return true;
+            }
+            if (creature.horizontalCollision) {
+                double latX = -dirZ * 0.16D;
+                double latZ = dirX * 0.16D;
+                double bx = creature.getX() + dirX * 0.25D;
+                double bz = creature.getZ() + dirZ * 0.25D;
+                if (probePositionNeedsCrouch(creature, bx + latX, creature.getY(), bz + latZ)
+                        || probePositionNeedsCrouch(creature, bx - latX, creature.getY(), bz - latZ)) {
+                    return true;
+                }
+            }
+        }
+
+        if (path == null || path.isDone()) return false;
+        EntityDimensions crouched = creature.getDimensions(Pose.CROUCHING);
+        int start = Math.max(0, path.getNextNodeIndex() - 1);
+        int end = Math.min(path.getNodeCount(), path.getNextNodeIndex() + 3);
+        for (int i = start; i < end; i++) {
+            BlockPos np = path.getNode(i).asBlockPos();
+            if (!creature.level().hasChunkAt(np)) continue;
+            double cx = np.getX() + 0.5D;
+            double cy = surfaceYAt(creature.level(), np);
+            double cz = np.getZ() + 0.5D;
+            if (Mth.square(creature.getX() - cx) + Mth.square(creature.getY() - cy)
+                    + Mth.square(creature.getZ() - cz) > 9.0D) {
+                continue;
+            }
+            if (isCrouchClearanceNeeded(creature, cx, cy, cz)) return true;
+            // Open 0.1875F door leaves in 1-wide doorways push wider walkers ~0.10D off block center.
+            if (creature.getBbWidth() >= 0.65F && !fitsClearance(creature, crouched, cx, cy, cz, -1.0E-4D)) {
+                if (isCrouchClearanceNeeded(creature, cx + 0.10D, cy, cz)
+                        || isCrouchClearanceNeeded(creature, cx - 0.10D, cy, cz)
+                        || isCrouchClearanceNeeded(creature, cx, cy, cz + 0.10D)
+                        || isCrouchClearanceNeeded(creature, cx, cy, cz - 0.10D)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override public boolean canUse() {
         elapsed = 0;
-        crouchElapsed = 0;
         passage = null;
         openedPassage = false;
         hasDoor = false;
-        boolean doorReady = tryAcquireDoor();
-        crouchActive = shouldCrouchNow();
-        return doorReady || crouchActive;
+        return tryAcquireDoor();
     }
 
     private boolean tryAcquireDoor() {
         if (super.canUse()) return true;
         return findPassage();
-    }
-
-    private boolean shouldCrouchNow() {
-        if (mob.isSleeping() || mob.isPassenger() || mob.isVehicle() || mob.isNoAi() || !fitsPose(Pose.CROUCHING)) {
-            return false;
-        }
-        if (mob.getPose() == Pose.CROUCHING && !fitsPose(Pose.STANDING)) return true;
-        if (!fitsPose(Pose.STANDING)) return true;
-        if (hasOpenLabDoorCollision()) return true;
-        return mob instanceof ChangedEntity creature && canAutoCrouch(creature) && needsPathCrouch(creature);
-    }
-
-    private boolean hasOpenLabDoorCollision() {
-        if (!mob.horizontalCollision) return false;
-        var path = mob.getNavigation().getPath();
-        if (path == null || path.isDone()) return false;
-        for (int i = Math.max(0, path.getNextNodeIndex() - 1);
-                i < Math.min(path.getNodeCount(), path.getNextNodeIndex() + 2); i++) {
-            var node = path.getNode(i);
-            BlockPos pos = new BlockPos(node.x, node.y, node.z);
-            if (!mob.level().hasChunkAt(pos) || mob.distanceToSqr(pos.getCenter()) > 4) continue;
-            var state = mob.level().getBlockState(pos);
-            if (state.getBlock() instanceof AbstractLabDoor
-                    && ((OpenableDoor) state.getBlock()).isOpen(state, mob.level(), pos)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean needsPathCrouch(ChangedEntity creature) {
-        var path = mob.getNavigation().getPath();
-        if (path == null || path.isDone()) return false;
-        EntityDimensions standing = creature.getDimensions(Pose.STANDING);
-        EntityDimensions crouched = creature.getDimensions(Pose.CROUCHING);
-        int start = Math.max(0, path.getNextNodeIndex() - 1);
-        int end = Math.min(path.getNodeCount(), path.getNextNodeIndex() + 3);
-        for (int i = start; i < end; i++) {
-            var node = path.getNode(i);
-            Vec3 center = Vec3.atBottomCenterOf(node.asBlockPos());
-            if (mob.distanceToSqr(center) > 9.0D) continue;
-            AABB standBox = standing.makeBoundingBox(center).deflate(1.0E-7D);
-            AABB crouchBox = crouched.makeBoundingBox(center).deflate(1.0E-7D);
-            if (!mob.level().noCollision(mob, standBox) && mob.level().noCollision(mob, crouchBox)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /** Only walkers already using our native door goal may plan to open these blocks. */
@@ -193,9 +354,7 @@ public final class CompanionOpenDoorGoal extends OpenDoorGoal {
 
     @Override public void start() {
         elapsed = 0;
-        crouchElapsed = 0;
         if (hasDoor) startDoor();
-        if (crouchActive && fitsPose(Pose.CROUCHING)) mob.setPose(Pose.CROUCHING);
     }
 
     private void startDoor() {
@@ -205,11 +364,6 @@ public final class CompanionOpenDoorGoal extends OpenDoorGoal {
     }
 
     @Override public void tick() {
-        if (shouldCrouchNow()) {
-            crouchActive = true;
-            if (mob.getPose() != Pose.CROUCHING && fitsPose(Pose.CROUCHING)) mob.setPose(Pose.CROUCHING);
-        }
-        if (crouchActive) crouchElapsed++;
         if (hasDoor) {
             elapsed++;
             super.tick();
@@ -298,24 +452,10 @@ public final class CompanionOpenDoorGoal extends OpenDoorGoal {
     }
 
     @Override public boolean canContinueToUse() {
-        boolean crouchNeeded = crouchActive && !mob.isSleeping() && !mob.isPassenger() && !mob.isVehicle()
-                && mob.getPose() == Pose.CROUCHING
-                && (crouchElapsed < 20 || shouldCrouchNow() || !fitsPose(Pose.STANDING));
-        return doorStillActive() || crouchNeeded;
+        return doorStillActive();
     }
 
     @Override public void stop() {
         clearDoor();
-        if (crouchActive) {
-            if (mob.getPose() == Pose.CROUCHING && (mob.isSleeping() || fitsPose(Pose.STANDING))) {
-                mob.setPose(Pose.STANDING);
-            }
-            crouchActive = false;
-        }
-    }
-
-    private boolean fitsPose(Pose pose) {
-        return mob.level().noCollision(mob, mob.getDimensions(pose)
-                .makeBoundingBox(mob.position()).deflate(1.0E-7));
     }
 }

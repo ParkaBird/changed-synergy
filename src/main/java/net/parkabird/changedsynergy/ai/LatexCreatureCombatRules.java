@@ -31,8 +31,6 @@ import net.parkabird.changedsynergy.compat.TrueTransfurCompat;
 public final class LatexCreatureCombatRules {
     public static final float BONDED_SAFETY_HEALTH_RATIO = 0.35F;
     private static final float HEALTH_EPSILON = 0.01F;
-    private static final Map<CombatPair, PendingDisengagement>
-            PENDING_DISENGAGEMENTS = new LinkedHashMap<>();
     private static final TagKey<EntityType<?>> VILLAGE_CIVILIANS = tag("village_civilians");
     private static final TagKey<EntityType<?>> VILLAGE_PROTECTORS = tag("village_protectors");
 
@@ -151,8 +149,30 @@ public final class LatexCreatureCombatRules {
                     || LatexSocialMemory.isPetDefenseAuthorized(npc, body)
                     || LatexSocialMemory.isPetDefenseAuthorized(npc, player)) return false;
         }
+        if (!attackerBody && !targetBody
+                && BondedSuitService.getSuitController(target) instanceof ServerPlayer wrappedOwner
+                && isHostileToWrappedOwner(attacker, target, wrappedOwner)) {
+            return false;
+        }
+        if (!attackerBody && !targetBody
+                && BondedSuitService.getSuitController(attacker) instanceof ServerPlayer wrappedOwner
+                && isHostileToWrappedOwner(target, attacker, wrappedOwner)) {
+            return false;
+        }
         ServerPlayer owner = attackerBody ? attackerOwner : LatexSocialMemory.getPetOwner(attacker);
         return !BondedOwnerDefenseGoal.hasRecentConflict(attacker, owner, target);
+    }
+
+    private static boolean isHostileToWrappedOwner(
+            ChangedEntity threat,
+            ChangedEntity shelter,
+            ServerPlayer wrappedOwner) {
+        return LatexSocialMemory.isProvoked(threat, wrappedOwner)
+                || FactionReputation.isHostile(threat, wrappedOwner)
+                || CreatureCacheGuardService.isDefendingAgainst(threat, wrappedOwner)
+                || FactionPursuitService.isPursuing(threat, wrappedOwner)
+                || LatexSocialMemory.isPetDefenseAuthorized(threat, shelter)
+                || LatexSocialMemory.isPetDefenseAuthorized(threat, wrappedOwner);
     }
 
     /** An INSTINCT body retains its player's alliances without acquiring NPC memories. */
@@ -240,43 +260,19 @@ public final class LatexCreatureCombatRules {
     public static void disengage(LivingEntity first, LivingEntity second) {
         clearOneSide(first, second);
         clearOneSide(second, first);
-        if (first.level() instanceof ServerLevel firstLevel
+        if (first.level() instanceof ServerLevel
                 && second.level() == first.level()) {
-            UUID firstId = first.getUUID();
-            UUID secondId = second.getUUID();
-            CombatPair key = firstId.compareTo(secondId) <= 0
-                    ? new CombatPair(firstId, secondId)
-                    : new CombatPair(secondId, firstId);
-            synchronized (PENDING_DISENGAGEMENTS) {
-                PENDING_DISENGAGEMENTS.put(
-                        key,
-                        new PendingDisengagement(firstLevel.getServer(), first, second));
-            }
-        }
-    }
-
-    /**
-     * Repeats the cleanup after vanilla and other mods have finished their
-     * damage bookkeeping for this tick.
-     */
-    public static void flushPendingDisengagements(MinecraftServer server) {
-        List<PendingDisengagement> pending = new ArrayList<>();
-        synchronized (PENDING_DISENGAGEMENTS) {
-            PENDING_DISENGAGEMENTS.entrySet().removeIf(entry -> {
-                if (entry.getValue().server() != server) {
-                    return false;
-                }
-                pending.add(entry.getValue());
-                return true;
-            });
-        }
-        for (PendingDisengagement entry : pending) {
-            if (entry.first().isRemoved() || entry.second().isRemoved()
-                    || entry.first().level() != entry.second().level()) {
-                continue;
-            }
-            clearOneSide(entry.first(), entry.second());
-            clearOneSide(entry.second(), entry.first());
+            SafeEntityMutationQueue.queue(
+                    first,
+                    "combat_disengage:" + second.getUUID(),
+                    () -> {
+                        if (!first.isRemoved()
+                                && !second.isRemoved()
+                                && first.level() == second.level()) {
+                            clearOneSide(first, second);
+                            clearOneSide(second, first);
+                        }
+                    });
         }
     }
 
@@ -377,14 +373,5 @@ public final class LatexCreatureCombatRules {
     private static TagKey<EntityType<?>> tag(String path) {
         return TagKey.create(Registries.ENTITY_TYPE,
                 ResourceLocation.fromNamespaceAndPath("changed_synergy", path));
-    }
-
-    private record CombatPair(UUID first, UUID second) {
-    }
-
-    private record PendingDisengagement(
-            MinecraftServer server,
-            LivingEntity first,
-            LivingEntity second) {
     }
 }

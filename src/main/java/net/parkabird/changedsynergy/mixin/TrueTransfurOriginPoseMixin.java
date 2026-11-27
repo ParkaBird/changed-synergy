@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Pseudo
 @Mixin(targets = "com.lugert.true_transfur.client.TransfurClientPoseState", remap = false)
 public abstract class TrueTransfurOriginPoseMixin {
-    @Inject(method = {"applySwing", "applyRotations"}, at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = {"applySwing", "applyRotations"}, at = @At("HEAD"), cancellable = true, require = 0, remap = false)
     private static void changedSynergy$onlyNativePose(Player player, @Coerce Object pose, CallbackInfo callback) {
         if (!NativeOriginPolicy.allowsInstinct(player)) callback.cancel();
     }

@@ -1,0 +1,10 @@
+{
+  "type": "changed_synergy:research_lab",
+  "biomes": "#changed_synergy:has_structure/the_shoal",
+  "step": "surface_structures",
+  "terrain_adaptation": "none",
+  "spawn_overrides": {},
+  "template": "changed_synergy:the_shoal",
+  "farmersdelight_template": "changed_synergy:the_shoal_fd",
+  "waterline": 1
+}

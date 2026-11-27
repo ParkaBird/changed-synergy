@@ -137,10 +137,24 @@ public final class CentaurMountService {
         return true;
     }
 
+    public static boolean isCargoOpen(ChangedEntity centaur) {
+        if (!(centaur.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+            return false;
+        }
+        for (ServerPlayer viewer : level.players()) {
+            if (viewer.containerMenu instanceof ChestMenu menu
+                    && menu.getContainer() instanceof CentaurMountCargo cargo
+                    && cargo.centaur() == centaur) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean openCargo(
             ServerPlayer player,
             ChangedEntity centaur) {
-        if (!canAccessCargo(player, centaur)) {
+        if (!canAccessCargo(player, centaur) || isCargoOpen(centaur)) {
             return false;
         }
         CentaurMountCargo cargo = new CentaurMountCargo(centaur);

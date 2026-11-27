@@ -166,13 +166,29 @@ public enum LatexTerritory {
             return null;
         }
 
-        return accessor.getChangedGameData().facilities.stream()
-                .flatMap(facility -> facility.getPieceGenerationInfos().stream())
-                .filter(piece -> piece.region().isInside(position))
-                .map(piece -> dominantFaction(piece.zone()))
-                .filter(java.util.Objects::nonNull)
-                .findFirst()
-                .orElse(null);
+        net.minecraft.world.level.ChunkPos chunk = new net.minecraft.world.level.ChunkPos(position);
+        for (var facility : accessor.getChangedGameData().facilities) {
+            var header = facility.getHeader();
+            if (header != null
+                    && header.minimum != null
+                    && header.maximum != null
+                    && (chunk.x < header.minimum.x
+                            || chunk.x > header.maximum.x
+                            || chunk.z < header.minimum.z
+                            || chunk.z > header.maximum.z)) {
+                continue;
+            }
+            for (var piece : facility.getPieceGenerationInfos()) {
+                if (!piece.region().isInside(position)) {
+                    continue;
+                }
+                HunterFaction faction = dominantFaction(piece.zone());
+                if (faction != null) {
+                    return faction;
+                }
+            }
+        }
+        return null;
     }
 
     @Nullable

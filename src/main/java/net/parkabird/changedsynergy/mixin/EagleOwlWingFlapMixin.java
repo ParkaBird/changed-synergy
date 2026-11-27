@@ -15,9 +15,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class EagleOwlWingFlapMixin extends AbstractAbilityInstance {
     protected EagleOwlWingFlapMixin(AbstractAbility<?> ability,IAbstractChangedEntity entity){super(ability,entity);}
     @Unique private Vec3 changedSynergy$beforeFlap;
-    @Inject(method={"startUsing","stopUsing"},at=@At("HEAD"))
+    @Inject(method={"startUsing","stopUsing"},at=@At("HEAD"),require=0)
     private void changedSynergy$beforeImpulse(CallbackInfo ci){changedSynergy$beforeFlap=entity.getEntity().getDeltaMovement();}
-    @Inject(method={"startUsing","stopUsing"},at=@At("RETURN"))
+    @Inject(method={"startUsing","stopUsing"},at=@At("RETURN"),require=0)
     private void changedSynergy$animateImpulse(CallbackInfo ci){
         var actor=entity.getEntity();
         if(entity.getChangedEntity() instanceof LatexEagleOwl owl&&changedSynergy$beforeFlap!=null&&actor.getDeltaMovement().distanceToSqr(changedSynergy$beforeFlap)>1e-6){

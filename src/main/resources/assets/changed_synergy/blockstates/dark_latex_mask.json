@@ -1,0 +1,84 @@
+{
+  "variants": {
+    "rotation=0": {
+      "model": "changed_synergy:block/dark_latex_mask",
+      "x": 270,
+      "y": 0
+    },
+    "rotation=1": {
+      "model": "changed_synergy:block/dark_latex_mask_225",
+      "x": 270,
+      "y": 0
+    },
+    "rotation=2": {
+      "model": "changed_synergy:block/dark_latex_mask_45",
+      "x": 270,
+      "y": 0
+    },
+    "rotation=3": {
+      "model": "changed_synergy:block/dark_latex_mask_675",
+      "x": 270,
+      "y": 90
+    },
+    "rotation=4": {
+      "model": "changed_synergy:block/dark_latex_mask",
+      "x": 270,
+      "y": 90
+    },
+    "rotation=5": {
+      "model": "changed_synergy:block/dark_latex_mask_225",
+      "x": 270,
+      "y": 90
+    },
+    "rotation=6": {
+      "model": "changed_synergy:block/dark_latex_mask_45",
+      "x": 270,
+      "y": 90
+    },
+    "rotation=7": {
+      "model": "changed_synergy:block/dark_latex_mask_675",
+      "x": 270,
+      "y": 180
+    },
+    "rotation=8": {
+      "model": "changed_synergy:block/dark_latex_mask",
+      "x": 270,
+      "y": 180
+    },
+    "rotation=9": {
+      "model": "changed_synergy:block/dark_latex_mask_225",
+      "x": 270,
+      "y": 180
+    },
+    "rotation=10": {
+      "model": "changed_synergy:block/dark_latex_mask_45",
+      "x": 270,
+      "y": 180
+    },
+    "rotation=11": {
+      "model": "changed_synergy:block/dark_latex_mask_675",
+      "x": 270,
+      "y": 270
+    },
+    "rotation=12": {
+      "model": "changed_synergy:block/dark_latex_mask",
+      "x": 270,
+      "y": 270
+    },
+    "rotation=13": {
+      "model": "changed_synergy:block/dark_latex_mask_225",
+      "x": 270,
+      "y": 270
+    },
+    "rotation=14": {
+      "model": "changed_synergy:block/dark_latex_mask_45",
+      "x": 270,
+      "y": 270
+    },
+    "rotation=15": {
+      "model": "changed_synergy:block/dark_latex_mask_675",
+      "x": 270,
+      "y": 0
+    }
+  }
+}

@@ -49,6 +49,7 @@ public record PatAnimationControlPacket(
                 }
                 Entity entity = sender.level().getEntity(packet.targetId);
                 if (entity instanceof LivingEntity target
+                        && target != sender
                         && target.isAlive()
                         && target.level() == sender.level()
                         && sender.distanceToSqr(target) <= 36.0D) {

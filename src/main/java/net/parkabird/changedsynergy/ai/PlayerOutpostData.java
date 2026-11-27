@@ -196,19 +196,9 @@ public final class PlayerOutpostData extends SavedData {
             return false;
         }
 
-        // Prohibited crafting tables, workbenches, and processing appliances by block registry name
         var blockKey = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(state.getBlock());
-        if (blockKey != null) {
-            String path = blockKey.getPath().toLowerCase(java.util.Locale.ROOT);
-            if (path.contains("crafting_table") || path.contains("workbench") || path.contains("crafting_station")
-                    || path.contains("furnace") || path.contains("smoker") || path.contains("blast_furnace")
-                    || path.contains("catalyzer") || path.contains("unifuser") || path.contains("purifier")
-                    || path.contains("centrifuge") || path.contains("anvil") || path.contains("enchant")
-                    || path.contains("brewing") || path.contains("dispenser") || path.contains("dropper")
-                    || path.contains("hopper") || path.contains("lectern") || path.contains("jukebox")
-                    || path.contains("bookshelf") || path.contains("chiseled")) {
-                return false;
-            }
+        if (blockKey != null && isProhibitedContainerPath(blockKey.getPath())) {
+            return false;
         }
 
         // Prohibited special container / machine classes
@@ -219,9 +209,20 @@ public final class PlayerOutpostData extends SavedData {
             return false;
         }
 
-        // Must either be a Container or expose ITEM_HANDLER capability
         if (blockEntity instanceof Container) return true;
         return blockEntity.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER).isPresent();
+    }
+
+    public static boolean isProhibitedContainerPath(String rawPath) {
+        if (rawPath == null || rawPath.isEmpty()) return false;
+        String path = rawPath.toLowerCase(java.util.Locale.ROOT);
+        return path.contains("crafting_table") || path.contains("workbench") || path.contains("crafting_station")
+                || path.contains("furnace") || path.contains("smoker") || path.contains("blast_furnace")
+                || path.contains("catalyzer") || path.contains("unifuser") || path.contains("purifier")
+                || path.contains("centrifuge") || path.contains("anvil") || path.contains("enchant")
+                || path.contains("brewing") || path.contains("dispenser") || path.contains("dropper")
+                || path.contains("hopper") || path.contains("lectern") || path.contains("jukebox")
+                || path.contains("bookshelf") || path.contains("chiseled");
     }
 
     /** Treats both halves of a double chest as one registered store. */
@@ -362,7 +363,7 @@ public final class PlayerOutpostData extends SavedData {
                 continue;
             }
             BlockPos normalized = PlayerOutpostRestGoal.restingPlace(level, pos);
-            if (normalized == null || !outpost.contains(normalized)) continue;
+            if (normalized == null || !outpost.contains(normalized) || !level.hasChunkAt(normalized)) continue;
             if (PlayerOutpostRestGoal.isBed(level.getBlockState(normalized))){
                 beds.add(normalized);
                 for(var perch:PerchSleepService.places(level,normalized))if(outpost.contains(perch))beds.add(perch);

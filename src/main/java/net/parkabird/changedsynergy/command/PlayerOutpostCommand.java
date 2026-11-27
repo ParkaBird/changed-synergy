@@ -305,7 +305,15 @@ public final class PlayerOutpostCommand {
     }
 
     private static ServerPlayer player(CommandSourceStack source) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
-        return source.getPlayerOrException();
+        ServerPlayer player = source.getPlayerOrException();
+        if (!player.isAlive() || player.isSpectator()
+                || net.parkabird.changedsynergy.ai.TakeoverService.active(player)
+                || net.parkabird.changedsynergy.ai.HypnosisQteService.isPlayerControlLocked(player)
+                || net.parkabird.changedsynergy.origin.NativeOriginService.pending(player)) {
+            throw new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(
+                    Component.translatable("command.changed_synergy.outpost.error.unavailable")).create();
+        }
+        return player;
     }
 
     private static Outpost owned(CommandSourceStack source, ServerPlayer player) {
@@ -381,12 +389,24 @@ public final class PlayerOutpostCommand {
             player.displayClientMessage(Component.translatable("command.changed_synergy.outpost.error.target_changed"), true);
             return false;
         }
-        String command = switch (expected) {
-            case "create_outpost" -> "changedsynergy outpost create";
-            case "link_outpost" -> "changedsynergy outpost link";
-            default -> "changedsynergy outpost";
-        };
-        return player.server.getCommands().performPrefixedCommand(player.createCommandSourceStack(), command) > 0;
+        CommandSourceStack source = player.createCommandSourceStack();
+        try {
+            return switch (expected) {
+                case "create_outpost" -> claim(source) > 0;
+                case "link_outpost" -> linkFacility(source, null) > 0;
+                default -> open(source) > 0;
+            };
+        } catch (com.mojang.brigadier.exceptions.CommandSyntaxException exception) {
+            return false;
+        }
+    }
+
+    public static boolean callMeal(ServerPlayer player) {
+        try {
+            return meal(player.createCommandSourceStack()) > 0;
+        } catch (com.mojang.brigadier.exceptions.CommandSyntaxException exception) {
+            return false;
+        }
     }
 
     private static ChangedEntity lookedAtCreature(ServerPlayer player) {

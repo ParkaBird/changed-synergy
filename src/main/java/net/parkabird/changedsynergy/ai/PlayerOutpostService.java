@@ -186,8 +186,8 @@ public final class PlayerOutpostService {
         restoreCompanionGoals(mob);
         PlayerOutpostMealGoal.cleanup(mob);
         PlayerOutpostRestGoal.cleanup(mob);
-        if (mob.isSleeping()) mob.stopSleeping();
         boolean assigned = mob.getPersistentData().hasUUID(OUTPOST_OWNER);
+        if (assigned && mob.isSleeping()) mob.stopSleeping();
         if (assigned) {
             java.util.UUID owner = mob.getPersistentData().getUUID(OUTPOST_OWNER);
             CreaturePersonality.clearSocialFollowing(mob, owner);

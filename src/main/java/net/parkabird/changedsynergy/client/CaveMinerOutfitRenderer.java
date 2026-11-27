@@ -310,7 +310,8 @@ public final class CaveMinerOutfitRenderer extends ClothingModelFit implements A
 
     private static void setPuddingParts(ModelPart active) {
         ModelPart torso = active.getChild("Torso");
-        if (torso.hasChild("Outfit_HipApron")) torso.getChild("Outfit_HipApron").visible = false;
+        setChildVisible(torso, "Outfit_HipApron", false);
+        setChildVisible(torso, "Outfit_Belt", true);
         if (torso.hasChild("Outfit_Belt")) {
             ModelPart belt = torso.getChild("Outfit_Belt");
             setChildVisible(belt, "Miner_Satchel_r1", false);
@@ -322,18 +323,18 @@ public final class CaveMinerOutfitRenderer extends ClothingModelFit implements A
     private static void configureTorsoVisibility(ModelPart active, LivingEntity wearer, boolean otherTaur) {
         ModelPart torso = active.getChild("Torso");
         if (otherTaur) {
-            if (torso.hasChild("Outfit_Belt")) torso.getChild("Outfit_Belt").visible = false;
-            if (torso.hasChild("Outfit_HipApron")) torso.getChild("Outfit_HipApron").visible = false;
+            setChildVisible(torso, "Outfit_Belt", false);
+            setChildVisible(torso, "Outfit_HipApron", false);
             return;
         }
-        if (!HyenaTrailclothItem.hasLowerSection(wearer)) {
-            if (torso.hasChild("Outfit_HipApron")) torso.getChild("Outfit_HipApron").visible = false;
-            if (torso.hasChild("Outfit_Belt")) {
-                ModelPart belt = torso.getChild("Outfit_Belt");
-                setChildVisible(belt, "Miner_Satchel_r1", false);
-                setChildVisible(belt, "Miner_CrystalFlask_r1", false);
-                setChildVisible(belt, "Miner_SashTab_r1", false);
-            }
+        boolean hasLower = HyenaTrailclothItem.hasLowerSection(wearer);
+        setChildVisible(torso, "Outfit_Belt", true);
+        setChildVisible(torso, "Outfit_HipApron", hasLower);
+        if (torso.hasChild("Outfit_Belt")) {
+            ModelPart belt = torso.getChild("Outfit_Belt");
+            setChildVisible(belt, "Miner_Satchel_r1", hasLower);
+            setChildVisible(belt, "Miner_CrystalFlask_r1", hasLower);
+            setChildVisible(belt, "Miner_SashTab_r1", hasLower);
         }
     }
 

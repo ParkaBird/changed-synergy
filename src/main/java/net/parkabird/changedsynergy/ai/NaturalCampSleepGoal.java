@@ -192,7 +192,13 @@ public final class NaturalCampSleepGoal extends Goal {
 
     private void tryLieDown() {
         mob.getNavigation().stop();
-        if (mob.getPose() == Pose.CROUCHING) mob.setPose(Pose.STANDING);
+        mob.setSpeed(0.0F);
+        mob.setZza(0.0F);
+        mob.setXxa(0.0F);
+        if (mob.getPose() == Pose.CROUCHING
+                && mob.level().noCollision(mob, mob.getDimensions(Pose.STANDING).makeBoundingBox(mob.position()))) {
+            mob.setPose(Pose.STANDING);
+        }
         if (!(mob.level() instanceof ServerLevel level)) return;
         if (!PlayerOutpostRestGoal.free(mob, level, bed)) {
             stalledTicks = MAX_STALLED_TICKS;

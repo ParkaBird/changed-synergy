@@ -1,0 +1,18 @@
+{
+  "structures": [
+    {
+      "structure": "changed_synergy:stiger_hut",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 24,
+    "separation": 8,
+    "salt": 194711261,
+    "exclusion_zone": {
+      "other_set": "changed_synergy:lush_cabins",
+      "chunk_count": 4
+    }
+  }
+}

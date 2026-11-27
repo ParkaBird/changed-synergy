@@ -18,12 +18,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
         "net.parkabird.changedsynergy.client.model.WhiteLatexWolfPartialModel"
 }, remap = false)
 public abstract class PartialSkinLayersMixin {
-    @Inject(method = "setModelProperties", at = @At("RETURN"))
+    @Inject(method = "setModelProperties", at = @At("RETURN"), require = 0)
     private void changedSynergy$playerSkinLayers(AbstractClientPlayer player, CallbackInfo callback) {
         PartialSkinLayersCompat.apply(this, player);
     }
 
-    @Inject(method = "defaultModelProperties", at = @At("RETURN"))
+    @Inject(method = "defaultModelProperties", at = @At("RETURN"), require = 0)
     private void changedSynergy$clearPlayerSkinLayers(CallbackInfo callback) {
         PartialSkinLayersCompat.apply(this, null);
     }

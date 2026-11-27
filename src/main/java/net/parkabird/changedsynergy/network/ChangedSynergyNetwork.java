@@ -8,7 +8,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class ChangedSynergyNetwork {
-    private static final String PROTOCOL = "68";
+    private static final String PROTOCOL = "69";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(ChangedSynergyMod.MOD_ID, "network"),
             () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
@@ -85,13 +85,6 @@ public final class ChangedSynergyNetwork {
                 GrabQteSyncPacket::decode,
                 GrabQteSyncPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(
-                3,
-                BondedInventoryOpenPacket.class,
-                BondedInventoryOpenPacket::encode,
-                BondedInventoryOpenPacket::decode,
-                BondedInventoryOpenPacket::handle,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(
                 4,
                 NativePetReassimilatePacket.class,
@@ -218,13 +211,6 @@ public final class ChangedSynergyNetwork {
                 MergedPlayerIdentityPacket::encode,
                 MergedPlayerIdentityPacket::decode,
                 MergedPlayerIdentityPacket::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(
-                25,
-                ProvisionerTradeSyncPacket.class,
-                ProvisionerTradeSyncPacket::encode,
-                ProvisionerTradeSyncPacket::decode,
-                ProvisionerTradeSyncPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(
                 26,

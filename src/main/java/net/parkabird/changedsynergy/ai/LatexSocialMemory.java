@@ -93,8 +93,6 @@ public final class LatexSocialMemory {
     private static final double FOLLOW_COMBAT_LEASH_SQR = 24.0D * 24.0D;
     private static final Map<UUID, List<SuppressedMovementGoal>>
             SUPPRESSED_MOVEMENT_GOALS = new WeakHashMap<>();
-    private static final Map<ChangedEntity, GoalMutation>
-            PENDING_GOAL_MUTATIONS = new WeakHashMap<>();
     private static final ClassValue<Boolean> NATIVE_PET_MENU = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> type) {
@@ -748,13 +746,15 @@ public final class LatexSocialMemory {
         notice.putLong("Position", mob.blockPosition().asLong());
         for (UUID playerUuid : bondedPlayers) {
             ServerPlayer online = level.getServer().getPlayerList().getPlayer(playerUuid);
-            notice.putBoolean("Notified", online != null);
-            deaths.markDead(playerUuid, mob.getUUID(), notice);
             if (online != null) {
+                notice.putBoolean("Notified", true);
                 sendBondDeathLocation(online, notice);
                 playerBondData(online).remove(mob.getUUID().toString());
                 BondedCreatureLifecycle.forget(online, mob.getUUID());
                 PlayerRelationshipSettings.forgetContact(online, mob.getUUID());
+            } else {
+                notice.putBoolean("Notified", false);
+                deaths.markDead(playerUuid, mob.getUUID(), notice);
             }
         }
 
@@ -1240,32 +1240,6 @@ public final class LatexSocialMemory {
                         : GoalMutation.RESTORE);
     }
 
-    public static void flushPendingGoalMutations(MinecraftServer server) {
-        List<Map.Entry<ChangedEntity, GoalMutation>> pending = new ArrayList<>();
-        synchronized (PENDING_GOAL_MUTATIONS) {
-            PENDING_GOAL_MUTATIONS.forEach((mob, mutation) ->
-                    pending.add(Map.entry(mob, mutation)));
-            PENDING_GOAL_MUTATIONS.clear();
-        }
-
-        for (Map.Entry<ChangedEntity, GoalMutation> entry : pending) {
-            ChangedEntity mob = entry.getKey();
-            if (mob.isRemoved()
-                    || !(mob.level() instanceof ServerLevel level)
-                    || level.getServer() != server) {
-                continue;
-            }
-            boolean stillCompanion = bondEnabled(mob)
-                    && (!bondedPlayerUuids(mob).isEmpty()
-                            || petOwnerUuid(mob).isPresent());
-            if (entry.getValue() == GoalMutation.SUPPRESS && stillCompanion) {
-                applyBondedGoalSuppression(mob);
-            } else if (entry.getValue() == GoalMutation.RESTORE && !stillCompanion) {
-                applySuppressedGoalRestoration(mob);
-            }
-        }
-    }
-
     private static void applyBondedGoalSuppression(ChangedEntity mob) {
         if (mob instanceof net.ltxprogrammer.changed.entity.beast.AbstractAquaticEntity
                 && mob.goalSelector.getAvailableGoals().stream()
@@ -1307,6 +1281,10 @@ public final class LatexSocialMemory {
         }
     }
 
+    public static void clearServerCaches() {
+        SUPPRESSED_MOVEMENT_GOALS.clear();
+    }
+
     private static void applySuppressedGoalRestoration(ChangedEntity mob) {
         List<SuppressedMovementGoal> suppressed = SUPPRESSED_MOVEMENT_GOALS.remove(mob.getUUID());
         if (suppressed == null) {
@@ -1317,9 +1295,19 @@ public final class LatexSocialMemory {
     }
 
     private static void queueGoalMutation(ChangedEntity mob, GoalMutation mutation) {
-        synchronized (PENDING_GOAL_MUTATIONS) {
-            PENDING_GOAL_MUTATIONS.put(mob, mutation);
-        }
+        SafeEntityMutationQueue.queue(mob, "social_goal_mutation", () -> {
+            if (!(mob.level() instanceof ServerLevel)) {
+                return;
+            }
+            boolean stillCompanion = bondEnabled(mob)
+                    && (!bondedPlayerUuids(mob).isEmpty()
+                            || petOwnerUuid(mob).isPresent());
+            if (mutation == GoalMutation.SUPPRESS && stillCompanion) {
+                applyBondedGoalSuppression(mob);
+            } else if (mutation == GoalMutation.RESTORE && !stillCompanion) {
+                applySuppressedGoalRestoration(mob);
+            }
+        });
     }
 
     private record SuppressedMovementGoal(int priority, Goal goal) {

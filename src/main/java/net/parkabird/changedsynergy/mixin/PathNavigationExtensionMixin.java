@@ -86,7 +86,10 @@ public abstract class PathNavigationExtensionMixin {
                     Path crouched = self.createPath(
                             targets, regionOffset, offsetUp, accuracy,
                             Math.max(followRange, changedSynergy$extendedRange));
-                    if (crouched != null && crouched.canReach()) {
+                    boolean betterPartial = crouched != null && result != null
+                            && crouched.getDistToTarget() < result.getDistToTarget() - 0.5F
+                            && crouched.getNodeCount() > 0;
+                    if (crouched != null && (crouched.canReach() || betterPartial)) {
                         result = crouched;
                         callback.setReturnValue(crouched);
                     } else {

@@ -26,14 +26,17 @@ public final class StoryNpcStructures {
     }
     public static void register(ServerLevel level,ResearchLabStructure.Piece piece) {
         var saved=piece.createTag(StructurePieceSerializationContext.fromLevel(level));String template=saved.getString("Template");
+        String canonical=net.parkabird.changedsynergy.ai.CampTemplateCatalog.canonicalTemplate(template);
         for(var profile:NpcDefinitions.all()) {
-            if(!template.equals("changed_synergy:"+profile.template()))continue;
+            if(!canonical.equals("changed_synergy:"+profile.template()))continue;
             var settings=new StructurePlaceSettings().setRotation(piece.getRotation());var origin=piece.templatePosition();
             var model=level.getServer().getStructureManager().get(ResourceLocation.parse(template)).orElse(null);if(model==null)continue;
             var box=model.getBoundingBox(settings,origin);String homeKey=level.dimension().location()+":"+new BlockPos(box.minX(),box.minY(),box.minZ()).asLong();
             String key=profile.id()+"@"+homeKey;var store=StoryNpcData.get(level.getServer());if(store.records.containsKey(key))continue;
             CompoundTag raw;
-            try(var input=level.getServer().getResourceManager().open(ResourceLocation.parse("changed_synergy:structures/"+profile.template()+".nbt"))){raw=NbtIo.readCompressed(input);}
+            String bare=template.startsWith("changed_synergy:")?template.substring("changed_synergy:".length()):template;
+            String resourceTemplate=bare.endsWith("_fd")?bare:profile.template();
+            try(var input=level.getServer().getResourceManager().open(ResourceLocation.parse("changed_synergy:structures/"+resourceTemplate+".nbt"))){raw=NbtIo.readCompressed(input);}
             catch(java.io.IOException e){net.parkabird.changedsynergy.ChangedSynergyMod.LOGGER.warn("Cannot read NPC template {}",template,e);continue;}
             for(var value:raw.getList("entities",10)) {
                 var entity=(CompoundTag)value;var tag=entity.getCompound("nbt").copy();

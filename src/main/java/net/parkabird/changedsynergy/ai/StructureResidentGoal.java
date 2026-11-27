@@ -132,6 +132,9 @@ public final class StructureResidentGoal extends Goal {
                 case "burrow" -> assignDefaultRole(data,
                         new String[]{"pond","library","workshop","upstairs","farm","dorm"},
                         new double[][]{{5.5,8,28.5},{20.5,7,9.5},{27.5,9,37.5},{19.5,15,33.5},{15.5,12,13.5},{21.5,6,10.5}});
+                case "the_shoal" -> assignDefaultRole(data,
+                        new String[]{"fishing","dorm","storage","workshop"},
+                        new double[][]{{18.5,5,29.5},{7.5,5,12.5},{10.5,5,6.5},{9.5,5,17.5}});
             }
         }
         if(data.getString("Template").equals("green_lab") && data.getBoolean("Character") && !data.contains("NeckOutfit"))
@@ -140,6 +143,10 @@ public final class StructureResidentGoal extends Goal {
             data.putString("Outfit","changed_synergy:cave_miner_outfit");
         if(data.getString("Template").equals("point_prometheus") && data.getBoolean("Character") && !data.contains("Outfit"))
             data.putString("Outfit","changed_synergy:field_coat");
+        if(data.getString("Template").equals("the_shoal") && data.getBoolean("Character")) {
+            if(!data.contains("Outfit")||data.getString("Outfit").isEmpty())data.putString("Outfit","changed:wetsuit");
+            if(CreatureLifeMemory.role(mob)!=CreatureLifeMemory.GroupRole.CHIEF)CreatureLifeMemory.setRole(mob,CreatureLifeMemory.GroupRole.CHIEF);
+        }
         if(data.getString("Template").equals("burrow") && !data.getBoolean("Character") && !data.getBoolean("BurrowWardrobeRolled")) {
             data.putBoolean("BurrowWardrobeRolled", true);
             var roll = new java.util.Random(mob.getUUID().getLeastSignificantBits());

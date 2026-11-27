@@ -111,7 +111,7 @@ public final class ResearchLabStructure extends Structure {
         // A snowy mountain, cave chamber, or broad snowy lab rarely aligns centered on the candidate chunk center.
         int[][] offsets = underground || snowyCamp()
                 ? new int[][]{{0, 0}, {-16, 0}, {16, 0}, {0, -16}, {0, 16}}
-                : mountainCamp() || redSandCamp()
+                : mountainCamp() || redSandCamp() || shoalCamp()
                 ? new int[][]{{0, 0}, {0, -16}, {0, 16}, {-16, 0}, {-16, -16}, {-16, 16}, {16, 0}, {16, -16}, {16, 16}}
                 : new int[][]{{0, 0}};
         for (int[] offset : offsets) {
@@ -119,10 +119,12 @@ public final class ResearchLabStructure extends Structure {
             if (underground) {
                 // Lush caves (and other cave biomes) only exist on underground noise slices; filter before terrain queries.
                 boolean biomeOk = false;
-                for (int probeY : new int[]{16, 0, -24, 36}) {
-                    if (context.validBiome().test(context.biomeSource().getNoiseBiome(
+                int[] probeYs = isDeepCaveCamp() ? new int[]{-16, -32, -48, 0} : new int[]{16, 0, -24, 36};
+                for (int probeY : probeYs) {
+                    var sampled = context.biomeSource().getNoiseBiome(
                             net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(probeY),
-                            net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler()))) {
+                            net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler());
+                    if (context.validBiome().test(sampled) && validUndergroundBiome(sampled)) {
                         biomeOk = true;
                         break;
                     }
@@ -141,9 +143,10 @@ public final class ResearchLabStructure extends Structure {
             if (position.isEmpty()) continue;
             var pos = position.get();
             int biomeY = underground ? pos.getY() + size.getY() / 2 : pos.getY();
-            if (!context.validBiome().test(context.biomeSource().getNoiseBiome(
+            var finalBiome = context.biomeSource().getNoiseBiome(
                     net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(biomeY),
-                    net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler()))) continue;
+                    net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler());
+            if (!context.validBiome().test(finalBiome) || (underground && !validUndergroundBiome(finalBiome))) continue;
             return Optional.of(new GenerationStub(anchor.atY(pos.getY()), builder -> builder.addPiece(
                     new Piece(context.structureTemplateManager(), chosenTemplate, pos, rotation, waterline >= 0,
                             clearingRadius, underground, groundLevel))));
@@ -151,11 +154,21 @@ public final class ResearchLabStructure extends Structure {
         return Optional.empty();
     }
 
+    private boolean isDeepCaveCamp() { return template.getPath().equals("stiger_hut"); }
+
+    private boolean validUndergroundBiome(net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome> biome) {
+        if (!isDeepCaveCamp()) return true;
+        return !biome.is(net.minecraft.world.level.biome.Biomes.DEEP_DARK)
+                && !biome.is(net.minecraft.tags.BiomeTags.IS_OCEAN)
+                && !biome.is(net.minecraft.tags.BiomeTags.IS_DEEP_OCEAN);
+    }
+
     private boolean mountainCamp() { return template.getPath().equals("observatory"); }
     private boolean snowyCamp() {
         return template.getPath().equals("point_prometheus") || template.getPath().equals("burrow");
     }
     private boolean redSandCamp() { return template.getPath().equals("muddy_campsite"); }
+    private boolean shoalCamp() { return template.getPath().equals("the_shoal"); }
 
     /**
      * Sit the authored living floor on a real cave floor inside an open chamber.
@@ -172,6 +185,7 @@ public final class ResearchLabStructure extends Structure {
                 Heightmap.Types.WORLD_SURFACE_WG, context.heightAccessor(), context.randomState());
         int minBuild = context.heightAccessor().getMinBuildHeight() + 8;
         int maxLiving = surface - (size.getY() - livingFloor) - 8;
+        if (isDeepCaveCamp()) maxLiving = Math.min(maxLiving, 0);
         if (maxLiving <= minBuild + livingFloor) return Optional.empty();
         var centerColumn = context.chunkGenerator().getBaseColumn(anchor.getX(), anchor.getZ(),
                 context.heightAccessor(), context.randomState());
@@ -180,7 +194,9 @@ public final class ResearchLabStructure extends Structure {
         for (int y = minBuild + livingFloor; y <= maxLiving && floorCount < floors.length; y++) {
             var below = centerColumn.getBlock(y - 1);
             var here = centerColumn.getBlock(y);
-            if (below.canOcclude() && below.getFluidState().isEmpty() && here.isAir()) floors[floorCount++] = y;
+            if (below.canOcclude() && below.getFluidState().isEmpty() && here.isAir()
+                    && centerColumn.getBlock(y + 1).isAir()
+                    && centerColumn.getBlock(y + 2).isAir()) floors[floorCount++] = y;
         }
         if (floorCount == 0) return Optional.empty();
         // Prefer mid-depth chambers; try a shuffled sample of discovered floors.
@@ -197,15 +213,16 @@ public final class ResearchLabStructure extends Structure {
         net.minecraft.world.level.NoiseColumn[][] columns = new net.minecraft.world.level.NoiseColumn[5][5];
         columns[0][0] = centerColumn;
         int lowOffset = 1;
-        int midOffset = Math.min(8, size.getY() - livingFloor - 2);
-        int highOffset = Math.min(14, size.getY() - livingFloor - 2);
+        int midOffset = Math.max(1, Math.min(8, (size.getY() - livingFloor) / 2));
+        int highOffset = Math.max(1, Math.min(14, size.getY() - livingFloor - 2));
         for (int attempt = 0; attempt < attempts; attempt++) {
             int livingY = floors[attempt];
             int y = livingY - livingFloor;
             if (y < minBuild || y + size.getY() > surface - 5) continue;
-            if (!context.validBiome().test(context.biomeSource().getNoiseBiome(
+            var livingBiome = context.biomeSource().getNoiseBiome(
                     net.minecraft.core.QuartPos.fromBlock(anchor.getX()), net.minecraft.core.QuartPos.fromBlock(livingY),
-                    net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler()))) continue;
+                    net.minecraft.core.QuartPos.fromBlock(anchor.getZ()), context.randomState().sampler());
+            if (!context.validBiome().test(livingBiome) || !validUndergroundBiome(livingBiome)) continue;
             int solidFloor = 0;
             int openAir = 0;
             int remaining = 25;
@@ -221,15 +238,16 @@ public final class ResearchLabStructure extends Structure {
                         columns[ix][iz] = column;
                     }
                     var support = column.getBlock(livingY - 1);
+                    var subSupport = column.getBlock(livingY - 2);
                     var low = column.getBlock(livingY + lowOffset);
                     var mid = column.getBlock(livingY + midOffset);
                     var high = column.getBlock(livingY + highOffset);
-                    if (!support.getFluidState().isEmpty() || !low.getFluidState().isEmpty()
-                            || !mid.getFluidState().isEmpty()) {
+                    if (!support.getFluidState().isEmpty() || !subSupport.getFluidState().isEmpty()
+                            || !low.getFluidState().isEmpty() || !mid.getFluidState().isEmpty()) {
                         possible = false;
                         break;
                     }
-                    if (support.canOcclude()) solidFloor++;
+                    if (support.canOcclude() || (support.isAir() && subSupport.canOcclude())) solidFloor++;
                     if (low.isAir()) openAir++;
                     if (mid.isAir()) openAir++;
                     if (high.isAir()) openAir++;
@@ -281,9 +299,14 @@ public final class ResearchLabStructure extends Structure {
         int[] sorted = ground.clone();
         Arrays.sort(sorted);
         int y;
+        int seaLevel = context.chunkGenerator().getSeaLevel();
         if (waterline >= 0) {
-            y = context.chunkGenerator().getSeaLevel() - 1 - waterline;
-            if (sorted[8] > y + 3 || sorted[0] < y - 24) return Optional.empty();
+            y = seaLevel - 1 - waterline;
+            if (shoalCamp()) {
+                if (sorted[8] > seaLevel - 2 || sorted[0] < seaLevel - 20) return Optional.empty();
+            } else if (sorted[8] > y + 3 || sorted[0] < y - 24) {
+                return Optional.empty();
+            }
         } else {
             if (sorted[8] - sorted[0] > maxTerrainSlope) return Optional.empty();
             y = sorted[4] - 1 - groundLevel;
@@ -293,7 +316,9 @@ public final class ResearchLabStructure extends Structure {
         for (int i = 0; i < 9; i++) {
             int surface = context.chunkGenerator().getBaseHeight(samples[i].getX(), samples[i].getZ(),
                     Heightmap.Types.WORLD_SURFACE_WG, context.heightAccessor(), context.randomState());
-            if (waterline < 0 ? !drySurface(context, samples[i], ground[i], surface) : surface - ground[i] < waterline - 2) {
+            if (shoalCamp()) {
+                if (surface != seaLevel || surface - ground[i] < 2 || surface - ground[i] > 20) return Optional.empty();
+            } else if (waterline < 0 ? !drySurface(context, samples[i], ground[i], surface) : surface - ground[i] < waterline - 2) {
                 return Optional.empty();
             }
         }
@@ -368,18 +393,6 @@ public final class ResearchLabStructure extends Structure {
             }
         };
 
-        public Piece(StructureTemplateManager manager, ResourceLocation template, BlockPos position, Rotation rotation, boolean ocean) {
-            this(manager, template, position, rotation, ocean, template.getPath().equals("forest_treehouse") ? 3 : 0, false, 0);
-        }
-
-        public Piece(StructureTemplateManager manager, ResourceLocation template, BlockPos position, Rotation rotation, boolean ocean, int clearingRadius) {
-            this(manager, template, position, rotation, ocean, clearingRadius, false, 0);
-        }
-
-        public Piece(StructureTemplateManager manager, ResourceLocation template, BlockPos position, Rotation rotation, boolean ocean, int clearingRadius, boolean underground) {
-            this(manager, template, position, rotation, ocean, clearingRadius, underground, 0);
-        }
-
         public Piece(StructureTemplateManager manager, ResourceLocation template, BlockPos position, Rotation rotation, boolean ocean,
                      int clearingRadius, boolean underground, int groundLevel) {
             super(PIECE.get(), 0, manager, template, template.toString(), settings(rotation), position);
@@ -410,6 +423,10 @@ public final class ResearchLabStructure extends Structure {
             return templateName.equals("changed_synergy:point_prometheus")
                     || templateName.equals("changed_synergy:burrow");
         }
+        private boolean shoalCamp() {
+            return templateName.equals("changed_synergy:the_shoal")
+                    || templateName.equals("changed_synergy:the_shoal_fd");
+        }
 
         private static StructurePlaceSettings settings(Rotation rotation) {
             return new StructurePlaceSettings().setRotation(rotation).setMirror(Mirror.NONE)
@@ -437,14 +454,50 @@ public final class ResearchLabStructure extends Structure {
             if (hasClearing()) clearLandscape(level, clip, false);
             template.placeInWorld(level, templatePosition, pivot, placeSettings, random,
                     Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
-            // Cave shells already replace stone; do not pour foundations into neighboring voids.
-            if (underground) return;
+            if (snowyCamp()) syncSnowyGrass(level, clip);
+            // Cave shells already replace stone; do not pour deep foundations into neighboring voids.
+            if (underground) {
+                if (groundLevel == 1) {
+                    int base = templatePosition.getY();
+                    for (int x = Math.max(clip.minX(), boundingBox.minX()); x <= Math.min(clip.maxX(), boundingBox.maxX()); x++) {
+                        for (int z = Math.max(clip.minZ(), boundingBox.minZ()); z <= Math.min(clip.maxZ(), boundingBox.maxZ()); z++) {
+                            var top = new BlockPos(x, base, z);
+                            var state = level.getBlockState(top);
+                            if (!state.isFaceSturdy(level, top, Direction.DOWN) || !state.getFluidState().isEmpty()) continue;
+                            for (int depth = 1; depth <= 3; depth++) {
+                                var below = top.below(depth);
+                                if (below.getY() <= level.getMinBuildHeight() || !clip.isInside(below)) break;
+                                var old = level.getBlockState(below);
+                                if (!old.isAir() && old.getFluidState().isEmpty()) break;
+                                level.setBlock(below, Blocks.COBBLED_DEEPSLATE.defaultBlockState(), 2);
+                            }
+                        }
+                    }
+                }
+                return;
+            }
             // Fill only beneath actual load-bearing base blocks, inside the current chunk.
-            int base = templatePosition.getY() + (ocean ? 1 : 0);
+            boolean shoal = shoalCamp();
+            int base = templatePosition.getY() + (ocean && !shoal ? 1 : 0);
             for (int x = Math.max(clip.minX(), boundingBox.minX()); x <= Math.min(clip.maxX(), boundingBox.maxX()); x++) {
                 for (int z = Math.max(clip.minZ(), boundingBox.minZ()); z <= Math.min(clip.maxZ(), boundingBox.maxZ()); z++) {
                     var top = new BlockPos(x, base, z);
                     var state = level.getBlockState(top);
+                    if (shoal) {
+                        if (!state.is(BlockTags.FENCES)) continue;
+                        var baseSupport = state.getBlock().defaultBlockState();
+                        for (int depth = 1; depth <= 32; depth++) {
+                            var below = top.below(depth);
+                            if (below.getY() <= level.getMinBuildHeight() || !clip.isInside(below)) break;
+                            var old = level.getBlockState(below);
+                            if (!old.isAir() && old.getFluidState().isEmpty()) break;
+                            var columnState = baseSupport.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED)
+                                    ? baseSupport.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED, !old.getFluidState().isEmpty())
+                                    : baseSupport;
+                            level.setBlock(below, columnState, 2);
+                        }
+                        continue;
+                    }
                     if (!state.isFaceSturdy(level, top, Direction.DOWN) || !state.getFluidState().isEmpty()) continue;
                     // Gravel/sand must not also serve as their own unsupported foundation.
                     var support = state.getBlock() instanceof FallingBlock ? Blocks.DIRT.defaultBlockState() : state;
@@ -483,11 +536,12 @@ public final class ResearchLabStructure extends Structure {
                     }
                     var top = new BlockPos(x, ground, z);
                     if (clip.isInside(top) && !(placed && inside)) {
+                        boolean placeSnow = snowyCamp() && !inside && clip.isInside(top.above());
                         var topState = mountainCamp() ? Blocks.SNOW_BLOCK.defaultBlockState()
-                                : snowyCamp() ? Blocks.GRASS_BLOCK.defaultBlockState().setValue(net.minecraft.world.level.block.SnowyDirtBlock.SNOWY, true)
+                                : placeSnow ? Blocks.GRASS_BLOCK.defaultBlockState().setValue(net.minecraft.world.level.block.SnowyDirtBlock.SNOWY, true)
                                 : Blocks.GRASS_BLOCK.defaultBlockState();
                         level.setBlock(top, topState, 2);
-                        if (snowyCamp() && !inside && clip.isInside(top.above())) {
+                        if (placeSnow) {
                             level.setBlock(top.above(), Blocks.SNOW.defaultBlockState(), 2);
                         }
                     }
@@ -509,6 +563,35 @@ public final class ResearchLabStructure extends Structure {
             var restore = settings(placeSettings.getRotation()).setIgnoreEntities(true).setBoundingBox(clip).addProcessor(RESTORE_CHANGED);
             template.placeInWorld(level, templatePosition, templatePosition, restore, RandomSource.create(0),
                     Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+            if (snowyCamp()) syncSnowyGrass(level, clip);
+        }
+
+        /** Keep GRASS_BLOCK's SNOWY property consistent with whether snow actually sits above it. */
+        private void syncSnowyGrass(WorldGenLevel level, BoundingBox clip) {
+            int ground = templatePosition.getY() + groundLevel;
+            int minY = Math.max(level.getMinBuildHeight(), ground - 3);
+            int maxY = Math.min(level.getMaxBuildHeight() - 2, ground + 6);
+            int minX = Math.max(clip.minX(), boundingBox.minX());
+            int maxX = Math.min(clip.maxX(), boundingBox.maxX());
+            int minZ = Math.max(clip.minZ(), boundingBox.minZ());
+            int maxZ = Math.min(clip.maxZ(), boundingBox.maxZ());
+            var mutable = new BlockPos.MutableBlockPos();
+            for (int x = minX; x <= maxX; x++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    for (int y = minY; y <= maxY; y++) {
+                        mutable.set(x, y, z);
+                        var state = level.getBlockState(mutable);
+                        if (!state.is(Blocks.GRASS_BLOCK)) continue;
+                        var above = level.getBlockState(mutable.setY(y + 1));
+                        boolean hasSnow = above.is(Blocks.SNOW) || above.is(Blocks.SNOW_BLOCK) || above.is(Blocks.POWDER_SNOW);
+                        if (state.getValue(net.minecraft.world.level.block.SnowyDirtBlock.SNOWY) != hasSnow) {
+                            mutable.setY(y);
+                            level.setBlock(mutable, state.setValue(net.minecraft.world.level.block.SnowyDirtBlock.SNOWY, hasSnow),
+                                    Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+                        }
+                    }
+                }
+            }
         }
 
         @Override

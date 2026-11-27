@@ -45,6 +45,7 @@ public final class PoliteHumanApproachGoal extends Goal {
                 || !(mob.level() instanceof ServerLevel level)
                 || mob.level().getGameTime() < nextScanTick
                 || !movementAvailable()
+                || BondedSuitService.getSuitController(mob) != null
                 || mob.getTarget() != null) {
             return false;
         }
@@ -60,6 +61,7 @@ public final class PoliteHumanApproachGoal extends Goal {
         player = level.players().stream()
                 .filter(candidate -> mob.distanceToSqr(candidate) <= rangeSqr)
                 .filter(candidate -> !TakeoverService.active(candidate))
+                .filter(candidate -> BondedSuitService.getWrappingPet(candidate) == null)
                 .filter(candidate -> PoliteHumanInteraction.canBeginApproach(mob, candidate))
                 .filter(candidate -> NpcDispositionEvents.canVisuallyAcquire(mob, candidate))
                 .min(Comparator.comparingDouble(mob::distanceToSqr))
@@ -165,6 +167,7 @@ public final class PoliteHumanApproachGoal extends Goal {
         }
 
         mob.swing(InteractionHand.MAIN_HAND);
+        PatAnimationService.startFixed(mob, player, 4);
         NpcDialogue.emoteTarget(mob, player, Emote.CONFUSED);
         PoliteHumanInteraction.markProbe(mob, player);
         NpcDialogue.trigger(mob, player, Cue.POLITE_PROBE);

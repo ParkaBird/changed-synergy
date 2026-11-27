@@ -28,7 +28,7 @@ public abstract class TrueTransfurOriginEventsMixin {
     private static boolean changedSynergy$controlCommand(Player player) {
         return NativeOriginPolicy.allowsInstinct(player);
     }
-    @Inject(method = "nameFormat", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "nameFormat", at = @At("HEAD"), cancellable = true, require = 0, remap = false)
     private static void changedSynergy$keepHumanName(PlayerEvent.NameFormat event, CallbackInfo callback) {
         if (!NativeOriginPolicy.allows(event.getEntity())) callback.cancel();
     }

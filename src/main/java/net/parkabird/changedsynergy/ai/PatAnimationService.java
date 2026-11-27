@@ -103,6 +103,7 @@ public final class PatAnimationService {
             LivingEntity target) {
         if (!actor.isAlive()
                 || !target.isAlive()
+                || target == actor
                 || invalidDuringTakeover(actor, target)
                 || actor.distanceToSqr(target) > 36.0D
                 || !actor.hasLineOfSight(target)) {
@@ -251,6 +252,12 @@ public final class PatAnimationService {
                         1.00F);
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
+        SESSIONS.clear();
+        PENDING.clear();
     }
 
     private static void playContactSound(

@@ -287,7 +287,7 @@ public final class StoryNpcScreen extends Screen {
     @Override public boolean mouseScrolled(double mx,double my,double delta){if(ready()){choiceOffset=Math.max(0,Math.min(Math.max(0,choices.size()-visibleChoices),choiceOffset+(delta<0?1:-1)));selected=-1;setFocused(null);positionChoices();return true;}return false;}
     @Override public boolean keyPressed(int key,int scan,int mods) {
         if(key==GLFW.GLFW_KEY_ESCAPE){onClose();return true;}
-        if(ready()&&(key==GLFW.GLFW_KEY_DOWN||key==GLFW.GLFW_KEY_UP||key==GLFW.GLFW_KEY_TAB)) {
+        if(ready()&&!choices.isEmpty()&&(key==GLFW.GLFW_KEY_DOWN||key==GLFW.GLFW_KEY_UP||key==GLFW.GLFW_KEY_TAB)) {
             boolean backwards=key==GLFW.GLFW_KEY_UP||key==GLFW.GLFW_KEY_TAB&&(mods&GLFW.GLFW_MOD_SHIFT)!=0;
             selected=selected<0?(backwards?choices.size()-1:0):Math.floorMod(selected+(backwards?-1:1),choices.size());
             choiceOffset=Math.max(0,Math.min(selected,Math.max(0,choices.size()-visibleChoices)));positionChoices();setFocused(choices.get(selected));return true;

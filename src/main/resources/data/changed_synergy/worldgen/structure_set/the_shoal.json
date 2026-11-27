@@ -1,0 +1,19 @@
+{
+  "structures": [
+    {
+      "structure": "changed_synergy:the_shoal",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 42,
+    "separation": 12,
+    "salt": 195811241,
+    "spread_type": "triangular",
+    "exclusion_zone": {
+      "other_set": "changed:decayed_labs",
+      "chunk_count": 6
+    }
+  }
+}

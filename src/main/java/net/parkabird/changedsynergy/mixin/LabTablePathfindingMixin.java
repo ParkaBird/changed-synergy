@@ -1,5 +1,6 @@
 package net.parkabird.changedsynergy.mixin;
 
+import java.util.EnumSet;
 import net.ltxprogrammer.changed.block.AbstractLabDoor;
 import net.ltxprogrammer.changed.block.AbstractLargeLabDoor;
 import net.ltxprogrammer.changed.block.BarTopBlock;
@@ -8,8 +9,13 @@ import net.ltxprogrammer.changed.block.LabTable;
 import net.ltxprogrammer.changed.block.RailingBlock;
 import net.ltxprogrammer.changed.block.StasisChamber;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.FenceBlock;
+import net.minecraft.world.level.block.WallBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.PathNavigationRegion;
@@ -21,6 +27,7 @@ import net.minecraft.world.level.block.FenceGateBlock;
 import net.minecraft.world.level.block.TrapDoorBlock;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.parkabird.changedsynergy.ai.CompanionOpenDoorGoal;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -37,6 +44,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  */
 @Mixin(WalkNodeEvaluator.class)
 public abstract class LabTablePathfindingMixin extends NodeEvaluator {
+    @Unique
+    private static final ThreadLocal<Integer> CROUCH_PLAN_BASE_Y = new ThreadLocal<>();
+
     @Inject(
             method = {
                 "prepare(Lnet/minecraft/world/level/PathNavigationRegion;Lnet/minecraft/world/entity/Mob;)V",
@@ -49,10 +59,41 @@ public abstract class LabTablePathfindingMixin extends NodeEvaluator {
         if (!CompanionOpenDoorGoal.isCrouchPlanning()) return;
         // Standing height 2.0 already uses entityHeight=2; still shrink so 2-block doors clear.
         if (this.entityHeight >= 2) this.entityHeight = 2;
-        // bbWidth 1.0–1.25 still rounds to entityWidth=2; allow single-block doorways while crouch-planning.
+        // bbWidth 1.0–1.25 still rounds to entityWidth=2; allow single-block doorways symmetrically in X/Z.
         if (walker instanceof ChangedEntity creature && creature.getBbWidth() <= 1.25F && this.entityWidth > 1) {
             this.entityWidth = 1;
         }
+        this.entityDepth = this.entityWidth;
+    }
+
+    @Inject(
+            method = {
+                "getBlockPathTypes(Lnet/minecraft/world/level/BlockGetter;IIILjava/util/EnumSet;Lnet/minecraft/world/level/pathfinder/BlockPathTypes;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/pathfinder/BlockPathTypes;",
+                "m_264561_(Lnet/minecraft/world/level/BlockGetter;IIILjava/util/EnumSet;Lnet/minecraft/world/level/pathfinder/BlockPathTypes;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/pathfinder/BlockPathTypes;"
+            },
+            at = @At("HEAD"),
+            remap = false)
+    private void changedSynergy$pushCrouchPlanBaseY(
+            BlockGetter level, int x, int y, int z, EnumSet<BlockPathTypes> output,
+            BlockPathTypes fallback, BlockPos basePos, CallbackInfoReturnable<BlockPathTypes> callback) {
+        if (CompanionOpenDoorGoal.isCrouchPlanning()) {
+            CROUCH_PLAN_BASE_Y.set(y);
+        } else {
+            CROUCH_PLAN_BASE_Y.remove();
+        }
+    }
+
+    @Inject(
+            method = {
+                "getBlockPathTypes(Lnet/minecraft/world/level/BlockGetter;IIILjava/util/EnumSet;Lnet/minecraft/world/level/pathfinder/BlockPathTypes;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/pathfinder/BlockPathTypes;",
+                "m_264561_(Lnet/minecraft/world/level/BlockGetter;IIILjava/util/EnumSet;Lnet/minecraft/world/level/pathfinder/BlockPathTypes;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/pathfinder/BlockPathTypes;"
+            },
+            at = @At("RETURN"),
+            remap = false)
+    private void changedSynergy$popCrouchPlanBaseY(
+            BlockGetter level, int x, int y, int z, EnumSet<BlockPathTypes> output,
+            BlockPathTypes fallback, BlockPos basePos, CallbackInfoReturnable<BlockPathTypes> callback) {
+        CROUCH_PLAN_BASE_Y.remove();
     }
 
     @ModifyVariable(
@@ -93,6 +134,38 @@ public abstract class LabTablePathfindingMixin extends NodeEvaluator {
         // automatic doors look like locked iron doors. Use Changed's own access check.
         if (state.getBlockPathType(level, pos, mob) == BlockPathTypes.WALKABLE_DOOR)
             callback.setReturnValue(BlockPathTypes.WALKABLE_DOOR);
+    }
+
+    @Inject(
+            method = {
+                "getBlockPathType(Lnet/minecraft/world/level/BlockGetter;III)Lnet/minecraft/world/level/pathfinder/BlockPathTypes;",
+                "m_8086_(Lnet/minecraft/world/level/BlockGetter;III)Lnet/minecraft/world/level/pathfinder/BlockPathTypes;"
+            },
+            at = @At("RETURN"),
+            cancellable = true,
+            remap = false)
+    private void changedSynergy$allowLowOverheadCrouchClearance(
+            BlockGetter level, int x, int y, int z, CallbackInfoReturnable<BlockPathTypes> callback) {
+        if (!CompanionOpenDoorGoal.isCrouchPlanning() || callback.getReturnValue() != BlockPathTypes.BLOCKED) return;
+        Integer baseY = CROUCH_PLAN_BASE_Y.get();
+        if (baseY == null || y <= baseY || !(this.mob instanceof ChangedEntity creature)) return;
+        BlockPos pos = new BlockPos(x, y, z);
+        BlockState state = level.getBlockState(pos);
+        if (state.isAir() || !state.getFluidState().isEmpty() || blocksLandPath(state.getBlock())) return;
+        if (state.getBlock() instanceof DoorBlock || state.getBlock() instanceof FenceGateBlock
+                || state.getBlock() instanceof FenceBlock || state.getBlock() instanceof WallBlock
+                || state.getBlock() instanceof AbstractLabDoor || state.getBlock() instanceof AbstractLargeLabDoor) {
+            return;
+        }
+        VoxelShape shape = state.getCollisionShape(level, pos);
+        if (shape.isEmpty()) return;
+        double minY = shape.min(Direction.Axis.Y);
+        if (minY < 0.45D) return;
+        double surfaceY = CompanionOpenDoorGoal.surfaceYAt(level, new BlockPos(x, baseY, z));
+        float crouchHeight = creature.getDimensions(Pose.CROUCHING).height;
+        if ((y + minY) - surfaceY >= crouchHeight + 0.005D) {
+            callback.setReturnValue(WalkNodeEvaluator.checkNeighbourBlocks(level, pos.mutable(), BlockPathTypes.OPEN));
+        }
     }
 
     @Inject(

@@ -143,21 +143,28 @@ public final class CaveMinerLightTracker {
         for (BlockPos candidate : candidates) {
             if (!level.isLoaded(candidate) || !level.isInWorldBounds(candidate)) continue;
             BlockState state = level.getBlockState(candidate);
-            if (isReplaceableForLight(state)) return candidate;
+            if (isReplaceableForLight(level, candidate, state)) return candidate;
         }
         return null;
     }
 
-    private static boolean isReplaceableForLight(BlockState state) {
+    private static boolean isTrackedPosition(net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dimension, BlockPos pos) {
+        for (LightRecord record : ACTIVE.values()) {
+            if (record.dimension().equals(dimension) && record.pos().equals(pos)) return true;
+        }
+        return false;
+    }
+
+    private static boolean isReplaceableForLight(ServerLevel level, BlockPos pos, BlockState state) {
         return state.isAir()
-                || state.is(Blocks.LIGHT)
+                || (state.is(Blocks.LIGHT) && isTrackedPosition(level.dimension(), pos))
                 || (state.is(Blocks.WATER) && state.getFluidState().isSource());
     }
 
     private static boolean ensureLightBlock(ServerLevel level, BlockPos pos) {
         if (!level.isLoaded(pos)) return false;
         BlockState current = level.getBlockState(pos);
-        if (!isReplaceableForLight(current)) return false;
+        if (!isReplaceableForLight(level, pos, current)) return false;
         boolean waterlogged = current.is(Blocks.LIGHT)
                 ? current.getValue(BlockStateProperties.WATERLOGGED)
                 : current.is(Blocks.WATER);

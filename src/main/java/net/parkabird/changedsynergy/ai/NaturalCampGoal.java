@@ -308,6 +308,7 @@ public final class NaturalCampGoal extends Goal {
                     var seed=crop.getCloneItemStack(level,target,state);
                     var planting=drops.stream().filter(s->ItemStack.isSameItemSameTags(s,seed) && !s.isEmpty()).findFirst().orElse(null);
                     if(planting!=null && crop.getStateForAge(0).canSurvive(level,target) && level.setBlock(target,crop.getStateForAge(0),Block.UPDATE_ALL)) {
+                        level.levelEvent(2001,target,Block.getId(state));
                         planting.shrink(1);
                         for(var item:drops)carry(item);
                         mob.swing(InteractionHand.MAIN_HAND);
@@ -333,7 +334,10 @@ public final class NaturalCampGoal extends Goal {
             }
             case MEAL -> {
                 mob.getNavigation().stop();
-                if(mob.getPose()==net.minecraft.world.entity.Pose.CROUCHING)mob.setPose(net.minecraft.world.entity.Pose.STANDING);
+                if (mob.getPose() == net.minecraft.world.entity.Pose.CROUCHING
+                        && mob.level().noCollision(mob, mob.getDimensions(net.minecraft.world.entity.Pose.STANDING).makeBoundingBox(mob.position()))) {
+                    mob.setPose(net.minecraft.world.entity.Pose.STANDING);
+                }
                 if(PlayerOutpostRestGoal.isRestPoint(level.getBlockState(target)))seated=PlayerOutpostRestGoal.sit(mob,level,target);
                 else seated=CreatureRestPlaces.sitOnGround(mob,level,target);
                 if(!seated){stalledTicks=MAX_STALLED_TICKS;}

@@ -1,6 +1,7 @@
 package net.parkabird.changedsynergy.ai;
 
 import java.util.EnumSet;
+import javax.annotation.Nullable;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.FluidTags;
@@ -11,6 +12,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.GameRules;
@@ -264,18 +266,52 @@ public final class FactionPursuitService {
                 if (!CreatureGrabService.isGrabberBusy(mob) && !mob.isVehicle()) mob.discard();
                 return false;
             }
-            return !CreatureGrabService.isGrabberBusy(mob) && !mob.isPassenger()
-                    && mob.distanceToSqr(player) > 9.0D;
+            LivingEntity activeTarget = resolveActiveTarget(mob, player);
+            if (activeTarget == null) {
+                LivingEntity current = mob.getTarget();
+                ChangedEntity shelter = BondedSuitService.getWrappingPet(player);
+                if (current == player || shelter != null && current == shelter) {
+                    mob.setTarget(null);
+                    mob.setAggressive(false);
+                }
+                return false;
+            }
+            if (CreatureGrabService.isGrabberBusy(mob) || mob.isPassenger()) {
+                return false;
+            }
+            if (mob.getTarget() != activeTarget) {
+                mob.setTarget(activeTarget);
+            }
+            return mob.distanceToSqr(activeTarget) > 9.0D;
         }
         @Override public boolean canContinueToUse() { return canUse(); }
         @Override public void tick() {
-            mob.setTarget(player);
+            LivingEntity activeTarget = resolveActiveTarget(mob, player);
+            if (activeTarget == null) {
+                return;
+            }
+            if (mob.getTarget() != activeTarget) {
+                mob.setTarget(activeTarget);
+            }
             HuntMemory.seeTarget(mob, player);
-            if (--repath <= 0 && mob.distanceToSqr(player) > 9) {
+            if (--repath <= 0 && mob.distanceToSqr(activeTarget) > 9.0D) {
                 repath = 10;
-                mob.getNavigation().moveTo(player, PURSUIT_SPEED);
+                mob.getNavigation().moveTo(activeTarget, PURSUIT_SPEED);
             }
         }
         @Override public void stop() { mob.getNavigation().stop(); }
+
+        @Nullable
+        private static LivingEntity resolveActiveTarget(ChangedEntity mob, ServerPlayer player) {
+            ChangedEntity shelter = BondedSuitService.getWrappingPet(player);
+            if (shelter == null) {
+                return player;
+            }
+            if (shelter == mob || !shelter.isAlive() || shelter.isRemoved()
+                    || LatexCreatureCombatRules.mustRejectTarget(mob, shelter)) {
+                return null;
+            }
+            return shelter;
+        }
     }
 }

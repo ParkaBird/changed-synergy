@@ -94,6 +94,37 @@ public final class CuriosCompat {
         }
     }
 
+    public static Map<net.ltxprogrammer.changed.data.AccessorySlotType, net.minecraft.world.item.ItemStack> wrapInventory(
+            LivingEntity owner,
+            Map<net.ltxprogrammer.changed.data.AccessorySlotType, net.minecraft.world.item.ItemStack> previous) {
+        return owner != null && isLoaded() ? new NativeClothingInventory(owner, previous) : previous;
+    }
+
+    public static void reconcileInventory(
+            Map<net.ltxprogrammer.changed.data.AccessorySlotType, net.minecraft.world.item.ItemStack> items) {
+        if (isLoaded() && items instanceof NativeClothingInventory inventory) {
+            inventory.reconcile();
+        }
+    }
+
+    public static void markSaveInventory(
+            Map<net.ltxprogrammer.changed.data.AccessorySlotType, net.minecraft.world.item.ItemStack> items,
+            net.minecraft.nbt.CompoundTag tag) {
+        if (isLoaded() && items instanceof NativeClothingInventory inventory) {
+            inventory.markSave(tag);
+        }
+    }
+
+    public static boolean loadInventory(
+            Map<net.ltxprogrammer.changed.data.AccessorySlotType, net.minecraft.world.item.ItemStack> items,
+            net.minecraft.nbt.CompoundTag tag) {
+        if (isLoaded() && items instanceof NativeClothingInventory inventory) {
+            inventory.load(tag);
+            return true;
+        }
+        return false;
+    }
+
     public record SlotDescriptor(String identifier, int index) {
     }
 

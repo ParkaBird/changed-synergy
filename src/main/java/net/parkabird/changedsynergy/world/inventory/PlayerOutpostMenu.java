@@ -114,7 +114,7 @@ public final class PlayerOutpostMenu extends AbstractContainerMenu {
         boolean meals = buffer.readBoolean();
         selected = buffer.readVarInt();
         locationDimensions = buffer.readList(data -> data.readUtf(128));
-        int count = Math.min(64, buffer.readVarInt());
+        int count = PlayerRelationshipMenu.clampSyncedCount(buffer.readVarInt());
         members = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             UUID idValue = buffer.readUUID();
@@ -166,8 +166,11 @@ public final class PlayerOutpostMenu extends AbstractContainerMenu {
         buffer.writeBoolean(outpost.meals);
         buffer.writeVarInt(selected);
         buffer.writeCollection(locationDimensions(player, outpost), (data, value) -> data.writeUtf(value, 128));
-        buffer.writeVarInt(outpost.members.size());
+        int count = Math.min(64, outpost.members.size());
+        buffer.writeVarInt(count);
+        int written = 0;
         for (Member member : outpost.members.values()) {
+            if (written++ >= count) break;
             Entity entity = loaded(player, member.id);
             buffer.writeUUID(member.id);
             buffer.writeUtf(member.name.length() > 256
@@ -347,8 +350,7 @@ public final class PlayerOutpostMenu extends AbstractContainerMenu {
             return net.parkabird.changedsynergy.ai.PlayerOutpostBuildService.enter(server);
         }
         if (id == MEAL_CALL) {
-            return server.server.getCommands().performPrefixedCommand(server.createCommandSourceStack(),
-                    "changedsynergy outpost meal") > 0;
+            return net.parkabird.changedsynergy.command.PlayerOutpostCommand.callMeal(server);
         }
         if (id == MEALS) {
             outpost.meals = !outpost.meals;
@@ -432,5 +434,11 @@ public final class PlayerOutpostMenu extends AbstractContainerMenu {
     public ItemStack quickMoveStack(Player viewer, int slot) { return ItemStack.EMPTY; }
 
     @Override
-    public boolean stillValid(Player viewer) { return viewer.isAlive() && !viewer.isRemoved(); }
+    public boolean stillValid(Player viewer) {
+        return viewer.isAlive() && !viewer.isRemoved() && !viewer.isSpectator()
+                && !(viewer instanceof ServerPlayer sp
+                        && (net.parkabird.changedsynergy.ai.TakeoverService.active(sp)
+                                || net.parkabird.changedsynergy.ai.HypnosisQteService.isPlayerControlLocked(sp)
+                                || net.parkabird.changedsynergy.origin.NativeOriginService.pending(sp)));
+    }
 }

@@ -5,6 +5,7 @@
   "terrain_adaptation": "none",
   "spawn_overrides": {},
   "template": "changed_synergy:burrow",
+  "farmersdelight_template": "changed_synergy:burrow_fd",
   "ground_level": 20,
   "max_terrain_slope": 5,
   "clearing_radius": 5

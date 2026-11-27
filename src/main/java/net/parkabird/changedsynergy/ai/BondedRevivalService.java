@@ -487,6 +487,7 @@ public final class BondedRevivalService {
             if (bondedPlayer != null) {
                 LatexSocialMemory.restorePlayerBondReference(
                         bondedPlayer, oldEntity, revived);
+                data.markPlayerApplied(token, playerId);
             }
         }
         CreatureIdentity.ensure(revived);
@@ -498,7 +499,11 @@ public final class BondedRevivalService {
 
     public static void applyCompletedReferences(ServerPlayer player) {
         BondedRevivalData data = BondedRevivalData.get(player.server);
-        for (CompoundTag record : data.records()) {
+        BondedCreatureDeathData deaths = BondedCreatureDeathData.get(player.server);
+        BondedCreatureReleaseData releases = BondedCreatureReleaseData.get(player.server);
+        for (var entry : data.recordsWithTokens().entrySet()) {
+            UUID token = entry.getKey();
+            CompoundTag record = entry.getValue();
             if (STATE_COMPLETE.equals(record.getString("State"))
                     && record.hasUUID("Owner")
                     && player.getUUID().equals(record.getUUID("Owner"))) {
@@ -508,15 +513,25 @@ public final class BondedRevivalService {
             if (!STATE_COMPLETE.equals(record.getString("State"))
                     || !record.hasUUID("OldEntity")
                     || !record.hasUUID("NewEntity")
-                    || !storedBonds(record).contains(player.getUUID())) {
+                    || !storedBonds(record).contains(player.getUUID())
+                    || BondedRevivalData.isPlayerApplied(record, player.getUUID())) {
                 continue;
             }
-            Entity entity = findEntity(player, record.getUUID("NewEntity"));
+            UUID newId = record.getUUID("NewEntity");
+            boolean legacyApplied = !record.contains("AppliedPlayers", Tag.TAG_LIST);
+            if (legacyApplied
+                    && (deaths.isDead(player.getUUID(), newId)
+                            || releases.isReleased(player.getUUID(), newId))) {
+                data.markPlayerApplied(token, player.getUUID());
+                continue;
+            }
+            Entity entity = findEntity(player, newId);
             LatexSocialMemory.restorePlayerBondReference(
                     player,
                     record.getUUID("OldEntity"),
                     entity instanceof ChangedEntity changed ? changed : null,
-                    record.getUUID("NewEntity"));
+                    newId);
+            data.markPlayerApplied(token, player.getUUID());
         }
     }
 

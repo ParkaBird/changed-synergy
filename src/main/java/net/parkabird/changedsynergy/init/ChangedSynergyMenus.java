@@ -6,7 +6,6 @@ import net.parkabird.changedsynergy.world.inventory.BondedLatexMenu;
 import net.parkabird.changedsynergy.world.inventory.CentaurMountConfigMenu;
 import net.parkabird.changedsynergy.world.inventory.PlayerRelationshipMenu;
 import net.parkabird.changedsynergy.world.inventory.PlayerOutpostMenu;
-import net.parkabird.changedsynergy.world.inventory.ProvisionerTradeMenu;
 import net.parkabird.changedsynergy.world.inventory.SocialInteractionMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.extensions.IForgeMenuType;
@@ -31,11 +30,6 @@ public final class ChangedSynergyMenus {
             REGISTRY.register(
                     "social_interaction",
                     () -> IForgeMenuType.create(SocialInteractionMenu::new));
-
-    public static final RegistryObject<MenuType<ProvisionerTradeMenu>> PROVISIONER_TRADE =
-            REGISTRY.register(
-                    "provisioner_trade",
-                    () -> IForgeMenuType.create(ProvisionerTradeMenu::new));
 
     public static final RegistryObject<MenuType<PlayerRelationshipMenu>> PLAYER_RELATIONSHIPS =
             REGISTRY.register(

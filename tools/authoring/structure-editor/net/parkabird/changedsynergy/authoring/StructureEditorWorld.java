@@ -33,18 +33,28 @@ import net.parkabird.changedsynergy.init.ChangedSynergyGameRules;
 /** Authoring-only server build; never included in the release JAR. */
 @Mod.EventBusSubscriber(modid="changed_synergy", value=Dist.DEDICATED_SERVER)
 public final class StructureEditorWorld {
+    private static String prop(String propName, String envName, String fallback) {
+        String v = System.getProperty(propName);
+        if (v != null && !v.isEmpty()) return v;
+        String e = System.getenv(envName);
+        return (e != null && !e.isEmpty()) ? e : fallback;
+    }
+    private static boolean flag(String propName, String envName) {
+        return Boolean.parseBoolean(prop(propName, envName, "false"));
+    }
     private static final boolean TREEHOUSE=Boolean.getBoolean("changed_synergy.treehouseEditor");
-    private static final boolean CLEAN=Boolean.getBoolean("changed_synergy.editorClean");
-    private static final String CUSTOM=System.getProperty("changed_synergy.editorTemplate","");
+    private static final boolean CLEAN=flag("changed_synergy.editorClean","CHANGED_SYNERGY_EDITOR_CLEAN");
+    private static final String CUSTOM=prop("changed_synergy.editorTemplate","CHANGED_SYNERGY_EDITOR_TEMPLATE","");
+    private static final int ORIGIN_Y=Integer.parseInt(prop("changed_synergy.editorOriginY","CHANGED_SYNERGY_EDITOR_ORIGIN_Y","64"));
     private static final String[] NAMES=!CUSTOM.isEmpty()?new String[]{CUSTOM}:TREEHOUSE?new String[]{"forest_treehouse"}:new String[]{"white_lab_tower","red_lab_tower","green_lab","water_tower_changed"};
     private static final String[] LABELS=!CUSTOM.isEmpty()?new String[]{CUSTOM}:TREEHOUSE?new String[]{"森林树屋"}:new String[]{"白色实验室塔","红色实验室塔","绿色实验室塔","水下实验室"};
-    private static final BlockPos[] ORIGINS=!CUSTOM.isEmpty()?new BlockPos[]{new BlockPos(0,64,0)}:TREEHOUSE?new BlockPos[]{new BlockPos(0,63,0)}:new BlockPos[]{new BlockPos(0,64,0),new BlockPos(160,64,0),new BlockPos(0,64,160),new BlockPos(160,64,160)};
+    private static final BlockPos[] ORIGINS=!CUSTOM.isEmpty()?new BlockPos[]{new BlockPos(0,ORIGIN_Y,0)}:TREEHOUSE?new BlockPos[]{new BlockPos(0,63,0)}:new BlockPos[]{new BlockPos(0,64,0),new BlockPos(160,64,0),new BlockPos(0,64,160),new BlockPos(160,64,160)};
     private static int books,containers,creatures;
 
     @SubscribeEvent public static void build(ServerStartedEvent event) {
         var server=event.getServer();
         try {
-            if(!Boolean.getBoolean("changed_synergy.buildEditorWorld"))return;
+            if(!flag("changed_synergy.buildEditorWorld","CHANGED_SYNERGY_BUILD_EDITOR_WORLD"))return;
             var level=server.overworld();var rules=level.getGameRules();
             rules.getRule(GameRules.RULE_DOMOBSPAWNING).set(false,server);
             rules.getRule(GameRules.RULE_MOBGRIEFING).set(false,server);
@@ -58,7 +68,9 @@ public final class StructureEditorWorld {
             rules.getRule(ChangedGameRules.RULE_NPC_WANT_FUSE_PLAYER).set(false,server);
             rules.getRule(ChangedSynergyGameRules.NATIVE_ORIGINS).set(false,server);
             level.setDayTime(6000);level.setWeatherParameters(999999,0,false,false);
-            level.setDefaultSpawnPos(new BlockPos(-12,64,-12),-45);
+            boolean isBurrow = CUSTOM.equals("burrow");
+            if (isBurrow) level.setDefaultSpawnPos(new BlockPos(28, 64, -8), 0);
+            else level.setDefaultSpawnPos(new BlockPos(-12,64,-12),-45);
             var metadata=server.getWorldPath(LevelResource.ROOT).resolve("synergy_editing/source-templates");Files.createDirectories(metadata);
             for(int i=0;i<NAMES.length;i++) {
                 var id=ResourceLocation.parse("changed_synergy:"+NAMES[i]);
@@ -100,14 +112,17 @@ public final class StructureEditorWorld {
                     var saved=entity.saveWithoutId(new CompoundTag());int count=editableBooks(saved);
                     if(count>0){entity.load(saved);siteBooks+=count;}
                 }
+                var drops = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, area.inflate(8.0D));
+                if (!drops.isEmpty()) throw new AssertionError("Dropped items detected after structure placement: " + drops.size() + " first=" + drops.get(0).getItem());
                 books+=siteBooks;containers+=siteContainers;
                 if(!CLEAN) {
-                    for(int x=-2;x<=size.getX()+1;x++)for(int z:new int[]{-2,size.getZ()+1})level.setBlock(origin.offset(x,TREEHOUSE?0:-1,z),Blocks.YELLOW_CONCRETE.defaultBlockState(),2);
-                    for(int z=-2;z<=size.getZ()+1;z++)for(int x:new int[]{-2,size.getX()+1})level.setBlock(origin.offset(x,TREEHOUSE?0:-1,z),Blocks.YELLOW_CONCRETE.defaultBlockState(),2);
-                    var board=origin.offset(size.getX()/2,TREEHOUSE?1:0,-5);level.setBlock(board,Blocks.OAK_SIGN.defaultBlockState(),3);
+                    int borderY = isBurrow ? 20 : (TREEHOUSE ? 0 : -1);
+                    for(int x=-2;x<=size.getX()+1;x++)for(int z:new int[]{-2,size.getZ()+1})level.setBlock(origin.offset(x,borderY,z),Blocks.YELLOW_CONCRETE.defaultBlockState(),2);
+                    for(int z=-2;z<=size.getZ()+1;z++)for(int x:new int[]{-2,size.getX()+1})level.setBlock(origin.offset(x,borderY,z),Blocks.YELLOW_CONCRETE.defaultBlockState(),2);
+                    var board=origin.offset(size.getX()/2,isBurrow?21:(TREEHOUSE?1:0),-5);level.setBlock(board,Blocks.OAK_SIGN.defaultBlockState(),3);
                     if(level.getBlockEntity(board) instanceof SignBlockEntity sign) {
                         var text=new SignText().setMessage(0,Component.literal(LABELS[i])).setMessage(1,Component.literal("方块／书籍／光盘可编辑"))
-                                .setMessage(2,Component.literal(i==3?"原海平面 Y=91":"改完后保存并退出"))
+                                .setMessage(2,Component.literal(i==3&&!isBurrow?"原海平面 Y=91":"改完后保存并退出"))
                                 .setMessage(3,Component.literal("范围角点 "+origin.toShortString()));
                         sign.setText(text,true);sign.setText(text,false);sign.setChanged();
                     }
@@ -117,15 +132,16 @@ public final class StructureEditorWorld {
             }
             if(books==0 && CUSTOM.isEmpty())throw new AssertionError("Authored books were not made editable");
             if(!CLEAN) {
-                level.setBlock(new BlockPos(-12,64,-10),Blocks.CHEST.defaultBlockState(),3);
-                var chest=(Container)level.getBlockEntity(new BlockPos(-12,64,-10));
+                BlockPos chestPos = isBurrow ? new BlockPos(25, 64, -5) : new BlockPos(-12, 64, -10);
+                level.setBlock(chestPos,Blocks.CHEST.defaultBlockState(),3);
+                var chest=(Container)level.getBlockEntity(chestPos);
                 chest.setItem(0,guide());chest.setItem(1,new ItemStack(Items.WRITABLE_BOOK,8));chest.setItem(2,new ItemStack(Items.ENDER_PEARL,16));chest.setItem(3,new ItemStack(Items.MILK_BUCKET));
                 chest.setChanged();
             }
             Files.writeString(server.getWorldPath(LevelResource.ROOT).resolve("synergy_editing/generation.txt"),"Editable books="+books+"\nContainers="+containers+"\nFrozen creatures="+creatures+"\nSource templates use Rotation.NONE.\n");
             System.out.println("STRUCTURE_EDITOR_WORLD_PASS: structures="+NAMES.length+"; editable books="+books+"; containers="+containers+"; frozen creatures="+creatures);
         } catch(Throwable failure) {System.err.println("STRUCTURE_EDITOR_WORLD_FAIL");failure.printStackTrace();}
-        finally {if(Boolean.getBoolean("changed_synergy.buildEditorWorld"))server.halt(false);}
+        finally {if(flag("changed_synergy.buildEditorWorld","CHANGED_SYNERGY_BUILD_EDITOR_WORLD"))server.halt(false);}
     }
 
     private static int editableBooks(Tag value) {

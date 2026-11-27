@@ -2069,8 +2069,6 @@ public final class CreatureSettlementService {
                     creature, kind, amount, orange);
             CreatureCommunityData.recordTradeDeposit(
                     creature, delivered, amount);
-            ProvisionerTradeService.recordDelivery(
-                    creature, delivered, source);
             showDepositParticles(level, creature.blockPosition());
             return true;
         }
@@ -2107,7 +2105,6 @@ public final class CreatureSettlementService {
         CreatureCommunityData.recordDeposit(creature, kind, inserted);
         ItemStack delivered = carried.copyWithCount(inserted);
         CreatureCommunityData.recordTradeDeposit(creature, delivered, inserted);
-        ProvisionerTradeService.recordDelivery(creature, delivered, source);
         CreatureLifeMemory.incrementRoleStat(creature, 1);
         showDepositParticles(level, cache.get());
         return true;

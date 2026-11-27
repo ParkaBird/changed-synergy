@@ -29,6 +29,8 @@ public final class LandmarkMapLoot {
     private static final Set<String> TUNDRA_CHESTS=Set.of("chests/igloo_chest","chests/village/village_snowy_house",
             "chests/village/village_taiga_house","chests/village/village_plains_house","chests/simple_dungeon",
             "chests/abandoned_mineshaft","chests/ruined_portal","chests/pillager_outpost");
+    private static final Set<String> OCEAN_CHESTS=Set.of("chests/shipwreck_map","chests/shipwreck_treasure",
+            "chests/underwater_ruin_big","chests/underwater_ruin_small");
 
     @SubscribeEvent public static void load(LootTableLoadEvent event) {
         var name=event.getName();
@@ -104,6 +106,18 @@ public final class LandmarkMapLoot {
                     LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.SNOWY_PLAINS)),
                     LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.SNOWY_TAIGA)),
                     LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.GROVE))));
+            event.getTable().addPool(pool.build());
+        }
+        if(tower || name.getNamespace().equals("minecraft")&&OCEAN_CHESTS.contains(name.getPath())) {
+            var pool=pool("the_shoal", tower ? .15F : .12F);
+            if(!tower)pool.when(AnyOfCondition.anyOf(
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.OCEAN)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.LUKEWARM_OCEAN)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.WARM_OCEAN)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.COLD_OCEAN)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.DEEP_OCEAN)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.DEEP_LUKEWARM_OCEAN)),
+                    LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.DEEP_COLD_OCEAN))));
             event.getTable().addPool(pool.build());
         }
     }

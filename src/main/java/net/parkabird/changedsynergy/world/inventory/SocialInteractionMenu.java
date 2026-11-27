@@ -822,6 +822,12 @@ public final class SocialInteractionMenu extends AbstractContainerMenu
             boolean bonded) {
         if (!creature.isAlive()
                 || creature.isRemoved()
+                || !player.isAlive()
+                || player.isRemoved()
+                || player.isSpectator()
+                || net.parkabird.changedsynergy.ai.TakeoverService.active(player)
+                || HypnosisQteService.isPlayerControlLocked(player)
+                || net.parkabird.changedsynergy.origin.NativeOriginService.pending(player)
                 || creature.level() != player.level()
                 || net.parkabird.changedsynergy.compat.TrueTransfurCompat.interactionBody(player).distanceToSqr(creature) > 64.0D) {
             return false;

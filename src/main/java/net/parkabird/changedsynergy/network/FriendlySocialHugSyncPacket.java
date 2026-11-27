@@ -37,8 +37,10 @@ public record FriendlySocialHugSyncPacket(
                 packet.grabbedId,
                 packet.active,
                 packet.durationTicks);
-            net.parkabird.changedsynergy.client.RevivalGrabAbilityClient.socialHold(
-                    packet.grabberId, packet.grabbedId, packet.active);
+            net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
+                    net.minecraftforge.api.distmarker.Dist.CLIENT,
+                    () -> () -> net.parkabird.changedsynergy.client.RevivalGrabAbilityClient.socialHold(
+                            packet.grabberId, packet.grabbedId, packet.active));
         });
         context.setPacketHandled(true);
     }

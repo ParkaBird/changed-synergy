@@ -205,7 +205,8 @@ public final class ChangedAddonSocialEvents {
             ensureGrabAbility(mob, grabber);
         }
         if (!mob.level().isClientSide
-                && mob.tickCount % 20 == Math.floorMod(mob.getId(), 20)) {
+                && mob.tickCount % 20 == Math.floorMod(mob.getId(), 20)
+                && needsSocialGrabGoals(mob)) {
             SafeEntityMutationQueue.queue(
                     mob,
                     "addon_social_grab_goals",
@@ -674,6 +675,24 @@ public final class ChangedAddonSocialEvents {
         Changed.PACKET_HANDLER.send(
                 PacketDistributor.TRACKING_ENTITY.with(grabber::asMob),
                 new GrabEntityPacket(mob, grabbed, GrabType.RELEASE));
+    }
+
+    private static boolean needsSocialGrabGoals(ChangedEntity mob) {
+        boolean organic = LatexSocialMemory.isOrganic(mob);
+        boolean hasEvac = !organic, hasOrganicGrab = !organic;
+        boolean hasGrab = false, hasDrop = false, hasDamage = false;
+        for (var wrapped : mob.goalSelector.getAvailableGoals()) {
+            Goal goal = wrapped.getGoal();
+            if (organic && goal instanceof OrganicOwnerEvacuationGoal) hasEvac = true;
+            else if (organic && goal instanceof OrganicAssimilationGrabGoal) hasOrganicGrab = true;
+            else if (goal instanceof SocialMayGrabTargetGoal) hasGrab = true;
+            else if (goal instanceof MayGrabTargetGoal) return true;
+            else if (goal instanceof SocialMayDropGrabbedEntityGoal) hasDrop = true;
+            else if (goal instanceof MayDropGrabbedEntityGoal) return true;
+            else if (goal instanceof SocialGrabDamageGoal) hasDamage = true;
+            else if (goal instanceof MayCauseGrabDamageGoal) return true;
+        }
+        return !hasEvac || !hasOrganicGrab || !hasGrab || !hasDrop || !hasDamage;
     }
 
     /** Reconciles goals after Addon and entity constructors have finished adding theirs. */

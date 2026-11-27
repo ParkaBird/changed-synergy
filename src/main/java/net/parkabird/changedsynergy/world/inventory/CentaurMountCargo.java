@@ -23,6 +23,10 @@ public final class CentaurMountCargo implements Container {
         ContainerHelper.loadAllItems(saved, items);
     }
 
+    public ChangedEntity centaur() {
+        return centaur;
+    }
+
     @Override
     public int getContainerSize() {
         return SIZE;

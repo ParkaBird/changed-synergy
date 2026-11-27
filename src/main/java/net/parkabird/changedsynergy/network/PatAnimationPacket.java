@@ -31,11 +31,13 @@ public record PatAnimationPacket(
             PatAnimationPacket packet,
             Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
-        context.enqueueWork(() -> PatAnimationClientState.update(
-                packet.actorId,
-                packet.active,
-                packet.durationTicks,
-                packet.cycleTicks));
+        context.enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
+                net.minecraftforge.api.distmarker.Dist.CLIENT,
+                () -> () -> PatAnimationClientState.update(
+                        packet.actorId,
+                        packet.active,
+                        packet.durationTicks,
+                        packet.cycleTicks)));
         context.setPacketHandled(true);
     }
 }

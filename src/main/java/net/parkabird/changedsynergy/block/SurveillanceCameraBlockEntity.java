@@ -125,7 +125,9 @@ public final class SurveillanceCameraBlockEntity extends BlockEntity {
     public void serverTick(Level level, BlockPos pos, BlockState state) {
         boolean dirtySync = false;
         if (--scanCooldown <= 0) {
-            scanCooldown = 5;
+            scanCooldown = (targetEntityId == -1 && ledState == LedState.IDLE)
+                    ? (15 + Math.floorMod(pos.hashCode(), 5))
+                    : 5;
             int nextTarget = findBestTargetId(level, pos, state);
             if (nextTarget != targetEntityId) {
                 targetEntityId = nextTarget;

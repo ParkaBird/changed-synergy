@@ -48,6 +48,13 @@ public final class SafeEntityMutationQueue {
         pending.values().forEach(PendingMutation::runIfPresent);
     }
 
+    @SubscribeEvent
+    public static void onServerStopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
+        synchronized (PENDING) {
+            PENDING.clear();
+        }
+    }
+
     private record MutationKey(UUID entity, String kind) {
     }
 

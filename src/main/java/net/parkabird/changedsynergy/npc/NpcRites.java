@@ -37,26 +37,7 @@ public final class NpcRites {
             net.parkabird.changedsynergy.dialogue.NpcDialogue.trigger(npc, player, net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue.BOND_REVERSE_UNSAFE);
             return false;
         }
-        long now = npc.level().getGameTime();
-        CompoundTag release = new CompoundTag();
-        release.putUUID("ReleasePlayer", player.getUUID());
-        release.putLong("ReleaseReverseAt", now + 40L);
-        release.putLong("ReleaseEndAt", now + 80L);
-        release.putBoolean("ReleaseReversed", false);
-        release.putBoolean("ReleaseRite", true);
-        npc.getPersistentData().put("ChangedSynergyReleaseHold", release);
-        player.closeContainer();
-
-        if (CreatureGrabService.tryStartNegotiatedRelease(npc, player, 80)) {
-            net.parkabird.changedsynergy.dialogue.NpcDialogue.trigger(npc, player, net.parkabird.changedsynergy.dialogue.NpcDialogue.Cue.BOND_REVERSE_HOLD);
-            return true;
-        }
-
-        InvoluntaryTransfurNegotiation.applyPlayerReversal(player, false);
-        release.putBoolean("ReleaseReversed", true);
-        npc.getPersistentData().put("ChangedSynergyReleaseHold", release);
-        InvoluntaryTransfurNegotiation.finishReleaseHold(npc, player);
-        return true;
+        return InvoluntaryTransfurNegotiation.beginRiteReleaseHold(npc, player);
     }
     /** Legacy marker only; new permanent rites use NativeOriginData. */
     public static boolean permanent(ServerPlayer player){return !data(player).getString("PermanentForm").isEmpty();}

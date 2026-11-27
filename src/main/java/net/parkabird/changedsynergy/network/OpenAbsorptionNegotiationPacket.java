@@ -33,6 +33,9 @@ public record OpenAbsorptionNegotiationPacket() {
 
     private static void open(ServerPlayer player) {
         if (!player.isAlive() || player.isSpectator()
+                || net.parkabird.changedsynergy.ai.TakeoverService.active(player)
+                || net.parkabird.changedsynergy.ai.HypnosisQteService.isPlayerControlLocked(player)
+                || net.parkabird.changedsynergy.origin.NativeOriginService.pending(player)
                 || !InvoluntaryTransfurNegotiation.hasAbsorptionClaim(player)) {
             return;
         }
@@ -42,6 +45,9 @@ public record OpenAbsorptionNegotiationPacket() {
             player.displayClientMessage(Component.translatable(
                     "message.changed_synergy.negotiation.cooldown",
                     Math.max(1L, (cooldown + 19L) / 20L)), true);
+            return;
+        }
+        if (!InvoluntaryTransfurNegotiation.canNegotiateAbsorption(player)) {
             return;
         }
         InvoluntaryTransfurNegotiation.claimAbsorptionOpeningLine(player);

@@ -106,13 +106,15 @@ public final class StoryClueService {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-        BlockEntity be = event.getLevel().getBlockEntity(event.getPos());
-        if (be instanceof TextBlockEntity textBe) {
-            inspectText(player, textBe.getText());
-        } else if (be instanceof LecternBlockEntity lectern && lectern.hasBook()) {
-            scanItem(player, lectern.getBook());
-        } else if (be != null && be.getClass().getName().toLowerCase(Locale.ROOT).contains("computer")) {
-            scanTag(player, be.saveWithoutMetadata(), 0);
+        if (event.getHand() == net.minecraft.world.InteractionHand.MAIN_HAND) {
+            BlockEntity be = event.getLevel().getBlockEntity(event.getPos());
+            if (be instanceof TextBlockEntity textBe) {
+                inspectText(player, textBe.getText());
+            } else if (be instanceof LecternBlockEntity lectern && lectern.hasBook()) {
+                scanItem(player, lectern.getBook());
+            } else if (be != null && be.getClass().getName().toLowerCase(Locale.ROOT).contains("computer")) {
+                scanTag(player, be.saveWithoutMetadata(), 0);
+            }
         }
         ItemStack held = event.getItemStack();
         if (!held.isEmpty() && !held.is(Items.WRITTEN_BOOK) && !held.is(Items.WRITABLE_BOOK)) {
@@ -332,6 +334,19 @@ public final class StoryClueService {
                 || text.contains("纸箱室")
                 || text.contains("i'll handle the door")) {
             unlock(player, "burrow_rules");
+        }
+        if (text.contains("diving_partner@reef-salvage.net")
+                || text.contains("scavenger@the-shoal.net")
+                || text.contains("charcoal-and-blue suit")
+                || text.contains("blue leg stripe")
+                || text.contains("first crate of oranges")) {
+            unlock(player, "shoal_disc");
+        }
+        if (text.contains("salvage tally: east deck")
+                || text.contains("dented doorway slats replaced")
+                || text.contains("still zero oranges on the shoal")
+                || text.contains("mostly wet cardboard, dry walls")) {
+            unlock(player, "shoal_manifest");
         }
     }
 }

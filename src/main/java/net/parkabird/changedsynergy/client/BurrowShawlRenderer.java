@@ -141,8 +141,9 @@ public final class BurrowShawlRenderer extends ClothingModelFit implements Acces
 
         boolean closed = BurrowShawlItem.closed(context.stack());
         ModelPart torso = active.getChild("Torso");
+        ModelPart head = active.getChild("Head");
         torso.getChild("State_Open").visible = !closed;
-        torso.getChild("State_Closed").visible = closed;
+        head.getChild("State_Closed").visible = closed;
 
         boolean hasShirt = AccessorySlots.getForEntity(wearer)
                 .flatMap(slots -> slots.getItem(ChangedAccessorySlots.BODY.get()))
@@ -156,5 +157,15 @@ public final class BurrowShawlRenderer extends ClothingModelFit implements Acces
         VertexConsumer buffer = buffers.getBuffer(RenderType.entityCutoutNoCull(TEXTURE));
         renderPart(torso, ref.getChild("Torso"), part(model, "Torso"), pose, buffer, light, null, 0, padding);
         pose.popPose();
+
+        if (closed) {
+            ModelPart targetHead = part(model, "Head");
+            if (targetHead != null) {
+                pose.pushPose();
+                if (model instanceof AdvancedHumanoidModel<?> advanced) advanced.scaleForHead(pose);
+                renderPart(head, ref.getChild("Head"), targetHead, pose, buffer, light, null, 0, padding);
+                pose.popPose();
+            }
+        }
     }
 }

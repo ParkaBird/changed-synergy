@@ -1,0 +1,41 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "min": 2,
+        "max": 4
+      },
+      "entries": [
+        { "type": "minecraft:item", "name": "minecraft:cod", "weight": 12, "functions": [{ "function": "minecraft:set_count", "count": { "min": 2, "max": 5 } }] },
+        { "type": "minecraft:item", "name": "minecraft:salmon", "weight": 10, "functions": [{ "function": "minecraft:set_count", "count": { "min": 1, "max": 4 } }] },
+        { "type": "minecraft:item", "name": "minecraft:cooked_cod", "weight": 8, "functions": [{ "function": "minecraft:set_count", "count": { "min": 1, "max": 3 } }] },
+        { "type": "minecraft:item", "name": "minecraft:kelp", "weight": 10, "functions": [{ "function": "minecraft:set_count", "count": { "min": 3, "max": 8 } }] },
+        { "type": "minecraft:item", "name": "minecraft:dried_kelp", "weight": 8, "functions": [{ "function": "minecraft:set_count", "count": { "min": 2, "max": 6 } }] },
+        { "type": "minecraft:item", "name": "minecraft:oak_planks", "weight": 8, "functions": [{ "function": "minecraft:set_count", "count": { "min": 2, "max": 8 } }] },
+        { "type": "minecraft:item", "name": "minecraft:iron_nugget", "weight": 9, "functions": [{ "function": "minecraft:set_count", "count": { "min": 3, "max": 9 } }] },
+        { "type": "minecraft:item", "name": "minecraft:copper_ingot", "weight": 7, "functions": [{ "function": "minecraft:set_count", "count": { "min": 1, "max": 3 } }] },
+        { "type": "minecraft:item", "name": "minecraft:coal", "weight": 8, "functions": [{ "function": "minecraft:set_count", "count": { "min": 2, "max": 6 } }] },
+        { "type": "minecraft:item", "name": "minecraft:string", "weight": 7, "functions": [{ "function": "minecraft:set_count", "count": { "min": 2, "max": 5 } }] },
+        { "type": "minecraft:item", "name": "minecraft:torch", "weight": 7, "functions": [{ "function": "minecraft:set_count", "count": { "min": 2, "max": 6 } }] },
+        { "type": "minecraft:item", "name": "minecraft:bread", "weight": 7, "functions": [{ "function": "minecraft:set_count", "count": { "min": 1, "max": 3 } }] },
+        { "type": "minecraft:item", "name": "minecraft:baked_potato", "weight": 6, "functions": [{ "function": "minecraft:set_count", "count": { "min": 1, "max": 3 } }] },
+        { "type": "minecraft:item", "name": "minecraft:sea_pickle", "weight": 5, "functions": [{ "function": "minecraft:set_count", "count": { "min": 1, "max": 3 } }] }
+      ]
+    },
+    {
+      "rolls": {
+        "min": 0,
+        "max": 1
+      },
+      "entries": [
+        { "type": "minecraft:item", "name": "minecraft:prismarine_shard", "weight": 6, "functions": [{ "function": "minecraft:set_count", "count": { "min": 1, "max": 3 } }] },
+        { "type": "minecraft:item", "name": "minecraft:iron_ingot", "weight": 6, "functions": [{ "function": "minecraft:set_count", "count": { "min": 1, "max": 2 } }] },
+        { "type": "minecraft:item", "name": "minecraft:nautilus_shell", "weight": 4 },
+        { "type": "minecraft:item", "name": "minecraft:lantern", "weight": 5 },
+        { "type": "minecraft:item", "name": "minecraft:fishing_rod", "weight": 3 },
+        { "type": "minecraft:item", "name": "minecraft:spyglass", "weight": 2 }
+      ]
+    }
+  ]
+}

@@ -174,7 +174,8 @@ public final class PlayerOutpostBuildService {
 
         BlockPlaceContext context = new BlockPlaceContext(player, InteractionHand.MAIN_HAND, taken.stack(), hit);
         BlockPos placePos = context.getClickedPos();
-        if (!level.hasChunkAt(placePos) || !outpost.contains(placePos) || placePos.equals(outpost.marker)) {
+        if (!level.hasChunkAt(placePos) || !outpost.contains(placePos) || placePos.equals(outpost.marker)
+                || !player.mayBuild() || !level.mayInteract(player, placePos)) {
             if (!creative) refund(player, taken);
             fail(player, "range");
             return false;
@@ -277,13 +278,7 @@ public final class PlayerOutpostBuildService {
         var key = ForgeRegistries.BLOCKS.getKey(block);
         if (key == null) return false;
         String path = key.getPath().toLowerCase(Locale.ROOT);
-        if (path.contains("crafting_table") || path.contains("workbench") || path.contains("crafting_station")
-                || path.contains("furnace") || path.contains("smoker") || path.contains("blast_furnace")
-                || path.contains("catalyzer") || path.contains("unifuser") || path.contains("purifier")
-                || path.contains("centrifuge") || path.contains("anvil") || path.contains("enchant")
-                || path.contains("brewing") || path.contains("dispenser") || path.contains("dropper")
-                || path.contains("hopper") || path.contains("lectern") || path.contains("jukebox")
-                || path.contains("bookshelf") || path.contains("chiseled") || path.contains("campfire")) {
+        if (PlayerOutpostData.isProhibitedContainerPath(path) || path.contains("campfire")) {
             return false;
         }
         return path.contains("chest") || path.contains("barrel") || path.contains("crate")
@@ -382,5 +377,10 @@ public final class PlayerOutpostBuildService {
         if (event.getEntity() instanceof ServerPlayer player) {
             SESSIONS.remove(player.getUUID());
         }
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
+        SESSIONS.clear();
     }
 }

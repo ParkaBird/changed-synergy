@@ -29,7 +29,7 @@ public final class NearbyObservatoryMapFunction extends LootItemConditionalFunct
     private static final Map<ServerLevel,Map<Search,CachedTarget>> CACHE=new WeakHashMap<>();
     private final String destination;
     private NearbyObservatoryMapFunction(LootItemCondition[] conditions){this(conditions,"observatory");}
-    private NearbyObservatoryMapFunction(LootItemCondition[] conditions,String destination){super(conditions);if(!Set.of("observatory","desert_refuge","forest_treehouse","hyena_hideout","lush_cabin","point_prometheus","burrow").contains(destination))throw new JsonParseException("Unknown nearby landmark "+destination);this.destination=destination;}
+    private NearbyObservatoryMapFunction(LootItemCondition[] conditions,String destination){super(conditions);if(!net.parkabird.changedsynergy.ai.CampTemplateCatalog.isLandmarkDestination(destination))throw new JsonParseException("Unknown nearby landmark "+destination);this.destination=destination;}
     public static LootItemFunction.Builder create(){return ()->new NearbyObservatoryMapFunction(new LootItemCondition[0]);}
     public static LootItemFunction.Builder create(String destination){return ()->new NearbyObservatoryMapFunction(new LootItemCondition[0],destination);}
     @Override public LootItemFunctionType getType(){return TYPE.get();}

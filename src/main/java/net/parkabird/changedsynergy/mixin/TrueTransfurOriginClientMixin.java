@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Pseudo
 @Mixin(targets = "com.lugert.true_transfur.client.TransfurClientState", remap = false)
 public abstract class TrueTransfurOriginClientMixin {
-    @Inject(method = "isInstinct", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "isInstinct", at = @At("HEAD"), cancellable = true, require = 0, remap = false)
     private static void changedSynergy$humanControl(CallbackInfoReturnable<Boolean> callback) {
         if (!NativeOriginPolicy.allowsInstinct(Minecraft.getInstance().player)) callback.setReturnValue(false);
     }

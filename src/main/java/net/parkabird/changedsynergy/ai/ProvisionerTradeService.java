@@ -36,7 +36,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.parkabird.changedsynergy.ChangedSynergyConfig;
 import net.parkabird.changedsynergy.ai.CreatureLifeMemory.GroupRole;
 import net.parkabird.changedsynergy.ai.CreaturePersonality.RelationshipTier;
-import net.parkabird.changedsynergy.ai.CreatureSettlementService.ProvisionSource;
 import net.parkabird.changedsynergy.world.inventory.BondedInventoryService;
 
 /** Species-aware barter using Minecraft's complete merchant interaction. */
@@ -72,25 +71,6 @@ public final class ProvisionerTradeService {
 
         public String key() {
             return key;
-        }
-    }
-
-    /** Kept as the small wire model used by older saved screens. */
-    public record TradeOffer(
-            ItemStack payment,
-            ItemStack result,
-            OfferKind kind,
-            int maxTrades,
-            boolean enabled) {
-        public TradeOffer {
-            payment = payment.copy();
-            result = result.copy();
-            maxTrades = Math.max(0, maxTrades);
-        }
-
-        public static TradeOffer empty(OfferKind kind) {
-            return new TradeOffer(
-                    ItemStack.EMPTY, ItemStack.EMPTY, kind, 0, false);
         }
     }
 
@@ -146,6 +126,10 @@ public final class ProvisionerTradeService {
         return ACTIVE_TRADERS.contains(provider.getUUID());
     }
 
+    public static void clearActiveTraders() {
+        ACTIVE_TRADERS.clear();
+    }
+
     public static void holdStillWhileTrading(ChangedEntity provider) {
         if (!isTrading(provider)) {
             return;
@@ -181,14 +165,6 @@ public final class ProvisionerTradeService {
             menu.changedSynergy$skipTradeSound();
     }
 
-    public static void recordDelivery(
-            ChangedEntity provider,
-            ItemStack delivered,
-            ProvisionSource source) {
-        // Trade selection is species/region based. Community stock revisions
-        // already make newly returned currency visible on the next opening.
-    }
-
     public static void copyProfile(
             ChangedEntity source,
             ChangedEntity target) {
@@ -197,59 +173,6 @@ public final class ProvisionerTradeService {
             target.getPersistentData().put(
                     PROFILE, persistent.getCompound(PROFILE).copy());
         }
-    }
-
-    public static List<TradeOffer> offers(
-            ChangedEntity provider,
-            ServerPlayer player) {
-        List<TradeOffer> result = new ArrayList<>();
-        for (Template template : templates(provider, player)) {
-            result.add(new TradeOffer(
-                    template.payment(), template.result(), template.kind(),
-                    template.maxTrades(), template.maxTrades() > 0));
-        }
-        while (result.size() < 4) {
-            result.add(TradeOffer.empty(
-                    OfferKind.values()[result.size()]));
-        }
-        return List.copyOf(result.subList(0, 4));
-    }
-
-    /** Compatibility path for the retired button-only screen. */
-    public static TradeResult trade(
-            ChangedEntity provider,
-            ServerPlayer player,
-            int offerIndex) {
-        if (!canOpen(provider, player) || isBusy(provider)) {
-            return TradeResult.UNAVAILABLE;
-        }
-        List<Template> current = templates(provider, player);
-        if (offerIndex < 0 || offerIndex >= current.size()) {
-            return TradeResult.UNAVAILABLE;
-        }
-        Template template = current.get(offerIndex);
-        if (countPlayerItem(player, template.payment())
-                < template.payment().getCount()) {
-            return TradeResult.NEED_PAYMENT;
-        }
-        ItemStack withdrawn = template.stockBound()
-                ? withdrawStock(provider, template.result())
-                : template.result().copy();
-        if (withdrawn.isEmpty()) {
-            return TradeResult.OUT_OF_STOCK;
-        }
-        if (!removePlayerItem(player, template.payment())) {
-            if (template.stockBound()) {
-                returnStock(provider, withdrawn);
-            }
-            return TradeResult.NEED_PAYMENT;
-        }
-        player.getInventory().placeItemBackInInventory(withdrawn);
-        acceptPayment(provider, template.payment());
-        if (!template.stockBound()) {
-            recordUse(provider, template.kind());
-        }
-        return TradeResult.SUCCESS;
     }
 
     private static void acceptPayment(ChangedEntity provider, ItemStack payment) {
@@ -648,30 +571,6 @@ public final class ProvisionerTradeService {
         return stack.getRarity() == Rarity.UNCOMMON ? 3
                 : stack.getRarity() == Rarity.RARE ? 8
                 : stack.getRarity() == Rarity.EPIC ? 16 : 1;
-    }
-
-    private static int countPlayerItem(
-            ServerPlayer player, ItemStack sample) {
-        return player.getInventory().items.stream()
-                .filter(stack -> ItemStack.isSameItemSameTags(stack, sample))
-                .mapToInt(ItemStack::getCount).sum();
-    }
-
-    private static boolean removePlayerItem(
-            ServerPlayer player, ItemStack payment) {
-        int remaining = payment.getCount();
-        for (ItemStack stack : player.getInventory().items) {
-            if (remaining <= 0) {
-                break;
-            }
-            if (ItemStack.isSameItemSameTags(stack, payment)) {
-                int removed = Math.min(remaining, stack.getCount());
-                stack.shrink(removed);
-                remaining -= removed;
-            }
-        }
-        player.getInventory().setChanged();
-        return remaining == 0;
     }
 
     private static final class SynergyMerchant implements Merchant {

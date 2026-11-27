@@ -25,11 +25,11 @@ final class StructureStorageOwnership {
         var be = level.getBlockEntity(pos);
         if (be == null) return false;
         var data = mob.getPersistentData().getCompound(StructureResidentGoal.DATA);
-        if (be.getPersistentData().getBoolean(MARKER) && !Set.of("desert_refuge","lush_cabin","point_prometheus","burrow","oasis","muddy_campsite","hyena_camp_tropical","hyena_camp_open","hyena_camp_snowy").contains(data.getString("Template"))) return true;
+        if (be.getPersistentData().getBoolean(MARKER) && !CampTemplateCatalog.usesAuthoredStorageLayout(data.getString("Template"))) return true;
         var id = ResourceLocation.tryParse(data.getString("Template"));
         if (id == null || !data.getBoolean("Resolved")) return false;
         if (id.getNamespace().equals("minecraft")) id = ResourceLocation.fromNamespaceAndPath("changed_synergy", id.getPath());
-        var template = level.getStructureManager().get(id).orElse(null);
+        var template = resolveTemplate(level, id);
         if (template == null) return false;
         var layout = LAYOUTS.computeIfAbsent(template, StructureStorageOwnership::read);
         if (!data.contains("PlacementOrigin") && !recoverPlacement(mob, data, layout)) return false;
@@ -70,11 +70,20 @@ final class StructureStorageOwnership {
         if(!data.getBoolean("Resolved"))return List.of();
         var id=ResourceLocation.tryParse(data.getString("Template"));if(id==null)return List.of();
         if(id.getNamespace().equals("minecraft"))id=ResourceLocation.fromNamespaceAndPath("changed_synergy",id.getPath());
-        var template=level.getStructureManager().get(id).orElse(null);if(template==null)return List.of();
+        var template=resolveTemplate(level,id);if(template==null)return List.of();
         var layout=LAYOUTS.computeIfAbsent(template,StructureStorageOwnership::read);
         if(!data.contains("PlacementOrigin")&&!recoverPlacement(mob,data,layout))return List.of();
         var origin=BlockPos.of(data.getLong("PlacementOrigin"));var rotation=Rotation.values()[Math.floorMod(data.getInt("PlacementRotation"),4)];
         return layout.stores().stream().filter(Store::publicStore).map(s->StructureTemplate.transform(s.pos(),Mirror.NONE,rotation,BlockPos.ZERO).offset(origin)).toList();
+    }
+
+    private static StructureTemplate resolveTemplate(ServerLevel level, ResourceLocation id) {
+        if (net.minecraftforge.fml.ModList.get().isLoaded("farmersdelight")) {
+            var fdId = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), id.getPath() + "_fd");
+            var fdTemplate = level.getStructureManager().get(fdId).orElse(null);
+            if (fdTemplate != null) return fdTemplate;
+        }
+        return level.getStructureManager().get(id).orElse(null);
     }
 
     private static Layout read(StructureTemplate template) {

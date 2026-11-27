@@ -39,6 +39,8 @@ public final class PureWhiteHiveEvents {
     private static final long DIALOGUE_COOLDOWN = 240L;
     private static final String DIALOGUE_LOCK =
             "ChangedSynergyWhiteHiveCombatDialogueUntil";
+    private static final java.util.Set<java.util.UUID> PLAYERS_WITH_TARGETS =
+            new java.util.HashSet<>();
 
     private PureWhiteHiveEvents() {
     }
@@ -167,10 +169,24 @@ public final class PureWhiteHiveEvents {
                     .map(LivingEntity::getId)
                     .toList();
         }
-        List<Integer> synchronizedTargets = targets;
+        if (!targets.isEmpty()) {
+            PLAYERS_WITH_TARGETS.add(player.getUUID());
+        } else if (!PLAYERS_WITH_TARGETS.remove(player.getUUID())) {
+            return;
+        }
         ChangedSynergyNetwork.CHANNEL.send(
                 PacketDistributor.PLAYER.with(() -> player),
-                new WhiteHiveTargetsPacket(synchronizedTargets));
+                new WhiteHiveTargetsPacket(targets));
+    }
+
+    @SubscribeEvent
+    public static void onLogout(net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent event) {
+        PLAYERS_WITH_TARGETS.remove(event.getEntity().getUUID());
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
+        PLAYERS_WITH_TARGETS.clear();
     }
 
     public static boolean hasActiveDialogueLock(

@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class TrueTransfurOriginRotationMixin {
     @Shadow(remap = false) public static void discardCapture() { throw new AssertionError(); }
 
-    @Inject(method = {"captureBody", "tick"}, at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = {"captureBody", "tick"}, at = @At("HEAD"), cancellable = true, require = 0, remap = false)
     private static void changedSynergy$onlyNativePose(Player player, CallbackInfo callback) {
         if (!NativeOriginPolicy.allowsInstinct(player)) {
             discardCapture();

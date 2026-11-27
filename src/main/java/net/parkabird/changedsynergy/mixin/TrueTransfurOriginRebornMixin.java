@@ -21,12 +21,12 @@ public abstract class TrueTransfurOriginRebornMixin {
     @Shadow @Final private static Map<UUID, Integer> HEAL_LATER;
     @Shadow public static void clear(ServerPlayer player) { throw new AssertionError(); }
 
-    @Inject(method = "interceptDeath", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "interceptDeath", at = @At("HEAD"), cancellable = true, require = 0, remap = false)
     private static void changedSynergy$nativeRebirth(LivingDeathEvent event, ServerPlayer player, CallbackInfoReturnable<Boolean> callback) {
         if (!NativeOriginPolicy.allows(player)) callback.setReturnValue(false);
     }
 
-    @Inject(method = {"tick", "onLogin", "handlePress"}, at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = {"tick", "onLogin", "handlePress"}, at = @At("HEAD"), cancellable = true, require = 0, remap = false)
     private static void changedSynergy$clearHumanRebirth(ServerPlayer player, CallbackInfo callback) {
         if (NativeOriginPolicy.allows(player)) return;
         if (player.getPersistentData().contains("TrueTransfurReborn")) clear(player);

@@ -182,7 +182,13 @@ public final class BondedLatexMenu extends AbstractContainerMenu implements Upda
 
     @Override
     public boolean stillValid(Player viewer) {
-        return pet != null && pet.isAlive()
+        return pet != null && pet.isAlive() && !pet.isRemoved()
+                && pet.level() == viewer.level()
+                && !viewer.isSpectator()
+                && !(viewer instanceof ServerPlayer sp
+                        && (net.parkabird.changedsynergy.ai.TakeoverService.active(sp)
+                                || net.parkabird.changedsynergy.ai.HypnosisQteService.isPlayerControlLocked(sp)
+                                || net.parkabird.changedsynergy.origin.NativeOriginService.pending(sp)))
                 && LatexSocialMemory.petOwnerUuid(pet)
                         .map(viewer.getUUID()::equals)
                         .orElse(false)

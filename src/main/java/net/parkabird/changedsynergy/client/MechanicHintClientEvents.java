@@ -14,6 +14,7 @@ import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -180,6 +181,12 @@ public final class MechanicHintClientEvents {
             ChangedSynergyMod.LOGGER.warn(
                     "Could not save Synergy mechanic-hint state", exception);
         }
+    }
+
+    @SubscribeEvent
+    public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        resetObservation();
+        nextHintTick = 0;
     }
 
     private static void resetObservation() {

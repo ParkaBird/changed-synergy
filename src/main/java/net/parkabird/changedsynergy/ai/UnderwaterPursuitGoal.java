@@ -1,10 +1,6 @@
 package net.parkabird.changedsynergy.ai;
 
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.Set;
 import net.ltxprogrammer.changed.entity.ChangedEntity;
 import net.parkabird.changedsynergy.event.HuntAIEvents;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,7 +9,6 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -23,8 +18,6 @@ import net.minecraft.world.phys.Vec3;
 public final class UnderwaterPursuitGoal extends Goal {
     private static final double MIN_SWIM_SPEED = 0.08D;
     private static final double MAX_SWIM_SPEED = 0.18D;
-    private static final Set<ChangedEntity> PENDING_ORIENTATION =
-            Collections.newSetFromMap(new IdentityHashMap<>());
     private final ChangedEntity mob;
     private Pose previousPose;
     private Pose previousOverridePose;
@@ -98,12 +91,15 @@ public final class UnderwaterPursuitGoal extends Goal {
                 nextY,
                 Mth.lerp(0.18D, current.z, wantedZ));
         applySwimmingPose();
-        PENDING_ORIENTATION.add(mob);
+        SafeEntityMutationQueue.queue(mob, "underwater_pursuit_orientation", () -> {
+            if (mob.isAlive() && !mob.isRemoved()) {
+                alignSwimmingOrientation(mob);
+            }
+        });
     }
 
     @Override
     public void stop() {
-        PENDING_ORIENTATION.remove(mob);
         mob.setSwimming(false);
         if (mob.overridePose == Pose.SWIMMING) {
             mob.overridePose = previousOverridePose;
@@ -158,21 +154,6 @@ public final class UnderwaterPursuitGoal extends Goal {
                 * Mth.RAD_TO_DEG);
         wantedPitch = Mth.clamp(wantedPitch, -75.0F, 75.0F);
         mob.setXRot(approachDegrees(mob.getXRot(), wantedPitch, 20.0F));
-    }
-
-    /** Applies queued headings after every entity in this level has finished its AI controls. */
-    public static void flushSwimmingOrientations(Level level) {
-        Iterator<ChangedEntity> iterator = PENDING_ORIENTATION.iterator();
-        while (iterator.hasNext()) {
-            ChangedEntity mob = iterator.next();
-            if (mob.level() != level) {
-                continue;
-            }
-            iterator.remove();
-            if (mob.isAlive() && !mob.isRemoved()) {
-                alignSwimmingOrientation(mob);
-            }
-        }
     }
 
     private static float approachDegrees(float current, float wanted, float maximumChange) {

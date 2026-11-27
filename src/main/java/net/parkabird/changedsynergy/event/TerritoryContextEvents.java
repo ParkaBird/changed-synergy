@@ -91,6 +91,11 @@ public final class TerritoryContextEvents {
         LAST_CONTEXT.remove(event.getEntity().getUUID());
     }
 
+    @SubscribeEvent
+    public static void onServerStopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
+        LAST_CONTEXT.clear();
+    }
+
     private static void synchronize(ServerPlayer player) {
         if (!player.isAlive() || !(player.level() instanceof ServerLevel level)) {
             return;
@@ -222,6 +227,9 @@ public final class TerritoryContextEvents {
             eye.east(8)
         };
         for (BlockPos sample : samples) {
+            if (!level.hasChunkAt(sample)) {
+                continue;
+            }
             ResourceLocation candidate = biomeId(level, sample);
             if (isCaveBiome(candidate)) {
                 return new BiomeSample(candidate, sample, true);
