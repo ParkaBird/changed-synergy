@@ -1,8 +1,8 @@
-# Changed: Synergy 1.1.5-Beta.1 — Player guides
+# Changed: Synergy 1.1.5 — Player guides
 
-These guides describe the default 1.1.5-Beta.1 rules. A server can change gameplay settings; check its settings page when an option behaves differently.
+These guides describe the default 1.1.5 (`1.1.5-Beta.3-pre.3`) rules. A server can change gameplay settings; check its settings page when an option behaves differently.
 
-**Supported pairing:** Synergy 1.1.5-Beta.1, Changed 0.15.7 and TrueTransfur 2.x. TrueTransfur is optional for NPC relationships and camps. Its 2.x integration requires Mixin Args on both server and clients. TrueTransfur 1.0.1 compatibility is no longer maintained or tested.
+**Supported pairing:** Synergy 1.1.5 (`1.1.5-Beta.3-pre.3`), Changed 0.15.7 and TrueTransfur 2.x. TrueTransfur is optional for NPC relationships and camps. Its 2.x integration requires Mixin Args on both server and clients. TrueTransfur 1.0.1 compatibility is no longer maintained or tested.
 
 ## Playing
 

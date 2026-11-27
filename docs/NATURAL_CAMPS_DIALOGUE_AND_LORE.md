@@ -15,7 +15,7 @@
 - `understands` / `channel=mental`: Requires the player to be transfurred or have telepathy translation enabled (`TelepathyService`).
 - `clue:<id>`: Requires the player to have inspected the corresponding note, clipboard, computer, or compact disc (`StoryClueService`).
 - `requires: [...]`: Requires prior completion of the listed dialogue node(s).
-- **Small camps without dialogue**: `hyena_camp_open`, `hyena_camp_snowy`, `hyena_camp_tropical`, `muddy_campsite`, and `oasis` only use routine/public-storage AI (`CampLifeService.mainCamp` is `false`); residents have no interactive dialogue tree.
+- **Small camps without dialogue**: `hyena_camp_open`, `hyena_camp_snowy`, `hyena_camp_tropical`, `muddy_campsite`, `oasis`, and `stiger_hut` only use routine/public-storage AI (`CampLifeService.mainCamp` is `false`); residents have no interactive dialogue tree.
 
 ## 1. Shared Camp-Life Dialogue (`CampDialogue` / `camp_dialogue/common.json`)
 

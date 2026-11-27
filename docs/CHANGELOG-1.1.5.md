@@ -1,9 +1,10 @@
 # Changed: Synergy 1.1.5
 
-Release notes for the 1.1.5 series. The current preview is **1.1.5-Beta.3-pre.1**.
+Release notes for the 1.1.5 series. The current preview is **1.1.5-Beta.3-pre.3**.
 
 | Version | Release notes |
 | --- | --- |
+| [Beta.3-pre.3](CHANGELOG-1.1.5-Beta.3-pre.3.md) | The Burrow & The Shoal communities, Latex Manuls & Gray Foxes, Burrow Shawl, Stiger Hut, placeable Dark Latex Mask block, optional FD structure split and pursuit/AI fixes |
 | [Beta.3-pre.1](CHANGELOG-1.1.5-Beta.3-pre.1.md) | Latex Spidtaur, Partial Pure White Latex Wolf, Lush Cabin and Caretaker, Build mode, companion safety fixes and 3D Skin Layers sync |
 | [Beta.2-hotfix.2](CHANGELOG-1.1.5-Beta.2-hotfix.2.md) | Community resident recovery, clearer resident dialogue, Facility HUD option and structure stability fixes |
 | [Beta.2-hotfix.1](CHANGELOG-1.1.5-Beta.2-hotfix.1.md) | Reversible rite reversal, Chief play exclusion, stationary NPC dialogue, telepathy command and `/locate` optimization |

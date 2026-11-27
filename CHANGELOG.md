@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.1.5-Beta.3-pre.3
+
+### Species and Clothing
+
+* **Latex Manuls and Latex Gray Foxes**: Added male and female **Latex Manuls** (`latex_manul`, `latex_manul_female`) and **Latex Gray Foxes** (`latex_gray_fox`, `latex_gray_fox_female`) with native origins, spawn eggs, dialogue themes, and adapted facial layers.
+* **Burrow Shawl**: Added fitted `burrow_shawl` outerwear across Manul, Gray Fox, female, and bipedal cuts; split the raised face gaiter (`Head`) from the stationary neck/shoulder shawl (`Torso`) so head movement does not clip.
+* **Placeable Dark Latex Mask Block**: Added flat 16-angle placement for `changed:dark_latex_mask` and `changed_synergy:repaired_dark_latex_mask` on Sneak + Right-Click while preserving item NBT, with empty-hand equip (human) or pickup (transfurred).
+
+### Communities and World Generation
+
+* **The Burrow, The Shoal, and Stiger Hut**: Added the underground **Burrow** community (`manul_chief`, `gray_fox_chief`), the ocean **Shoal** community (`shoal_chief`), and the deep-cave **Spidtaur Hut** (`stiger_hut`) small camp with built-in resident and supply chest.
+* **Farmer's Delight Optional Structure Variants**: Split `burrow_fd`, `point_prometheus_fd`, and `the_shoal_fd` so worlds without Farmer's Delight load clean vanilla/Changed structure replacements, alongside **Point Prometheus** and **Lush Cabin** refinements.
+
+### AI, Takeover, and Visual Fixes
+
+* **Wrapped Pursuit & Takeover**: Fixed pursuit squads flickering between aggressive and passive and stalling near ~3 blocks when chasing players wrapped inside a bonded pet; direct takeover surrender in friendly or confinement takeovers now grants `+12` affinity (punitive takeovers excluded).
+* **Navigation, Farming & Bonds**: Generalized latex crouching traversal for narrow two-block doorways/passages, added crop-harvest break particles, fixed third-person head-pat animation display, suppressed false greetings during bonded merges, and granted initial relationships to new latex entities spawned by player assimilation.
+
 ## 1.1.5-Beta.3-pre.1
 
 ### Species and Forms

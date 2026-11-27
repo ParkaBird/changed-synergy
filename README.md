@@ -19,7 +19,7 @@ Changed: Synergy turns aggressive latex creatures into neighbors you can get alo
 
 **1.1.5 adds Latex Silk Moth**, a separate four-armed species with articulated antennae and a gentle wing idle. See the [species and testing guide](docs/LATEX_SILK_MOTH.md). With **TrueTransfur 2.x**, begin as a native latex creature, choose a species through an animated archive, speak in character and interact with other players in PLAYER or INSTINCT mode. TrueTransfur is optional: NPC relationships, camps and companion features work without it. Starting with 1.1.5, TrueTransfur 1.0.1 compatibility is no longer maintained or tested.
 
-The new species also include [Latex Swordfish](docs/LATEX_SWORDFISH.md), an open-ocean swimmer with a Riptide-style rush, and [Latex Muntjac](docs/LATEX_MUNTJAC.md), a jungle deer relative with animated upright ears. Both have natural spawns, native origins and matching transfur items.
+The new species also include [Latex Swordfish](docs/LATEX_SWORDFISH.md), an open-ocean swimmer with a Riptide-style rush, [Latex Muntjac](docs/LATEX_MUNTJAC.md), a jungle deer relative with animated upright ears, as well as **Latex Spidtaur**, **Partial Pure White Latex Wolf**, **Latex Manul**, and **Latex Gray Fox**. All new species feature natural spawns or communities, native origins, and matching transfur items.
 
 ## Player guides
 
